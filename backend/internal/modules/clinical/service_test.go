@@ -264,3 +264,44 @@ func TestGetObservationsByEncounter_RepositoryFailure_ReturnsError(t *testing.T)
 	assert.Error(t, err)
 	assert.Nil(t, result)
 }
+
+func TestGetObservationsByPatient_Success(t *testing.T) {
+	mockClinicalObservations := []*clinical.Observation{
+		{
+			PatientFHIRID:   "patient-fhir-999",
+			EncounterFHIRID: "encounter-fhir-888",
+			LoincCode:       "8867-4",
+			CodeDisplay:     "Heart Rate",
+			ValueQuantity:   75,
+			ValueUnit:       "bpm",
+		},
+	}
+
+	clinicalService := clinical.NewService(&mockRepository{
+		getObservationsByPatientFn: func(ctx context.Context, patientFHIRID string) ([]*clinical.Observation, error) {
+			return mockClinicalObservations, nil
+		},
+	})
+
+	retrievedObservations, observationError := clinicalService.GetObservationsByPatient(context.Background(), "patient-fhir-999")
+
+	assert.NoError(t, observationError)
+	assert.NotNil(t, retrievedObservations)
+	assert.Len(t, retrievedObservations, 1)
+	assert.Equal(t, "8867-4", retrievedObservations[0].LoincCode)
+}
+
+func TestGetObservationsByPatient_RepositoryFailure_ReturnsError(t *testing.T) {
+	clinicalService := clinical.NewService(&mockRepository{
+		getObservationsByPatientFn: func(ctx context.Context, patientFHIRID string) ([]*clinical.Observation, error) {
+			return nil, errRepositoryFailure
+		},
+	})
+
+	retrievedObservations, observationError := clinicalService.GetObservationsByPatient(context.Background(), "patient-fhir-999")
+
+	assert.Error(t, observationError)
+	assert.Nil(t, retrievedObservations)
+	assert.True(t, errors.Is(observationError, errRepositoryFailure))
+}
+
