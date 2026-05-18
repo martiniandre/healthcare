@@ -18,6 +18,9 @@
 4. Fazer o `push` imediato para a branch ativa no GitHub (`git push`).
 Nunca aguardar o usuário solicitar explicitamente o push para publicar o trabalho finalizado e testado.
 
+**REGRA DE TESTES E2E OBRIGATÓRIOS:** Toda mudança de fluxo ou novas funcionalidades de frontend exigem a correspondente criação ou atualização de testes E2E usando Playwright (`frontend/e2e/`). Os títulos dos testes devem ser estritamente em inglês. Todas as chamadas de rede externas e de autenticação devem ser interceptadas de forma resiliente e offline no Playwright usando `page.route()` nativo (conforme padronizado em `helpers.ts`), permitindo que a suite de testes execute com 100% de sucesso sem qualquer dependência de backend rodando.
+
+
 Este documento dita a execução técnica e a orquestração das automações do ecossistema para a stack modular Go + React (Vite).
 
 ---

@@ -15,6 +15,9 @@
 4. Fazer o `push` imediato para a branch ativa no GitHub (`git push`).
 Nunca aguardar o usuário solicitar explicitamente o push para publicar o trabalho finalizado e testado.
 
+**REGRA DE TESTES E2E OBRIGATÓRIOS:** Toda mudança de fluxo ou novas funcionalidades de frontend exigem a correspondente criação ou atualização de testes E2E usando Playwright (`frontend/e2e/`). Os títulos dos testes devem ser estritamente em inglês. Todas as chamadas de rede externas e de autenticação devem ser interceptadas de forma resiliente e offline no Playwright usando `page.route()` nativo (conforme padronizado em `helpers.ts`), permitindo que a suite de testes execute com 100% de sucesso sem qualquer dependência de backend rodando.
+
+
 ---
 
 Você é um Arquiteto de Software Sênior e Engenheiro Full-Stack. Todo o código gerado deve seguir rigorosamente a arquitetura baseada em um núcleo central (`app`), uma camada global reutilizável (`shared`) e módulos isolados de interface, garantindo alta performance, encapsulamento completo, cobertura de testes (Unitários e E2E) e escalabilidade multi-cloud.
