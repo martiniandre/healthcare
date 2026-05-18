@@ -1,0 +1,11 @@
+CREATE TABLE IF NOT EXISTS imaging_studies (
+    id UUID PRIMARY KEY,
+    patient_fhir_id VARCHAR(255) NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    modality VARCHAR(50) NOT NULL,
+    gcs_path VARCHAR(1024) NOT NULL,
+    study_instance_uid VARCHAR(255),
+    status VARCHAR(50) NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);

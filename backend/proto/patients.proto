@@ -1,0 +1,47 @@
+syntax = "proto3";
+
+package patients.v1;
+
+option go_package = "github.com/healthcare/backend/internal/modules/patients/pb";
+
+service PatientService {
+  rpc CreatePatient(CreatePatientRequest) returns (CreatePatientResponse);
+  rpc GetPatient(GetPatientRequest) returns (GetPatientResponse);
+  rpc GetPatientByDocument(GetPatientByDocumentRequest) returns (GetPatientResponse);
+  rpc ListPatients(ListPatientsRequest) returns (ListPatientsResponse);
+}
+
+message CreatePatientRequest {
+  string full_name = 1;
+  string birth_date = 2;
+  string document_id = 3;
+  string phone_number = 4;
+}
+
+message CreatePatientResponse {
+  string patient_id = 1;
+  string fhir_resource_id = 2;
+}
+
+message GetPatientRequest {
+  string fhir_resource_id = 1;
+}
+
+message GetPatientByDocumentRequest {
+  string document_id = 1;
+}
+
+message GetPatientResponse {
+  string patient_id = 1;
+  string fhir_resource_id = 2;
+  string full_name = 3;
+  string birth_date = 4;
+  string document_id = 5;
+  string phone_number = 6;
+}
+
+message ListPatientsRequest {}
+
+message ListPatientsResponse {
+  repeated GetPatientResponse patients = 1;
+}

@@ -1,0 +1,131 @@
+package imaging
+
+import (
+	"context"
+	"fmt"
+	"log/slog"
+	"time"
+
+	"github.com/google/uuid"
+	"github.com/healthcare/backend/internal/shared/fhir"
+	"github.com/healthcare/backend/internal/shared/healthcare"
+	"github.com/redis/go-redis/v9"
+)
+
+type Worker struct {
+	dbRepository     Repository
+	redisClient      *redis.Client
+	healthcareClient *healthcare.Client
+	stopChannel      chan struct{}
+}
+
+func NewWorker(dbRepository Repository, redisClient *redis.Client, healthcareClient *healthcare.Client) *Worker {
+	return &Worker{
+		dbRepository:     dbRepository,
+		redisClient:      redisClient,
+		healthcareClient: healthcareClient,
+		stopChannel:      make(chan struct{}),
+	}
+}
+
+func (worker *Worker) Start(ctx context.Context) {
+	slog.Info("imaging background worker started successfully")
+	for {
+		select {
+		case <-worker.stopChannel:
+			slog.Info("imaging background worker received shutdown signal")
+			return
+		case <-ctx.Done():
+			slog.Info("imaging background worker context cancelled")
+			return
+		default:
+			if worker.redisClient == nil {
+				time.Sleep(5 * time.Second)
+				continue
+			}
+
+			popResults, popError := worker.redisClient.BRPop(ctx, 5*time.Second, "dicom_processing_queue").Result()
+			if popError != nil {
+				continue
+			}
+
+			if len(popResults) < 2 {
+				continue
+			}
+
+			studyIDString := popResults[1]
+			worker.processDICOM(ctx, studyIDString)
+		}
+	}
+}
+
+func (worker *Worker) Stop() {
+	close(worker.stopChannel)
+}
+
+func (worker *Worker) processDICOM(ctx context.Context, studyIDString string) {
+	studyID, parseError := uuid.Parse(studyIDString)
+	if parseError != nil {
+		slog.Error("failed to parse study id from queue", "id", studyIDString, "error", parseError)
+		return
+	}
+
+	study, dbError := worker.dbRepository.GetImagingStudy(ctx, studyID)
+	if dbError != nil {
+		slog.Error("failed to fetch operational study from db", "id", studyIDString, "error", dbError)
+		return
+	}
+
+	study.Status = "PROCESSING"
+	_ = worker.dbRepository.UpdateImagingStudy(ctx, study)
+
+	studyInstanceUID := fmt.Sprintf("1.2.826.0.1.3680043.8.498.%s", uuid.New().String())
+
+	fhirStudy := &fhir.ImagingStudyResource{
+		ResourceType: "ImagingStudy",
+		Status:       "available",
+		Subject: fhir.Reference{
+			Reference: fmt.Sprintf("Patient/%s", study.PatientFhirID),
+		},
+		Started:     study.CreatedAt.Format(time.RFC3339),
+		Description: study.Title,
+		Series: []fhir.Series{
+			{
+				Uid:    fmt.Sprintf("1.2.826.0.1.3680043.8.498.series.%s", uuid.New().String()),
+				Number: 1,
+				Modality: fhir.Coding{
+					System:  "http://dicom.nema.org/resources/ontology/DCM",
+					Code:    study.Modality,
+					Display: study.Modality,
+				},
+				Instance: []fhir.Instance{
+					{
+						Uid: studyInstanceUID,
+						SopClass: fhir.Coding{
+							System: "http://dicom.nema.org/resources/ontology/DCM",
+							Code:   "1.2.840.10008.5.1.4.1.1.7",
+						},
+						Number: 1,
+					},
+				},
+			},
+		},
+	}
+
+	var creationError error
+	if worker.healthcareClient != nil {
+		_, creationError = worker.healthcareClient.CreateResource(ctx, "ImagingStudy", fhirStudy)
+	}
+
+	if creationError != nil {
+		slog.Error("failed to register ImagingStudy FHIR resource", "id", studyIDString, "error", creationError)
+		study.Status = "FAILED"
+	} else {
+		study.Status = "PROCESSED"
+		study.StudyInstanceUID = studyInstanceUID
+	}
+
+	study.UpdatedAt = time.Now()
+	_ = worker.dbRepository.UpdateImagingStudy(ctx, study)
+	slog.Info("imaging study processed and registered successfully", "id", studyIDString, "status", study.Status)
+}

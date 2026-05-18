@@ -1,0 +1,62 @@
+syntax = "proto3";
+
+package clinical.v1;
+
+option go_package = "github.com/healthcare/backend/internal/modules/imaging/pb";
+
+service ImagingService {
+  rpc UploadDICOM(stream UploadDICOMRequest) returns (stream UploadDICOMResponse);
+  rpc GetImagingStudy(GetImagingStudyRequest) returns (GetImagingStudyResponse);
+  rpc ListImagingStudies(ListImagingStudiesRequest) returns (ListImagingStudiesResponse);
+  rpc GetDICOMDownloadURL(GetDICOMDownloadURLRequest) returns (GetDICOMDownloadURLResponse);
+}
+
+message UploadDICOMRequest {
+  oneof payload {
+    UploadMetadata metadata = 1;
+    bytes chunk = 2;
+  }
+}
+
+message UploadMetadata {
+  string patient_fhir_id = 1;
+  string title = 2;
+  string modality = 3;
+}
+
+message UploadDICOMResponse {
+  string imaging_study_id = 1;
+  string status = 2;
+  int64 bytes_uploaded = 3;
+}
+
+message GetImagingStudyRequest {
+  string imaging_study_id = 1;
+}
+
+message GetImagingStudyResponse {
+  string imaging_study_id = 1;
+  string patient_fhir_id = 2;
+  string title = 3;
+  string modality = 4;
+  string study_instance_uid = 5;
+  string status = 6;
+  string created_at = 7;
+}
+
+message ListImagingStudiesRequest {
+  string patient_fhir_id = 1;
+}
+
+message ListImagingStudiesResponse {
+  repeated GetImagingStudyResponse studies = 1;
+}
+
+message GetDICOMDownloadURLRequest {
+  string imaging_study_id = 1;
+}
+
+message GetDICOMDownloadURLResponse {
+  string download_url = 1;
+  string expires_at = 2;
+}

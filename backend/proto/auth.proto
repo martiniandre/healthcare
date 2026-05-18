@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+package auth.v1;
+
+option go_package = "github.com/healthcare/backend/internal/modules/auth/pb";
+
+service AuthService {
+  rpc Login(LoginRequest) returns (LoginResponse);
+  rpc Register(RegisterRequest) returns (RegisterResponse);
+  rpc Logout(LogoutRequest) returns (LogoutResponse);
+}
+
+message LoginRequest {
+  string email = 1;
+  string password = 2;
+}
+
+message LoginResponse {
+  string token = 1;
+  string user_id = 2;
+  string role = 3;
+}
+
+message RegisterRequest {
+  string email = 1;
+  string password = 2;
+  string full_name = 3;
+  string role = 4;
+}
+
+message RegisterResponse {
+  string user_id = 1;
+}
+
+message LogoutRequest {}
+message LogoutResponse {}

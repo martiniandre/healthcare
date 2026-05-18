@@ -1,0 +1,49 @@
+syntax = "proto3";
+
+package staff.v1;
+
+option go_package = "github.com/healthcare/backend/internal/modules/staff/pb";
+
+service StaffService {
+  rpc CreateEmployee(CreateEmployeeRequest) returns (CreateEmployeeResponse);
+  rpc GetEmployee(GetEmployeeRequest) returns (GetEmployeeResponse);
+  rpc ListEmployees(ListEmployeesRequest) returns (ListEmployeesResponse);
+  rpc DeactivateEmployee(DeactivateEmployeeRequest) returns (DeactivateEmployeeResponse);
+}
+
+message CreateEmployeeRequest {
+  string user_id = 1;
+  string full_name = 2;
+  string email = 3;
+  string role = 4;
+  string crm_number = 5;
+}
+
+message CreateEmployeeResponse {
+  string employee_id = 1;
+}
+
+message GetEmployeeRequest {
+  string employee_id = 1;
+}
+
+message GetEmployeeResponse {
+  string employee_id = 1;
+  string full_name = 2;
+  string email = 3;
+  string role = 4;
+  string crm_number = 5;
+  bool is_active = 6;
+}
+
+message ListEmployeesRequest {}
+
+message ListEmployeesResponse {
+  repeated GetEmployeeResponse employees = 1;
+}
+
+message DeactivateEmployeeRequest {
+  string employee_id = 1;
+}
+
+message DeactivateEmployeeResponse {}

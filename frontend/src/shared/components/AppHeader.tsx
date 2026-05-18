@@ -1,0 +1,49 @@
+import { useAuthStore } from "../store/auth_store"
+import { Bell, ShieldCheck } from "lucide-react"
+
+export const AppHeader = () => {
+  const { role, email } = useAuthStore()
+
+  const translateRole = (userRole: string | null) => {
+    switch (userRole) {
+      case "RoleAdmin":
+        return "Administrador"
+      case "RoleDoctor":
+        return "Médico"
+      case "RoleNurse":
+        return "Enfermeiro"
+      case "RoleReception":
+        return "Recepção"
+      default:
+        return "Profissional"
+    }
+  }
+
+  return (
+    <header className="w-full border-b border-border bg-white/80 backdrop-blur-sm sticky top-0 z-50 px-6 py-2.5 flex items-center justify-end gap-3">
+      <button className="relative p-2 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-50 transition-colors">
+        <Bell className="w-4 h-4" />
+        <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-primary rounded-full" />
+      </button>
+
+      <div className="h-5 w-px bg-border" />
+
+      <div className="flex items-center gap-2.5">
+        <div className="w-8 h-8 rounded-lg bg-primary/8 flex items-center justify-center text-primary text-xs font-black">
+          {email ? email.charAt(0).toUpperCase() : "U"}
+        </div>
+        <div className="flex flex-col items-start">
+          <span className="text-xs font-semibold text-gray-800 leading-tight">
+            {email || "usuario@hospital.com"}
+          </span>
+          <div className="flex items-center gap-1">
+            <ShieldCheck className="w-3 h-3 text-secondary" />
+            <span className="text-[10px] text-muted font-medium">
+              {translateRole(role)}
+            </span>
+          </div>
+        </div>
+      </div>
+    </header>
+  )
+}
