@@ -20,6 +20,8 @@ Nunca aguardar o usuário solicitar explicitamente o push para publicar o trabal
 
 **REGRA DE TESTES E2E OBRIGATÓRIOS:** Toda mudança de fluxo ou novas funcionalidades de frontend exigem a correspondente criação ou atualização de testes E2E usando Playwright (`frontend/e2e/`). Os títulos dos testes devem ser estritamente em inglês. Todas as chamadas de rede externas e de autenticação devem ser interceptadas de forma resiliente e offline no Playwright usando `page.route()` nativo (conforme padronizado em `helpers.ts`), permitindo que a suite de testes execute com 100% de sucesso sem qualquer dependência de backend rodando.
 
+**REGRA DE TESTES UNITÁRIOS OBRIGATÓRIOS:** Todas as implementações de lógica de negócio e endpoints expostos no backend e no frontend devem obrigatoriamente possuir testes unitários correspondentes. No backend Go, toda lógica de service e gRPC handler deve ser rigorosamente coberta por testes unitários utilizando mock do repositório no mesmo pacote do módulo. No frontend React, a lógica de componentes reutilizáveis, hooks customizados e helpers de integração deve ser validada por testes unitários com Vitest.
+
 
 Este documento dita a execução técnica e a orquestração das automações do ecossistema para a stack modular Go + React (Vite).
 
