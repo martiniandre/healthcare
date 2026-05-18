@@ -1,10 +1,25 @@
+import { useState, useEffect } from "react"
 import { useAuthStore } from "../store/auth_store"
 import { useLayoutStore } from "../store/layout_store"
-import { Menu, Bell, ShieldCheck } from "lucide-react"
+import { Menu, Bell, ShieldCheck, WifiOff } from "lucide-react"
 
 export const AppHeader = () => {
   const { role, email } = useAuthStore()
   const toggleMobileSidebar = useLayoutStore((state) => state.toggleMobileSidebar)
+  const [isOnline, setIsOnline] = useState(navigator.onLine)
+
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true)
+    const handleOffline = () => setIsOnline(false)
+
+    window.addEventListener("online", handleOnline)
+    window.addEventListener("offline", handleOffline)
+
+    return () => {
+      window.removeEventListener("online", handleOnline)
+      window.removeEventListener("offline", handleOffline)
+    }
+  }, [])
 
   const translateRole = (userRole: string | null) => {
     switch (userRole) {
@@ -29,6 +44,13 @@ export const AppHeader = () => {
       >
         <Menu className="w-5 h-5" />
       </button>
+
+      {!isOnline && (
+        <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-50 border border-red-200 text-red-600 text-[10px] font-bold animate-pulse select-none mr-2">
+          <WifiOff className="w-3.5 h-3.5 text-red-500" />
+          <span>Sem Conexão</span>
+        </div>
+      )}
 
       <button className="relative p-2 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-50 transition-colors">
         <Bell className="w-4 h-4" />
