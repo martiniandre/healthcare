@@ -119,7 +119,7 @@ export const Staff = () => {
   })
 
   return (
-    <div className="flex-1 p-8 flex flex-col gap-6 max-w-7xl mx-auto w-full select-none relative">
+    <div className="flex-1 p-4 sm:p-6 md:p-8 flex flex-col gap-4 md:gap-6 max-w-7xl mx-auto w-full select-none relative">
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div className="text-left">
           <h2 className="text-xl font-black text-gray-900 leading-none flex items-center gap-2">
@@ -171,8 +171,8 @@ export const Staff = () => {
           </div>
         </div>
 
-        <div className="overflow-x-auto border border-border rounded-xl">
-          <table className="w-full text-left text-xs border-collapse">
+        <div className="overflow-x-auto border border-border rounded-xl w-full">
+          <table className="w-full text-left text-xs border-collapse min-w-[700px] md:min-w-0">
             <thead>
               <tr className="bg-gray-50/50 border-b border-border text-gray-500 font-bold uppercase tracking-wider">
                 <th className="py-3 px-4">Profissional</th>
@@ -269,7 +269,7 @@ export const Staff = () => {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1">
                   <label className="text-xs font-semibold text-gray-600">Categoria</label>
                   <select
@@ -295,7 +295,7 @@ export const Staff = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1">
                   <label className="text-xs font-semibold text-gray-600">E-mail Corporativo</label>
                   <Input

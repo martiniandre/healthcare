@@ -50,7 +50,7 @@ export const Stats = () => {
   const activeConsultationsTotal = 56
 
   return (
-    <div className="flex-1 p-8 flex flex-col gap-6 max-w-7xl mx-auto w-full select-none">
+    <div className="flex-1 p-4 sm:p-6 md:p-8 flex flex-col gap-4 md:gap-6 max-w-7xl mx-auto w-full select-none">
       <div className="text-left">
         <h2 className="text-xl font-black text-gray-900 leading-none flex items-center gap-2">
           <BarChart3 className="w-5 h-5 text-primary animate-pulse-glow" />
@@ -218,38 +218,40 @@ export const Stats = () => {
             <span className="text-xs text-muted block mt-1">Evolução diária de atendimentos médicos e triagem</span>
           </div>
 
-          <div className="flex items-end justify-between gap-2.5 h-48 border-b border-border pb-2 pt-6 px-4">
-            {consultationsWeeklyData.map((item, index) => {
-              const isHovered = hoveredBarIndex === index
-              const maxScaleCount = 50
-              const percentageHeight = (item.count / maxScaleCount) * 100
+          <div className="overflow-x-auto w-full">
+            <div className="flex items-end justify-between gap-2.5 h-48 border-b border-border pb-2 pt-6 px-4 min-w-[280px]">
+              {consultationsWeeklyData.map((item, index) => {
+                const isHovered = hoveredBarIndex === index
+                const maxScaleCount = 50
+                const percentageHeight = (item.count / maxScaleCount) * 100
 
-              return (
-                <div
-                  key={item.dayName}
-                  className="flex-1 flex flex-col items-center gap-2 group relative"
-                  onMouseEnter={() => setHoveredBarIndex(index)}
-                  onMouseLeave={() => setHoveredBarIndex(null)}
-                >
-                  {isHovered && (
-                    <div className="absolute -top-10 bg-gray-900 text-white text-[10px] font-bold px-2 py-1 rounded shadow-md z-10 whitespace-nowrap">
-                      {item.count} Consultas
-                    </div>
-                  )}
-
+                return (
                   <div
-                    className={`w-full max-w-[28px] rounded-t-md transition-all duration-300 ${
-                      isHovered ? "bg-primary" : "bg-primary/20"
-                    }`}
-                    style={{ height: `${percentageHeight}%` }}
-                  />
+                    key={item.dayName}
+                    className="flex-1 flex flex-col items-center gap-2 group relative"
+                    onMouseEnter={() => setHoveredBarIndex(index)}
+                    onMouseLeave={() => setHoveredBarIndex(null)}
+                  >
+                    {isHovered && (
+                      <div className="absolute -top-10 bg-gray-900 text-white text-[10px] font-bold px-2 py-1 rounded shadow-md z-10 whitespace-nowrap">
+                        {item.count} Consultas
+                      </div>
+                    )}
 
-                  <span className="text-[10px] font-bold text-gray-500 uppercase">
-                    {item.dayName}
-                  </span>
-                </div>
-              )
-            })}
+                    <div
+                      className={`w-full max-w-[28px] rounded-t-md transition-all duration-300 ${
+                        isHovered ? "bg-primary" : "bg-primary/20"
+                      }`}
+                      style={{ height: `${percentageHeight}%` }}
+                    />
+
+                    <span className="text-[10px] font-bold text-gray-500 uppercase">
+                      {item.dayName}
+                    </span>
+                  </div>
+                )
+              })}
+            </div>
           </div>
 
           <div className="flex justify-between items-center text-xs text-gray-500 px-2.5">
@@ -272,8 +274,8 @@ export const Stats = () => {
           </Button>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs border-collapse">
+        <div className="overflow-x-auto w-full">
+          <table className="w-full text-left text-xs border-collapse min-w-[500px] md:min-w-0">
             <thead>
               <tr className="border-b border-border text-gray-500 font-bold uppercase tracking-wider">
                 <th className="py-3 px-3">Código CID</th>
