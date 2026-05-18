@@ -11,6 +11,7 @@ import (
 )
 
 type GRPCHandler struct {
+	grpc_health_v1.UnimplementedHealthServer
 	databaseConnectionPool *pgxpool.Pool
 	cacheConnectionClient  *redis.Client
 }

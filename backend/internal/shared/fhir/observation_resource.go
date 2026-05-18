@@ -1,5 +1,10 @@
 package fhir
 
+import (
+	"fmt"
+	"time"
+)
+
 type ObservationResource struct {
 	ResourceType string              `json:"resourceType"`
 	ID           string              `json:"id,omitempty"`
@@ -33,3 +38,47 @@ type ValueQuantity struct {
 	System string  `json:"system"`
 	Code   string  `json:"code"`
 }
+
+func NewObservationResource(patientFHIRID, encounterFHIRID, loincCode, codeDisplay string, valueQuantity float64, valueUnit string) *ObservationResource {
+	var valueQuantityObject *ValueQuantity
+	if valueQuantity != 0 {
+		valueQuantityObject = &ValueQuantity{
+			Value:  valueQuantity,
+			Unit:   valueUnit,
+			System: "http://unitsofmeasure.org",
+			Code:   valueUnit,
+		}
+	}
+
+	return &ObservationResource{
+		ResourceType: "Observation",
+		Status:       "final",
+		Category: []CodeableConcept{
+			{
+				Coding: []Coding{
+					{
+						System:  "http://terminology.hl7.org/CodeSystem/observation-category",
+						Code:    "vital-signs",
+						Display: "Vital Signs",
+					},
+				},
+			},
+		},
+		Code: CodeableConcept{
+			Coding: []Coding{
+				{
+					System:  "http://loinc.org",
+					Code:    loincCode,
+					Display: codeDisplay,
+				},
+			},
+			Text: codeDisplay,
+		},
+		Subject: Reference{
+			Reference: fmt.Sprintf("Patient/%s", patientFHIRID),
+		},
+		EffectiveDateTime: time.Now().Format(time.RFC3339),
+		ValueQuantity:     valueQuantityObject,
+	}
+}
+

@@ -15,14 +15,14 @@ func TestPatientService_CreatePatient(testingInstance *testing.T) {
 	patientService := patients.NewService(mockRepository)
 	contextParam := context.Background()
 
-	patient, err := patientService.CreatePatient(contextParam, "Pedro Alves", "1990-05-20", "123.456.789-00", "+55 11 99999-0000", "A+", "Nenhuma")
+	patient, creationError := patientService.CreatePatient(contextParam, "Pedro Alves", "1990-05-20", "123.456.789-00", "+55 11 99999-0000")
 
-	assert.NoError(testingInstance, err)
+	assert.NoError(testingInstance, creationError)
 	assert.NotNil(testingInstance, patient)
 	assert.Equal(testingInstance, "Pedro Alves", patient.FullName)
 	assert.Equal(testingInstance, "123.456.789-00", patient.DocumentID)
 
-	_, errDuplicate := patientService.CreatePatient(contextParam, "Pedro Alves Duplicado", "1990-05-20", "123.456.789-00", "", "", "")
+	_, errDuplicate := patientService.CreatePatient(contextParam, "Pedro Alves Duplicado", "1990-05-20", "123.456.789-00", "")
 	assert.ErrorIs(testingInstance, errDuplicate, patients.ErrPatientAlreadyExists)
 }
 
@@ -31,10 +31,10 @@ func TestPatientService_CreatePatient_InvalidDate(testingInstance *testing.T) {
 	patientService := patients.NewService(mockRepository)
 	contextParam := context.Background()
 
-	_, err := patientService.CreatePatient(contextParam, "Nome Teste", "20/05/1990", "999.999.999-99", "", "", "")
+	_, creationError := patientService.CreatePatient(contextParam, "Nome Teste", "20/05/1990", "999.999.999-99", "")
 
-	assert.Error(testingInstance, err)
-	assert.Contains(testingInstance, err.Error(), "invalid birth date format")
+	assert.Error(testingInstance, creationError)
+	assert.Contains(testingInstance, creationError.Error(), "invalid birth date format")
 }
 
 func TestPatientService_GetPatient(testingInstance *testing.T) {
@@ -42,13 +42,13 @@ func TestPatientService_GetPatient(testingInstance *testing.T) {
 	patientService := patients.NewService(mockRepository)
 	contextParam := context.Background()
 
-	created, _ := patientService.CreatePatient(contextParam, "Ana Souza", "1985-10-15", "987.654.321-00", "", "O-", "Penicilina")
+	created, _ := patientService.CreatePatient(contextParam, "Ana Souza", "1985-10-15", "987.654.321-00", "")
 
-	found, err := patientService.GetPatient(contextParam, created.ID)
-	assert.NoError(testingInstance, err)
-	assert.Equal(testingInstance, created.ID, found.ID)
+	found, getError := patientService.GetPatient(contextParam, created.FHIRResourceID)
+	assert.NoError(testingInstance, getError)
+	assert.Equal(testingInstance, created.FHIRResourceID, found.FHIRResourceID)
 
-	_, errNotFound := patientService.GetPatient(contextParam, uuid.New())
+	_, errNotFound := patientService.GetPatient(contextParam, uuid.New().String())
 	assert.ErrorIs(testingInstance, errNotFound, patients.ErrPatientNotFound)
 }
 
@@ -57,9 +57,9 @@ func TestPatientService_GetPatientByDocument(testingInstance *testing.T) {
 	patientService := patients.NewService(mockRepository)
 	contextParam := context.Background()
 
-	patientService.CreatePatient(contextParam, "Carlos Melo", "2000-01-01", "111.222.333-44", "", "B+", "")
+	patientService.CreatePatient(contextParam, "Carlos Melo", "2000-01-01", "111.222.333-44", "")
 
-	found, err := patientService.GetPatientByDocument(contextParam, "111.222.333-44")
-	assert.NoError(testingInstance, err)
+	found, getError := patientService.GetPatientByDocument(contextParam, "111.222.333-44")
+	assert.NoError(testingInstance, getError)
 	assert.Equal(testingInstance, "Carlos Melo", found.FullName)
 }

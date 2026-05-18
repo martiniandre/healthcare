@@ -8,32 +8,35 @@ import (
 )
 
 type MockPatientRepository struct {
-	Patients map[uuid.UUID]*patients.Patient
+	Patients map[string]*patients.Patient
 	ByDoc    map[string]*patients.Patient
 	Err      error
 }
 
 func NewMockPatientRepository() *MockPatientRepository {
 	return &MockPatientRepository{
-		Patients: make(map[uuid.UUID]*patients.Patient),
+		Patients: make(map[string]*patients.Patient),
 		ByDoc:    make(map[string]*patients.Patient),
 	}
 }
 
-func (mockRepo *MockPatientRepository) CreatePatient(contextParam context.Context, patient *patients.Patient) error {
-	if mockRepo.Err != nil {
-		return mockRepo.Err
-	}
-	mockRepo.Patients[patient.ID] = patient
-	mockRepo.ByDoc[patient.DocumentID] = patient
-	return nil
-}
-
-func (mockRepo *MockPatientRepository) GetPatientByID(contextParam context.Context, patientID uuid.UUID) (*patients.Patient, error) {
+func (mockRepo *MockPatientRepository) CreatePatient(contextParam context.Context, patient *patients.Patient) (*patients.Patient, error) {
 	if mockRepo.Err != nil {
 		return nil, mockRepo.Err
 	}
-	patient, exists := mockRepo.Patients[patientID]
+	if patient.FHIRResourceID == "" {
+		patient.FHIRResourceID = uuid.New().String()
+	}
+	mockRepo.Patients[patient.FHIRResourceID] = patient
+	mockRepo.ByDoc[patient.DocumentID] = patient
+	return patient, nil
+}
+
+func (mockRepo *MockPatientRepository) GetPatientByID(contextParam context.Context, fhirResourceID string) (*patients.Patient, error) {
+	if mockRepo.Err != nil {
+		return nil, mockRepo.Err
+	}
+	patient, exists := mockRepo.Patients[fhirResourceID]
 	if !exists {
 		return nil, patients.ErrPatientNotFound
 	}
