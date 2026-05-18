@@ -1,0 +1,31 @@
+# Arquivo Oficial de CODEOWNERS para o Ecossistema Healthcare
+# O GitHub utilizará estas regras para designar automaticamente revisores nas Pull Requests.
+
+# -------------------------------------------------------------
+# 👑 Proprietários Globais
+# -------------------------------------------------------------
+# Por padrão, todas as alterações no projeto exigem a atenção do líder do ecossistema.
+*                                                       @martiniandre
+
+# -------------------------------------------------------------
+# 🖥️ Camada de Interface (Frontend React + Vite)
+# -------------------------------------------------------------
+/frontend/                                              @martiniandre
+
+# -------------------------------------------------------------
+# ⚙️ Camada de Regras de Negócio e Serviços (Backend Go)
+# -------------------------------------------------------------
+/backend/                                               @martiniandre
+/backend/internal/modules/                              @martiniandre
+
+# -------------------------------------------------------------
+# 🚨 Arquivos Críticos de Segurança, RBAC & Infraestrutura
+# -------------------------------------------------------------
+# Alterações nos interceptors de autenticação e matriz RBAC de permissões 
+# são altamente sensíveis e exigem revisão estrita.
+/backend/internal/app/interceptor/auth.go              @martiniandre
+/backend/internal/app/interceptor/permissions.go       @martiniandre
+
+# Alterações nas configurações da pipeline automatizada de integração contínua (CI)
+/.github/workflows/                                     @martiniandre
+/docker-compose.yml                                     @martiniandre
