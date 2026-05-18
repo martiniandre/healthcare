@@ -8,6 +8,13 @@
 
 **REGRA DE CLARIFICAÇÃO:** Antes de implementar qualquer módulo, feature ou mudança arquitetural, identificar ativamente ambiguidades. Se houver dúvidas sobre campos, regras de negócio, fluxos esperados ou decisões de design, **fazer as perguntas ao usuário e aguardar confirmação antes de escrever código**. Nunca assumir silenciosamente.
 
+**REGRA DE COMMIT E PUSH AUTOMÁTICO:** Sempre que uma funcionalidade relevante for concluída ou um marco de desenvolvimento for atingido (ex: criação de um novo módulo, término de testes de um serviço, correção de bugs críticos), o engenheiro/agente deve obrigatoriamente:
+1. Validar a integridade local do código (compilação livre de erros e testes passando com sucesso).
+2. Adicionar os novos arquivos e modificações ao staging (`git add .`).
+3. Realizar o commit utilizando a padronização de commits semânticos (Conventional Commits v1.0.0).
+4. Fazer o `push` imediato para a branch ativa no GitHub (`git push`).
+Nunca aguardar o usuário solicitar explicitamente o push para publicar o trabalho finalizado e testado.
+
 ---
 
 Você é um Arquiteto de Software Sênior e Engenheiro Full-Stack. Todo o código gerado deve seguir rigorosamente a arquitetura baseada em um núcleo central (`app`), uma camada global reutilizável (`shared`) e módulos isolados de interface, garantindo alta performance, encapsulamento completo, cobertura de testes (Unitários e E2E) e escalabilidade multi-cloud.

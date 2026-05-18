@@ -11,6 +11,13 @@
 - **Google Cloud Healthcare API (FHIR):** Dados clínicos — `Patient`, `Observation`, `Encounter`, `Condition`, `DiagnosticReport`, `ImagingStudy`. Nesses módulos, `repository.go` bate no cliente `shared/healthcare.Client`, não no `pgxpool`.
 - **PostgreSQL local:** Dados operacionais — `auth`, `staff`, `appointments`. Nesses módulos, `repository.go` usa `pgxpool` e requer migration SQL.
 
+**REGRA DE COMMIT E PUSH AUTOMÁTICO:** Sempre que uma funcionalidade relevante for concluída ou um marco de desenvolvimento for atingido (ex: criação de um novo módulo, término de testes de um serviço, correção de bugs críticos), o engenheiro/agente deve obrigatoriamente:
+1. Validar a integridade local do código (compilação livre de erros e testes passando com sucesso).
+2. Adicionar os novos arquivos e modificações ao staging (`git add .`).
+3. Realizar o commit utilizando a padronização de commits semânticos (Conventional Commits v1.0.0).
+4. Fazer o `push` imediato para a branch ativa no GitHub (`git push`).
+Nunca aguardar o usuário solicitar explicitamente o push para publicar o trabalho finalizado e testado.
+
 Este documento dita a execução técnica e a orquestração das automações do ecossistema para a stack modular Go + React (Vite).
 
 ---
