@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import {
   usePatientQuery,
@@ -41,21 +41,18 @@ export const PatientDetails = () => {
 
   const { data: patient, isLoading: isPatientLoading } = usePatientQuery(id)
   const { data: encounters = [] } = useEncountersQuery(id)
-  const { data: observations = [] } = useObservationsQuery(selectedEncounterId || "")
-  const { data: reports = [] } = useDiagnosticReportsQuery(selectedEncounterId || "")
+  
+  const activeEncounterId = selectedEncounterId || (encounters.length > 0 ? encounters[encounters.length - 1].fhir_id : null)
+
+  const { data: observations = [] } = useObservationsQuery(activeEncounterId || "")
+  const { data: reports = [] } = useDiagnosticReportsQuery(activeEncounterId || "")
   const { data: studies = [] } = useImagingStudiesQuery(id)
 
   const createEncounterMutation = useCreateEncounterMutation()
   const createObservationMutation = useCreateObservationMutation()
   const createReportMutation = useCreateDiagnosticReportMutation()
 
-  useEffect(() => {
-    if (encounters.length > 0 && !selectedEncounterId) {
-      setSelectedEncounterId(encounters[encounters.length - 1].fhir_id)
-    }
-  }, [encounters, selectedEncounterId])
-
-  const selectedEncounter = encounters.find(e => e.fhir_id === selectedEncounterId) || null
+  const selectedEncounter = encounters.find(e => e.fhir_id === activeEncounterId) || null
 
   const handleCreateEncounter = async (formData: { reasonDisplay: string }) => {
     try {
@@ -221,7 +218,7 @@ export const PatientDetails = () => {
             {activeTab === "encounters" && (
               <EncounterHistory
                 encounters={encounters}
-                selectedEncounterId={selectedEncounterId}
+                selectedEncounterId={activeEncounterId}
                 onSelect={setSelectedEncounterId}
                 onNew={() => setIsEncounterModalOpen(true)}
               />

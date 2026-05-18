@@ -1,5 +1,5 @@
 import * as React from "react"
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { Card } from "../../shared/components/ui/Card"
 import { Button } from "../../shared/components/ui/Button"
@@ -35,7 +35,7 @@ export const ImagingWorkspace = () => {
   const rulerStartPoint = useRef<{ x: number; y: number } | null>(null)
   const rulerEndPoint = useRef<{ x: number; y: number } | null>(null)
 
-  const drawDICOMImage = () => {
+  const drawDICOMImage = useCallback(() => {
     const activeCanvas = canvasReference.current
     if (!activeCanvas) {
       return
@@ -113,11 +113,11 @@ export const ImagingWorkspace = () => {
       canvasContext.font = "12px Outfit, sans-serif"
       canvasContext.fillText(`${distanceMm} mm`, activeEnd.x + 10, activeEnd.y + 10)
     }
-  }
+  }, [study, contrastSetting, brightnessSetting, zoomSetting])
 
   useEffect(() => {
     drawDICOMImage()
-  }, [study, contrastSetting, brightnessSetting, zoomSetting])
+  }, [drawDICOMImage])
 
   const handleMouseDown = (event: React.MouseEvent<HTMLCanvasElement>) => {
     const activeCanvas = canvasReference.current
