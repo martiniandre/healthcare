@@ -1,4 +1,5 @@
 import { create } from "zustand"
+import { clinicApi } from "../utils/api_client"
 
 interface AuthenticatedUserState {
   isAuthenticated: boolean
@@ -7,7 +8,7 @@ interface AuthenticatedUserState {
   role: string | null
   email: string | null
   login: (sessionToken: string, sessionUserId: string, sessionRole: string, sessionEmail: string) => void
-  logout: () => void
+  logout: () => Promise<void>
 }
 
 export const useAuthStore = create<AuthenticatedUserState>((set) => ({
@@ -24,12 +25,19 @@ export const useAuthStore = create<AuthenticatedUserState>((set) => ({
       role: sessionRole,
       email: sessionEmail,
     }),
-  logout: () =>
+  logout: async () => {
+    try {
+      await clinicApi.logout()
+    } catch (logoutError) {
+      console.error("Logout request failed:", logoutError)
+    }
     set({
       isAuthenticated: false,
       token: null,
       userId: null,
       role: null,
       email: null,
-    }),
+    })
+  },
 }))
+

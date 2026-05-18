@@ -7,6 +7,7 @@ import { Input } from "../../shared/components/ui/Input"
 import { Button } from "../../shared/components/ui/Button"
 import { loginFormSchema, type LoginFormData } from "./auth_schemas"
 import { Activity, KeyRound, Mail, ShieldAlert } from "lucide-react"
+import { clinicApi } from "../../shared/utils/api_client"
 
 export const Login = () => {
   const loginToStore = useAuthStore((state) => state.login)
@@ -25,17 +26,19 @@ export const Login = () => {
     setIsSubmitting(true)
     setGeneralError(null)
     try {
-      await new Promise((resolve) => setTimeout(resolve, 800))
-      
-      if (formData.email === "medico@clinica.com" && formData.password === "senha123") {
-        loginToStore("token-12345", "user-med-1", "RoleDoctor", "medico@clinica.com")
-      } else if (formData.email === "admin@clinica.com" && formData.password === "admin123") {
-        loginToStore("token-67890", "user-adm-1", "RoleAdmin", "admin@clinica.com")
+      const authResponseData = await clinicApi.login(formData.email, formData.password)
+      loginToStore(
+        authResponseData.token,
+        authResponseData.userId,
+        authResponseData.role,
+        authResponseData.email
+      )
+    } catch (loginRequestError) {
+      if (loginRequestError instanceof Error) {
+        setGeneralError(loginRequestError.message)
       } else {
-        setGeneralError("Credenciais inválidas. Use medico@clinica.com (senha123) ou admin@clinica.com (admin123)")
+        setGeneralError("Erro ao estabelecer conexão com o servidor.")
       }
-    } catch {
-      setGeneralError("Erro ao estabelecer conexão gRPC com o servidor.")
     } finally {
       setIsSubmitting(false)
     }
