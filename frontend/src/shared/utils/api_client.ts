@@ -59,98 +59,7 @@ interface MockImagingStudy {
 }
 
 
-const INITIAL_ENCOUNTERS: MockEncounter[] = [
-  {
-    fhir_id: "enc-1",
-    patient_fhir_id: "fhir-pat-1",
-    status: "finished",
-    reason_display: "Consulta de Rotina Geral",
-    created_at: "2026-05-10T10:00:00Z",
-  },
-  {
-    fhir_id: "enc-2",
-    patient_fhir_id: "fhir-pat-1",
-    status: "finished",
-    reason_display: "Retorno Cardiológico",
-    created_at: "2026-05-15T14:30:00Z",
-  },
-]
 
-const INITIAL_OBSERVATIONS: MockObservation[] = [
-  {
-    fhir_id: "obs-1",
-    encounter_fhir_id: "enc-1",
-    patient_fhir_id: "fhir-pat-1",
-    loinc_code: "8867-4",
-    code_display: "Frequência Cardíaca",
-    value_quantity: 72,
-    value_unit: "bpm",
-    created_at: "2026-05-10T10:05:00Z",
-  },
-  {
-    fhir_id: "obs-2",
-    encounter_fhir_id: "enc-1",
-    patient_fhir_id: "fhir-pat-1",
-    loinc_code: "85354-9",
-    code_display: "Pressão Arterial Sistólica",
-    value_quantity: 120,
-    value_unit: "mmHg",
-    created_at: "2026-05-10T10:05:00Z",
-  },
-  {
-    fhir_id: "obs-3",
-    encounter_fhir_id: "enc-1",
-    patient_fhir_id: "fhir-pat-1",
-    loinc_code: "8310-5",
-    code_display: "Temperatura Corporal",
-    value_quantity: 36.5,
-    value_unit: "°C",
-    created_at: "2026-05-10T10:05:00Z",
-  },
-  {
-    fhir_id: "obs-4",
-    encounter_fhir_id: "enc-2",
-    patient_fhir_id: "fhir-pat-1",
-    loinc_code: "8867-4",
-    code_display: "Frequência Cardíaca",
-    value_quantity: 85,
-    value_unit: "bpm",
-    created_at: "2026-05-15T14:35:00Z",
-  },
-  {
-    fhir_id: "obs-5",
-    encounter_fhir_id: "enc-2",
-    patient_fhir_id: "fhir-pat-1",
-    loinc_code: "85354-9",
-    code_display: "Pressão Arterial Sistólica",
-    value_quantity: 135,
-    value_unit: "mmHg",
-    created_at: "2026-05-15T14:35:00Z",
-  },
-]
-
-const INITIAL_CONDITIONS: MockCondition[] = [
-  {
-    fhir_id: "cond-1",
-    patient_fhir_id: "fhir-pat-1",
-    icd10_code: "I10",
-    code_display: "Hipertensão Essencial Primária",
-    clinical_status: "active",
-    created_at: "2026-05-15T14:40:00Z",
-  },
-]
-
-const INITIAL_REPORTS: MockDiagnosticReport[] = [
-  {
-    fhir_id: "rep-1",
-    encounter_fhir_id: "enc-2",
-    patient_fhir_id: "fhir-pat-1",
-    report_display: "Eletrocardiograma de Repouso",
-    status: "final",
-    conclusion: "Ritmo sinusal com leve taquicardia. Recomenda-se acompanhamento ambulatorial.",
-    created_at: "2026-05-15T14:45:00Z",
-  },
-]
 
 const INITIAL_STUDIES: MockImagingStudy[] = [
   {
@@ -200,82 +109,55 @@ export const clinicApi = {
   },
 
   getEncounters: async (patientFhirId: string): Promise<MockEncounter[]> => {
-    const activeEncounters = getStorageItem<MockEncounter[]>("healthcare_encounters", INITIAL_ENCOUNTERS)
-    return activeEncounters.filter((encounter) => encounter.patient_fhir_id === patientFhirId)
+    return http.get<MockEncounter[]>(`/api/patients/${patientFhirId}/encounters`)
   },
 
   createEncounter: async (encounterData: Omit<MockEncounter, "fhir_id" | "created_at" | "status">): Promise<MockEncounter> => {
-    const activeEncounters = getStorageItem<MockEncounter[]>("healthcare_encounters", INITIAL_ENCOUNTERS)
-    const incrementalId = activeEncounters.length + 1
-    const newEncounter: MockEncounter = {
-      fhir_id: `enc-${incrementalId}`,
-      status: "finished",
-      created_at: new Date().toISOString(),
-      ...encounterData,
-    }
-    activeEncounters.push(newEncounter)
-    setStorageItem("healthcare_encounters", activeEncounters)
-    return newEncounter
+    return http.post<MockEncounter>(`/api/patients/${encounterData.patient_fhir_id}/encounters`, {
+      reason_display: encounterData.reason_display,
+      practitioner_id: encounterData.practitioner_id,
+    })
   },
 
   getObservations: async (encounterFhirId: string): Promise<MockObservation[]> => {
-    const activeObservations = getStorageItem<MockObservation[]>("healthcare_observations", INITIAL_OBSERVATIONS)
-    return activeObservations.filter((observation) => observation.encounter_fhir_id === encounterFhirId)
+    return http.get<MockObservation[]>(`/api/encounters/${encounterFhirId}/observations`)
   },
 
   getAllPatientObservations: async (patientFhirId: string): Promise<MockObservation[]> => {
-    const activeObservations = getStorageItem<MockObservation[]>("healthcare_observations", INITIAL_OBSERVATIONS)
-    return activeObservations.filter((observation) => observation.patient_fhir_id === patientFhirId)
+    return http.get<MockObservation[]>(`/api/patients/${patientFhirId}/observations`)
   },
 
   createObservation: async (observationData: Omit<MockObservation, "fhir_id" | "created_at">): Promise<MockObservation> => {
-    const activeObservations = getStorageItem<MockObservation[]>("healthcare_observations", INITIAL_OBSERVATIONS)
-    const incrementalId = activeObservations.length + 1
-    const newObservation: MockObservation = {
-      fhir_id: `obs-${incrementalId}`,
-      created_at: new Date().toISOString(),
-      ...observationData,
-    }
-    activeObservations.push(newObservation)
-    setStorageItem("healthcare_observations", activeObservations)
-    return newObservation
+    return http.post<MockObservation>(`/api/encounters/${observationData.encounter_fhir_id}/observations`, {
+      patient_fhir_id: observationData.patient_fhir_id,
+      loinc_code: observationData.loinc_code,
+      code_display: observationData.code_display,
+      value_quantity: observationData.value_quantity,
+      value_unit: observationData.value_unit,
+    })
   },
 
   getConditions: async (patientFhirId: string): Promise<MockCondition[]> => {
-    const activeConditions = getStorageItem<MockCondition[]>("healthcare_conditions", INITIAL_CONDITIONS)
-    return activeConditions.filter((condition) => condition.patient_fhir_id === patientFhirId)
+    return http.get<MockCondition[]>(`/api/patients/${patientFhirId}/conditions`)
   },
 
   createCondition: async (conditionData: Omit<MockCondition, "fhir_id" | "created_at">): Promise<MockCondition> => {
-    const activeConditions = getStorageItem<MockCondition[]>("healthcare_conditions", INITIAL_CONDITIONS)
-    const incrementalId = activeConditions.length + 1
-    const newCondition: MockCondition = {
-      fhir_id: `cond-${incrementalId}`,
-      created_at: new Date().toISOString(),
-      ...conditionData,
-    }
-    activeConditions.push(newCondition)
-    setStorageItem("healthcare_conditions", activeConditions)
-    return newCondition
+    return http.post<MockCondition>(`/api/patients/${conditionData.patient_fhir_id}/conditions`, {
+      icd10_code: conditionData.icd10_code,
+      code_display: conditionData.code_display,
+    })
   },
 
   getDiagnosticReports: async (encounterFhirId: string): Promise<MockDiagnosticReport[]> => {
-    const activeReports = getStorageItem<MockDiagnosticReport[]>("healthcare_reports", INITIAL_REPORTS)
-    return activeReports.filter((report) => report.encounter_fhir_id === encounterFhirId)
+    return http.get<MockDiagnosticReport[]>(`/api/encounters/${encounterFhirId}/reports`)
   },
 
   createDiagnosticReport: async (reportData: Omit<MockDiagnosticReport, "fhir_id" | "created_at" | "status">): Promise<MockDiagnosticReport> => {
-    const activeReports = getStorageItem<MockDiagnosticReport[]>("healthcare_reports", INITIAL_REPORTS)
-    const incrementalId = activeReports.length + 1
-    const newReport: MockDiagnosticReport = {
-      fhir_id: `rep-${incrementalId}`,
-      status: "final",
-      created_at: new Date().toISOString(),
-      ...reportData,
-    }
-    activeReports.push(newReport)
-    setStorageItem("healthcare_reports", activeReports)
-    return newReport
+    return http.post<MockDiagnosticReport>(`/api/encounters/${reportData.encounter_fhir_id}/reports`, {
+      patient_fhir_id: reportData.patient_fhir_id,
+      report_display: reportData.report_display,
+      conclusion: reportData.conclusion,
+    })
   },
 
   getImagingStudies: async (patientFhirId: string): Promise<MockImagingStudy[]> => {

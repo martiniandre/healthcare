@@ -16,6 +16,7 @@ type Repository interface {
 
 	CreateObservation(ctx context.Context, observation *Observation) (*Observation, error)
 	GetObservationsByEncounter(ctx context.Context, encounterFHIRID string) ([]*Observation, error)
+	GetObservationsByPatient(ctx context.Context, patientFHIRID string) ([]*Observation, error)
 
 	CreateCondition(ctx context.Context, condition *Condition) (*Condition, error)
 	GetConditionsByPatient(ctx context.Context, patientFHIRID string) ([]*Condition, error)
@@ -92,6 +93,15 @@ func (clinicalRepo *repository) CreateObservation(ctx context.Context, observati
 
 func (clinicalRepo *repository) GetObservationsByEncounter(ctx context.Context, encounterFHIRID string) ([]*Observation, error) {
 	queryParams := fmt.Sprintf("encounter=Encounter/%s", encounterFHIRID)
+	responseBody, err := clinicalRepo.fhirClient.SearchResources(ctx, "Observation", queryParams)
+	if err != nil {
+		return nil, fmt.Errorf("failed to search observations: %w", err)
+	}
+	return parseObservationBundle(responseBody)
+}
+
+func (clinicalRepo *repository) GetObservationsByPatient(ctx context.Context, patientFHIRID string) ([]*Observation, error) {
+	queryParams := fmt.Sprintf("subject=Patient/%s", patientFHIRID)
 	responseBody, err := clinicalRepo.fhirClient.SearchResources(ctx, "Observation", queryParams)
 	if err != nil {
 		return nil, fmt.Errorf("failed to search observations: %w", err)

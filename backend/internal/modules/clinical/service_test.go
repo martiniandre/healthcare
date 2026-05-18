@@ -16,6 +16,7 @@ type mockRepository struct {
 	getEncountersByPatientFn     func(ctx context.Context, patientFHIRID string) ([]*clinical.Encounter, error)
 	createObservationFn          func(ctx context.Context, observation *clinical.Observation) (*clinical.Observation, error)
 	getObservationsByEncounterFn func(ctx context.Context, encounterFHIRID string) ([]*clinical.Observation, error)
+	getObservationsByPatientFn   func(ctx context.Context, patientFHIRID string) ([]*clinical.Observation, error)
 	createConditionFn            func(ctx context.Context, condition *clinical.Condition) (*clinical.Condition, error)
 	getConditionsByPatientFn     func(ctx context.Context, patientFHIRID string) ([]*clinical.Condition, error)
 	createAllergyIntoleranceFn          func(ctx context.Context, allergy *clinical.AllergyIntolerance) (*clinical.AllergyIntolerance, error)
@@ -50,6 +51,13 @@ func (repo *mockRepository) CreateObservation(ctx context.Context, observation *
 func (repo *mockRepository) GetObservationsByEncounter(ctx context.Context, encounterFHIRID string) ([]*clinical.Observation, error) {
 	if repo.getObservationsByEncounterFn != nil {
 		return repo.getObservationsByEncounterFn(ctx, encounterFHIRID)
+	}
+	return []*clinical.Observation{}, nil
+}
+
+func (repo *mockRepository) GetObservationsByPatient(ctx context.Context, patientFHIRID string) ([]*clinical.Observation, error) {
+	if repo.getObservationsByPatientFn != nil {
+		return repo.getObservationsByPatientFn(ctx, patientFHIRID)
 	}
 	return []*clinical.Observation{}, nil
 }
