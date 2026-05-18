@@ -58,24 +58,6 @@ interface MockImagingStudy {
   created_at: string
 }
 
-const INITIAL_PATIENTS: MockPatient[] = [
-  {
-    patient_id: "pat-1",
-    fhir_resource_id: "fhir-pat-1",
-    full_name: "Guilherme de Souza Araujo",
-    birth_date: "1988-04-12",
-    document_id: "123.456.789-00",
-    phone_number: "(11) 98765-4321",
-  },
-  {
-    patient_id: "pat-2",
-    fhir_resource_id: "fhir-pat-2",
-    full_name: "Mariana Costa Silva",
-    birth_date: "1995-11-23",
-    document_id: "987.654.321-11",
-    phone_number: "(21) 99999-8888",
-  },
-]
 
 const INITIAL_ENCOUNTERS: MockEncounter[] = [
   {
@@ -197,25 +179,24 @@ function setStorageItem<T>(key: string, value: T): void {
 
 export const clinicApi = {
   getPatients: async (): Promise<MockPatient[]> => {
-    return getStorageItem<MockPatient[]>("healthcare_patients", INITIAL_PATIENTS)
+    return http.get<MockPatient[]>("/api/patients")
   },
 
   getPatient: async (patientFhirId: string): Promise<MockPatient | null> => {
-    const activePatients = getStorageItem<MockPatient[]>("healthcare_patients", INITIAL_PATIENTS)
-    return activePatients.find((patient) => patient.fhir_resource_id === patientFhirId) || null
+    try {
+      return await http.get<MockPatient>(`/api/patients/${patientFhirId}`)
+    } catch {
+      return null
+    }
   },
 
   createPatient: async (patientData: Omit<MockPatient, "patient_id" | "fhir_resource_id">): Promise<MockPatient> => {
-    const activePatients = getStorageItem<MockPatient[]>("healthcare_patients", INITIAL_PATIENTS)
-    const incrementalId = activePatients.length + 1
-    const newPatient: MockPatient = {
-      patient_id: `pat-${incrementalId}`,
-      fhir_resource_id: `fhir-pat-${incrementalId}`,
+    const creationResponse = await http.post<{ patient_id: string; fhir_resource_id: string }>("/api/patients", patientData)
+    return {
+      patient_id: creationResponse.patient_id,
+      fhir_resource_id: creationResponse.fhir_resource_id,
       ...patientData,
     }
-    activePatients.push(newPatient)
-    setStorageItem("healthcare_patients", activePatients)
-    return newPatient
   },
 
   getEncounters: async (patientFhirId: string): Promise<MockEncounter[]> => {

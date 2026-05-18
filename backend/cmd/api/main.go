@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -219,6 +220,201 @@ func main() {
 		writer.Header().Set("Content-Type", "application/json")
 		writer.WriteHeader(http.StatusOK)
 		json.NewEncoder(writer).Encode(map[string]string{"message": "Logged out successfully"})
+	})
+
+	patientsRepository := patients.NewRepository(fhirClient)
+	patientsService := patients.NewService(patientsRepository)
+
+	validateHTTPAuth := func(httpResponseWriter http.ResponseWriter, httpRequest *http.Request, allowedRoles []auth.Role) (context.Context, bool) {
+		cookie, cookieError := httpRequest.Cookie("token")
+		if cookieError != nil {
+			httpResponseWriter.Header().Set("Content-Type", "application/json")
+			httpResponseWriter.WriteHeader(http.StatusUnauthorized)
+			json.NewEncoder(httpResponseWriter).Encode(map[string]string{"error": "Não autenticado."})
+			return nil, false
+		}
+
+		claims, jwtValidationErr := auth.ValidateJWT(cookie.Value)
+		if jwtValidationErr != nil {
+			httpResponseWriter.Header().Set("Content-Type", "application/json")
+			httpResponseWriter.WriteHeader(http.StatusUnauthorized)
+			json.NewEncoder(httpResponseWriter).Encode(map[string]string{"error": "Sessão expirada."})
+			return nil, false
+		}
+
+		roleStr, roleClaimExists := claims["role"].(string)
+		if !roleClaimExists {
+			httpResponseWriter.Header().Set("Content-Type", "application/json")
+			httpResponseWriter.WriteHeader(http.StatusUnauthorized)
+			json.NewEncoder(httpResponseWriter).Encode(map[string]string{"error": "Função de usuário inválida."})
+			return nil, false
+		}
+
+		callerRole := auth.Role(roleStr)
+		roleAllowed := false
+		for _, allowedRole := range allowedRoles {
+			if callerRole == allowedRole {
+				roleAllowed = true
+				break
+			}
+		}
+
+		if !roleAllowed {
+			httpResponseWriter.Header().Set("Content-Type", "application/json")
+			httpResponseWriter.WriteHeader(http.StatusForbidden)
+			json.NewEncoder(httpResponseWriter).Encode(map[string]string{"error": "Acesso negado."})
+			return nil, false
+		}
+
+		if httpRequest.Method == http.MethodPost || httpRequest.Method == http.MethodPut || httpRequest.Method == http.MethodDelete {
+			csrfHeader := httpRequest.Header.Get("X-CSRF-Token")
+			csrfCookie, csrfCookieErr := httpRequest.Cookie("csrf_token")
+			if csrfCookieErr != nil || csrfHeader == "" || csrfHeader != csrfCookie.Value {
+				httpResponseWriter.Header().Set("Content-Type", "application/json")
+				httpResponseWriter.WriteHeader(http.StatusForbidden)
+				json.NewEncoder(httpResponseWriter).Encode(map[string]string{"error": "Token CSRF inválido ou ausente."})
+				return nil, false
+			}
+		}
+
+		userIDStr, _ := claims["user_id"].(string)
+		contextWithValues := context.WithValue(httpRequest.Context(), "user_id", userIDStr)
+		contextWithValues = context.WithValue(contextWithValues, "role", roleStr)
+		return contextWithValues, true
+	}
+
+	httpServeMux.HandleFunc("/api/patients", func(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
+		if corsOptionHandler(httpResponseWriter, httpRequest) {
+			return
+		}
+
+		if httpRequest.Method == http.MethodGet {
+			contextWithValues, authIsOk := validateHTTPAuth(httpResponseWriter, httpRequest, []auth.Role{auth.RoleAdmin, auth.RoleDoctor, auth.RoleNurse, auth.RoleReception})
+			if !authIsOk {
+				return
+			}
+
+			patientsList, patientListErr := patientsService.ListPatients(contextWithValues)
+			if patientListErr != nil {
+				httpResponseWriter.Header().Set("Content-Type", "application/json")
+				httpResponseWriter.WriteHeader(http.StatusInternalServerError)
+				json.NewEncoder(httpResponseWriter).Encode(map[string]string{"error": "Erro ao listar pacientes."})
+				return
+			}
+
+			type patientResponse struct {
+				PatientID      string `json:"patient_id"`
+				FHIRResourceID string `json:"fhir_resource_id"`
+				FullName       string `json:"full_name"`
+				BirthDate      string `json:"birth_date"`
+				DocumentID     string `json:"document_id"`
+				PhoneNumber    string `json:"phone_number"`
+			}
+
+			responseList := make([]patientResponse, 0, len(patientsList))
+			for _, patient := range patientsList {
+				responseList = append(responseList, patientResponse{
+					PatientID:      patient.ID.String(),
+					FHIRResourceID: patient.FHIRResourceID,
+					FullName:       patient.FullName,
+					BirthDate:      patient.BirthDate.Format("2006-01-02"),
+					DocumentID:     patient.DocumentID,
+					PhoneNumber:    patient.PhoneNumber,
+				})
+			}
+
+			httpResponseWriter.Header().Set("Content-Type", "application/json")
+			httpResponseWriter.WriteHeader(http.StatusOK)
+			json.NewEncoder(httpResponseWriter).Encode(responseList)
+			return
+		}
+
+		if httpRequest.Method == http.MethodPost {
+			contextWithValues, authIsOk := validateHTTPAuth(httpResponseWriter, httpRequest, []auth.Role{auth.RoleAdmin, auth.RoleReception})
+			if !authIsOk {
+				return
+			}
+
+			var payload struct {
+				FullName    string `json:"full_name"`
+				BirthDate   string `json:"birth_date"`
+				DocumentID  string `json:"document_id"`
+				PhoneNumber string `json:"phone_number"`
+			}
+
+			if payloadDecodeErr := json.NewDecoder(httpRequest.Body).Decode(&payload); payloadDecodeErr != nil {
+				httpResponseWriter.Header().Set("Content-Type", "application/json")
+				httpResponseWriter.WriteHeader(http.StatusBadRequest)
+				json.NewEncoder(httpResponseWriter).Encode(map[string]string{"error": "Payload inválido."})
+				return
+			}
+
+			patient, createPatientErr := patientsService.CreatePatient(contextWithValues, payload.FullName, payload.BirthDate, payload.DocumentID, payload.PhoneNumber)
+			if createPatientErr != nil {
+				httpResponseWriter.Header().Set("Content-Type", "application/json")
+				if errors.Is(createPatientErr, patients.ErrPatientAlreadyExists) {
+					httpResponseWriter.WriteHeader(http.StatusConflict)
+					json.NewEncoder(httpResponseWriter).Encode(map[string]string{"error": "Paciente com este documento já cadastrado."})
+					return
+				}
+				httpResponseWriter.WriteHeader(http.StatusInternalServerError)
+				json.NewEncoder(httpResponseWriter).Encode(map[string]string{"error": "Erro ao criar paciente."})
+				return
+			}
+
+			httpResponseWriter.Header().Set("Content-Type", "application/json")
+			httpResponseWriter.WriteHeader(http.StatusCreated)
+			json.NewEncoder(httpResponseWriter).Encode(map[string]string{
+				"patient_id":       patient.ID.String(),
+				"fhir_resource_id": patient.FHIRResourceID,
+			})
+			return
+		}
+
+		http.Error(httpResponseWriter, "Method Not Allowed", http.StatusMethodNotAllowed)
+	})
+
+	httpServeMux.HandleFunc("/api/patients/", func(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
+		if corsOptionHandler(httpResponseWriter, httpRequest) {
+			return
+		}
+
+		if httpRequest.Method != http.MethodGet {
+			http.Error(httpResponseWriter, "Method Not Allowed", http.StatusMethodNotAllowed)
+			return
+		}
+
+		contextWithValues, authIsOk := validateHTTPAuth(httpResponseWriter, httpRequest, []auth.Role{auth.RoleAdmin, auth.RoleDoctor, auth.RoleNurse, auth.RoleReception})
+		if !authIsOk {
+			return
+		}
+
+		fhirResourceID := strings.TrimPrefix(httpRequest.URL.Path, "/api/patients/")
+		if fhirResourceID == "" {
+			httpResponseWriter.Header().Set("Content-Type", "application/json")
+			httpResponseWriter.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(httpResponseWriter).Encode(map[string]string{"error": "ID do paciente ausente."})
+			return
+		}
+
+		patient, getPatientErr := patientsService.GetPatient(contextWithValues, fhirResourceID)
+		if getPatientErr != nil {
+			httpResponseWriter.Header().Set("Content-Type", "application/json")
+			httpResponseWriter.WriteHeader(http.StatusNotFound)
+			json.NewEncoder(httpResponseWriter).Encode(map[string]string{"error": "Paciente não encontrado."})
+			return
+		}
+
+		httpResponseWriter.Header().Set("Content-Type", "application/json")
+		httpResponseWriter.WriteHeader(http.StatusOK)
+		json.NewEncoder(httpResponseWriter).Encode(map[string]interface{}{
+			"patient_id":       patient.ID.String(),
+			"fhir_resource_id": patient.FHIRResourceID,
+			"full_name":        patient.FullName,
+			"birth_date":       patient.BirthDate.Format("2006-01-02"),
+			"document_id":      patient.DocumentID,
+			"phone_number":     patient.PhoneNumber,
+		})
 	})
 
 	tcpListener, listenerError := net.Listen("tcp", ":"+appConfig.AppPort)
