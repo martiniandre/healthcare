@@ -126,11 +126,11 @@ export const PatientDetails = () => {
   }
 
   return (
-    <div className="flex-1 p-8 flex flex-col gap-6 max-w-7xl mx-auto w-full">
+    <div className="flex-1 p-4 sm:p-6 md:p-8 flex flex-col gap-4 md:gap-6 max-w-7xl mx-auto w-full">
       <PatientHeader patient={patient} onBack={() => navigate("/")} />
 
-      <div className="flex gap-6 items-start mt-2">
-        <div className="w-64 shrink-0 bg-white border border-border p-4 rounded-xl flex flex-col gap-4">
+      <div className="flex flex-col md:flex-row gap-6 items-start mt-2">
+        <div className="w-full md:w-64 shrink-0 bg-white border border-border p-4 rounded-xl flex flex-col gap-4">
           <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-3 text-left">
             Recursos Clínicos
           </span>
@@ -191,7 +191,7 @@ export const PatientDetails = () => {
           </div>
         </div>
 
-        <div className="flex-1 flex flex-col gap-6 min-w-0">
+        <div className="flex-1 flex flex-col gap-6 min-w-0 w-full">
           {selectedEncounter && activeTab !== "encounters" && activeTab !== "pacs" && (
             <div className="flex items-center justify-between bg-primary/5 border border-primary/20 p-4 rounded-xl text-left">
               <div className="flex items-center gap-3">

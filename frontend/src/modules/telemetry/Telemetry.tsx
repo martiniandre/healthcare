@@ -325,7 +325,7 @@ export const Telemetry = () => {
   }
 
   return (
-    <div className="flex-1 p-8 flex flex-col gap-6 max-w-7xl mx-auto w-full select-none">
+    <div className="flex-1 p-4 sm:p-6 md:p-8 flex flex-col gap-4 md:gap-6 max-w-7xl mx-auto w-full select-none">
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div className="text-left">
           <h2 className="text-xl font-black text-gray-900 leading-none flex items-center gap-2">
@@ -510,7 +510,7 @@ export const Telemetry = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="bg-gray-50 border border-border p-4 rounded-xl flex items-center justify-between">
                   <div className="text-left">
                     <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block">Freq. Cardíaca</span>

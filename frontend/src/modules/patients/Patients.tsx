@@ -89,8 +89,8 @@ export const Patients = () => {
   }
 
   return (
-    <div className="flex-1 p-6 flex flex-col gap-5 animate-fade-in">
-      <div className="flex items-center justify-between">
+    <div className="flex-1 p-4 sm:p-6 md:p-8 flex flex-col gap-4 md:gap-5 animate-fade-in">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-xl font-black text-gray-900 tracking-tight leading-none">
             Pacientes
@@ -99,7 +99,7 @@ export const Patients = () => {
             Gestão de prontuários e dados clínicos FHIR
           </span>
         </div>
-        <Button onClick={() => setIsModalOpen(true)} className="py-2 px-4">
+        <Button onClick={() => setIsModalOpen(true)} className="py-2 px-4 self-start sm:self-auto gap-2">
           <UserPlus className="w-4 h-4" />
           Novo Paciente
         </Button>
@@ -145,7 +145,7 @@ export const Patients = () => {
         </div>
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
         <div className="flex-1 flex items-center gap-2.5 bg-white border border-border rounded-lg px-4 py-2.5">
           <Search className="w-4 h-4 text-gray-400 shrink-0" />
           <input
@@ -165,7 +165,7 @@ export const Patients = () => {
           )}
         </div>
 
-        <div className="flex items-center gap-1.5 bg-white border border-border rounded-lg px-3 py-2.5 shrink-0">
+        <div className="flex items-center justify-center sm:justify-start gap-1.5 bg-white border border-border rounded-lg px-3 py-2.5 shrink-0">
           <Filter className="w-3.5 h-3.5 text-gray-400" />
           <span className="text-[11px] text-muted font-medium">
             {filteredAndSortedPatients.length} resultado{filteredAndSortedPatients.length !== 1 ? "s" : ""}
@@ -197,7 +197,8 @@ export const Patients = () => {
         </div>
       ) : (
         <div className="bg-white border border-border rounded-xl overflow-hidden">
-          <table className="w-full text-left border-collapse">
+          <div className="overflow-x-auto w-full">
+            <table className="w-full text-left border-collapse min-w-[650px] md:min-w-0">
             <thead>
               <tr className="border-b border-border bg-gray-50/80">
                 <th
@@ -277,6 +278,7 @@ export const Patients = () => {
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       )}
 

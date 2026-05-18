@@ -1,8 +1,10 @@
 import { useAuthStore } from "../store/auth_store"
-import { Bell, ShieldCheck } from "lucide-react"
+import { useLayoutStore } from "../store/layout_store"
+import { Menu, Bell, ShieldCheck } from "lucide-react"
 
 export const AppHeader = () => {
   const { role, email } = useAuthStore()
+  const toggleMobileSidebar = useLayoutStore((state) => state.toggleMobileSidebar)
 
   const translateRole = (userRole: string | null) => {
     switch (userRole) {
@@ -20,7 +22,14 @@ export const AppHeader = () => {
   }
 
   return (
-    <header className="w-full border-b border-border bg-white/80 backdrop-blur-sm sticky top-0 z-50 px-6 py-2.5 flex items-center justify-end gap-3">
+    <header className="w-full border-b border-border bg-white/80 backdrop-blur-sm sticky top-0 z-50 px-4 md:px-6 py-2.5 flex items-center justify-end gap-3">
+      <button
+        onClick={toggleMobileSidebar}
+        className="mr-auto p-2 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-50 transition-colors md:hidden"
+      >
+        <Menu className="w-5 h-5" />
+      </button>
+
       <button className="relative p-2 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-50 transition-colors">
         <Bell className="w-4 h-4" />
         <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-primary rounded-full" />
@@ -32,7 +41,7 @@ export const AppHeader = () => {
         <div className="w-8 h-8 rounded-lg bg-primary/8 flex items-center justify-center text-primary text-xs font-black">
           {email ? email.charAt(0).toUpperCase() : "U"}
         </div>
-        <div className="flex flex-col items-start">
+        <div className="hidden sm:flex flex-col items-start">
           <span className="text-xs font-semibold text-gray-800 leading-tight">
             {email || "usuario@hospital.com"}
           </span>
