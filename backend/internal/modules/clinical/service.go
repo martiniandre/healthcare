@@ -8,6 +8,7 @@ type Service interface {
 
 	CreateObservation(ctx context.Context, observation *Observation) (*Observation, error)
 	GetObservationsByEncounter(ctx context.Context, encounterFHIRID string) ([]*Observation, error)
+	GetObservationsByPatient(ctx context.Context, patientFHIRID string) ([]*Observation, error)
 
 	CreateCondition(ctx context.Context, condition *Condition) (*Condition, error)
 	GetConditionsByPatient(ctx context.Context, patientFHIRID string) ([]*Condition, error)
@@ -50,6 +51,10 @@ func (clinicalService *service) CreateObservation(ctx context.Context, observati
 
 func (clinicalService *service) GetObservationsByEncounter(ctx context.Context, encounterFHIRID string) ([]*Observation, error) {
 	return clinicalService.repo.GetObservationsByEncounter(ctx, encounterFHIRID)
+}
+
+func (clinicalService *service) GetObservationsByPatient(ctx context.Context, patientFHIRID string) ([]*Observation, error) {
+	return clinicalService.repo.GetObservationsByPatient(ctx, patientFHIRID)
 }
 
 func (clinicalService *service) CreateCondition(ctx context.Context, condition *Condition) (*Condition, error) {

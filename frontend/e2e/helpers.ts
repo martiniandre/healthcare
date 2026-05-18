@@ -113,9 +113,252 @@ export const mockPatientsAPI = async (pageInstance: Page): Promise<void> => {
   })
 }
 
+export const mockClinicalAPI = async (pageInstance: Page): Promise<void> => {
+  const currentEncountersList = [
+    {
+      fhir_id: "enc-1",
+      patient_fhir_id: "fhir-pat-1",
+      status: "finished",
+      reason_display: "Consulta de Rotina Geral",
+      created_at: "2026-05-10T10:00:00Z",
+    },
+    {
+      fhir_id: "enc-2",
+      patient_fhir_id: "fhir-pat-1",
+      status: "finished",
+      reason_display: "Retorno Cardiológico",
+      created_at: "2026-05-15T14:30:00Z",
+    },
+  ]
+
+  const currentObservationsList = [
+    {
+      fhir_id: "obs-1",
+      encounter_fhir_id: "enc-1",
+      patient_fhir_id: "fhir-pat-1",
+      loinc_code: "8867-4",
+      code_display: "Frequência Cardíaca",
+      value_quantity: 72,
+      value_unit: "bpm",
+      created_at: "2026-05-10T10:05:00Z",
+    },
+    {
+      fhir_id: "obs-2",
+      encounter_fhir_id: "enc-1",
+      patient_fhir_id: "fhir-pat-1",
+      loinc_code: "85354-9",
+      code_display: "Pressão Arterial Sistólica",
+      value_quantity: 120,
+      value_unit: "mmHg",
+      created_at: "2026-05-10T10:05:00Z",
+    },
+    {
+      fhir_id: "obs-3",
+      encounter_fhir_id: "enc-1",
+      patient_fhir_id: "fhir-pat-1",
+      loinc_code: "8310-5",
+      code_display: "Temperatura Corporal",
+      value_quantity: 36.5,
+      value_unit: "°C",
+      created_at: "2026-05-10T10:05:00Z",
+    },
+    {
+      fhir_id: "obs-4",
+      encounter_fhir_id: "enc-2",
+      patient_fhir_id: "fhir-pat-1",
+      loinc_code: "8867-4",
+      code_display: "Frequência Cardíaca",
+      value_quantity: 85,
+      value_unit: "bpm",
+      created_at: "2026-05-15T14:35:00Z",
+    },
+    {
+      fhir_id: "obs-5",
+      encounter_fhir_id: "enc-2",
+      patient_fhir_id: "fhir-pat-1",
+      loinc_code: "85354-9",
+      code_display: "Pressão Arterial Sistólica",
+      value_quantity: 135,
+      value_unit: "mmHg",
+      created_at: "2026-05-15T14:35:00Z",
+    },
+  ]
+
+  const currentConditionsList = [
+    {
+      fhir_id: "cond-1",
+      patient_fhir_id: "fhir-pat-1",
+      icd10_code: "I10",
+      code_display: "Hipertensão Essencial Primária",
+      clinical_status: "active",
+      created_at: "2026-05-15T14:40:00Z",
+    },
+  ]
+
+  const currentReportsList = [
+    {
+      fhir_id: "rep-1",
+      encounter_fhir_id: "enc-2",
+      patient_fhir_id: "fhir-pat-1",
+      report_display: "Eletrocardiograma de Repouso",
+      status: "final",
+      conclusion: "Ritmo sinusal com leve taquicardia. Recomenda-se acompanhamento ambulatorial.",
+      created_at: "2026-05-15T14:45:00Z",
+    },
+  ]
+
+  await pageInstance.route("**/api/patients/*/encounters", async (networkRoute) => {
+    const httpRequest = networkRoute.request()
+    const requestURL = httpRequest.url()
+    const urlParts = requestURL.split("/")
+    const patientFhirId = urlParts[urlParts.length - 2]
+
+    if (httpRequest.method() === "GET") {
+      const filtered = currentEncountersList.filter((e) => e.patient_fhir_id === patientFhirId)
+      await networkRoute.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(filtered),
+      })
+    } else if (httpRequest.method() === "POST") {
+      const submittedJSON = httpRequest.postDataJSON()
+      const newEncounter = {
+        fhir_id: `enc-${currentEncountersList.length + 1}`,
+        patient_fhir_id: patientFhirId,
+        status: "finished",
+        reason_display: submittedJSON.reason_display,
+        practitioner_id: submittedJSON.practitioner_id,
+        created_at: new Date().toISOString(),
+      }
+      currentEncountersList.push(newEncounter)
+      await networkRoute.fulfill({
+        status: 201,
+        contentType: "application/json",
+        body: JSON.stringify(newEncounter),
+      })
+    }
+  })
+
+  await pageInstance.route("**/api/patients/*/observations", async (networkRoute) => {
+    const httpRequest = networkRoute.request()
+    const requestURL = httpRequest.url()
+    const urlParts = requestURL.split("/")
+    const patientFhirId = urlParts[urlParts.length - 2]
+
+    if (httpRequest.method() === "GET") {
+      const filtered = currentObservationsList.filter((o) => o.patient_fhir_id === patientFhirId)
+      await networkRoute.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(filtered),
+      })
+    }
+  })
+
+  await pageInstance.route("**/api/patients/*/conditions", async (networkRoute) => {
+    const httpRequest = networkRoute.request()
+    const requestURL = httpRequest.url()
+    const urlParts = requestURL.split("/")
+    const patientFhirId = urlParts[urlParts.length - 2]
+
+    if (httpRequest.method() === "GET") {
+      const filtered = currentConditionsList.filter((c) => c.patient_fhir_id === patientFhirId)
+      await networkRoute.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(filtered),
+      })
+    } else if (httpRequest.method() === "POST") {
+      const submittedJSON = httpRequest.postDataJSON()
+      const newCondition = {
+        fhir_id: `cond-${currentConditionsList.length + 1}`,
+        patient_fhir_id: patientFhirId,
+        icd10_code: submittedJSON.icd10_code,
+        code_display: submittedJSON.code_display,
+        clinical_status: "active",
+        created_at: new Date().toISOString(),
+      }
+      currentConditionsList.push(newCondition)
+      await networkRoute.fulfill({
+        status: 201,
+        contentType: "application/json",
+        body: JSON.stringify(newCondition),
+      })
+    }
+  })
+
+  await pageInstance.route("**/api/encounters/*/observations", async (networkRoute) => {
+    const httpRequest = networkRoute.request()
+    const requestURL = httpRequest.url()
+    const urlParts = requestURL.split("/")
+    const encounterFhirId = urlParts[urlParts.length - 2]
+
+    if (httpRequest.method() === "GET") {
+      const filtered = currentObservationsList.filter((o) => o.encounter_fhir_id === encounterFhirId)
+      await networkRoute.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(filtered),
+      })
+    } else if (httpRequest.method() === "POST") {
+      const submittedJSON = httpRequest.postDataJSON()
+      const newObservation = {
+        fhir_id: `obs-${currentObservationsList.length + 1}`,
+        encounter_fhir_id: encounterFhirId,
+        patient_fhir_id: submittedJSON.patient_fhir_id,
+        loinc_code: submittedJSON.loinc_code,
+        code_display: submittedJSON.code_display,
+        value_quantity: submittedJSON.value_quantity,
+        value_unit: submittedJSON.value_unit,
+        created_at: new Date().toISOString(),
+      }
+      currentObservationsList.push(newObservation)
+      await networkRoute.fulfill({
+        status: 201,
+        contentType: "application/json",
+        body: JSON.stringify(newObservation),
+      })
+    }
+  })
+
+  await pageInstance.route("**/api/encounters/*/reports", async (networkRoute) => {
+    const httpRequest = networkRoute.request()
+    const requestURL = httpRequest.url()
+    const urlParts = requestURL.split("/")
+    const encounterFhirId = urlParts[urlParts.length - 2]
+
+    if (httpRequest.method() === "GET") {
+      const filtered = currentReportsList.filter((r) => r.encounter_fhir_id === encounterFhirId)
+      await networkRoute.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(filtered),
+      })
+    } else if (httpRequest.method() === "POST") {
+      const submittedJSON = httpRequest.postDataJSON()
+      const newReport = {
+        fhir_id: `rep-${currentReportsList.length + 1}`,
+        encounter_fhir_id: encounterFhirId,
+        patient_fhir_id: submittedJSON.patient_fhir_id,
+        report_display: submittedJSON.report_display,
+        status: "final",
+        conclusion: submittedJSON.conclusion,
+        created_at: new Date().toISOString(),
+      }
+      currentReportsList.push(newReport)
+      await networkRoute.fulfill({
+        status: 201,
+        contentType: "application/json",
+        body: JSON.stringify(newReport),
+      })
+    }
+  })
+}
+
 export const loginAsDoctor = async (pageInstance: Page): Promise<void> => {
   await mockAuthAPI(pageInstance)
   await mockPatientsAPI(pageInstance)
+  await mockClinicalAPI(pageInstance)
   await pageInstance.goto("/#/login")
   await pageInstance.getByPlaceholder("nome.sobrenome@hospital.com").fill("medico@clinica.com")
   await pageInstance.getByPlaceholder("••••••••").fill("senha123")
