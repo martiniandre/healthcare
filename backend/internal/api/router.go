@@ -492,6 +492,104 @@ func NewRouter(
 				return
 			}
 
+			if subResource == "allergies" {
+				if httpRequest.Method == http.MethodGet {
+					contextWithValues, authIsOk := middleware.ValidateHTTPAuth(httpResponseWriter, httpRequest, []auth.Role{auth.RoleAdmin, auth.RoleDoctor, auth.RoleNurse})
+					if !authIsOk {
+						return
+					}
+
+					allergiesList, allergiesErr := clinicalService.GetAllergyIntolerancesByPatient(contextWithValues, patientFHIRID)
+					if allergiesErr != nil {
+						httpResponseWriter.Header().Set("Content-Type", "application/json")
+						httpResponseWriter.WriteHeader(http.StatusInternalServerError)
+						json.NewEncoder(httpResponseWriter).Encode(map[string]string{"error": "Erro ao carregar alergias do paciente."})
+						return
+					}
+
+					type allergyResponse struct {
+						FHIRID          string `json:"fhir_id"`
+						PatientFHIRID   string `json:"patient_fhir_id"`
+						AllergenCode    string `json:"allergen_code"`
+						AllergenDisplay string `json:"allergen_display"`
+						ClinicalStatus  string `json:"clinical_status"`
+						Reaction        string `json:"reaction"`
+						CreatedAt       string `json:"created_at"`
+					}
+
+					responseList := make([]allergyResponse, 0, len(allergiesList))
+					for _, allergy := range allergiesList {
+						responseList = append(responseList, allergyResponse{
+							FHIRID:          allergy.FHIRResourceID,
+							PatientFHIRID:   allergy.PatientFHIRID,
+							AllergenCode:    allergy.AllergenCode,
+							AllergenDisplay: allergy.AllergenDisplay,
+							ClinicalStatus:  allergy.ClinicalStatus,
+							Reaction:        allergy.Reaction,
+							CreatedAt:       allergy.RecordedAt.Format(time.RFC3339),
+						})
+					}
+
+					httpResponseWriter.Header().Set("Content-Type", "application/json")
+					httpResponseWriter.WriteHeader(http.StatusOK)
+					json.NewEncoder(httpResponseWriter).Encode(responseList)
+					return
+				}
+
+				if httpRequest.Method == http.MethodPost {
+					contextWithValues, authIsOk := middleware.ValidateHTTPAuth(httpResponseWriter, httpRequest, []auth.Role{auth.RoleDoctor, auth.RoleNurse})
+					if !authIsOk {
+						return
+					}
+
+					var payload struct {
+						AllergenCode    string `json:"allergen_code"`
+						AllergenDisplay string `json:"allergen_display"`
+						Reaction        string `json:"reaction"`
+					}
+
+					if payloadDecodeErr := json.NewDecoder(httpRequest.Body).Decode(&payload); payloadDecodeErr != nil {
+						httpResponseWriter.Header().Set("Content-Type", "application/json")
+						httpResponseWriter.WriteHeader(http.StatusBadRequest)
+						json.NewEncoder(httpResponseWriter).Encode(map[string]string{"error": "Payload inválido."})
+						return
+					}
+
+					newAllergy := &clinical.AllergyIntolerance{
+						PatientFHIRID:   patientFHIRID,
+						AllergenCode:    payload.AllergenCode,
+						AllergenDisplay: payload.AllergenDisplay,
+						ClinicalStatus:  "active",
+						Reaction:        payload.Reaction,
+						RecordedAt:      time.Now(),
+					}
+
+					createdAllergy, createErr := clinicalService.CreateAllergyIntolerance(contextWithValues, newAllergy)
+					if createErr != nil {
+						httpResponseWriter.Header().Set("Content-Type", "application/json")
+						httpResponseWriter.WriteHeader(http.StatusInternalServerError)
+						json.NewEncoder(httpResponseWriter).Encode(map[string]string{"error": "Erro ao criar alergia."})
+						return
+					}
+
+					httpResponseWriter.Header().Set("Content-Type", "application/json")
+					httpResponseWriter.WriteHeader(http.StatusCreated)
+					json.NewEncoder(httpResponseWriter).Encode(map[string]interface{}{
+						"fhir_id":          createdAllergy.FHIRResourceID,
+						"patient_fhir_id":  createdAllergy.PatientFHIRID,
+						"allergen_code":    createdAllergy.AllergenCode,
+						"allergen_display": createdAllergy.AllergenDisplay,
+						"clinical_status":  createdAllergy.ClinicalStatus,
+						"reaction":         createdAllergy.Reaction,
+						"created_at":       createdAllergy.RecordedAt.Format(time.RFC3339),
+					})
+					return
+				}
+
+				http.Error(httpResponseWriter, "Method Not Allowed", http.StatusMethodNotAllowed)
+				return
+			}
+
 			if subResource == "studies" {
 				imagingHTTPHandler.HandlePatientStudies(httpResponseWriter, httpRequest, patientFHIRID)
 				return
@@ -711,6 +809,113 @@ func NewRouter(
 						"status":            createdReport.Status,
 						"conclusion":        createdReport.Conclusion,
 						"created_at":        createdReport.IssuedAt.Format(time.RFC3339),
+					})
+					return
+				}
+
+				http.Error(httpResponseWriter, "Method Not Allowed", http.StatusMethodNotAllowed)
+				return
+			}
+			if subResource == "medications" {
+				if httpRequest.Method == http.MethodGet {
+					contextWithValues, authIsOk := middleware.ValidateHTTPAuth(httpResponseWriter, httpRequest, []auth.Role{auth.RoleAdmin, auth.RoleDoctor, auth.RoleNurse})
+					if !authIsOk {
+						return
+					}
+
+					medicationsList, medicationsErr := clinicalService.GetMedicationRequestsByEncounter(contextWithValues, encounterFHIRID)
+					if medicationsErr != nil {
+						httpResponseWriter.Header().Set("Content-Type", "application/json")
+						httpResponseWriter.WriteHeader(http.StatusInternalServerError)
+						json.NewEncoder(httpResponseWriter).Encode(map[string]string{"error": "Erro ao carregar prescrições da consulta."})
+						return
+					}
+
+					type medicationResponse struct {
+						FHIRID             string `json:"fhir_id"`
+						EncounterFHIRID    string `json:"encounter_fhir_id"`
+						PatientFHIRID      string `json:"patient_fhir_id"`
+						PractitionerFHIRID string `json:"practitioner_fhir_id"`
+						MedicationCode     string `json:"medication_code"`
+						MedicationName     string `json:"medication_name"`
+						DosageInstructions string `json:"dosage_instructions"`
+						Status             string `json:"status"`
+						CreatedAt          string `json:"created_at"`
+					}
+
+					responseList := make([]medicationResponse, 0, len(medicationsList))
+					for _, med := range medicationsList {
+						responseList = append(responseList, medicationResponse{
+							FHIRID:             med.FHIRResourceID,
+							EncounterFHIRID:    med.EncounterFHIRID,
+							PatientFHIRID:      med.PatientFHIRID,
+							PractitionerFHIRID: med.PractitionerFHIRID,
+							MedicationCode:     med.MedicationCode,
+							MedicationName:     med.MedicationName,
+							DosageInstructions: med.DosageInstructions,
+							Status:             med.Status,
+							CreatedAt:          med.IssuedAt.Format(time.RFC3339),
+						})
+					}
+
+					httpResponseWriter.Header().Set("Content-Type", "application/json")
+					httpResponseWriter.WriteHeader(http.StatusOK)
+					json.NewEncoder(httpResponseWriter).Encode(responseList)
+					return
+				}
+
+				if httpRequest.Method == http.MethodPost {
+					contextWithValues, authIsOk := middleware.ValidateHTTPAuth(httpResponseWriter, httpRequest, []auth.Role{auth.RoleDoctor})
+					if !authIsOk {
+						return
+					}
+
+					var payload struct {
+						PatientFHIRID      string `json:"patient_fhir_id"`
+						PractitionerFHIRID string `json:"practitioner_fhir_id"`
+						MedicationCode     string `json:"medication_code"`
+						MedicationName     string `json:"medication_name"`
+						DosageInstructions string `json:"dosage_instructions"`
+					}
+
+					if payloadDecodeErr := json.NewDecoder(httpRequest.Body).Decode(&payload); payloadDecodeErr != nil {
+						httpResponseWriter.Header().Set("Content-Type", "application/json")
+						httpResponseWriter.WriteHeader(http.StatusBadRequest)
+						json.NewEncoder(httpResponseWriter).Encode(map[string]string{"error": "Payload inválido."})
+						return
+					}
+
+					newMedication := &clinical.MedicationRequest{
+						EncounterFHIRID:    encounterFHIRID,
+						PatientFHIRID:      payload.PatientFHIRID,
+						PractitionerFHIRID: payload.PractitionerFHIRID,
+						MedicationCode:     payload.MedicationCode,
+						MedicationName:     payload.MedicationName,
+						DosageInstructions: payload.DosageInstructions,
+						Status:             "active",
+						IssuedAt:           time.Now(),
+					}
+
+					createdMedication, createErr := clinicalService.CreateMedicationRequest(contextWithValues, newMedication)
+					if createErr != nil {
+						httpResponseWriter.Header().Set("Content-Type", "application/json")
+						httpResponseWriter.WriteHeader(http.StatusInternalServerError)
+						json.NewEncoder(httpResponseWriter).Encode(map[string]string{"error": "Erro ao criar prescrição."})
+						return
+					}
+
+					httpResponseWriter.Header().Set("Content-Type", "application/json")
+					httpResponseWriter.WriteHeader(http.StatusCreated)
+					json.NewEncoder(httpResponseWriter).Encode(map[string]interface{}{
+						"fhir_id":              createdMedication.FHIRResourceID,
+						"encounter_fhir_id":    createdMedication.EncounterFHIRID,
+						"patient_fhir_id":      createdMedication.PatientFHIRID,
+						"practitioner_fhir_id": createdMedication.PractitionerFHIRID,
+						"medication_code":      createdMedication.MedicationCode,
+						"medication_name":      createdMedication.MedicationName,
+						"dosage_instructions":  createdMedication.DosageInstructions,
+						"status":               createdMedication.Status,
+						"created_at":           createdMedication.IssuedAt.Format(time.RFC3339),
 					})
 					return
 				}
