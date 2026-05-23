@@ -7,6 +7,7 @@ import { Input } from "../../shared/components/ui/Input"
 import { Button } from "../../shared/components/ui/Button"
 import { newPatientSchema, type NewPatientFormData } from "./patient_schemas"
 import { usePatientsQuery, useCreatePatientMutation } from "./queries"
+import { toast } from "../../shared/store/toast_store"
 import {
   Search,
   UserPlus,
@@ -54,8 +55,9 @@ export const Patients = () => {
       })
       reset()
       setIsModalOpen(false)
+      toast.success("Paciente cadastrado com sucesso!")
     } catch {
-      alert("Falha ao registrar paciente.")
+      toast.error("Falha ao registrar paciente.")
     }
   }
 

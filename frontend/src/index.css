@@ -17,6 +17,7 @@
 
   --animate-pulse-glow: pulseGlow 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   --animate-fade-in: fadeIn 0.25s ease-out;
+  --animate-toast-slide-in: toastSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 
   @keyframes pulseGlow {
     0%, 100% { opacity: 0.4; }
@@ -26,6 +27,11 @@
   @keyframes fadeIn {
     from { opacity: 0; transform: translateY(4px); }
     to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes toastSlideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
   }
 }
 

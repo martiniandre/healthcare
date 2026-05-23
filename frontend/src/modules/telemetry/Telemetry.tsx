@@ -23,6 +23,7 @@ import {
   useTelemetryBedsQuery, 
   useUpdateBedConditionMutation 
 } from "./queries"
+import { toast } from "../../shared/store/toast_store"
 
 export const Telemetry = () => {
   const [selectedRoomId, setSelectedRoomId] = useState<string>("room-1")
@@ -81,8 +82,9 @@ export const Telemetry = () => {
         status: dynamicStatus,
         condition: newCondition,
       })
+      toast.success("Simulação clínica propagada com sucesso!")
     } catch {
-      alert("Falha ao propagar simulação clínica.")
+      toast.error("Falha ao propagar simulação clínica.")
     }
   }
 

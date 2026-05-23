@@ -13,6 +13,7 @@ import {
   usePatientAllergiesQuery,
   useCreateAllergyMutation
 } from "./queries"
+import { toast } from "../../shared/store/toast_store"
 import { useImagingStudiesQuery } from "../imaging/queries"
 import { PatientHeader } from "./components/PatientHeader"
 import { EncounterHistory } from "./components/EncounterHistory"
@@ -72,7 +73,7 @@ export const PatientDetails = () => {
   const createConditionMutation = useCreateConditionMutation()
   const createAllergyMutation = useCreateAllergyMutation()
 
-  const selectedEncounter = encounters.find(e => e.fhir_id === activeEncounterId) || null
+  const selectedEncounter = encounters.find((encounterItem) => encounterItem.fhir_id === activeEncounterId) || null
 
   const handleCreateEncounter = async (formData: { reasonDisplay: string }) => {
     try {
@@ -84,8 +85,9 @@ export const PatientDetails = () => {
       setIsEncounterModalOpen(false)
       setSelectedEncounterId(newEncounter.fhir_id)
       setActiveTab("encounters")
+      toast.success("Consulta registrada com sucesso!")
     } catch {
-      alert("Falha ao registrar consulta.")
+      toast.error("Falha ao registrar consulta.")
     }
   }
 
@@ -115,8 +117,9 @@ export const PatientDetails = () => {
         value_unit: unit,
       })
       setIsObservationModalOpen(false)
+      toast.success("Sinal vital registrado com sucesso!")
     } catch {
-      alert("Erro ao registrar sinal vital.")
+      toast.error("Erro ao registrar sinal vital.")
     }
   }
 
@@ -132,8 +135,9 @@ export const PatientDetails = () => {
         conclusion: formData.conclusion,
       })
       setIsReportModalOpen(false)
+      toast.success("Exame laudado com sucesso!")
     } catch {
-      alert("Erro ao laudar exame.")
+      toast.error("Erro ao laudar exame.")
     }
   }
 
@@ -145,8 +149,9 @@ export const PatientDetails = () => {
         code_display: formData.codeDisplay,
       })
       setIsConditionModalOpen(false)
+      toast.success("Diagnóstico registrado com sucesso!")
     } catch {
-      alert("Erro ao registrar diagnóstico.")
+      toast.error("Erro ao registrar diagnóstico.")
     }
   }
 
@@ -159,8 +164,9 @@ export const PatientDetails = () => {
         reaction: formData.reaction,
       })
       setIsAllergyModalOpen(false)
+      toast.success("Alergia registrada com sucesso!")
     } catch {
-      alert("Erro ao registrar alergia.")
+      toast.error("Erro ao registrar alergia.")
     }
   }
 

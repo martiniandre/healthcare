@@ -8,6 +8,7 @@ import { ImagingUploadProgress } from "./components/ImagingUploadProgress"
 import { useDicomViewer } from "./hooks/useDicomViewer"
 import { useImagingStudyQuery, useUploadImagingStudyMutation } from "./queries"
 import { waitForUploadFrame } from "./utils/pacs_helpers"
+import { toast } from "../../shared/store/toast_store"
 
 export const ImagingWorkspace = () => {
   const { studyId = "" } = useParams<{ studyId: string }>()
@@ -46,9 +47,9 @@ export const ImagingWorkspace = () => {
       setUploadPercentage(100)
       setUploadStatus("Transmissão gRPC concluída. Processando DICOM metadata...")
       await waitForUploadFrame(500)
-      alert("DICOM carregado e processado com sucesso no barramento do PACS!")
+      toast.success("DICOM carregado e processado com sucesso no barramento do PACS!")
     } catch {
-      alert("Falha no upload do arquivo DICOM.")
+      toast.error("Falha no upload do arquivo DICOM.")
     } finally {
       setUploadPercentage(null)
       setUploadStatus(null)

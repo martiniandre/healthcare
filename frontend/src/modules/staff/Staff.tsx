@@ -15,6 +15,7 @@ import {
 
 import { StaffRole, StaffStatus } from "../../shared/types"
 import { useStaffListQuery, useCreateEmployeeMutation } from "./queries"
+import { toast } from "../../shared/store/toast_store"
 
 export const Staff = () => {
   const [filterRole, setFilterRole] = useState<string>("All")
@@ -52,8 +53,9 @@ export const Staff = () => {
       setNewStaffLicense("")
       setNewStaffEmail("")
       setNewStaffDept("")
+      toast.success("Profissional de saúde cadastrado com sucesso!")
     } catch {
-      alert("Falha ao registrar profissional de saúde.")
+      toast.error("Falha ao registrar profissional de saúde.")
     }
   }
 
