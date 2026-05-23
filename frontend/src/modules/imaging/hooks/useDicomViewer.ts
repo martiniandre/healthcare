@@ -1,6 +1,12 @@
 import * as React from "react"
 import { useCallback, useEffect, useRef, useState } from "react"
 import type { ImagingStudy } from "../types"
+import {
+  IMAGING_CONSOLE_LABEL,
+  DEFAULT_SERIES_NUMBER,
+  DEFAULT_MODALITY_FALLBACK,
+  DEFAULT_STUDY_UID_FALLBACK
+} from "../constants"
 
 export type ImagingTool = "zoom" | "contrast" | "ruler"
 export type ImagingPreset = "bone" | "lung" | "soft"
@@ -78,9 +84,9 @@ export const useDicomViewer = (imagingStudy: ImagingStudy | null | undefined) =>
 
     canvasRenderingContext.fillStyle = "rgba(255, 255, 255, 0.4)"
     canvasRenderingContext.font = "10px Outfit, sans-serif"
-    canvasRenderingContext.fillText("HOSPITAL GERAL - MOCK PACS", 15, 25)
-    canvasRenderingContext.fillText(`SERIES: 1 • MODALITY: ${imagingStudy?.modality || "CT"}`, 15, 40)
-    canvasRenderingContext.fillText(`UID: ${imagingStudy?.study_instance_uid || "1.2.840.10008"}`, 15, 55)
+    canvasRenderingContext.fillText(IMAGING_CONSOLE_LABEL, 15, 25)
+    canvasRenderingContext.fillText(`SERIES: ${DEFAULT_SERIES_NUMBER} • MODALITY: ${imagingStudy?.modality || DEFAULT_MODALITY_FALLBACK}`, 15, 40)
+    canvasRenderingContext.fillText(`UID: ${imagingStudy?.study_instance_uid || DEFAULT_STUDY_UID_FALLBACK}`, 15, 55)
     
     canvasRenderingContext.fillText(`ZOOM: ${Math.round(zoomValueReference.current * 100)}%`, canvasWidthPixels - 110, 25)
     canvasRenderingContext.fillText(`CONTRASTE: ${Math.round(contrastValueReference.current * 100)}%`, canvasWidthPixels - 110, 40)
