@@ -50,3 +50,13 @@ export interface DiagnosticReport {
   conclusion: string
   created_at: string
 }
+
+export interface AllergyIntolerance {
+  fhir_id: string
+  patient_fhir_id: string
+  allergen_code: string
+  allergen_display: string
+  clinical_status: string
+  reaction: string
+  created_at: string
+}

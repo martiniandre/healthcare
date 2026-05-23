@@ -31,3 +31,11 @@ export type NewEncounterFormData = z.infer<typeof newEncounterSchema>
 export type NewObservationFormData = z.infer<typeof newObservationSchema>
 export type NewReportFormData = z.infer<typeof newReportSchema>
 export type NewConditionFormData = z.infer<typeof newConditionSchema>
+
+export const newAllergySchema = z.object({
+  allergenCode: z.string().min(3, "O código do alérgeno deve ter no mínimo 3 caracteres"),
+  allergenDisplay: z.string().min(3, "A descrição do alérgeno deve ter no mínimo 3 caracteres"),
+  reaction: z.string().min(3, "A reação relatada deve ter no mínimo 3 caracteres"),
+})
+
+export type NewAllergyFormData = z.infer<typeof newAllergySchema>

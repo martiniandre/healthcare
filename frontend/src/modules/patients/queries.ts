@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { patientsApi } from "./api"
-import type { DiagnosticReport, Encounter, Observation, Patient } from "./types"
+import type { DiagnosticReport, Encounter, Observation, Patient, AllergyIntolerance } from "./types"
 
 export const patientQueryKeys = {
   all: ["patients"] as const,
@@ -148,4 +148,29 @@ export const useCreateConditionMutation = () => {
   })
 }
 
-export type { DiagnosticReport, Encounter, Observation, Patient }
+export const usePatientAllergiesQuery = (patientFhirId: string) => {
+  return useQuery({
+    queryKey: [...patientQueryKeys.all, "allergies", patientFhirId],
+    queryFn: () => patientsApi.getAllergies(patientFhirId),
+    enabled: !!patientFhirId,
+  })
+}
+
+export const useCreateAllergyMutation = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (payload: {
+      patient_fhir_id: string
+      allergen_code: string
+      allergen_display: string
+      reaction: string
+    }) => patientsApi.createAllergy(payload),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: [...patientQueryKeys.all, "allergies", variables.patient_fhir_id],
+      })
+    },
+  })
+}
+
+export type { DiagnosticReport, Encounter, Observation, Patient, AllergyIntolerance }
