@@ -62,7 +62,7 @@ func TestService_UploadDICOMStream_TooSmall(testingInstance *testing.T) {
 	_, uploadError := imagingService.UploadDICOMStream(contextParam, "patient-123", "Brain MRI", "MR", streamReader)
 
 	assert.Error(testingInstance, uploadError)
-	assert.Contains(testingInstance, uploadError.Error(), "file is too small")
+	assert.Contains(testingInstance, uploadError.Error(), "preamble is too small")
 }
 
 func TestService_GetDownloadURL(testingInstance *testing.T) {
