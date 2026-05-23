@@ -7,6 +7,11 @@ export interface Patient {
   phone_number: string
 }
 
+export interface CreatePatientResponse {
+  patient_id: string
+  fhir_resource_id: string
+}
+
 export interface Encounter {
   fhir_id: string
   patient_fhir_id: string

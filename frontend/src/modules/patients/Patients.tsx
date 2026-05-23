@@ -29,8 +29,10 @@ export const Patients = () => {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [sortField, setSortField] = useState<SortField>("full_name")
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc")
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 5
 
-  const { data: patients = [], isLoading } = usePatientsQuery()
+  const { data: patients = [], isLoading } = usePatientsQuery(searchTerm)
   const createPatientMutation = useCreatePatientMutation()
 
   const {
@@ -64,24 +66,29 @@ export const Patients = () => {
       setSortField(field)
       setSortDirection("asc")
     }
+    setCurrentPage(1)
   }
 
-  const filteredAndSortedPatients = useMemo(() => {
-    const searchString = searchTerm.toLowerCase()
-    const filtered = patients.filter(
-      (patient) =>
-        patient.full_name.toLowerCase().includes(searchString) ||
-        patient.document_id.includes(searchString) ||
-        patient.phone_number.includes(searchString)
-    )
+  const handleSearchChange = (termValue: string) => {
+    setSearchTerm(termValue)
+    setCurrentPage(1)
+  }
 
-    return [...filtered].sort((patientA, patientB) => {
+  const sortedPatients = useMemo(() => {
+    return [...patients].sort((patientA, patientB) => {
       const valueA = patientA[sortField] || ""
       const valueB = patientB[sortField] || ""
       const comparison = valueA.localeCompare(valueB)
       return sortDirection === "asc" ? comparison : -comparison
     })
-  }, [patients, searchTerm, sortField, sortDirection])
+  }, [patients, sortField, sortDirection])
+
+  const paginatedPatients = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage
+    return sortedPatients.slice(startIndex, startIndex + itemsPerPage)
+  }, [sortedPatients, currentPage])
+
+  const totalPages = Math.ceil(sortedPatients.length / itemsPerPage)
 
   const sortIndicator = (field: SortField) => {
     if (sortField !== field) return ""
@@ -152,12 +159,12 @@ export const Patients = () => {
             type="text"
             placeholder="Buscar por nome, CPF ou telefone..."
             value={searchTerm}
-            onChange={(event) => setSearchTerm(event.target.value)}
+            onChange={(event) => handleSearchChange(event.target.value)}
             className="w-full bg-transparent text-sm text-gray-800 placeholder-gray-400 focus:outline-none"
           />
           {searchTerm && (
             <button
-              onClick={() => setSearchTerm("")}
+              onClick={() => handleSearchChange("")}
               className="p-0.5 rounded hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
             >
               <X className="w-3.5 h-3.5" />
@@ -168,7 +175,7 @@ export const Patients = () => {
         <div className="flex items-center justify-center sm:justify-start gap-1.5 bg-white border border-border rounded-lg px-3 py-2.5 shrink-0">
           <Filter className="w-3.5 h-3.5 text-gray-400" />
           <span className="text-[11px] text-muted font-medium">
-            {filteredAndSortedPatients.length} resultado{filteredAndSortedPatients.length !== 1 ? "s" : ""}
+            {sortedPatients.length} resultado{sortedPatients.length !== 1 ? "s" : ""}
           </span>
         </div>
       </div>
@@ -180,7 +187,7 @@ export const Patients = () => {
             <span className="text-sm font-medium">Carregando registros clínicos...</span>
           </div>
         </div>
-      ) : filteredAndSortedPatients.length === 0 ? (
+      ) : sortedPatients.length === 0 ? (
         <div className="flex-1 flex flex-col items-center justify-center gap-3 py-20">
           <div className="w-14 h-14 rounded-2xl bg-gray-50 border border-border flex items-center justify-center">
             <Users className="w-7 h-7 text-gray-300" />
@@ -228,7 +235,7 @@ export const Patients = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredAndSortedPatients.map((patient, rowIndex) => (
+              {paginatedPatients.map((patient, rowIndex) => (
                 <tr
                   key={patient.patient_id}
                   className={`border-b border-border/60 hover:bg-blue-50/30 transition-colors duration-150 group ${
@@ -279,6 +286,31 @@ export const Patients = () => {
             </tbody>
           </table>
           </div>
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between border-t border-border px-6 py-4 bg-gray-50/50">
+              <span className="text-xs text-gray-500 font-semibold">
+                Página {currentPage} de {totalPages} ({sortedPatients.length} pacientes)
+              </span>
+              <div className="flex gap-2">
+                <Button
+                  variantType="outline"
+                  className="px-3 py-1.5 text-xs font-bold"
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                >
+                  Anterior
+                </Button>
+                <Button
+                  variantType="outline"
+                  className="px-3 py-1.5 text-xs font-bold"
+                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                >
+                  Próxima
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 

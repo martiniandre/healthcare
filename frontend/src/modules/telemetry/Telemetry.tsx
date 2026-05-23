@@ -17,27 +17,12 @@ import {
 } from "lucide-react"
 
 import { CardiacCondition, BedStatus } from "../../shared/types"
-
-interface TelemetryRoom {
-  id: string
-  name: string
-  passcode: string
-  description: string
-}
-
-interface BedPatient {
-  id: string
-  roomId: string
-  bedNumber: string
-  patientName: string
-  age: number
-  gender: string
-  bpm: number
-  spo2: number
-  temperature: number
-  status: BedStatus
-  condition: CardiacCondition
-}
+import { 
+  useTelemetryRoomsQuery, 
+  useUnlockRoomMutation, 
+  useTelemetryBedsQuery, 
+  useUpdateBedConditionMutation 
+} from "./queries"
 
 export const Telemetry = () => {
   const [selectedRoomId, setSelectedRoomId] = useState<string>("room-1")
@@ -48,131 +33,57 @@ export const Telemetry = () => {
   const [passcodeError, setPasscodeError] = useState<string>("")
   const [isMuted, setIsMuted] = useState<boolean>(true)
 
-  const roomsData: TelemetryRoom[] = [
-    {
-      id: "room-1",
-      name: "Sala Verde - Semi-Intensiva",
-      passcode: "1234",
-      description: "Leitos monitorados para transição e observação de baixa gravidade"
-    },
-    {
-      id: "room-2",
-      name: "Sala Vermelha - Choque & Emergência",
-      passcode: "9999",
-      description: "Suporte de emergência avançada e pacientes de alto risco imediato"
-    },
-    {
-      id: "room-3",
-      name: "Sala Amarela - Trauma & Coronária",
-      passcode: "4321",
-      description: "Leitos de monitoramento cardíaco contínuo e infarto agudo"
-    }
-  ]
+  const { data: rooms = [] } = useTelemetryRoomsQuery()
+  const { data: beds = [] } = useTelemetryBedsQuery(selectedRoomId)
+  
+  const unlockRoomMutation = useUnlockRoomMutation()
+  const updateBedConditionMutation = useUpdateBedConditionMutation()
 
-  const [bedsData, setBedsData] = useState<BedPatient[]>([
-    {
-      id: "bed-1",
-      roomId: "room-1",
-      bedNumber: "Leito 01",
-      patientName: "Guilherme de Souza Araujo",
-      age: 38,
-      gender: "Masculino",
-      bpm: 78,
-      spo2: 98,
-      temperature: 36.6,
-      status: BedStatus.Normal,
-      condition: CardiacCondition.Normal
-    },
-    {
-      id: "bed-2",
-      roomId: "room-2",
-      bedNumber: "Leito 02",
-      patientName: "Mariana Costa Silva",
-      age: 29,
-      gender: "Feminino",
-      bpm: 125,
-      spo2: 94,
-      temperature: 38.2,
-      status: BedStatus.Warning,
-      condition: CardiacCondition.Tachycardia
-    },
-    {
-      id: "bed-3",
-      roomId: "room-3",
-      bedNumber: "Leito 03",
-      patientName: "Carlos Eduardo Santos",
-      age: 64,
-      gender: "Masculino",
-      bpm: 48,
-      spo2: 91,
-      temperature: 35.9,
-      status: BedStatus.Danger,
-      condition: CardiacCondition.Bradycardia
-    },
-    {
-      id: "bed-4",
-      roomId: "room-1",
-      bedNumber: "Leito 04",
-      patientName: "Ana Julia Nogueira",
-      age: 45,
-      gender: "Feminino",
-      bpm: 72,
-      spo2: 99,
-      temperature: 36.4,
-      status: BedStatus.Normal,
-      condition: CardiacCondition.Normal
-    }
-  ])
-
-  const activeRoom = roomsData.find((roomItem) => roomItem.id === selectedRoomId) || roomsData[0]
+  const activeRoom = rooms.find((roomItem) => roomItem.id === selectedRoomId) || rooms[0]
   const isCurrentRoomUnlocked = unlockedRoomIds.includes(selectedRoomId)
 
-  const roomBeds = bedsData.filter((bedItem) => bedItem.roomId === selectedRoomId)
-  const activeBed = roomBeds.find((bedItem) => bedItem.id === selectedBedId) || roomBeds[0]
+  const activeBed = beds.find((bedItem) => bedItem.id === selectedBedId) || beds[0]
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const animationFrameIdRef = useRef<number | null>(null)
   const traceOffsetRef = useRef<number>(0)
   const ecgPointsRef = useRef<number[]>([])
 
-  const updateSelectedBedCondition = (newCondition: CardiacCondition) => {
+  const updateSelectedBedCondition = async (newCondition: CardiacCondition) => {
     if (!activeBed) {
       return
     }
 
-    setBedsData((previousBeds) =>
-      previousBeds.map((bedItem) => {
-        if (bedItem.id !== activeBed.id) {
-          return bedItem
-        }
+    let dynamicBpm = 75
+    let dynamicSpo2 = 98
+    let dynamicStatus: BedStatus = BedStatus.Normal
 
-        let dynamicBpm = 75
-        let dynamicSpo2 = 98
-        let dynamicStatus: BedStatus = BedStatus.Normal
+    if (newCondition === CardiacCondition.Bradycardia) {
+      dynamicBpm = 45
+      dynamicSpo2 = 93
+      dynamicStatus = BedStatus.Warning
+    } else if (newCondition === CardiacCondition.Tachycardia) {
+      dynamicBpm = 135
+      dynamicSpo2 = 95
+      dynamicStatus = BedStatus.Warning
+    } else if (newCondition === CardiacCondition.CardiacArrest) {
+      dynamicBpm = 0
+      dynamicSpo2 = 0
+      dynamicStatus = BedStatus.Danger
+    }
 
-        if (newCondition === CardiacCondition.Bradycardia) {
-          dynamicBpm = 45
-          dynamicSpo2 = 93
-          dynamicStatus = BedStatus.Warning
-        } else if (newCondition === CardiacCondition.Tachycardia) {
-          dynamicBpm = 135
-          dynamicSpo2 = 95
-          dynamicStatus = BedStatus.Warning
-        } else if (newCondition === CardiacCondition.CardiacArrest) {
-          dynamicBpm = 0
-          dynamicSpo2 = 0
-          dynamicStatus = BedStatus.Danger
-        }
-
-        return {
-          ...bedItem,
-          condition: newCondition,
-          bpm: dynamicBpm,
-          spo2: dynamicSpo2,
-          status: dynamicStatus
-        }
+    try {
+      await updateBedConditionMutation.mutateAsync({
+        bedId: activeBed.id,
+        bpm: dynamicBpm,
+        spo2: dynamicSpo2,
+        temperature: activeBed.temperature,
+        status: dynamicStatus,
+        condition: newCondition,
       })
-    )
+    } catch {
+      alert("Falha ao propagar simulação clínica.")
+    }
   }
 
   useEffect(() => {
@@ -293,18 +204,26 @@ export const Telemetry = () => {
     }
   }, [isCurrentRoomUnlocked, activeBed])
 
-  const handleUnlockRoom = (event: FormEvent) => {
+  const handleUnlockRoom = async (event: FormEvent) => {
     event.preventDefault()
-    if (passcodeInput === activeRoom.passcode) {
+    if (!activeRoom) {
+      return
+    }
+
+    try {
+      await unlockRoomMutation.mutateAsync({
+        roomIdValue: selectedRoomId,
+        passcodeValue: passcodeInput,
+      })
+
       setUnlockedRoomIds((previousUnlocked) => [...previousUnlocked, selectedRoomId])
       setPasscodeInput("")
       setPasscodeError("")
 
-      const currentRoomBeds = bedsData.filter((item) => item.roomId === selectedRoomId)
-      if (currentRoomBeds.length > 0) {
-        setSelectedBedId(currentRoomBeds[0].id)
+      if (beds.length > 0) {
+        setSelectedBedId(beds[0].id)
       }
-    } else {
+    } catch {
       setPasscodeError("Senha de Acesso incorreta. Verifique a escala do plantão.")
     }
   }
@@ -317,12 +236,9 @@ export const Telemetry = () => {
     setSelectedRoomId(roomId)
     setPasscodeError("")
     setPasscodeInput("")
-
-    const currentRoomBeds = bedsData.filter((item) => item.roomId === roomId)
-    if (currentRoomBeds.length > 0) {
-      setSelectedBedId(currentRoomBeds[0].id)
-    }
   }
+
+
 
   return (
     <div className="flex-1 p-4 sm:p-6 md:p-8 flex flex-col gap-4 md:gap-6 max-w-7xl mx-auto w-full select-none">
@@ -359,10 +275,9 @@ export const Telemetry = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {roomsData.map((roomItem) => {
+        {rooms.map((roomItem) => {
           const isSelected = roomItem.id === selectedRoomId
           const isUnlocked = unlockedRoomIds.includes(roomItem.id)
-          const roomBedsCount = bedsData.filter((item) => item.roomId === roomItem.id).length
 
           return (
             <Card
@@ -376,7 +291,7 @@ export const Telemetry = () => {
             >
               <div className="flex items-center justify-between">
                 <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block">
-                  {roomBedsCount} {roomBedsCount === 1 ? "Leito Ativo" : "Leitos Ativos"}
+                  Ala Monitorada
                 </span>
                 <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full border ${
                   isUnlocked 
@@ -431,13 +346,13 @@ export const Telemetry = () => {
               Sala com Acesso Restrito
             </h3>
             <p className="text-xs text-gray-500 leading-normal">
-              Esta ala contém dados clínicos protegidos (HIPAA/LGPD). Digite a senha da escala de plantão da <strong className="text-gray-800">{activeRoom.name}</strong> para liberar a telemetria.
+              Esta ala contém dados clínicos protegidos (HIPAA/LGPD). Digite a senha da escala de plantão da <strong className="text-gray-800">{activeRoom?.name || "Sala Selecionada"}</strong> para liberar a telemetria.
             </p>
           </div>
 
           <form onSubmit={handleUnlockRoom} className="w-full max-w-[320px] flex flex-col gap-3">
             <div className="flex flex-col gap-1.5 text-left">
-              <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Senha de Escala (DICA: {activeRoom.passcode})</label>
+              <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Senha de Escala</label>
               <div className="relative">
                 <KeyRound className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
                 <input
@@ -459,6 +374,7 @@ export const Telemetry = () => {
             <Button
               type="submit"
               variantType="primary"
+              disabled={unlockRoomMutation.isPending}
               className="w-full py-2.5 text-xs font-bold gap-2"
             >
               <Unlock className="w-4 h-4" />
@@ -471,7 +387,7 @@ export const Telemetry = () => {
             Conselho Técnico de Enfermagem e Medicina Intensiva
           </div>
         </Card>
-      ) : roomBeds.length === 0 ? (
+      ) : beds.length === 0 ? (
         <Card className="flex-1 p-8 border border-border bg-white flex flex-col items-center justify-center text-center gap-3 min-h-[400px]">
           <Activity className="w-8 h-8 text-gray-400 animate-pulse" />
           <span className="text-xs text-gray-500 font-bold">Nenhum leito ativo nesta sala de monitoramento.</span>
@@ -482,7 +398,7 @@ export const Telemetry = () => {
             <Card className="p-4 flex flex-col gap-4">
               <div className="flex items-center justify-between border-b border-border pb-3 flex-wrap gap-2">
                 <div className="text-left">
-                  <span className="text-xs font-bold text-primary uppercase tracking-wider">{activeRoom.name}</span>
+                  <span className="text-xs font-bold text-primary uppercase tracking-wider">{activeRoom?.name}</span>
                   <h3 className="text-md font-bold text-gray-900">{activeBed?.bedNumber} • {activeBed?.patientName}</h3>
                 </div>
                 <div className="flex items-center gap-2">
@@ -583,12 +499,12 @@ export const Telemetry = () => {
             <Card className="p-4 flex flex-col gap-4">
               <h3 className="font-extrabold text-gray-900 text-md flex items-center gap-2 border-b border-border pb-3">
                 <Bell className="w-4 h-4 text-primary animate-pulse-glow" />
-                Leitos Disponíveis ({roomBeds.length})
+                Leitos Disponíveis ({beds.length})
               </h3>
 
               <div className="flex flex-col gap-3">
-                {roomBeds.map((bedItem) => {
-                  const isSelected = bedItem.id === selectedBedId
+                {beds.map((bedItem) => {
+                  const isSelected = bedItem.id === (activeBed?.id || selectedBedId)
                   return (
                     <div
                       key={bedItem.id}

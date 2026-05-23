@@ -1,5 +1,5 @@
 import { http } from "../../shared/utils/http"
-import type { DiagnosticReport, Encounter, Observation, Patient, Condition } from "./types"
+import type { DiagnosticReport, Encounter, Observation, Patient, Condition, CreatePatientResponse } from "./types"
 
 export const patientsApi = {
   getPatients: async (): Promise<Patient[]> => {
@@ -15,7 +15,7 @@ export const patientsApi = {
   },
 
   createPatient: async (patientData: Omit<Patient, "patient_id" | "fhir_resource_id">): Promise<Patient> => {
-    const creationResponse = await http.post<{ patient_id: string; fhir_resource_id: string }>("/patients", patientData)
+    const creationResponse = await http.post<CreatePatientResponse>("/patients", patientData)
     return {
       patient_id: creationResponse.patient_id,
       fhir_resource_id: creationResponse.fhir_resource_id,
@@ -56,7 +56,7 @@ export const patientsApi = {
     return http.get<Condition[]>(`/patients/${patientFhirId}/conditions`)
   },
 
-  createCondition: async (conditionData: Omit<Condition, "fhir_id" | "created_at">): Promise<Condition> => {
+  createCondition: async (conditionData: Omit<Condition, "fhir_id" | "created_at" | "clinical_status">): Promise<Condition> => {
     return http.post<Condition>(`/patients/${conditionData.patient_fhir_id}/conditions`, {
       icd10_code: conditionData.icd10_code,
       code_display: conditionData.code_display,

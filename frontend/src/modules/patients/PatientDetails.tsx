@@ -7,7 +7,9 @@ import {
   useObservationsQuery,
   useCreateObservationMutation,
   useDiagnosticReportsQuery,
-  useCreateDiagnosticReportMutation
+  useCreateDiagnosticReportMutation,
+  usePatientConditionsQuery,
+  useCreateConditionMutation
 } from "./queries"
 import { useImagingStudiesQuery } from "../imaging/queries"
 import { PatientHeader } from "./components/PatientHeader"
@@ -15,9 +17,11 @@ import { EncounterHistory } from "./components/EncounterHistory"
 import { VitalSigns } from "./components/VitalSigns"
 import { ClinicalReports } from "./components/ClinicalReports"
 import { PACSStudies } from "./components/PACSStudies"
+import { ClinicalConditions } from "./components/ClinicalConditions"
 import { EncounterModal } from "./components/modals/EncounterModal"
 import { ObservationModal } from "./components/modals/ObservationModal"
 import { ReportModal } from "./components/modals/ReportModal"
+import { ConditionModal } from "./components/modals/ConditionModal"
 import { Card } from "../../shared/components/ui/Card"
 import { 
   History, 
@@ -25,7 +29,8 @@ import {
   FileText, 
   Image as ImageIcon,
   AlertTriangle,
-  FolderOpen
+  FolderOpen,
+  Activity
 } from "lucide-react"
 
 export const PatientDetails = () => {
@@ -33,8 +38,8 @@ export const PatientDetails = () => {
   const navigate = useNavigate()
 
   const [searchParameters, setSearchParameters] = useSearchParams()
-  const activeTab = (searchParameters.get("tab") || "encounters") as "encounters" | "vitals" | "reports" | "pacs"
-  const setActiveTab = (tabName: "encounters" | "vitals" | "reports" | "pacs") => {
+  const activeTab = (searchParameters.get("tab") || "encounters") as "encounters" | "vitals" | "reports" | "pacs" | "conditions"
+  const setActiveTab = (tabName: "encounters" | "vitals" | "reports" | "pacs" | "conditions") => {
     setSearchParameters({ tab: tabName })
   }
   const [selectedEncounterId, setSelectedEncounterId] = useState<string | null>(null)
@@ -42,6 +47,7 @@ export const PatientDetails = () => {
   const [isEncounterModalOpen, setIsEncounterModalOpen] = useState(false)
   const [isObservationModalOpen, setIsObservationModalOpen] = useState(false)
   const [isReportModalOpen, setIsReportModalOpen] = useState(false)
+  const [isConditionModalOpen, setIsConditionModalOpen] = useState(false)
 
   const { data: patient, isLoading: isPatientLoading } = usePatientQuery(id)
   const { data: encounters = [] } = useEncountersQuery(id)
@@ -51,10 +57,12 @@ export const PatientDetails = () => {
   const { data: observations = [] } = useObservationsQuery(activeEncounterId || "")
   const { data: reports = [] } = useDiagnosticReportsQuery(activeEncounterId || "")
   const { data: studies = [] } = useImagingStudiesQuery(id)
+  const { data: conditions = [] } = usePatientConditionsQuery(id)
 
   const createEncounterMutation = useCreateEncounterMutation()
   const createObservationMutation = useCreateObservationMutation()
   const createReportMutation = useCreateDiagnosticReportMutation()
+  const createConditionMutation = useCreateConditionMutation()
 
   const selectedEncounter = encounters.find(e => e.fhir_id === activeEncounterId) || null
 
@@ -121,6 +129,19 @@ export const PatientDetails = () => {
     }
   }
 
+  const handleCreateCondition = async (formData: { icd10Code: string; codeDisplay: string }) => {
+    try {
+      await createConditionMutation.mutateAsync({
+        patient_fhir_id: id,
+        icd10_code: formData.icd10Code,
+        code_display: formData.codeDisplay,
+      })
+      setIsConditionModalOpen(false)
+    } catch {
+      alert("Erro ao registrar diagnóstico.")
+    }
+  }
+
   if (isPatientLoading || !patient) {
     return (
       <div className="text-center py-16">
@@ -176,6 +197,21 @@ export const PatientDetails = () => {
             >
               <FileText className="w-4 h-4 shrink-0" />
               Laudos Clínicos
+            </button>
+
+            <button
+              onClick={() => setActiveTab("conditions")}
+              className={`w-full text-left flex items-center gap-3 px-4 py-3 rounded-lg text-xs font-extrabold transition-all duration-300 ${
+                activeTab === "conditions"
+                  ? "bg-primary/8 text-primary"
+                  : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
+              }`}
+            >
+              <Activity className="w-4 h-4 shrink-0" />
+              Diagnósticos Ativos
+              <span className="ml-auto text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded font-black">
+                {conditions.length}
+              </span>
             </button>
 
             <button
@@ -262,6 +298,13 @@ export const PatientDetails = () => {
               )
             )}
 
+            {activeTab === "conditions" && (
+              <ClinicalConditions
+                conditions={conditions}
+                onAdd={() => setIsConditionModalOpen(true)}
+              />
+            )}
+
             {activeTab === "pacs" && (
               <PACSStudies
                 studies={studies}
@@ -291,6 +334,13 @@ export const PatientDetails = () => {
         onClose={() => setIsReportModalOpen(false)}
         onSubmit={handleCreateReport}
         isPending={createReportMutation.isPending}
+      />
+
+      <ConditionModal
+        isOpen={isConditionModalOpen}
+        onClose={() => setIsConditionModalOpen(false)}
+        onSubmit={handleCreateCondition}
+        isPending={createConditionMutation.isPending}
       />
     </div>
   )

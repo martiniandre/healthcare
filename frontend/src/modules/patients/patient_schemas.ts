@@ -21,7 +21,13 @@ export const newReportSchema = z.object({
   conclusion: z.string().min(5, "A conclusão deve ter no mínimo 5 caracteres"),
 })
 
+export const newConditionSchema = z.object({
+  icd10Code: z.string().min(3, "O código CID-10 deve ter no mínimo 3 caracteres"),
+  codeDisplay: z.string().min(3, "A descrição do diagnóstico deve ter no mínimo 3 caracteres"),
+})
+
 export type NewPatientFormData = z.infer<typeof newPatientSchema>
 export type NewEncounterFormData = z.infer<typeof newEncounterSchema>
 export type NewObservationFormData = z.infer<typeof newObservationSchema>
 export type NewReportFormData = z.infer<typeof newReportSchema>
+export type NewConditionFormData = z.infer<typeof newConditionSchema>

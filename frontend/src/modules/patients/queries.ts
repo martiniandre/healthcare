@@ -11,10 +11,23 @@ export const patientQueryKeys = {
   reports: (encounterFhirId: string) => [...patientQueryKeys.all, "reports", encounterFhirId] as const,
 }
 
-export const usePatientsQuery = () => {
+export const usePatientsQuery = (searchQueryValue?: string) => {
   return useQuery({
-    queryKey: patientQueryKeys.lists(),
-    queryFn: () => patientsApi.getPatients(),
+    queryKey: [...patientQueryKeys.lists(), searchQueryValue],
+    queryFn: async () => {
+      const allPatients = await patientsApi.getPatients()
+      if (!searchQueryValue) {
+        return allPatients
+      }
+      const lowerSearch = searchQueryValue.toLowerCase()
+      return allPatients.filter((patientItem) => {
+        return (
+          patientItem.full_name.toLowerCase().includes(lowerSearch) ||
+          patientItem.document_id.includes(lowerSearch) ||
+          patientItem.phone_number.includes(lowerSearch)
+        )
+      })
+    },
   })
 }
 
@@ -107,6 +120,30 @@ export const useCreateDiagnosticReportMutation = () => {
     }) => patientsApi.createDiagnosticReport(payload),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: patientQueryKeys.reports(variables.encounter_fhir_id) })
+    },
+  })
+}
+
+export const usePatientConditionsQuery = (patientFhirId: string) => {
+  return useQuery({
+    queryKey: [...patientQueryKeys.all, "conditions", patientFhirId],
+    queryFn: () => patientsApi.getConditions(patientFhirId),
+    enabled: !!patientFhirId,
+  })
+}
+
+export const useCreateConditionMutation = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (payload: {
+      patient_fhir_id: string
+      icd10_code: string
+      code_display: string
+    }) => patientsApi.createCondition(payload),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: [...patientQueryKeys.all, "conditions", variables.patient_fhir_id],
+      })
     },
   })
 }

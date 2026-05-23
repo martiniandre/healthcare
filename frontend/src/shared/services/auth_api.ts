@@ -1,9 +1,10 @@
 import { http } from "../utils/http"
+import type { AuthResponseDto } from "../types"
 
 export const authApi = {
-  login: async (emailValue: string, passwordValue: string): Promise<{ token: string; userId: string; role: string; email: string }> => {
+  login: async (emailValue: string, passwordValue: string): Promise<AuthResponseDto> => {
     try {
-      return await http.post<{ token: string; userId: string; role: string; email: string }>("/auth/login", {
+      return await http.post<AuthResponseDto>("/auth/login", {
         email: emailValue,
         password: passwordValue,
       })

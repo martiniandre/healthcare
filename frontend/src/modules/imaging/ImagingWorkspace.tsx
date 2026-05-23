@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { ArrowLeft, UploadCloud } from "lucide-react"
 import { Button } from "../../shared/components/ui/Button"
@@ -7,20 +7,26 @@ import { ImagingStudyDetails } from "./components/ImagingStudyDetails"
 import { ImagingUploadProgress } from "./components/ImagingUploadProgress"
 import { useDicomViewer } from "./hooks/useDicomViewer"
 import { useImagingStudyQuery, useUploadImagingStudyMutation } from "./queries"
-import { createValidDicomBlob, waitForUploadFrame } from "./utils/pacs_helpers"
+import { waitForUploadFrame } from "./utils/pacs_helpers"
 
 export const ImagingWorkspace = () => {
   const { studyId = "" } = useParams<{ studyId: string }>()
   const navigate = useNavigate()
   const [uploadPercentage, setUploadPercentage] = useState<number | null>(null)
   const [uploadStatus, setUploadStatus] = useState<string | null>(null)
+  const fileInputReference = useRef<HTMLInputElement>(null)
 
   const { data: study, isLoading: isStudyLoading } = useImagingStudyQuery(studyId)
   const uploadImagingStudyMutation = useUploadImagingStudyMutation()
   const dicomViewer = useDicomViewer(study)
 
-  const handleUploadImagingStudy = async () => {
-    if (!study) {
+  const handleButtonClick = () => {
+    fileInputReference.current?.click()
+  }
+
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = event.target.files?.[0]
+    if (!selectedFile || !study) {
       return
     }
 
@@ -32,9 +38,9 @@ export const ImagingWorkspace = () => {
     try {
       await uploadImagingStudyMutation.mutateAsync({
         patientFhirId: study.patient_fhir_id,
-        title: "Nova Ressonância Magnética",
+        title: selectedFile.name.replace(/\.[^/.]+$/, "") || "Nova Ressonância Magnética",
         modality: "MR",
-        dicomBlob: createValidDicomBlob(),
+        dicomBlob: selectedFile,
       })
 
       setUploadPercentage(100)
@@ -46,6 +52,9 @@ export const ImagingWorkspace = () => {
     } finally {
       setUploadPercentage(null)
       setUploadStatus(null)
+      if (fileInputReference.current) {
+        fileInputReference.current.value = ""
+      }
     }
   }
 
@@ -76,9 +85,16 @@ export const ImagingWorkspace = () => {
         </div>
 
         <div className="flex items-center gap-2">
+          <input
+            type="file"
+            accept=".dcm"
+            ref={fileInputReference}
+            onChange={handleFileChange}
+            className="hidden"
+          />
           <Button
             variantType="outline"
-            onClick={handleUploadImagingStudy}
+            onClick={handleButtonClick}
             disabled={uploadImagingStudyMutation.isPending || uploadPercentage !== null}
             className="px-3.5 gap-2 border-primary/20 text-primary hover:bg-primary/5"
           >

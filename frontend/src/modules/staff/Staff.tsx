@@ -14,69 +14,15 @@ import {
 } from "lucide-react"
 
 import { StaffRole, StaffStatus } from "../../shared/types"
-
-interface StaffMember {
-  id: string
-  fullName: string
-  role: StaffRole
-  license: string
-  email: string
-  status: StaffStatus
-  department: string
-}
+import { useStaffListQuery, useCreateEmployeeMutation } from "./queries"
 
 export const Staff = () => {
   const [filterRole, setFilterRole] = useState<string>("All")
   const [searchQuery, setSearchQuery] = useState<string>(" ")
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false)
 
-  const [staffList, setStaffList] = useState<StaffMember[]>([
-    {
-      id: "staff-1",
-      fullName: "Dr. André Silva de Araujo",
-      role: StaffRole.Doctor,
-      license: "CRM-SP 123456",
-      email: "andre.araujo@hospital.com",
-      status: StaffStatus.OnDuty,
-      department: "Cardiologia"
-    },
-    {
-      id: "staff-2",
-      fullName: "Dra. Mariana Costa Silva",
-      role: StaffRole.Doctor,
-      license: "CRM-SP 654321",
-      email: "mariana.silva@hospital.com",
-      status: StaffStatus.OnDuty,
-      department: "Pediatria"
-    },
-    {
-      id: "staff-3",
-      fullName: "Enf. Roberta Santos Almeida",
-      role: StaffRole.Nurse,
-      license: "COREN-SP 98765",
-      email: "roberta.almeida@hospital.com",
-      status: StaffStatus.OnDuty,
-      department: "UTI Neonatal"
-    },
-    {
-      id: "staff-4",
-      fullName: "Carlos Eduardo Oliveira",
-      role: StaffRole.Receptionist,
-      license: "N/A",
-      email: "carlos.oliveira@hospital.com",
-      status: StaffStatus.OffDuty,
-      department: "Admissão e Triagem"
-    },
-    {
-      id: "staff-5",
-      fullName: "Sonia Regina de Souza",
-      role: StaffRole.Admin,
-      license: "N/A",
-      email: "sonia.souza@hospital.com",
-      status: StaffStatus.OffDuty,
-      department: "Diretoria Técnica"
-    }
-  ])
+  const { data: staffList = [], isLoading } = useStaffListQuery()
+  const createEmployeeMutation = useCreateEmployeeMutation()
 
   const [newStaffName, setNewStaffName] = useState<string>("")
   const [newStaffRole, setNewStaffRole] = useState<StaffRole>(StaffRole.Doctor)
@@ -84,30 +30,31 @@ export const Staff = () => {
   const [newStaffEmail, setNewStaffEmail] = useState<string>("")
   const [newStaffDept, setNewStaffDept] = useState<string>("")
 
-  const handleRegisterStaff = (event: FormEvent) => {
+  const handleRegisterStaff = async (event: FormEvent) => {
     event.preventDefault()
     if (!newStaffName || !newStaffEmail) {
       return
     }
 
-    const createdMember: StaffMember = {
-      id: `staff-${Date.now()}`,
-      fullName: newStaffName,
-      role: newStaffRole,
-      license: newStaffLicense || "N/A",
-      email: newStaffEmail,
-      status: StaffStatus.OffDuty,
-      department: newStaffDept || "Geral"
+    try {
+      const temporaryRandomUserId = crypto.randomUUID()
+      await createEmployeeMutation.mutateAsync({
+        userId: temporaryRandomUserId,
+        fullName: newStaffName,
+        email: newStaffEmail,
+        role: newStaffRole,
+        crmNumber: newStaffLicense || "N/A",
+      })
+
+      setIsModalOpen(false)
+      setNewStaffName("")
+      setNewStaffRole(StaffRole.Doctor)
+      setNewStaffLicense("")
+      setNewStaffEmail("")
+      setNewStaffDept("")
+    } catch {
+      alert("Falha ao registrar profissional de saúde.")
     }
-
-    setStaffList((previousList) => [...previousList, createdMember])
-    setIsModalOpen(false)
-
-    setNewStaffName("")
-    setNewStaffRole(StaffRole.Doctor)
-    setNewStaffLicense("")
-    setNewStaffEmail("")
-    setNewStaffDept("")
   }
 
   const filteredStaff = staffList.filter((member) => {
@@ -171,74 +118,80 @@ export const Staff = () => {
           </div>
         </div>
 
-        <div className="overflow-x-auto border border-border rounded-xl w-full">
-          <table className="w-full text-left text-xs border-collapse min-w-[700px] md:min-w-0">
-            <thead>
-              <tr className="bg-gray-50/50 border-b border-border text-gray-500 font-bold uppercase tracking-wider">
-                <th className="py-3 px-4">Profissional</th>
-                <th className="py-3 px-4">Função / Categoria</th>
-                <th className="py-3 px-4">Registro (CRM/COREN)</th>
-                <th className="py-3 px-4">Departamento</th>
-                <th className="py-3 px-4">Contato</th>
-                <th className="py-3 px-4">Escala</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border text-gray-700 font-medium bg-white">
-              {filteredStaff.map((member) => (
-                <tr key={member.id} className="hover:bg-gray-50/30 transition-all duration-150">
-                  <td className="py-4 px-4">
-                    <div className="flex items-center gap-3">
-                      <div className="bg-primary/8 p-2 rounded-lg border border-primary/10">
-                        <Users className="w-4 h-4 text-primary" />
-                      </div>
-                      <span className="font-extrabold text-gray-900">{member.fullName}</span>
-                    </div>
-                  </td>
-                  <td className="py-4 px-4">
-                    <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-bold text-[10px] uppercase border ${
-                      member.role === StaffRole.Doctor 
-                        ? "bg-blue-50 text-blue-600 border-blue-100" 
-                        : member.role === StaffRole.Nurse
-                          ? "bg-teal-50 text-teal-600 border-teal-100"
-                          : member.role === StaffRole.Admin
-                            ? "bg-purple-50 text-purple-600 border-purple-100"
-                            : "bg-gray-50 text-gray-600 border-gray-100"
-                    }`}>
-                      {member.role}
-                    </span>
-                  </td>
-                  <td className="py-4 px-4 font-semibold text-gray-600">{member.license}</td>
-                  <td className="py-4 px-4 font-semibold text-gray-600">{member.department}</td>
-                  <td className="py-4 px-4">
-                    <span className="flex items-center gap-1.5 text-gray-500 font-semibold">
-                      <Mail className="w-3.5 h-3.5 text-gray-400" />
-                      {member.email}
-                    </span>
-                  </td>
-                  <td className="py-4 px-4">
-                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-bold text-[10px] uppercase ${
-                      member.status === StaffStatus.OnDuty
-                        ? "bg-emerald-50 text-emerald-600 border border-emerald-100"
-                        : "bg-gray-50 text-gray-400 border border-gray-100"
-                    }`}>
-                      {member.status === StaffStatus.OnDuty ? (
-                        <>
-                          <UserCheck className="w-3 h-3" />
-                          Plantonista
-                        </>
-                      ) : (
-                        <>
-                          <Clock className="w-3 h-3" />
-                          Fora de Escala
-                        </>
-                      )}
-                    </span>
-                  </td>
+        {isLoading ? (
+          <div className="text-center py-16">
+            <span className="text-sm text-muted">Carregando corpo clínico...</span>
+          </div>
+        ) : (
+          <div className="overflow-x-auto border border-border rounded-xl w-full">
+            <table className="w-full text-left text-xs border-collapse min-w-[700px] md:min-w-0">
+              <thead>
+                <tr className="bg-gray-50/50 border-b border-border text-gray-500 font-bold uppercase tracking-wider">
+                  <th className="py-3 px-4">Profissional</th>
+                  <th className="py-3 px-4">Função / Categoria</th>
+                  <th className="py-3 px-4">Registro (CRM/COREN)</th>
+                  <th className="py-3 px-4">Departamento</th>
+                  <th className="py-3 px-4">Contato</th>
+                  <th className="py-3 px-4">Escala</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="divide-y divide-border text-gray-700 font-medium bg-white">
+                {filteredStaff.map((member) => (
+                  <tr key={member.id} className="hover:bg-gray-50/30 transition-all duration-150">
+                    <td className="py-4 px-4">
+                      <div className="flex items-center gap-3">
+                        <div className="bg-primary/8 p-2 rounded-lg border border-primary/10">
+                          <Users className="w-4 h-4 text-primary" />
+                        </div>
+                        <span className="font-extrabold text-gray-900">{member.fullName}</span>
+                      </div>
+                    </td>
+                    <td className="py-4 px-4">
+                      <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-bold text-[10px] uppercase border ${
+                        member.role === StaffRole.Doctor 
+                          ? "bg-blue-50 text-blue-600 border-blue-100" 
+                          : member.role === StaffRole.Nurse
+                            ? "bg-teal-50 text-teal-600 border-teal-100"
+                            : member.role === StaffRole.Admin
+                              ? "bg-purple-50 text-purple-600 border-purple-100"
+                              : "bg-gray-50 text-gray-600 border-gray-100"
+                      }`}>
+                        {member.role}
+                      </span>
+                    </td>
+                    <td className="py-4 px-4 font-semibold text-gray-600">{member.license}</td>
+                    <td className="py-4 px-4 font-semibold text-gray-600">{member.department || "Geral"}</td>
+                    <td className="py-4 px-4">
+                      <span className="flex items-center gap-1.5 text-gray-500 font-semibold">
+                        <Mail className="w-3.5 h-3.5 text-gray-400" />
+                        {member.email}
+                      </span>
+                    </td>
+                    <td className="py-4 px-4">
+                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-bold text-[10px] uppercase ${
+                        member.status === StaffStatus.OnDuty
+                          ? "bg-emerald-50 text-emerald-600 border border-emerald-100"
+                          : "bg-gray-50 text-gray-400 border border-gray-100"
+                      }`}>
+                        {member.status === StaffStatus.OnDuty ? (
+                          <>
+                            <UserCheck className="w-3 h-3" />
+                            Plantonista
+                          </>
+                        ) : (
+                          <>
+                            <Clock className="w-3 h-3" />
+                            Fora de Escala
+                          </>
+                        )}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </Card>
 
       {isModalOpen && (
@@ -329,6 +282,7 @@ export const Staff = () => {
                 </Button>
                 <Button
                   type="submit"
+                  disabled={createEmployeeMutation.isPending}
                   variantType="primary"
                   className="px-4 py-2 text-xs font-bold"
                 >
