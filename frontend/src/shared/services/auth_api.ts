@@ -3,7 +3,7 @@ import { http } from "../utils/http"
 export const authApi = {
   login: async (emailValue: string, passwordValue: string): Promise<{ token: string; userId: string; role: string; email: string }> => {
     try {
-      return await http.post<{ token: string; userId: string; role: string; email: string }>("/api/auth/login", {
+      return await http.post<{ token: string; userId: string; role: string; email: string }>("/auth/login", {
         email: emailValue,
         password: passwordValue,
       })
@@ -16,7 +16,7 @@ export const authApi = {
 
   logout: async (): Promise<void> => {
     try {
-      await http.post("/api/auth/logout")
+      await http.post("/auth/logout")
     } catch (logoutError) {
       console.warn("Logout endpoint failed:", logoutError)
     }

@@ -3,12 +3,12 @@ import type { ImagingStudy, UploadImagingStudyPayload } from "./types"
 
 export const imagingApi = {
   getImagingStudies: async (patientFhirId: string): Promise<ImagingStudy[]> => {
-    return http.get<ImagingStudy[]>(`/api/patients/${patientFhirId}/studies`)
+    return http.get<ImagingStudy[]>(`/patients/${patientFhirId}/studies`)
   },
 
   getImagingStudy: async (imagingStudyId: string): Promise<ImagingStudy | null> => {
     try {
-      return await http.get<ImagingStudy>(`/api/studies/${imagingStudyId}`)
+      return await http.get<ImagingStudy>(`/studies/${imagingStudyId}`)
     } catch {
       return null
     }
@@ -20,7 +20,7 @@ export const imagingApi = {
     uploadFormData.append("modality", payload.modality)
     uploadFormData.append("file", payload.dicomBlob, "study.dcm")
 
-    return http.post<ImagingStudy>(`/api/patients/${payload.patientFhirId}/studies`, uploadFormData, {
+    return http.post<ImagingStudy>(`/patients/${payload.patientFhirId}/studies`, uploadFormData, {
       headers: {
         "Content-Type": "multipart/form-data",
       },
