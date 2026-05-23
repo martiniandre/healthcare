@@ -48,3 +48,5 @@ backend/.env
 backend/.env.local
 frontend/.env
 frontend/.env.local
+
+backend/.gocache/

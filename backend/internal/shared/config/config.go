@@ -11,6 +11,7 @@ import (
 
 type Config struct {
 	AppPort       string
+	HTTPPort      string
 	AppEnv        string
 	DBUrl         string
 	RedisUrl      string
@@ -32,6 +33,7 @@ func Load() (*Config, error) {
 
 	cfg := &Config{
 		AppPort:       getEnv("APP_PORT", "50051"),
+		HTTPPort:      getEnv("HTTP_PORT", "8080"),
 		AppEnv:        getEnv("APP_ENV", "development"),
 		DBUrl:         getEnv("DB_URL", ""),
 		RedisUrl:      getEnv("REDIS_URL", "localhost:6379"),
@@ -56,8 +58,8 @@ func (cfg *Config) validate() error {
 	requiredFields := map[string]string{
 		"DB_URL":            cfg.DBUrl,
 		"JWT_SECRET":        cfg.JWTSecret,
-		"GCP_PROJECT_ID":   cfg.GCPProjectID,
-		"GCP_DATASET_ID":   cfg.GCPDatasetID,
+		"GCP_PROJECT_ID":    cfg.GCPProjectID,
+		"GCP_DATASET_ID":    cfg.GCPDatasetID,
 		"GCP_FHIR_STORE_ID": cfg.GCPFHIRStore,
 	}
 

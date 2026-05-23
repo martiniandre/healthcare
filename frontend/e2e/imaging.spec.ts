@@ -47,7 +47,7 @@ test.describe("Medical Imaging Module (PACS Console)", () => {
 
     await page.getByRole("button", { name: "Upload Novo .DCM" }).click()
 
-    const progressBarContainer = page.locator("text=Iniciando upload de chunks gRPC-Web...")
+    const progressBarContainer = page.locator("text=Iniciando upload e validação de assinatura DICOM...")
     await expect(progressBarContainer).toBeVisible()
 
     await page.waitForTimeout(4000)

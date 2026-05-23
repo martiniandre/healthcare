@@ -3,6 +3,7 @@ package interceptor
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/healthcare/backend/internal/shared/apperrors"
@@ -28,16 +29,11 @@ func UnaryRateLimitInterceptor(redisClient *redis.Client) grpc.UnaryServerInterc
 		clientIP := extractClientIP(ctx)
 		rateLimitKey := fmt.Sprintf("rate_limit:%s:%s", info.FullMethod, clientIP)
 
-		currentCount, err := redisClient.Incr(ctx, rateLimitKey).Result()
+		exceeded, err := checkRateLimit(ctx, redisClient, rateLimitKey)
 		if err != nil {
 			return handler(ctx, req)
 		}
-
-		if currentCount == 1 {
-			redisClient.Expire(ctx, rateLimitKey, time.Minute)
-		}
-
-		if currentCount > rateLimitRequestsPerMinute {
+		if exceeded {
 			return nil, apperrors.ErrRateLimitExceeded.ToGRPC()
 		}
 
@@ -45,11 +41,24 @@ func UnaryRateLimitInterceptor(redisClient *redis.Client) grpc.UnaryServerInterc
 	}
 }
 
+func checkRateLimit(ctx context.Context, redisClient *redis.Client, key string) (bool, error) {
+	pipe := redisClient.Pipeline()
+	incrCmd := pipe.Incr(ctx, key)
+	pipe.Expire(ctx, key, time.Minute)
+	if _, err := pipe.Exec(ctx); err != nil {
+		return false, err
+	}
+	return incrCmd.Val() > rateLimitRequestsPerMinute, nil
+}
+
 func extractClientIP(ctx context.Context) string {
 	if incomingMetadata, ok := metadata.FromIncomingContext(ctx); ok {
 		forwardedFor := incomingMetadata.Get("x-forwarded-for")
 		if len(forwardedFor) > 0 {
-			return forwardedFor[0]
+			clientIP := strings.TrimSpace(strings.Split(forwardedFor[0], ",")[0])
+			if clientIP != "" {
+				return clientIP
+			}
 		}
 	}
 
@@ -74,16 +83,11 @@ func StreamRateLimitInterceptor(redisClient *redis.Client) grpc.StreamServerInte
 		clientIP := extractClientIP(stream.Context())
 		rateLimitKey := fmt.Sprintf("rate_limit:stream:%s:%s", info.FullMethod, clientIP)
 
-		currentCount, err := redisClient.Incr(stream.Context(), rateLimitKey).Result()
+		exceeded, err := checkRateLimit(stream.Context(), redisClient, rateLimitKey)
 		if err != nil {
 			return handler(srv, stream)
 		}
-
-		if currentCount == 1 {
-			redisClient.Expire(stream.Context(), rateLimitKey, time.Minute)
-		}
-
-		if currentCount > rateLimitRequestsPerMinute {
+		if exceeded {
 			return apperrors.ErrRateLimitExceeded.ToGRPC()
 		}
 

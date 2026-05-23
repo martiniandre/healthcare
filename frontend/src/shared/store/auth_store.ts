@@ -1,5 +1,5 @@
 import { create } from "zustand"
-import { clinicApi } from "../utils/api_client"
+import { authApi } from "../services/auth_api"
 
 interface AuthenticatedUserState {
   isAuthenticated: boolean
@@ -27,7 +27,7 @@ export const useAuthStore = create<AuthenticatedUserState>((set) => ({
     }),
   logout: async () => {
     try {
-      await clinicApi.logout()
+      await authApi.logout()
     } catch (logoutError) {
       console.error("Logout request failed:", logoutError)
     }
@@ -40,4 +40,3 @@ export const useAuthStore = create<AuthenticatedUserState>((set) => ({
     })
   },
 }))
-

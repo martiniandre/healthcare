@@ -52,7 +52,7 @@ func (repo *repository) GetImagingStudy(ctx context.Context, id uuid.UUID) (*Ima
 		WHERE id = $1
 	`
 	rowResult := repo.dbPool.QueryRow(ctx, queryStatement, id)
-	
+
 	study := &ImagingStudy{}
 	scanError := rowResult.Scan(
 		&study.ID,
@@ -67,7 +67,7 @@ func (repo *repository) GetImagingStudy(ctx context.Context, id uuid.UUID) (*Ima
 	)
 	if scanError != nil {
 		if errors.Is(scanError, pgx.ErrNoRows) {
-			return nil, errors.New("imaging study not found")
+			return nil, ErrImagingStudyNotFound
 		}
 		return nil, scanError
 	}
@@ -105,6 +105,9 @@ func (repo *repository) ListImagingStudiesByPatient(ctx context.Context, patient
 			return nil, scanError
 		}
 		studiesList = append(studiesList, study)
+	}
+	if rowsError := rowsResult.Err(); rowsError != nil {
+		return nil, rowsError
 	}
 	return studiesList, nil
 }

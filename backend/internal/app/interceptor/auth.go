@@ -6,6 +6,7 @@ import (
 
 	"github.com/healthcare/backend/internal/modules/auth"
 	"github.com/healthcare/backend/internal/shared/apperrors"
+	"github.com/healthcare/backend/internal/shared/ctxkeys"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 )
@@ -47,8 +48,8 @@ func UnaryAuthInterceptor() grpc.UnaryServerInterceptor {
 		}
 
 		userIDStr, _ := claims["user_id"].(string)
-		ctx = context.WithValue(ctx, "user_id", userIDStr)
-		ctx = context.WithValue(ctx, "role", roleStr)
+		ctx = context.WithValue(ctx, ctxkeys.UserIDKey, userIDStr)
+		ctx = context.WithValue(ctx, ctxkeys.RoleKey, roleStr)
 
 		return handler(ctx, req)
 	}
@@ -134,8 +135,8 @@ func StreamAuthInterceptor() grpc.StreamServerInterceptor {
 		}
 
 		userIDStr, _ := claims["user_id"].(string)
-		newContext := context.WithValue(stream.Context(), "user_id", userIDStr)
-		newContext = context.WithValue(newContext, "role", roleStr)
+		newContext := context.WithValue(stream.Context(), ctxkeys.UserIDKey, userIDStr)
+		newContext = context.WithValue(newContext, ctxkeys.RoleKey, roleStr)
 
 		return handler(srv, NewWrappedStream(stream, newContext))
 	}

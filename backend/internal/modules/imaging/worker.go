@@ -2,8 +2,10 @@ package imaging
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
+	"sync"
 	"time"
 
 	"github.com/google/uuid"
@@ -17,6 +19,7 @@ type Worker struct {
 	redisClient      *redis.Client
 	healthcareClient *healthcare.Client
 	stopChannel      chan struct{}
+	stopOnce         sync.Once
 }
 
 func NewWorker(dbRepository Repository, redisClient *redis.Client, healthcareClient *healthcare.Client) *Worker {
@@ -46,6 +49,9 @@ func (worker *Worker) Start(ctx context.Context) {
 
 			popResults, popError := worker.redisClient.BRPop(ctx, 5*time.Second, "dicom_processing_queue").Result()
 			if popError != nil {
+				if !errors.Is(popError, redis.Nil) && !errors.Is(popError, context.Canceled) {
+					slog.Warn("failed to pop imaging job from queue", "error", popError)
+				}
 				continue
 			}
 
@@ -60,7 +66,9 @@ func (worker *Worker) Start(ctx context.Context) {
 }
 
 func (worker *Worker) Stop() {
-	close(worker.stopChannel)
+	worker.stopOnce.Do(func() {
+		close(worker.stopChannel)
+	})
 }
 
 func (worker *Worker) processDICOM(ctx context.Context, studyIDString string) {
@@ -76,8 +84,12 @@ func (worker *Worker) processDICOM(ctx context.Context, studyIDString string) {
 		return
 	}
 
-	study.Status = "PROCESSING"
-	_ = worker.dbRepository.UpdateImagingStudy(ctx, study)
+	study.Status = ImagingStudyStatusProcessing
+	study.UpdatedAt = time.Now()
+	if updateError := worker.dbRepository.UpdateImagingStudy(ctx, study); updateError != nil {
+		slog.Error("failed to mark imaging study as processing", "id", studyIDString, "error", updateError)
+		return
+	}
 
 	studyInstanceUID := fmt.Sprintf("1.2.826.0.1.3680043.8.498.%s", uuid.New().String())
 
@@ -119,13 +131,16 @@ func (worker *Worker) processDICOM(ctx context.Context, studyIDString string) {
 
 	if creationError != nil {
 		slog.Error("failed to register ImagingStudy FHIR resource", "id", studyIDString, "error", creationError)
-		study.Status = "FAILED"
+		study.Status = ImagingStudyStatusFailed
 	} else {
-		study.Status = "PROCESSED"
+		study.Status = ImagingStudyStatusProcessed
 		study.StudyInstanceUID = studyInstanceUID
 	}
 
 	study.UpdatedAt = time.Now()
-	_ = worker.dbRepository.UpdateImagingStudy(ctx, study)
+	if updateError := worker.dbRepository.UpdateImagingStudy(ctx, study); updateError != nil {
+		slog.Error("failed to persist processed imaging study status", "id", studyIDString, "status", study.Status, "error", updateError)
+		return
+	}
 	slog.Info("imaging study processed and registered successfully", "id", studyIDString, "status", study.Status)
 }

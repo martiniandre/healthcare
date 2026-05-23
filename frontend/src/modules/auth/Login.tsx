@@ -7,7 +7,7 @@ import { Input } from "../../shared/components/ui/Input"
 import { Button } from "../../shared/components/ui/Button"
 import { loginFormSchema, type LoginFormData } from "./auth_schemas"
 import { Activity, KeyRound, Mail, ShieldAlert } from "lucide-react"
-import { clinicApi } from "../../shared/utils/api_client"
+import { authApi } from "../../shared/services/auth_api"
 
 export const Login = () => {
   const loginToStore = useAuthStore((state) => state.login)
@@ -26,7 +26,7 @@ export const Login = () => {
     setIsSubmitting(true)
     setGeneralError(null)
     try {
-      const authResponseData = await clinicApi.login(formData.email, formData.password)
+      const authResponseData = await authApi.login(formData.email, formData.password)
       loginToStore(
         authResponseData.token,
         authResponseData.userId,

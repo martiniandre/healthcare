@@ -1,17 +1,27 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import { clinicApi } from "../../shared/utils/api_client"
+import { patientsApi } from "./api"
+import type { DiagnosticReport, Encounter, Observation, Patient } from "./types"
+
+export const patientQueryKeys = {
+  all: ["patients"] as const,
+  lists: () => [...patientQueryKeys.all, "list"] as const,
+  detail: (patientFhirId: string) => [...patientQueryKeys.all, "detail", patientFhirId] as const,
+  encounters: (patientFhirId: string) => [...patientQueryKeys.all, "encounters", patientFhirId] as const,
+  observations: (encounterFhirId: string) => [...patientQueryKeys.all, "observations", encounterFhirId] as const,
+  reports: (encounterFhirId: string) => [...patientQueryKeys.all, "reports", encounterFhirId] as const,
+}
 
 export const usePatientsQuery = () => {
   return useQuery({
-    queryKey: ["patients"],
-    queryFn: () => clinicApi.getPatients(),
+    queryKey: patientQueryKeys.lists(),
+    queryFn: () => patientsApi.getPatients(),
   })
 }
 
 export const usePatientQuery = (patientId: string) => {
   return useQuery({
-    queryKey: ["patient", patientId],
-    queryFn: () => clinicApi.getPatient(patientId),
+    queryKey: patientQueryKeys.detail(patientId),
+    queryFn: () => patientsApi.getPatient(patientId),
     enabled: !!patientId,
   })
 }
@@ -24,17 +34,17 @@ export const useCreatePatientMutation = () => {
       birth_date: string
       document_id: string
       phone_number: string
-    }) => clinicApi.createPatient(payload),
+    }) => patientsApi.createPatient(payload),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["patients"] })
+      queryClient.invalidateQueries({ queryKey: patientQueryKeys.lists() })
     },
   })
 }
 
 export const useEncountersQuery = (patientId: string) => {
   return useQuery({
-    queryKey: ["encounters", patientId],
-    queryFn: () => clinicApi.getEncounters(patientId),
+    queryKey: patientQueryKeys.encounters(patientId),
+    queryFn: () => patientsApi.getEncounters(patientId),
     enabled: !!patientId,
   })
 }
@@ -46,17 +56,17 @@ export const useCreateEncounterMutation = () => {
       patient_fhir_id: string
       reason_display: string
       practitioner_id?: string
-    }) => clinicApi.createEncounter(payload),
+    }) => patientsApi.createEncounter(payload),
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["encounters", variables.patient_fhir_id] })
+      queryClient.invalidateQueries({ queryKey: patientQueryKeys.encounters(variables.patient_fhir_id) })
     },
   })
 }
 
 export const useObservationsQuery = (encounterId: string) => {
   return useQuery({
-    queryKey: ["observations", encounterId],
-    queryFn: () => clinicApi.getObservations(encounterId),
+    queryKey: patientQueryKeys.observations(encounterId),
+    queryFn: () => patientsApi.getObservations(encounterId),
     enabled: !!encounterId,
   })
 }
@@ -71,17 +81,17 @@ export const useCreateObservationMutation = () => {
       code_display: string
       value_quantity: number
       value_unit: string
-    }) => clinicApi.createObservation(payload),
+    }) => patientsApi.createObservation(payload),
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["observations", variables.encounter_fhir_id] })
+      queryClient.invalidateQueries({ queryKey: patientQueryKeys.observations(variables.encounter_fhir_id) })
     },
   })
 }
 
 export const useDiagnosticReportsQuery = (encounterId: string) => {
   return useQuery({
-    queryKey: ["reports", encounterId],
-    queryFn: () => clinicApi.getDiagnosticReports(encounterId),
+    queryKey: patientQueryKeys.reports(encounterId),
+    queryFn: () => patientsApi.getDiagnosticReports(encounterId),
     enabled: !!encounterId,
   })
 }
@@ -94,17 +104,11 @@ export const useCreateDiagnosticReportMutation = () => {
       patient_fhir_id: string
       report_display: string
       conclusion: string
-    }) => clinicApi.createDiagnosticReport(payload),
+    }) => patientsApi.createDiagnosticReport(payload),
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["reports", variables.encounter_fhir_id] })
+      queryClient.invalidateQueries({ queryKey: patientQueryKeys.reports(variables.encounter_fhir_id) })
     },
   })
 }
 
-export const useImagingStudiesQuery = (patientId: string) => {
-  return useQuery({
-    queryKey: ["studies", patientId],
-    queryFn: () => clinicApi.getImagingStudies(patientId),
-    enabled: !!patientId,
-  })
-}
+export type { DiagnosticReport, Encounter, Observation, Patient }

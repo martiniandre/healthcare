@@ -16,7 +16,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/healthcare/backend/internal/app"
 	"github.com/healthcare/backend/internal/modules/auth"
-	authpb "github.com/healthcare/backend/internal/modules/auth/pb"
 	"github.com/healthcare/backend/internal/modules/clinical"
 	"github.com/healthcare/backend/internal/modules/health"
 	"github.com/healthcare/backend/internal/modules/imaging"
@@ -25,10 +24,12 @@ import (
 	"github.com/healthcare/backend/internal/modules/telemetry"
 	"github.com/healthcare/backend/internal/shared/cache"
 	"github.com/healthcare/backend/internal/shared/config"
+	"github.com/healthcare/backend/internal/shared/ctxkeys"
 	"github.com/healthcare/backend/internal/shared/database"
 	"github.com/healthcare/backend/internal/shared/healthcare"
 	"github.com/healthcare/backend/internal/shared/logger"
 	"github.com/healthcare/backend/internal/shared/migrations"
+	"github.com/healthcare/backend/internal/shared/storage"
 )
 
 func main() {
@@ -70,47 +71,22 @@ func main() {
 
 	applicationServer := app.NewServer(redisClient)
 
-	authRepository := auth.NewRepository(databasePool)
-	authService := auth.NewService(authRepository)
-	authGRPCHandler := auth.NewGRPCHandler(authService)
-
-	authpb.RegisterAuthServiceServer(applicationServer.GRPCServer, authGRPCHandler)
+	authService := auth.Register(applicationServer.GRPCServer, databasePool)
 	staff.Register(applicationServer.GRPCServer, databasePool)
-	patients.Register(applicationServer.GRPCServer, fhirClient)
-	clinical.Register(applicationServer.GRPCServer, fhirClient)
-	imaging.Register(applicationServer.GRPCServer, databasePool, redisClient, appConfig.GCSBucketName)
+	patientsService := patients.Register(applicationServer.GRPCServer, fhirClient)
+	clinicalService := clinical.Register(applicationServer.GRPCServer, fhirClient)
+	storageClient, err := storage.NewGCSClient(mainContext)
+	if err != nil {
+		slog.Warn("Failed to initialize GCS client, falling back to dummy", "error", err)
+		storageClient = storage.NewStorageClient()
+	}
+	imagingService := imaging.Register(applicationServer.GRPCServer, databasePool, storageClient, redisClient, appConfig.GCSBucketName)
 	telemetry.Register(applicationServer.GRPCServer, databasePool)
 	health.Register(applicationServer.GRPCServer, databasePool, redisClient)
 
 	imagingWorker := imaging.NewWorker(imaging.NewRepository(databasePool), redisClient, fhirClient)
 	go imagingWorker.Start(mainContext)
 
-	go func() {
-		seedingContext, seedingCancel := context.WithTimeout(context.Background(), 10*time.Second)
-		defer seedingCancel()
-
-		doctorEmailAddress := "medico@clinica.com"
-		_, _, doctorLoginError := authService.Login(seedingContext, doctorEmailAddress, "senha123")
-		if doctorLoginError != nil && errors.Is(doctorLoginError, auth.ErrUserNotFound) {
-			_, registerError := authService.Register(seedingContext, doctorEmailAddress, "senha123", "Dr. Guilherme Araujo", "RoleDoctor")
-			if registerError != nil {
-				slog.Error("Failed to seed doctor user", "error", registerError)
-			} else {
-				slog.Info("Successfully seeded doctor user", "email", doctorEmailAddress)
-			}
-		}
-
-		adminEmailAddress := "admin@clinica.com"
-		_, _, adminLoginError := authService.Login(seedingContext, adminEmailAddress, "admin123")
-		if adminLoginError != nil && errors.Is(adminLoginError, auth.ErrUserNotFound) {
-			_, registerError := authService.Register(seedingContext, adminEmailAddress, "admin123", "Administrador Central", "RoleAdmin")
-			if registerError != nil {
-				slog.Error("Failed to seed admin user", "error", registerError)
-			} else {
-				slog.Info("Successfully seeded admin user", "email", adminEmailAddress)
-			}
-		}
-	}()
 
 	httpServeMux := http.NewServeMux()
 
@@ -119,12 +95,18 @@ func main() {
 		writer.Header().Set("Access-Control-Allow-Credentials", "true")
 		writer.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
 		writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, X-CSRF-Token, Authorization")
+		writer.Header().Set("Vary", "Origin")
+		writer.Header().Set("X-Content-Type-Options", "nosniff")
+		writer.Header().Set("Referrer-Policy", "strict-origin-when-cross-origin")
+		writer.Header().Set("Content-Security-Policy", "default-src 'none'; frame-ancestors 'none'")
 		if request.Method == http.MethodOptions {
 			writer.WriteHeader(http.StatusOK)
 			return true
 		}
 		return false
 	}
+
+	secureCookies := appConfig.AppEnv != "development" && appConfig.AppEnv != "test"
 
 	httpServeMux.HandleFunc("/api/auth/login", func(writer http.ResponseWriter, request *http.Request) {
 		if corsOptionHandler(writer, request) {
@@ -162,7 +144,7 @@ func main() {
 			Value:    jsonWebToken,
 			Path:     "/",
 			HttpOnly: true,
-			Secure:   false,
+			Secure:   secureCookies,
 			SameSite: http.SameSiteLaxMode,
 			MaxAge:   86400,
 		})
@@ -172,7 +154,7 @@ func main() {
 			Value:    crossSiteRequestForgeryToken,
 			Path:     "/",
 			HttpOnly: false,
-			Secure:   false,
+			Secure:   secureCookies,
 			SameSite: http.SameSiteLaxMode,
 			MaxAge:   86400,
 		})
@@ -202,7 +184,7 @@ func main() {
 			Value:    "",
 			Path:     "/",
 			HttpOnly: true,
-			Secure:   false,
+			Secure:   secureCookies,
 			SameSite: http.SameSiteLaxMode,
 			MaxAge:   -1,
 		})
@@ -212,7 +194,7 @@ func main() {
 			Value:    "",
 			Path:     "/",
 			HttpOnly: false,
-			Secure:   false,
+			Secure:   secureCookies,
 			SameSite: http.SameSiteLaxMode,
 			MaxAge:   -1,
 		})
@@ -221,12 +203,6 @@ func main() {
 		writer.WriteHeader(http.StatusOK)
 		json.NewEncoder(writer).Encode(map[string]string{"message": "Logged out successfully"})
 	})
-
-	patientsRepository := patients.NewRepository(fhirClient)
-	patientsService := patients.NewService(patientsRepository)
-
-	clinicalRepository := clinical.NewRepository(fhirClient)
-	clinicalService := clinical.NewService(clinicalRepository)
 
 	validateHTTPAuth := func(httpResponseWriter http.ResponseWriter, httpRequest *http.Request, allowedRoles []auth.Role) (context.Context, bool) {
 		cookie, cookieError := httpRequest.Cookie("token")
@@ -281,10 +257,12 @@ func main() {
 		}
 
 		userIDStr, _ := claims["user_id"].(string)
-		contextWithValues := context.WithValue(httpRequest.Context(), "user_id", userIDStr)
-		contextWithValues = context.WithValue(contextWithValues, "role", roleStr)
+		contextWithValues := context.WithValue(httpRequest.Context(), ctxkeys.UserIDKey, userIDStr)
+		contextWithValues = context.WithValue(contextWithValues, ctxkeys.RoleKey, roleStr)
 		return contextWithValues, true
 	}
+
+	imagingHTTPHandler := imaging.NewHTTPHandler(imagingService, validateHTTPAuth)
 
 	httpServeMux.HandleFunc("/api/patients", func(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
 		if corsOptionHandler(httpResponseWriter, httpRequest) {
@@ -663,6 +641,11 @@ func main() {
 				http.Error(httpResponseWriter, "Method Not Allowed", http.StatusMethodNotAllowed)
 				return
 			}
+
+			if subResource == "studies" {
+				imagingHTTPHandler.HandlePatientStudies(httpResponseWriter, httpRequest, patientFHIRID)
+				return
+			}
 		}
 
 		http.Error(httpResponseWriter, "Not Found", http.StatusNotFound)
@@ -774,14 +757,14 @@ func main() {
 					httpResponseWriter.Header().Set("Content-Type", "application/json")
 					httpResponseWriter.WriteHeader(http.StatusCreated)
 					json.NewEncoder(httpResponseWriter).Encode(map[string]interface{}{
-						"fhir_id":            createdObservation.FHIRResourceID,
-						"encounter_fhir_id":  createdObservation.EncounterFHIRID,
-						"patient_fhir_id":    createdObservation.PatientFHIRID,
-						"loinc_code":         createdObservation.LoincCode,
-						"code_display":       createdObservation.CodeDisplay,
-						"value_quantity":     createdObservation.ValueQuantity,
-						"value_unit":         createdObservation.ValueUnit,
-						"created_at":         createdObservation.ObservedAt.Format(time.RFC3339),
+						"fhir_id":           createdObservation.FHIRResourceID,
+						"encounter_fhir_id": createdObservation.EncounterFHIRID,
+						"patient_fhir_id":   createdObservation.PatientFHIRID,
+						"loinc_code":        createdObservation.LoincCode,
+						"code_display":      createdObservation.CodeDisplay,
+						"value_quantity":    createdObservation.ValueQuantity,
+						"value_unit":        createdObservation.ValueUnit,
+						"created_at":        createdObservation.ObservedAt.Format(time.RFC3339),
 					})
 					return
 				}
@@ -874,13 +857,13 @@ func main() {
 					httpResponseWriter.Header().Set("Content-Type", "application/json")
 					httpResponseWriter.WriteHeader(http.StatusCreated)
 					json.NewEncoder(httpResponseWriter).Encode(map[string]interface{}{
-						"fhir_id":            createdReport.FHIRResourceID,
-						"encounter_fhir_id":  createdReport.EncounterFHIRID,
-						"patient_fhir_id":    createdReport.PatientFHIRID,
-						"report_display":     createdReport.ReportDisplay,
-						"status":             createdReport.Status,
-						"conclusion":         createdReport.Conclusion,
-						"created_at":         createdReport.IssuedAt.Format(time.RFC3339),
+						"fhir_id":           createdReport.FHIRResourceID,
+						"encounter_fhir_id": createdReport.EncounterFHIRID,
+						"patient_fhir_id":   createdReport.PatientFHIRID,
+						"report_display":    createdReport.ReportDisplay,
+						"status":            createdReport.Status,
+						"conclusion":        createdReport.Conclusion,
+						"created_at":        createdReport.IssuedAt.Format(time.RFC3339),
 					})
 					return
 				}
@@ -891,6 +874,14 @@ func main() {
 		}
 
 		http.Error(httpResponseWriter, "Not Found", http.StatusNotFound)
+	})
+
+	httpServeMux.HandleFunc("/api/studies/", func(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
+		if corsOptionHandler(httpResponseWriter, httpRequest) {
+			return
+		}
+
+		imagingHTTPHandler.HandleStudy(httpResponseWriter, httpRequest)
 	})
 
 	tcpListener, listenerError := net.Listen("tcp", ":"+appConfig.AppPort)
@@ -907,12 +898,17 @@ func main() {
 	}()
 
 	httpServer := &http.Server{
-		Addr:    ":8080",
-		Handler: httpServeMux,
+		Addr:              ":" + appConfig.HTTPPort,
+		Handler:           httpServeMux,
+		ReadHeaderTimeout: 5 * time.Second,
+		ReadTimeout:       30 * time.Second,
+		WriteTimeout:      60 * time.Second,
+		IdleTimeout:       120 * time.Second,
+		MaxHeaderBytes:    1 << 20,
 	}
 
 	go func() {
-		slog.Info("HTTP server listening", "address", ":8080")
+		slog.Info("HTTP server listening", "address", ":"+appConfig.HTTPPort)
 		if serveError := httpServer.ListenAndServe(); serveError != nil && !errors.Is(serveError, http.ErrServerClosed) {
 			slog.Error("Failed to serve HTTP", "error", serveError)
 		}

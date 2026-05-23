@@ -22,7 +22,7 @@ func NewGRPCHandler(service Service) *GRPCHandler {
 func (handler *GRPCHandler) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResponse, error) {
 	user, token, loginError := handler.service.Login(ctx, req.Email, req.Password)
 	if loginError != nil {
-		if errors.Is(loginError, ErrUserNotFound) || errors.Is(loginError, ErrInvalidPassword) {
+		if errors.Is(loginError, ErrUserNotFound) || errors.Is(loginError, ErrInvalidPassword) || errors.Is(loginError, ErrUserInactive) {
 			return nil, apperrors.ErrInvalidCredentials.ToGRPC()
 		}
 		return nil, apperrors.ErrInternalServer.ToGRPC()
@@ -47,6 +47,9 @@ func (handler *GRPCHandler) Register(ctx context.Context, req *pb.RegisterReques
 	if registerError != nil {
 		if errors.Is(registerError, ErrUserExists) {
 			return nil, apperrors.ErrUserAlreadyExists.ToGRPC()
+		}
+		if errors.Is(registerError, ErrInvalidRole) {
+			return nil, apperrors.ErrBadRequest.ToGRPC()
 		}
 		return nil, apperrors.ErrInternalServer.ToGRPC()
 	}

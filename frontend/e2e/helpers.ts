@@ -207,6 +207,18 @@ export const mockClinicalAPI = async (pageInstance: Page): Promise<void> => {
     },
   ]
 
+  const currentStudiesList = [
+    {
+      id: "study-1",
+      patient_fhir_id: "fhir-pat-1",
+      title: "Tomografia Computadorizada de Tórax",
+      modality: "CT",
+      study_instance_uid: "1.2.840.10008.5.1.4.1.1.2.20260516.1",
+      status: "completed",
+      created_at: "2026-05-16T10:00:00Z",
+    },
+  ]
+
   await pageInstance.route("**/api/patients/*/encounters", async (networkRoute) => {
     const httpRequest = networkRoute.request()
     const requestURL = httpRequest.url()
@@ -351,6 +363,58 @@ export const mockClinicalAPI = async (pageInstance: Page): Promise<void> => {
         contentType: "application/json",
         body: JSON.stringify(newReport),
       })
+    }
+  })
+
+  await pageInstance.route("**/api/patients/*/studies", async (networkRoute) => {
+    const httpRequest = networkRoute.request()
+    const requestURL = httpRequest.url()
+    const urlParts = requestURL.split("/")
+    const patientFhirId = urlParts[urlParts.length - 2]
+
+    if (httpRequest.method() === "GET") {
+      const filtered = currentStudiesList.filter((s) => s.patient_fhir_id === patientFhirId)
+      await networkRoute.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(filtered),
+      })
+    } else if (httpRequest.method() === "POST") {
+      const newStudy = {
+        id: `study-${currentStudiesList.length + 1}`,
+        patient_fhir_id: patientFhirId,
+        title: "Nova Imagem (Simulada)",
+        modality: "MR",
+        study_instance_uid: `1.2.840.10008.5.1.4.1.1.2.20260516.${currentStudiesList.length + 1}`,
+        status: "completed",
+        created_at: new Date().toISOString(),
+      }
+      currentStudiesList.push(newStudy)
+      await networkRoute.fulfill({
+        status: 201,
+        contentType: "application/json",
+        body: JSON.stringify(newStudy),
+      })
+    }
+  })
+
+  await pageInstance.route("**/api/studies/*", async (networkRoute) => {
+    const httpRequest = networkRoute.request()
+    const requestURL = httpRequest.url()
+    const urlParts = requestURL.split("/")
+    const studyId = urlParts[urlParts.length - 1]
+
+    if (httpRequest.method() === "GET") {
+      const study = currentStudiesList.find((s) => s.id === studyId)
+      if (study) {
+        await networkRoute.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify({ ...study, download_url: "mock_url" }),
+        })
+      } else {
+        await networkRoute.fulfill({ status: 404 })
+      }
     }
   })
 }

@@ -7,9 +7,12 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 
 	"golang.org/x/oauth2/google"
 )
+
+const maxHealthcareErrorBodyBytes int64 = 64 << 10
 
 type Client struct {
 	projectID   string
@@ -49,7 +52,7 @@ func (healthcareClient *Client) CreateResource(ctx context.Context, resourceType
 		return nil, fmt.Errorf("failed to marshal resource: %w", err)
 	}
 
-	endpoint := fmt.Sprintf("%s/%s", healthcareClient.baseURL, resourceType)
+	endpoint := fmt.Sprintf("%s/%s", healthcareClient.baseURL, url.PathEscape(resourceType))
 	request, err := http.NewRequestWithContext(ctx, http.MethodPost, endpoint, bytes.NewReader(bodyBytes))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
@@ -60,7 +63,7 @@ func (healthcareClient *Client) CreateResource(ctx context.Context, resourceType
 }
 
 func (healthcareClient *Client) GetResource(ctx context.Context, resourceType, resourceID string) (json.RawMessage, error) {
-	endpoint := fmt.Sprintf("%s/%s/%s", healthcareClient.baseURL, resourceType, resourceID)
+	endpoint := fmt.Sprintf("%s/%s/%s", healthcareClient.baseURL, url.PathEscape(resourceType), url.PathEscape(resourceID))
 	request, err := http.NewRequestWithContext(ctx, http.MethodGet, endpoint, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
@@ -71,7 +74,7 @@ func (healthcareClient *Client) GetResource(ctx context.Context, resourceType, r
 }
 
 func (healthcareClient *Client) SearchResources(ctx context.Context, resourceType, queryParams string) (json.RawMessage, error) {
-	endpoint := fmt.Sprintf("%s/%s?%s", healthcareClient.baseURL, resourceType, queryParams)
+	endpoint := fmt.Sprintf("%s/%s?%s", healthcareClient.baseURL, url.PathEscape(resourceType), queryParams)
 	request, err := http.NewRequestWithContext(ctx, http.MethodGet, endpoint, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
@@ -87,7 +90,7 @@ func (healthcareClient *Client) UpdateResource(ctx context.Context, resourceType
 		return nil, fmt.Errorf("failed to marshal resource: %w", err)
 	}
 
-	endpoint := fmt.Sprintf("%s/%s/%s", healthcareClient.baseURL, resourceType, resourceID)
+	endpoint := fmt.Sprintf("%s/%s/%s", healthcareClient.baseURL, url.PathEscape(resourceType), url.PathEscape(resourceID))
 	request, err := http.NewRequestWithContext(ctx, http.MethodPut, endpoint, bytes.NewReader(bodyBytes))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
@@ -104,7 +107,12 @@ func (healthcareClient *Client) executeRequest(request *http.Request) (json.RawM
 	}
 	defer response.Body.Close()
 
-	responseBody, err := io.ReadAll(response.Body)
+	var responseReader io.Reader = response.Body
+	if response.StatusCode < 200 || response.StatusCode >= 300 {
+		responseReader = io.LimitReader(response.Body, maxHealthcareErrorBodyBytes)
+	}
+
+	responseBody, err := io.ReadAll(responseReader)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read response body: %w", err)
 	}

@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { useParams, useNavigate } from "react-router-dom"
+import { useParams, useNavigate, useSearchParams } from "react-router-dom"
 import {
   usePatientQuery,
   useEncountersQuery,
@@ -7,9 +7,9 @@ import {
   useObservationsQuery,
   useCreateObservationMutation,
   useDiagnosticReportsQuery,
-  useCreateDiagnosticReportMutation,
-  useImagingStudiesQuery
+  useCreateDiagnosticReportMutation
 } from "./queries"
+import { useImagingStudiesQuery } from "../imaging/queries"
 import { PatientHeader } from "./components/PatientHeader"
 import { EncounterHistory } from "./components/EncounterHistory"
 import { VitalSigns } from "./components/VitalSigns"
@@ -32,7 +32,11 @@ export const PatientDetails = () => {
   const { id = "" } = useParams<{ id: string }>()
   const navigate = useNavigate()
 
-  const [activeTab, setActiveTab] = useState<"encounters" | "vitals" | "reports" | "pacs">("encounters")
+  const [searchParameters, setSearchParameters] = useSearchParams()
+  const activeTab = (searchParameters.get("tab") || "encounters") as "encounters" | "vitals" | "reports" | "pacs"
+  const setActiveTab = (tabName: "encounters" | "vitals" | "reports" | "pacs") => {
+    setSearchParameters({ tab: tabName })
+  }
   const [selectedEncounterId, setSelectedEncounterId] = useState<string | null>(null)
 
   const [isEncounterModalOpen, setIsEncounterModalOpen] = useState(false)

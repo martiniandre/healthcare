@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/url"
 	"time"
 
 	"github.com/healthcare/backend/internal/shared/fhir"
@@ -58,7 +59,7 @@ func (clinicalRepo *repository) CreateEncounter(ctx context.Context, encounter *
 }
 
 func (clinicalRepo *repository) GetEncountersByPatient(ctx context.Context, patientFHIRID string) ([]*Encounter, error) {
-	queryParams := fmt.Sprintf("subject=Patient/%s", patientFHIRID)
+	queryParams := url.Values{"subject": []string{fmt.Sprintf("Patient/%s", patientFHIRID)}}.Encode()
 	responseBody, err := clinicalRepo.fhirClient.SearchResources(ctx, "Encounter", queryParams)
 	if err != nil {
 		return nil, fmt.Errorf("failed to search encounters: %w", err)
@@ -92,7 +93,7 @@ func (clinicalRepo *repository) CreateObservation(ctx context.Context, observati
 }
 
 func (clinicalRepo *repository) GetObservationsByEncounter(ctx context.Context, encounterFHIRID string) ([]*Observation, error) {
-	queryParams := fmt.Sprintf("encounter=Encounter/%s", encounterFHIRID)
+	queryParams := url.Values{"encounter": []string{fmt.Sprintf("Encounter/%s", encounterFHIRID)}}.Encode()
 	responseBody, err := clinicalRepo.fhirClient.SearchResources(ctx, "Observation", queryParams)
 	if err != nil {
 		return nil, fmt.Errorf("failed to search observations: %w", err)
@@ -101,7 +102,7 @@ func (clinicalRepo *repository) GetObservationsByEncounter(ctx context.Context, 
 }
 
 func (clinicalRepo *repository) GetObservationsByPatient(ctx context.Context, patientFHIRID string) ([]*Observation, error) {
-	queryParams := fmt.Sprintf("subject=Patient/%s", patientFHIRID)
+	queryParams := url.Values{"subject": []string{fmt.Sprintf("Patient/%s", patientFHIRID)}}.Encode()
 	responseBody, err := clinicalRepo.fhirClient.SearchResources(ctx, "Observation", queryParams)
 	if err != nil {
 		return nil, fmt.Errorf("failed to search observations: %w", err)
@@ -135,7 +136,7 @@ func (clinicalRepo *repository) CreateCondition(ctx context.Context, condition *
 }
 
 func (clinicalRepo *repository) GetConditionsByPatient(ctx context.Context, patientFHIRID string) ([]*Condition, error) {
-	queryParams := fmt.Sprintf("subject=Patient/%s", patientFHIRID)
+	queryParams := url.Values{"subject": []string{fmt.Sprintf("Patient/%s", patientFHIRID)}}.Encode()
 	responseBody, err := clinicalRepo.fhirClient.SearchResources(ctx, "Condition", queryParams)
 	if err != nil {
 		return nil, fmt.Errorf("failed to search conditions: %w", err)
@@ -169,7 +170,7 @@ func (clinicalRepo *repository) CreateAllergyIntolerance(ctx context.Context, al
 }
 
 func (clinicalRepo *repository) GetAllergyIntolerancesByPatient(ctx context.Context, patientFHIRID string) ([]*AllergyIntolerance, error) {
-	queryParams := fmt.Sprintf("patient=Patient/%s", patientFHIRID)
+	queryParams := url.Values{"patient": []string{fmt.Sprintf("Patient/%s", patientFHIRID)}}.Encode()
 	responseBody, err := clinicalRepo.fhirClient.SearchResources(ctx, "AllergyIntolerance", queryParams)
 	if err != nil {
 		return nil, fmt.Errorf("failed to search allergy intolerances: %w", err)
@@ -204,7 +205,7 @@ func (clinicalRepo *repository) CreateMedicationRequest(ctx context.Context, med
 }
 
 func (clinicalRepo *repository) GetMedicationRequestsByEncounter(ctx context.Context, encounterFHIRID string) ([]*MedicationRequest, error) {
-	queryParams := fmt.Sprintf("encounter=Encounter/%s", encounterFHIRID)
+	queryParams := url.Values{"encounter": []string{fmt.Sprintf("Encounter/%s", encounterFHIRID)}}.Encode()
 	responseBody, err := clinicalRepo.fhirClient.SearchResources(ctx, "MedicationRequest", queryParams)
 	if err != nil {
 		return nil, fmt.Errorf("failed to search medication requests: %w", err)
@@ -238,7 +239,7 @@ func (clinicalRepo *repository) CreateDiagnosticReport(ctx context.Context, repo
 }
 
 func (clinicalRepo *repository) GetDiagnosticReportsByEncounter(ctx context.Context, encounterFHIRID string) ([]*DiagnosticReport, error) {
-	queryParams := fmt.Sprintf("encounter=Encounter/%s", encounterFHIRID)
+	queryParams := url.Values{"encounter": []string{fmt.Sprintf("Encounter/%s", encounterFHIRID)}}.Encode()
 	responseBody, err := clinicalRepo.fhirClient.SearchResources(ctx, "DiagnosticReport", queryParams)
 	if err != nil {
 		return nil, fmt.Errorf("failed to search diagnostic reports: %w", err)

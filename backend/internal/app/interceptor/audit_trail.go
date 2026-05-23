@@ -6,6 +6,7 @@ import (
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
+	"github.com/healthcare/backend/internal/shared/ctxkeys"
 )
 
 func UnaryAuditTrailInterceptor() grpc.UnaryServerInterceptor {
@@ -18,9 +19,9 @@ func UnaryAuditTrailInterceptor() grpc.UnaryServerInterceptor {
 		response, err := handler(ctx, req)
 
 		if isClinicalMethod(info.FullMethod) {
-			callerUserID := extractContextValue(ctx, "user_id")
-			callerRole := extractContextValue(ctx, "role")
-			correlationID := extractContextValue(ctx, "correlation_id")
+			callerUserID := extractContextValue(ctx, ctxkeys.UserIDKey)
+			callerRole := extractContextValue(ctx, ctxkeys.RoleKey)
+			correlationID := extractContextValue(ctx, ctxkeys.CorrelationIDKey)
 
 			go func() {
 				slog.Info("audit trail",
@@ -52,9 +53,9 @@ func isClinicalMethod(fullMethod string) bool {
 	return false
 }
 
-func extractContextValue(ctx context.Context, key string) string {
+func extractContextValue(ctx context.Context, key ctxkeys.ContextKey) string {
 	if incomingMetadata, ok := metadata.FromIncomingContext(ctx); ok {
-		values := incomingMetadata.Get(key)
+		values := incomingMetadata.Get(string(key))
 		if len(values) > 0 {
 			return values[0]
 		}
@@ -76,9 +77,9 @@ func StreamAuditTrailInterceptor() grpc.StreamServerInterceptor {
 
 		if isClinicalMethod(info.FullMethod) {
 			ctx := stream.Context()
-			callerUserID := extractContextValue(ctx, "user_id")
-			callerRole := extractContextValue(ctx, "role")
-			correlationID := extractContextValue(ctx, "correlation_id")
+			callerUserID := extractContextValue(ctx, ctxkeys.UserIDKey)
+			callerRole := extractContextValue(ctx, ctxkeys.RoleKey)
+			correlationID := extractContextValue(ctx, ctxkeys.CorrelationIDKey)
 
 			go func() {
 				slog.Info("audit trail",

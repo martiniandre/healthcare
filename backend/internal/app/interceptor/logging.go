@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/healthcare/backend/internal/shared/ctxkeys"
 	"github.com/google/uuid"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -21,7 +22,7 @@ func UnaryLoggingInterceptor() grpc.UnaryServerInterceptor {
 		handler grpc.UnaryHandler,
 	) (interface{}, error) {
 		correlationID := uuid.New().String()
-		ctx = context.WithValue(ctx, "correlation_id", correlationID)
+		ctx = context.WithValue(ctx, ctxkeys.CorrelationIDKey, correlationID)
 
 		startTime := time.Now()
 
@@ -65,7 +66,7 @@ func StreamLoggingInterceptor() grpc.StreamServerInterceptor {
 		handler grpc.StreamHandler,
 	) error {
 		correlationID := uuid.New().String()
-		newContext := context.WithValue(stream.Context(), "correlation_id", correlationID)
+		newContext := context.WithValue(stream.Context(), ctxkeys.CorrelationIDKey, correlationID)
 		wrappedStream := NewWrappedStream(stream, newContext)
 
 		startTime := time.Now()

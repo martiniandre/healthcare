@@ -6,9 +6,10 @@ import (
 	"google.golang.org/grpc"
 )
 
-func Register(grpcServer *grpc.Server, fhirClient healthcare.FHIRClient) {
+func Register(grpcServer *grpc.Server, fhirClient healthcare.FHIRClient) Service {
 	repo := NewRepository(fhirClient)
 	svc := NewService(repo)
 	handler := NewGRPCHandler(svc)
 	clinicalpb.RegisterClinicalServiceServer(grpcServer, handler)
+	return svc
 }

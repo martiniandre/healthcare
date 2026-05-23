@@ -148,11 +148,13 @@ func mapImagingError(err error) error {
 	if err == nil {
 		return nil
 	}
-	switch err.Error() {
-	case "imaging study not found":
+	switch {
+	case errors.Is(err, ErrImagingStudyNotFound):
 		return apperrors.ErrImagingStudyNotFound.ToGRPC()
-	case "invalid dicom preamble: magic bytes DICM signature missing", "invalid dicom preamble: file is too small":
+	case errors.Is(err, ErrInvalidDICOM):
 		return apperrors.ErrInvalidDICOM.ToGRPC()
+	case errors.Is(err, ErrDICOMTooLarge):
+		return apperrors.ErrRateLimitExceeded.ToGRPC()
 	default:
 		return apperrors.ErrInternalServer.ToGRPC()
 	}

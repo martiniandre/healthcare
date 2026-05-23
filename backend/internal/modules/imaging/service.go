@@ -13,6 +13,8 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
+const MaxDICOMUploadBytes int64 = 2 << 30
+
 type Service interface {
 	UploadDICOMStream(ctx context.Context, patientFhirID, title, modality string, streamReader io.Reader) (*ImagingStudy, error)
 	GetImagingStudy(ctx context.Context, studyID uuid.UUID) (*ImagingStudy, error)
@@ -21,7 +23,7 @@ type Service interface {
 }
 
 type service struct {
-	dbRepository Repository
+	dbRepository  Repository
 	storageClient storage.StorageClient
 	redisClient   *redis.Client
 	bucketName    string
@@ -37,27 +39,33 @@ func NewService(dbRepository Repository, storageClient storage.StorageClient, re
 }
 
 func (serviceInstance *service) UploadDICOMStream(ctx context.Context, patientFhirID, title, modality string, streamReader io.Reader) (*ImagingStudy, error) {
+	limitedReader := &io.LimitedReader{
+		R: streamReader,
+		N: MaxDICOMUploadBytes + 1,
+	}
+
 	headerBytes := make([]byte, 132)
-	bytesRead, readError := io.ReadFull(streamReader, headerBytes)
+	bytesRead, readError := io.ReadFull(limitedReader, headerBytes)
 	if readError != nil && !errors.Is(readError, io.EOF) && !errors.Is(readError, io.ErrUnexpectedEOF) {
 		return nil, fmt.Errorf("failed to read dicom header: %w", readError)
 	}
 
 	if bytesRead < 132 {
-		return nil, errors.New("invalid dicom preamble: file is too small")
+		return nil, fmt.Errorf("%w: preamble is too small", ErrInvalidDICOM)
 	}
 
 	magicBytesSignature := string(headerBytes[128:132])
 	if magicBytesSignature != "DICM" {
-		return nil, errors.New("invalid dicom preamble: magic bytes DICM signature missing")
+		return nil, fmt.Errorf("%w: magic bytes DICM signature missing", ErrInvalidDICOM)
 	}
 
-	reconstructedReader := io.MultiReader(bytes.NewReader(headerBytes[:bytesRead]), streamReader)
+	reconstructedReader := io.MultiReader(bytes.NewReader(headerBytes[:bytesRead]), limitedReader)
+	boundedReader := &uploadLimitReader{reader: reconstructedReader, remainingBytes: MaxDICOMUploadBytes}
 
 	studyID := uuid.New()
 	objectPath := fmt.Sprintf("dicom/staging/%s/%s.dcm", patientFhirID, studyID.String())
 
-	gcsStagingURL, uploadError := serviceInstance.storageClient.Upload(ctx, serviceInstance.bucketName, objectPath, reconstructedReader)
+	gcsStagingURL, uploadError := serviceInstance.storageClient.Upload(ctx, serviceInstance.bucketName, objectPath, boundedReader)
 	if uploadError != nil {
 		return nil, fmt.Errorf("failed to upload dicom to storage: %w", uploadError)
 	}
@@ -69,7 +77,7 @@ func (serviceInstance *service) UploadDICOMStream(ctx context.Context, patientFh
 		Modality:         modality,
 		GCSPath:          gcsStagingURL,
 		StudyInstanceUID: "",
-		Status:           "PENDING",
+		Status:           ImagingStudyStatusPending,
 		CreatedAt:        time.Now(),
 		UpdatedAt:        time.Now(),
 	}
@@ -87,6 +95,26 @@ func (serviceInstance *service) UploadDICOMStream(ctx context.Context, patientFh
 	}
 
 	return study, nil
+}
+
+type uploadLimitReader struct {
+	reader         io.Reader
+	remainingBytes int64
+}
+
+func (reader *uploadLimitReader) Read(buffer []byte) (int, error) {
+	if reader.remainingBytes <= 0 {
+		return 0, ErrDICOMTooLarge
+	}
+	if int64(len(buffer)) > reader.remainingBytes {
+		buffer = buffer[:int(reader.remainingBytes)]
+	}
+	bytesRead, readError := reader.reader.Read(buffer)
+	reader.remainingBytes -= int64(bytesRead)
+	if readError == nil && reader.remainingBytes == 0 {
+		return bytesRead, ErrDICOMTooLarge
+	}
+	return bytesRead, readError
 }
 
 func (serviceInstance *service) GetImagingStudy(ctx context.Context, studyID uuid.UUID) (*ImagingStudy, error) {

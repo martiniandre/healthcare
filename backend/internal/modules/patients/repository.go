@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/url"
 	"time"
 
 	"github.com/google/uuid"
@@ -64,7 +65,7 @@ func (patientRepository *repository) GetPatientByID(ctx context.Context, fhirRes
 }
 
 func (patientRepository *repository) GetPatientByDocumentID(ctx context.Context, documentID string) (*Patient, error) {
-	queryParams := fmt.Sprintf("identifier=%s", documentID)
+	queryParams := url.Values{"identifier": []string{documentID}}.Encode()
 	responseBody, err := patientRepository.fhirClient.SearchResources(ctx, "Patient", queryParams)
 	if err != nil {
 		return nil, fmt.Errorf("failed to search patient by document in healthcare api: %w", err)
@@ -100,7 +101,8 @@ func (patientRepository *repository) GetPatientByDocumentID(ctx context.Context,
 }
 
 func (patientRepository *repository) ListPatients(ctx context.Context) ([]*Patient, error) {
-	responseBody, err := patientRepository.fhirClient.SearchResources(ctx, "Patient", "_count=100")
+	queryParams := url.Values{"_count": []string{"100"}}.Encode()
+	responseBody, err := patientRepository.fhirClient.SearchResources(ctx, "Patient", queryParams)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list patients from healthcare api: %w", err)
 	}

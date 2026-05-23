@@ -16,6 +16,23 @@ const (
 	RolePatient   Role = "PATIENT"
 )
 
+func ParseRole(rawRole string) (Role, bool) {
+	switch rawRole {
+	case string(RoleAdmin), "RoleAdmin":
+		return RoleAdmin, true
+	case string(RoleDoctor), "RoleDoctor":
+		return RoleDoctor, true
+	case string(RoleNurse), "RoleNurse":
+		return RoleNurse, true
+	case string(RoleReception), "RoleReception":
+		return RoleReception, true
+	case string(RolePatient), "RolePatient":
+		return RolePatient, true
+	default:
+		return "", false
+	}
+}
+
 type User struct {
 	ID           uuid.UUID `db:"id"`
 	Email        string    `db:"email"`

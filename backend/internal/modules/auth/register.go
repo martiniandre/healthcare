@@ -6,9 +6,10 @@ import (
 	"google.golang.org/grpc"
 )
 
-func Register(grpcServer *grpc.Server, dbPool *pgxpool.Pool) {
+func Register(grpcServer *grpc.Server, dbPool *pgxpool.Pool) Service {
 	repo := NewRepository(dbPool)
 	svc := NewService(repo)
 	handler := NewGRPCHandler(svc)
 	authpb.RegisterAuthServiceServer(grpcServer, handler)
+	return svc
 }

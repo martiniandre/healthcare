@@ -13,6 +13,8 @@ var (
 	ErrUserNotFound    = errors.New("user not found")
 	ErrInvalidPassword = errors.New("invalid password")
 	ErrUserExists      = errors.New("user already exists")
+	ErrInvalidRole     = errors.New("invalid role")
+	ErrUserInactive    = errors.New("user inactive")
 )
 
 type Service interface {
@@ -34,6 +36,11 @@ func (authService *service) Register(ctx context.Context, email, password, fullN
 		return nil, ErrUserExists
 	}
 
+	parsedRole, roleIsValid := ParseRole(role)
+	if !roleIsValid {
+		return nil, ErrInvalidRole
+	}
+
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		return nil, err
@@ -44,7 +51,7 @@ func (authService *service) Register(ctx context.Context, email, password, fullN
 		Email:        email,
 		PasswordHash: string(hashedPassword),
 		FullName:     fullName,
-		Role:         Role(role),
+		Role:         parsedRole,
 		IsActive:     true,
 		CreatedAt:    time.Now(),
 		UpdatedAt:    time.Now(),
@@ -58,10 +65,17 @@ func (authService *service) Register(ctx context.Context, email, password, fullN
 	return user, nil
 }
 
+var dummyPasswordHash, _ = bcrypt.GenerateFromPassword([]byte("__dummy_constant_time__"), bcrypt.DefaultCost)
+
 func (authService *service) Login(ctx context.Context, email, password string) (*User, string, error) {
 	user, err := authService.repo.GetUserByEmail(ctx, email)
 	if err != nil {
+		bcrypt.CompareHashAndPassword(dummyPasswordHash, []byte(password))
 		return nil, "", ErrUserNotFound
+	}
+	if !user.IsActive {
+		bcrypt.CompareHashAndPassword(dummyPasswordHash, []byte(password))
+		return nil, "", ErrUserInactive
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password))

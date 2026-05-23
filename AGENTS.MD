@@ -9,7 +9,7 @@
 
 **REGRA DE PERSISTÊNCIA:** Antes de criar qualquer módulo, determinar onde o dado vive:
 - **Google Cloud Healthcare API (FHIR):** Dados clínicos — `Patient`, `Observation`, `Encounter`, `Condition`, `DiagnosticReport`, `ImagingStudy`. Nesses módulos, `repository.go` bate no cliente `shared/healthcare.Client`, não no `pgxpool`.
-- **PostgreSQL local:** Dados operacionais — `auth`, `staff`, `appointments`. Nesses módulos, `repository.go` usa `pgxpool` e requer migration SQL.
+- **PostgreSQL local:** Dados operacionais — `auth`, `staff`. Nesses módulos, `repository.go` usa `pgxpool` e requer migration SQL.
 
 **REGRA DE COMMIT E PUSH AUTOMÁTICO:** Sempre que uma funcionalidade relevante for concluída ou um marco de desenvolvimento for atingido (ex: criação de um novo módulo, término de testes de um serviço, correção de bugs críticos), o engenheiro/agente deve obrigatoriamente:
 1. Validar a integridade local do código (compilação livre de erros e testes passando com sucesso).
@@ -34,7 +34,7 @@ Este documento dita a execução técnica e a orquestração das automações do
 
 ### Ações do Agente:
 0.  **Clarificação (OBRIGATÓRIO):** Antes de iniciar qualquer implementação, identificar ambiguidades nos requisitos. Se houver dúvidas sobre campos, regras de negócio, integrações ou comportamentos esperados, **fazer as perguntas ao usuário e aguardar resposta antes de escrever código**. Nunca assumir silenciosamente.
-1.  **Migrations:** Criar migration SQL **apenas para módulos operacionais** (auth, staff, appointments). Módulos clínicos (FHIR) não geram migrations — seus dados vivem na Healthcare API.
+1.  **Migrations:** Criar migration SQL **apenas para módulos operacionais** (auth, staff). Módulos clínicos (FHIR) não geram migrations — seus dados vivem na Healthcare API.
 2.  **Scaffolding:** Criar a pasta `internal/modules/{domain}/`.
 3.  **Protobuf:** Criar o arquivo `proto/{domain}.proto` e rodar a compilação (`protoc` ou `buf`) para gerar os stubs em Go e TypeScript.
 4.  **Model & DTOs:** Gerar `model.go` para as entidades do banco de dados e utilizar as structs geradas pelo Protobuf como DTOs (adicionando validações customizadas se necessário).

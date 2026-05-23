@@ -1,19 +1,10 @@
 import { Image as ImageIcon } from "lucide-react"
 import { Card } from "../../../shared/components/ui/Card"
 import { Button } from "../../../shared/components/ui/Button"
-
-interface StudyRepresentation {
-  imaging_study_id: string
-  patient_fhir_id: string
-  title: string
-  modality: string
-  study_instance_uid: string
-  status: string
-  created_at: string
-}
+import type { ImagingStudy } from "../../imaging/types"
 
 interface PACSStudiesProps {
-  studies: StudyRepresentation[]
+  studies: ImagingStudy[]
   onOpen: (id: string) => void
 }
 
@@ -46,7 +37,7 @@ export const PACSStudies = ({ studies, onOpen }: PACSStudiesProps) => {
             </thead>
             <tbody>
               {studies.map((study) => (
-                <tr key={study.imaging_study_id} className="border-b border-border/60 hover:bg-gray-50 transition-colors duration-300">
+                <tr key={study.id} className="border-b border-border/60 hover:bg-gray-50 transition-colors duration-300">
                   <td className="py-4 px-4">
                     <div className="flex items-center gap-3">
                       <div className="bg-secondary/10 p-2 rounded-lg border border-secondary/20 text-secondary">
@@ -75,7 +66,7 @@ export const PACSStudies = ({ studies, onOpen }: PACSStudiesProps) => {
                   <td className="py-4 px-4 text-right pr-6">
                     <Button
                       variantType="outline"
-                      onClick={() => onOpen(study.imaging_study_id)}
+                      onClick={() => onOpen(study.id)}
                       className="px-2.5 py-1 text-[10px] font-bold border-secondary/20 hover:bg-secondary/10 text-secondary"
                     >
                       Abrir PACS
