@@ -1,13 +1,16 @@
 package cache
 
 import (
-	"context"
 	"log/slog"
 
 	"github.com/redis/go-redis/v9"
 )
 
 func Connect(redisUrl string) *redis.Client {
+	slog.Info("Redis integration is temporarily disabled")
+	return nil
+
+	/*
 	redisClient := redis.NewClient(&redis.Options{
 		Addr: redisUrl,
 	})
@@ -20,4 +23,5 @@ func Connect(redisUrl string) *redis.Client {
 
 	slog.Info("Connected to Redis successfully")
 	return redisClient
+	*/
 }
