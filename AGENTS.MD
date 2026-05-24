@@ -23,6 +23,8 @@ Nunca aguardar o usuário solicitar explicitamente o push para publicar o trabal
 **REGRA DE TESTES UNITÁRIOS OBRIGATÓRIOS:** Todas as implementações de lógica de negócio e endpoints expostos no backend e no frontend devem obrigatoriamente possuir testes unitários correspondentes. No backend Go, toda lógica de service e gRPC handler deve ser rigorosamente coberta por testes unitários utilizando mock do repositório no mesmo pacote do módulo. No frontend React, a lógica de componentes reutilizáveis, hooks customizados e helpers de integração deve ser validada por testes unitários com Vitest.
 
 
+**REGRA DE ARQUITETURA HEXAGONAL E DOMÍNIOS:** Toda a estrutura de backend deve seguir o padrão Ports and Adapters (Hexagonal Architecture). Entidades residem em `model.go`. Casos de uso de negócio em `service.go`. Interfaces de saída e suas implementações em `repository.go`. As APIs de entrada em `grpc_handler.go`/`http_handler.go`. O `main.go` é o *Compositor Root* responsável exclusivo por instanciar repositórios e serviços; módulos não devem criar dependências ou conexões pesadas por conta própria. Toda segurança (RBAC, Rate Limit) deve ocorrer globalmente via Interceptors (AOP).
+
 Este documento dita a execução técnica e a orquestração das automações do ecossistema para a stack modular Go + React (Vite).
 
 ---

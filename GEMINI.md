@@ -10,6 +10,13 @@ Este documento complementa `AGENTS.MD`. As regras operacionais obrigatórias par
 - Utilitários compartilhados ficam em `frontend/src/shared/utils`.
 - Hooks de dados devem ficar próximos do domínio que consome a API.
 
+## Arquitetura Hexagonal e Domínios
+
+- **Fronteiras de Domínio:** Módulos do Core Clínico (`Patients`, `Clinical`, `Imaging`) NÃO devem utilizar PostgreSQL, operando via Google Cloud Healthcare API (FHIR) para compliance HIPAA/LGPD. Módulos Operacionais (`Auth`, `Staff`, `Telemetry`) utilizam PostgreSQL local para controle e performance.
+- **Portas e Adaptadores:** Todo módulo backend deve seguir a arquitetura hexagonal. `model.go` para entidades puras; `repository.go` define interfaces (Portas) e implementa o acesso (Adaptadores); `service.go` orquestra a lógica de negócio desconhecendo a camada de transporte; `grpc_handler.go`/`http_handler.go` atuam como Portas de Entrada.
+- **Injeção e Composição:** `cmd/api/main.go` atua puramente como *Compositor Root*. A inicialização de dependências, bancos de dados e _wiring_ de serviços ocorre aqui, sendo os serviços registrados através de funções `Register(server, dep)`.
+- **Segurança (AOP):** Autenticação, autorização (RBAC), rate limit e tracing devem viver em gRPC Interceptors / Middlewares HTTP, separando requisitos não-funcionais da lógica de negócio.
+
 ## Persistência
 
 - Dados clínicos ficam na Google Cloud Healthcare API usando recursos FHIR.
