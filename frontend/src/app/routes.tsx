@@ -7,6 +7,7 @@ import { ImagingWorkspace } from "../modules/imaging/ImagingWorkspace"
 import { Telemetry } from "../modules/telemetry/Telemetry"
 import { Stats } from "../modules/stats/Stats"
 import { Staff } from "../modules/staff/Staff"
+import { ExamAnalyzer } from "../modules/exam_analyzer/ExamAnalyzer"
 import { AppSidebar } from "../shared/components/AppSidebar"
 import { AppHeader } from "../shared/components/AppHeader"
 
@@ -37,6 +38,7 @@ export const AppRoutes = () => {
                       <Route path="/telemetry" element={<Telemetry />} />
                       <Route path="/stats" element={<Stats />} />
                       <Route path="/staff" element={<Staff />} />
+                      <Route path="/exam-analyzer" element={<ExamAnalyzer />} />
                       <Route path="*" element={<Navigate to="/" replace />} />
                     </Routes>
                   </main>

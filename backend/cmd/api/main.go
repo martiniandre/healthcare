@@ -12,10 +12,10 @@ import (
 	"time"
 
 	"github.com/healthcare/backend/internal/api"
-	"github.com/healthcare/backend/internal/api/middleware"
 	"github.com/healthcare/backend/internal/app"
 	"github.com/healthcare/backend/internal/modules/auth"
 	"github.com/healthcare/backend/internal/modules/clinical"
+	"github.com/healthcare/backend/internal/modules/exam_analyzer"
 	"github.com/healthcare/backend/internal/modules/health"
 	"github.com/healthcare/backend/internal/modules/imaging"
 	"github.com/healthcare/backend/internal/modules/patients"
@@ -73,21 +73,41 @@ func main() {
 	staffService := staff.Register(applicationServer.GRPCServer, databasePool)
 	patientsService := patients.Register(applicationServer.GRPCServer, fhirClient)
 	clinicalService := clinical.Register(applicationServer.GRPCServer, fhirClient)
-	storageClient, err := storage.NewGCSClient(mainContext)
-	if err != nil {
-		slog.Warn("Failed to initialize GCS client, falling back to dummy", "error", err)
+	storageClient, storageClientErr := storage.NewGCSClient(mainContext)
+	if storageClientErr != nil {
+		slog.Warn("Failed to initialize GCS client, falling back to dummy", "error", storageClientErr)
 		storageClient = storage.NewStorageClient()
 	}
 	imagingService := imaging.Register(applicationServer.GRPCServer, databasePool, storageClient, redisClient, appConfig.GCSBucketName)
 	telemetryService := telemetry.Register(applicationServer.GRPCServer, databasePool)
 	health.Register(applicationServer.GRPCServer, databasePool, redisClient)
 
+	examAnalyzerRepo, examAnalyzerSvc, examAnalyzerWorker := exam_analyzer.Register(databasePool, appConfig.GCPProjectID, appConfig.GCPLocationID)
+	go examAnalyzerWorker.Start(mainContext)
+
 	imagingWorker := imaging.NewWorker(imaging.NewRepository(databasePool), redisClient, fhirClient)
 	go imagingWorker.Start(mainContext)
 
-	imagingHTTPHandler := imaging.NewHTTPHandler(imagingService, middleware.ValidateHTTPAuth)
 	secureCookies := appConfig.AppEnv != "development" && appConfig.AppEnv != "test"
-	router := api.NewRouter(authService, patientsService, clinicalService, imagingHTTPHandler, staffService, telemetryService, secureCookies)
+
+	authHTTPHandler := auth.NewHTTPHandler(authService, secureCookies)
+	patientsHTTPHandler := patients.NewHTTPHandler(patientsService)
+	clinicalHTTPHandler := clinical.NewHTTPHandler(clinicalService)
+	imagingHTTPHandler := imaging.NewHTTPHandler(imagingService)
+	staffHTTPHandler := staff.NewHTTPHandler(staffService)
+	telemetryHTTPHandler := telemetry.NewHTTPHandler(telemetryService)
+	examAnalyzerHTTPHandler := exam_analyzer.NewHTTPHandler(examAnalyzerRepo, examAnalyzerSvc, examAnalyzerWorker)
+
+	router := api.NewRouter(
+		secureCookies,
+		authHTTPHandler,
+		patientsHTTPHandler,
+		clinicalHTTPHandler,
+		imagingHTTPHandler,
+		staffHTTPHandler,
+		telemetryHTTPHandler,
+		examAnalyzerHTTPHandler,
+	)
 
 	tcpListener, listenerError := net.Listen("tcp", ":"+appConfig.AppPort)
 	if listenerError != nil {
@@ -124,6 +144,7 @@ func main() {
 	<-quitSignalChannel
 
 	slog.Info("Shutting down servers gracefully...")
+	examAnalyzerWorker.Stop()
 	imagingWorker.Stop()
 	applicationServer.GRPCServer.GracefulStop()
 

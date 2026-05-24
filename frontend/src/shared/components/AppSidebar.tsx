@@ -1,12 +1,13 @@
 import { useNavigate, useLocation } from "react-router-dom"
 import { useAuthStore } from "../store/auth_store"
 import { useLayoutStore } from "../store/layout_store"
-import { Activity, Users, Image as ImageIcon, BarChart3, Settings, LogOut, X } from "lucide-react"
+import { Activity, Users, Image as ImageIcon, BarChart3, Settings, LogOut, X, Sparkles } from "lucide-react"
 
 const navigationItems = [
   { label: "Pacientes", icon: Users, path: "/" },
   { label: "Telemetria UTI", icon: Activity, path: "/telemetry" },
   { label: "PACS Viewer", icon: ImageIcon, path: "/imaging" },
+  { label: "Análise de Exames", icon: Sparkles, path: "/exam-analyzer" },
   { label: "Estatísticas", icon: BarChart3, path: "/stats" },
   { label: "Gestão de Equipes", icon: Users, path: "/staff" },
   { label: "Configurações", icon: Settings, path: "/settings", disabled: true },

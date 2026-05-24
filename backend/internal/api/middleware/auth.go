@@ -66,3 +66,15 @@ func ValidateHTTPAuth(httpResponseWriter http.ResponseWriter, httpRequest *http.
 	contextWithValues = context.WithValue(contextWithValues, ctxkeys.RoleKey, roleStr)
 	return contextWithValues, true
 }
+
+func RequireRoles(allowedRoles ...auth.Role) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
+			authenticatedContext, authorizationPassed := ValidateHTTPAuth(httpResponseWriter, httpRequest, allowedRoles)
+			if !authorizationPassed {
+				return
+			}
+			next.ServeHTTP(httpResponseWriter, httpRequest.WithContext(authenticatedContext))
+		})
+	}
+}
