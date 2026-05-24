@@ -1,4 +1,5 @@
-import React, { Component, ErrorInfo, ReactNode } from "react"
+import { Component } from "react"
+import type { ErrorInfo, ReactNode } from "react"
 import { AlertTriangle } from "lucide-react"
 import { Card } from "./ui/Card"
 import { Button } from "./ui/Button"
@@ -47,7 +48,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 {this.state.error?.message || "Unknown Error"}
               </code>
             </div>
-            <Button onClick={this.handleReset} className="mt-2" variant="outline">
+            <Button onClick={this.handleReset} className="mt-2 bg-gray-200 text-gray-800 hover:bg-gray-300 border-none">
               Tentar Novamente
             </Button>
           </Card>
