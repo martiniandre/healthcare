@@ -8,11 +8,14 @@ services:
     container_name: dind-daemon
     privileged: true
     environment:
-      # Desativa TLS para simplificar a comunicação local (porta 2375)
-      # Se preferir usar com segurança/certificados, mude para DOCKER_TLS_CERTDIR: "/certs"
       DOCKER_TLS_CERTDIR: ""
     ports:
       - "2375:2375"
+      - "8080:8080" # Expõe a API backend para o seu computador
+      - "3000:3000" # Expõe o Frontend React para o seu computador
+    volumes:
+      # Muito Importante: Compartilha o código fonte com o daemon do docker interno
+      - ../:/src
     networks:
       - docker-net
     restart: unless-stopped
@@ -22,14 +25,15 @@ services:
     image: docker:latest
     container_name: dind-client
     environment:
-      # Aponta a CLI do docker para o container que está rodando o daemon
       DOCKER_HOST: tcp://docker-daemon:2375
+    volumes:
+      # Muito Importante: Compartilha o mesmo caminho exato do código fonte
+      - ../:/src
     depends_on:
       - docker-daemon
     networks:
       - docker-net
-    # Mantém o container vivo e roda o "docker info" como teste inicial
-    entrypoint: ["sh", "-c", "echo 'Aguardando inicialização do daemon...' && sleep 5 && docker info && echo 'Pronto! O container cliente está ativo.' && tail -f /dev/null"]
+    entrypoint: ["sh", "-c", "echo 'Aguardando inicialização do daemon...' && sleep 5 && docker info && echo 'Pronto! Para iniciar o frontend e backend aninhados, execute: docker exec -it dind-client docker compose -f /src/docker-in-docker/docker-compose.nested.yml up --build -d' && tail -f /dev/null"]
 
 networks:
   docker-net:

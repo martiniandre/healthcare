@@ -43,33 +43,42 @@ services:
    docker run hello-world
    ```
 
-> [!WARNING]
-> **Implicações de Segurança**: O DinD exige o parâmetro `privileged: true`. Isso dá ao container acesso quase total ao hardware do host. Use com cautela em ambientes de produção.
-
 ---
 
-## Opção 2: Docker-out-of-Docker (DooD)
-Se o seu objetivo é apenas conseguir rodar comandos `docker` dentro de um container (por exemplo, em um container do Jenkins para gerar imagens), a abordagem DooD costuma ser a mais recomendada. 
+## Opção 3: Orquestrando Frontend e Backend Separados (Aninhado em DinD)
 
-Em vez de rodar outro daemon, nós **compartilhamos o socket do Docker do host** com o container. Isso significa que qualquer container criado por ele rodará como um "irmão" no seu próprio host, e não dentro dele.
+Se você quer subir a sua arquitetura completa (Frontend em React, Backend em Go, Banco de Dados Postgres e Redis) dentro do ambiente isolado do Docker-in-Docker, a estrutura já está pronta para isso!
 
-### Exemplo de Configuração DooD (`docker-compose.dood.yml`):
+Os arquivos `backend/Dockerfile`, `frontend/Dockerfile` e `docker-in-docker/docker-compose.nested.yml` foram criados para gerenciar todo o ecossistema de forma aninhada.
 
-```yaml
-version: '3.8'
+### Como funciona?
+O Docker do seu computador (Host) monta o código fonte na pasta `/src` dos dois contêineres principais (`dind-daemon` e `dind-client`). Como eles compartilham a mesma pasta no mesmo caminho exato, o cliente consegue solicitar ao daemon que compile os Dockerfiles locais!
 
-services:
-  dood-client:
-    image: docker:latest
-    container_name: dood-client
-    volumes:
-      # Monta o socket do Docker do seu computador no container
-      - /var/run/docker.sock:/var/run/docker.sock
-    # Mantém o container vivo
-    entrypoint: ["sh", "-c", "echo 'Pronto! Acessando o Docker do host...' && docker ps && tail -f /dev/null"]
+### Como Rodar o Ecossistema Aninhado:
+
+1. **Suba os contêineres do DinD principal:**
+   ```bash
+   cd docker-in-docker
+   docker compose up -d
+   ```
+
+2. **Rode o Docker Compose aninhado de dentro do contêiner cliente:**
+   ```bash
+   docker exec -it dind-client docker compose -f /src/docker-in-docker/docker-compose.nested.yml up --build -d
+   ```
+
+3. **Verifique os contêineres aninhados rodando dentro do daemon interno:**
+   ```bash
+   docker exec -it dind-client docker ps
+   ```
+
+4. **Acesse as aplicações:**
+   * **Frontend:** Acesse no seu navegador em `http://localhost:3000` (porta 3000 do host redireciona para a porta 3000 do daemon interno, que aponta para o contêiner do frontend).
+   * **API Backend (HTTP):** Acesse em `http://localhost:8080` do seu computador.
+   * **API Backend (gRPC):** Porta `50051`.
+
+### Para derrubar o ecossistema aninhado:
+```bash
+docker exec -it dind-client docker compose -f /src/docker-in-docker/docker-compose.nested.yml down
 ```
 
-### Vantagens do DooD:
-* **Segurança**: Não precisa de `privileged: true`.
-* **Desempenho**: Compartilha o cache de imagens do host.
-* **Simplicidade**: Qualquer container gerado é visível diretamente na sua máquina local com `docker ps`.

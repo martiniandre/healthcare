@@ -67,7 +67,6 @@ func (handler *HTTPHandler) HandleLogin(httpResponseWriter http.ResponseWriter, 
 	})
 
 	render.JSON(httpResponseWriter, http.StatusOK, map[string]interface{}{
-		"token":  jsonWebToken,
 		"userId": authenticatedUser.ID.String(),
 		"role":   string(authenticatedUser.Role),
 		"email":  authenticatedUser.Email,

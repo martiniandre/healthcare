@@ -32,7 +32,6 @@ export const StaffStatus = {
 export type StaffStatus = typeof StaffStatus[keyof typeof StaffStatus]
 
 export interface AuthResponseDto {
-  token: string
   userId: string
   role: string
   email: string

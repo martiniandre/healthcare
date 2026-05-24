@@ -1,0 +1,78 @@
+version: '3.8'
+
+services:
+  # Banco de Dados Clínicos/Operacionais local
+  postgres:
+    image: postgres:15-alpine
+    container_name: nested-postgres
+    environment:
+      POSTGRES_USER: healthcare_user
+      POSTGRES_PASSWORD: healthcare_password
+      POSTGRES_DB: healthcare_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-net
+
+  # Cache e Filas de processamento (atualmente comentado no Go, mas deixado pronto para uso)
+  redis:
+    image: redis:7-alpine
+    container_name: nested-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - app-net
+
+  # API Backend em Go
+  backend:
+    build:
+      context: /src/backend
+      dockerfile: Dockerfile
+    container_name: nested-backend
+    ports:
+      - "50051:50051" # gRPC
+      - "8080:8080"   # HTTP
+    environment:
+      - APP_ENV=development
+      # Sobrescreve as portas e conexões para apontar aos contêineres irmãos do Docker interno
+      - APP_PORT=50051
+      - HTTP_PORT=8080
+      - DB_URL=postgres://healthcare_user:healthcare_password@postgres:5432/healthcare_db?sslmode=disable
+      - REDIS_URL=redis:6379
+      - JWT_SECRET=escreva_uma_senha_muito_forte_aqui_como_por_exemplo_qweasd123zxc
+      # Defina suas credenciais reais de Sentry e Google Cloud conforme o guia se necessário
+      - SENTRY_DSN=
+      - GCP_PROJECT_ID=
+      - GCP_LOCATION_ID=us-central1
+      - GCP_DATASET_ID=healthcare-dataset
+      - GCP_FHIR_STORE_ID=fhir-store
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - app-net
+
+  # Aplicação Frontend em React + Vite
+  frontend:
+    build:
+      context: /src/frontend
+      dockerfile: Dockerfile
+    container_name: nested-frontend
+    ports:
+      - "3000:80" # Expõe na porta 3000 para acesso
+    depends_on:
+      - backend
+    networks:
+      - app-net
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  app-net:
+    driver: bridge
