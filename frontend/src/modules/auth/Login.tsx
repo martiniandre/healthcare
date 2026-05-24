@@ -28,7 +28,6 @@ export const Login = () => {
     try {
       const authResponseData = await authApi.login(formData.email, formData.password)
       loginToStore(
-        authResponseData.token,
         authResponseData.userId,
         authResponseData.role,
         authResponseData.email

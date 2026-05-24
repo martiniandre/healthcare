@@ -68,12 +68,38 @@ func (w *Worker) processAnalysisJob(ctx context.Context, analysisID uuid.UUID) {
 		return
 	}
 
-	analysisResponse, statusResult, err := w.service.AnalyzeExamFile(ctx, analysisRecord.FilePath, analysisRecord.FileName)
+	var analysisResponse *ExamAnalysisResponse
+	var statusResult string
+	maxRetries := 3
+
+	for attempt := 1; attempt <= maxRetries; attempt++ {
+		analysisResponse, statusResult, err = w.service.AnalyzeExamFile(ctx, analysisRecord.FilePath, analysisRecord.FileName)
+		if err == nil {
+			break
+		}
+		
+		slog.Warn("Error during medical exam analysis execution, retrying...", "analysisID", analysisID, "attempt", attempt, "error", err)
+		if attempt < maxRetries {
+			time.Sleep(time.Duration(attempt*2) * time.Second)
+		}
+	}
+
 	if err != nil {
-		slog.Error("Error during medical exam analysis execution", "analysisID", analysisID, "error", err)
+		slog.Error("Max retries reached. Medical exam analysis failed", "analysisID", analysisID, "error", err)
 		analysisRecord.Status = "failed"
 		analysisRecord.UpdatedAt = time.Now()
 		_ = w.repository.UpdateAnalysis(ctx, analysisRecord)
+		
+		auditMessage := "Analysis moved to DLQ (failed state) after max retries"
+		auditRecord := &ExamAnalysisAuditLog{
+			ID:          uuid.New(),
+			AnalysisID:  &analysisID,
+			ActionType:  "failed",
+			PerformedBy: "SYSTEM_WORKER",
+			Details:     &auditMessage,
+			CreatedAt:   time.Now(),
+		}
+		_ = w.repository.CreateAuditLog(ctx, auditRecord)
 		return
 	}
 
