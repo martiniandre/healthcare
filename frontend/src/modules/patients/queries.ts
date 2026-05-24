@@ -1,6 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { patientsApi } from "./api"
-import type { DiagnosticReport, Encounter, Observation, Patient, AllergyIntolerance } from "./types"
 
 export const patientQueryKeys = {
   all: ["patients"] as const,
@@ -9,6 +8,7 @@ export const patientQueryKeys = {
   encounters: (patientFhirId: string) => [...patientQueryKeys.all, "encounters", patientFhirId] as const,
   observations: (encounterFhirId: string) => [...patientQueryKeys.all, "observations", encounterFhirId] as const,
   reports: (encounterFhirId: string) => [...patientQueryKeys.all, "reports", encounterFhirId] as const,
+  medications: (encounterFhirId: string) => [...patientQueryKeys.all, "medications", encounterFhirId] as const,
 }
 
 export const usePatientsQuery = (searchQueryValue?: string) => {
@@ -173,4 +173,27 @@ export const useCreateAllergyMutation = () => {
   })
 }
 
-export type { DiagnosticReport, Encounter, Observation, Patient, AllergyIntolerance }
+export const useMedicationsQuery = (encounterId: string) => {
+  return useQuery({
+    queryKey: patientQueryKeys.medications(encounterId),
+    queryFn: () => patientsApi.getMedications(encounterId),
+    enabled: !!encounterId,
+  })
+}
+
+export const useCreateMedicationMutation = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (payload: {
+      encounter_fhir_id: string
+      patient_fhir_id: string
+      medication_display: string
+      dosage_instruction: string
+    }) => patientsApi.createMedication(payload),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: patientQueryKeys.medications(variables.encounter_fhir_id) })
+    },
+  })
+}
+
+export type { DiagnosticReport, Encounter, Observation, Patient, AllergyIntolerance, MedicationRequest } from "./types"

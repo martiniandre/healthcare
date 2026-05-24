@@ -39,3 +39,10 @@ export const newAllergySchema = z.object({
 })
 
 export type NewAllergyFormData = z.infer<typeof newAllergySchema>
+
+export const newMedicationSchema = z.object({
+  medicationDisplay: z.string().min(3, "O nome da medicação deve ter no mínimo 3 caracteres"),
+  dosageInstruction: z.string().min(3, "A instrução de dosagem deve ter no mínimo 3 caracteres"),
+})
+
+export type NewMedicationFormData = z.infer<typeof newMedicationSchema>

@@ -1,5 +1,5 @@
 import { http } from "../../shared/utils/http"
-import type { DiagnosticReport, Encounter, Observation, Patient, Condition, CreatePatientResponse, AllergyIntolerance } from "./types"
+import type { DiagnosticReport, Encounter, Observation, Patient, Condition, CreatePatientResponse, AllergyIntolerance, MedicationRequest } from "./types"
 
 export const patientsApi = {
   getPatients: async (): Promise<Patient[]> => {
@@ -84,6 +84,18 @@ export const patientsApi = {
       allergen_code: allergyData.allergen_code,
       allergen_display: allergyData.allergen_display,
       reaction: allergyData.reaction,
+    })
+  },
+
+  getMedications: async (encounterFhirId: string): Promise<MedicationRequest[]> => {
+    return http.get<MedicationRequest[]>(`/encounters/${encounterFhirId}/medications`)
+  },
+
+  createMedication: async (medicationData: Omit<MedicationRequest, "fhir_id" | "created_at" | "status">): Promise<MedicationRequest> => {
+    return http.post<MedicationRequest>(`/encounters/${medicationData.encounter_fhir_id}/medications`, {
+      patient_fhir_id: medicationData.patient_fhir_id,
+      medication_display: medicationData.medication_display,
+      dosage_instruction: medicationData.dosage_instruction,
     })
   },
 }

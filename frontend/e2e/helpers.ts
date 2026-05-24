@@ -207,6 +207,8 @@ export const mockClinicalAPI = async (pageInstance: Page): Promise<void> => {
     },
   ]
 
+  const currentMedicationsList: any[] = []
+
   const currentStudiesList = [
     {
       id: "study-1",
@@ -366,6 +368,39 @@ export const mockClinicalAPI = async (pageInstance: Page): Promise<void> => {
     }
   })
 
+  await pageInstance.route("**/api/encounters/*/medications", async (networkRoute) => {
+    const httpRequest = networkRoute.request()
+    const requestURL = httpRequest.url()
+    const urlParts = requestURL.split("/")
+    const encounterFhirId = urlParts[urlParts.length - 2]
+
+    if (httpRequest.method() === "GET") {
+      const filtered = currentMedicationsList.filter((m) => m.encounter_fhir_id === encounterFhirId)
+      await networkRoute.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(filtered),
+      })
+    } else if (httpRequest.method() === "POST") {
+      const submittedJSON = httpRequest.postDataJSON()
+      const newMedication = {
+        fhir_id: `med-${currentMedicationsList.length + 1}`,
+        encounter_fhir_id: encounterFhirId,
+        patient_fhir_id: submittedJSON.patient_fhir_id,
+        medication_display: submittedJSON.medication_display,
+        dosage_instruction: submittedJSON.dosage_instruction,
+        status: "active",
+        created_at: new Date().toISOString(),
+      }
+      currentMedicationsList.push(newMedication)
+      await networkRoute.fulfill({
+        status: 201,
+        contentType: "application/json",
+        body: JSON.stringify(newMedication),
+      })
+    }
+  })
+
   await pageInstance.route("**/api/patients/*/studies", async (networkRoute) => {
     const httpRequest = networkRoute.request()
     const requestURL = httpRequest.url()
@@ -419,10 +454,91 @@ export const mockClinicalAPI = async (pageInstance: Page): Promise<void> => {
   })
 }
 
+export const mockAnalyzerAPI = async (pageInstance: Page): Promise<void> => {
+  const currentAnalysesList = [
+    {
+      id: "ana-1",
+      file_name: "rx_torax.png",
+      status: "completed",
+      findings: ["Área de consolidação pulmonar no lobo inferior direito", "Ausência de derrame pleural"],
+      conclusion: "Sinais sugestivos de pneumonia lobar. Correlacionar com quadro clínico.",
+      created_at: "2026-05-18T10:00:00Z",
+    }
+  ]
+
+  await pageInstance.route("**/api/exam-analyses", async (networkRoute) => {
+    const httpRequest = networkRoute.request()
+
+    if (httpRequest.method() === "GET") {
+      await networkRoute.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(currentAnalysesList),
+      })
+    } else if (httpRequest.method() === "POST") {
+      const newAnalysis = {
+        id: `ana-${currentAnalysesList.length + 1}`,
+        file_name: "mock_uploaded_exam.jpg",
+        status: "processing",
+        findings: [],
+        conclusion: "",
+        created_at: new Date().toISOString(),
+      }
+      currentAnalysesList.push(newAnalysis)
+      
+      // Simulate polling by upgrading the status after a delay
+      setTimeout(() => {
+        newAnalysis.status = "completed"
+        newAnalysis.findings = ["Nódulo pulmonar calcificado", "Aorta normal"]
+        newAnalysis.conclusion = "Achados benignos, sem necessidade de investigação adicional imediata."
+      }, 3000)
+
+      await networkRoute.fulfill({
+        status: 201,
+        contentType: "application/json",
+        body: JSON.stringify(newAnalysis),
+      })
+    }
+  })
+
+  await pageInstance.route("**/api/exam-analyses/*", async (networkRoute) => {
+    const httpRequest = networkRoute.request()
+    const requestURL = httpRequest.url()
+    const urlParts = requestURL.split("/")
+    const anaId = urlParts[urlParts.length - 1]
+
+    if (httpRequest.method() === "GET") {
+      const analysis = currentAnalysesList.find((a) => a.id === anaId)
+      if (analysis) {
+        await networkRoute.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify(analysis),
+        })
+      } else {
+        await networkRoute.fulfill({ status: 404 })
+      }
+    } else if (httpRequest.method() === "DELETE") {
+      const index = currentAnalysesList.findIndex((a) => a.id === anaId)
+      if (index !== -1) {
+        currentAnalysesList.splice(index, 1)
+        await networkRoute.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify({ success: true }),
+        })
+      } else {
+        await networkRoute.fulfill({ status: 404 })
+      }
+    }
+  })
+}
+
 export const loginAsDoctor = async (pageInstance: Page): Promise<void> => {
   await mockAuthAPI(pageInstance)
   await mockPatientsAPI(pageInstance)
   await mockClinicalAPI(pageInstance)
+  await mockAnalyzerAPI(pageInstance)
   await pageInstance.goto("/#/login")
   await pageInstance.getByPlaceholder("nome.sobrenome@hospital.com").fill("medico@clinica.com")
   await pageInstance.getByPlaceholder("••••••••").fill("senha123")

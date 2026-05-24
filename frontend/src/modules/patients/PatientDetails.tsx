@@ -11,7 +11,9 @@ import {
   usePatientConditionsQuery,
   useCreateConditionMutation,
   usePatientAllergiesQuery,
-  useCreateAllergyMutation
+  useCreateAllergyMutation,
+  useMedicationsQuery,
+  useCreateMedicationMutation
 } from "./queries"
 import { toast } from "../../shared/store/toast_store"
 import { useImagingStudiesQuery } from "../imaging/queries"
@@ -22,11 +24,13 @@ import { ClinicalReports } from "./components/ClinicalReports"
 import { PACSStudies } from "./components/PACSStudies"
 import { ClinicalConditions } from "./components/ClinicalConditions"
 import { ClinicalAllergies } from "./components/ClinicalAllergies"
+import { ClinicalMedications } from "./components/ClinicalMedications"
 import { EncounterModal } from "./components/modals/EncounterModal"
 import { ObservationModal } from "./components/modals/ObservationModal"
 import { ReportModal } from "./components/modals/ReportModal"
 import { ConditionModal } from "./components/modals/ConditionModal"
 import { AllergyModal } from "./components/modals/AllergyModal"
+import { MedicationModal } from "./components/modals/MedicationModal"
 import { Card } from "../../shared/components/ui/Card"
 import { 
   History, 
@@ -36,7 +40,8 @@ import {
   AlertTriangle,
   FolderOpen,
   Activity,
-  ShieldAlert
+  ShieldAlert,
+  Pill
 } from "lucide-react"
 
 export const PatientDetails = () => {
@@ -44,8 +49,8 @@ export const PatientDetails = () => {
   const navigate = useNavigate()
 
   const [searchParameters, setSearchParameters] = useSearchParams()
-  const activeTab = (searchParameters.get("tab") || "encounters") as "encounters" | "vitals" | "reports" | "pacs" | "conditions" | "allergies"
-  const setActiveTab = (tabName: "encounters" | "vitals" | "reports" | "pacs" | "conditions" | "allergies") => {
+  const activeTab = (searchParameters.get("tab") || "encounters") as "encounters" | "vitals" | "reports" | "pacs" | "conditions" | "allergies" | "medications"
+  const setActiveTab = (tabName: "encounters" | "vitals" | "reports" | "pacs" | "conditions" | "allergies" | "medications") => {
     setSearchParameters({ tab: tabName })
   }
   const [selectedEncounterId, setSelectedEncounterId] = useState<string | null>(null)
@@ -55,6 +60,7 @@ export const PatientDetails = () => {
   const [isReportModalOpen, setIsReportModalOpen] = useState(false)
   const [isConditionModalOpen, setIsConditionModalOpen] = useState(false)
   const [isAllergyModalOpen, setIsAllergyModalOpen] = useState(false)
+  const [isMedicationModalOpen, setIsMedicationModalOpen] = useState(false)
 
   const { data: patient, isLoading: isPatientLoading } = usePatientQuery(id)
   const { data: encounters = [] } = useEncountersQuery(id)
@@ -66,12 +72,14 @@ export const PatientDetails = () => {
   const { data: studies = [] } = useImagingStudiesQuery(id)
   const { data: conditions = [] } = usePatientConditionsQuery(id)
   const { data: allergies = [] } = usePatientAllergiesQuery(id)
+  const { data: medications = [] } = useMedicationsQuery(activeEncounterId || "")
 
   const createEncounterMutation = useCreateEncounterMutation()
   const createObservationMutation = useCreateObservationMutation()
   const createReportMutation = useCreateDiagnosticReportMutation()
   const createConditionMutation = useCreateConditionMutation()
   const createAllergyMutation = useCreateAllergyMutation()
+  const createMedicationMutation = useCreateMedicationMutation()
 
   const selectedEncounter = encounters.find((encounterItem) => encounterItem.fhir_id === activeEncounterId) || null
 
@@ -170,6 +178,24 @@ export const PatientDetails = () => {
     }
   }
 
+  const handleCreateMedication = async (formData: { medicationDisplay: string; dosageInstruction: string }) => {
+    if (!selectedEncounter) {
+      return
+    }
+    try {
+      await createMedicationMutation.mutateAsync({
+        encounter_fhir_id: selectedEncounter.fhir_id,
+        patient_fhir_id: id,
+        medication_display: formData.medicationDisplay,
+        dosage_instruction: formData.dosageInstruction,
+      })
+      setIsMedicationModalOpen(false)
+      toast.success("Prescrição médica adicionada com sucesso!")
+    } catch {
+      toast.error("Erro ao registrar prescrição.")
+    }
+  }
+
   if (isPatientLoading || !patient) {
     return (
       <div className="text-center py-16">
@@ -240,6 +266,18 @@ export const PatientDetails = () => {
               <span className="ml-auto text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded font-black">
                 {conditions.length}
               </span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab("medications")}
+              className={`w-full text-left flex items-center gap-3 px-4 py-3 rounded-lg text-xs font-extrabold transition-all duration-300 ${
+                activeTab === "medications"
+                  ? "bg-primary/8 text-primary"
+                  : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
+              }`}
+            >
+              <Pill className="w-4 h-4 shrink-0" />
+              Prescrições
             </button>
 
             <button
@@ -348,6 +386,23 @@ export const PatientDetails = () => {
               />
             )}
 
+            {activeTab === "medications" && (
+              selectedEncounter ? (
+                <ClinicalMedications
+                  medications={medications}
+                  onAdd={() => setIsMedicationModalOpen(true)}
+                />
+              ) : (
+                <Card className="py-20 text-center">
+                  <AlertTriangle className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                  <h3 className="text-lg font-bold text-gray-800">Nenhum atendimento ativo</h3>
+                  <p className="text-sm text-muted">
+                    Por favor, selecione ou registre um atendimento na aba "Atendimentos".
+                  </p>
+                </Card>
+              )
+            )}
+
             {activeTab === "allergies" && (
               <ClinicalAllergies
                 allergies={allergies}
@@ -398,6 +453,13 @@ export const PatientDetails = () => {
         onClose={() => setIsAllergyModalOpen(false)}
         onSubmit={handleCreateAllergy}
         isPending={createAllergyMutation.isPending}
+      />
+
+      <MedicationModal
+        isOpen={isMedicationModalOpen}
+        onClose={() => setIsMedicationModalOpen(false)}
+        onSubmit={handleCreateMedication}
+        isPending={createMedicationMutation.isPending}
       />
     </div>
   )
