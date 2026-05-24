@@ -207,7 +207,7 @@ export const mockClinicalAPI = async (pageInstance: Page): Promise<void> => {
     },
   ]
 
-  const currentMedicationsList: any[] = []
+  const currentMedicationsList: unknown[] = []
 
   const currentStudiesList = [
     {
