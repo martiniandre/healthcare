@@ -1,82 +1,112 @@
-# Guia de Configurações Pendentes e Ambiente (Healthcare Ecosystem) 🏥🧪
+# Guia Passo a Passo: Configuração de Ambiente (Healthcare Ecosystem) 🏥🧪
 
-Este documento consolida todas as informações, variáveis de ambiente, dependências de infraestrutura e etapas de autenticação que **ainda precisam ser configuradas** no projeto para o funcionamento completo e seguro em ambientes de Desenvolvimento (Local) e Produção.
-
----
-
-## 🏛️ 1. Variáveis de Ambiente do Backend (`backend/.env`)
-
-O arquivo `.env` do backend (`backend/.env`) possui definições cruciais de infraestrutura. Algumas variáveis já vêm populadas com valores padrão de desenvolvimento local, enquanto outras dependem diretamente da sua conta Google Cloud Platform (GCP).
-
-### 🔴 Configurações do Google Cloud Platform (Obrigatório para Clínico & PACS)
-Como os módulos de **Pacientes**, **Prontuário Clínico (Clinical)** e **PACS (Imaging)** operam 100% integrados à Google Cloud Healthcare API (padrão FHIR) e ao Google Cloud Storage (arquivos DICOM), as seguintes configurações na GCP precisam ser definidas:
-
-*   **`GCP_PROJECT_ID`**: Atualmente está vazio no arquivo `.env`. Deve ser preenchido com o ID exato do seu projeto na GCP (ex: `GCP_PROJECT_ID=healthcare-portal-41221`).
-*   **`GCP_LOCATION_ID`**: Região onde a infraestrutura GCP está implantada. O padrão é `us-central1` (usado na criação dos datasets e stores).
-*   **`GCP_DATASET_ID`**: Nome do dataset clínico criado no console do GCP Healthcare (ex: `GCP_DATASET_ID=healthcare-dataset`).
-*   **`GCP_FHIR_STORE_ID`**: Identificador do FHIR Store criado sob o dataset (ex: `GCP_FHIR_STORE_ID=fhir-store`).
-*   **`GCP_DICOM_STORE_ID`**: Nome do Dicom Store (fallback padrão em código: `default-dicom`).
-*   **`GCS_BUCKET_NAME`**: Nome do bucket do Google Cloud Storage utilizado para hospedar as imagens PACS do exame (fallback padrão em código: `default-bucket`).
-
-> [!CAUTION]
-> **Bloqueio no Boot:** Se o servidor backend for iniciado com `GCP_PROJECT_ID`, `GCP_DATASET_ID` ou `GCP_FHIR_STORE_ID` vazios, o validador de bootstrap de configuração irá falhar, impedindo que a aplicação suba.
-
-### 🟡 Segurança & Autenticação
-*   **`JWT_SECRET`**: Atualmente configurado com uma chave de teste de desenvolvimento. Para produção ou ambientes públicos de homologação, **gere uma chave criptografada aleatória de alta entropia (mínimo de 32 ou 64 caracteres)**.
-*   **`SENTRY_DSN`**: Possui uma URL de teste apontando para o Sentry. Se deseja utilizar o monitoramento de erros em sua própria conta, configure o DSN do seu workspace do Sentry. Caso contrário, mantenha em branco para desabilitar o tracing local.
+Este documento fornece um passo a passo prático para configurar todas as pendências listadas no projeto, permitindo que a aplicação execute com integrações reais da Google Cloud Platform (GCP), segurança adequada e comunicação de rede flexível.
 
 ---
 
-## 🔑 2. Autenticação Google Cloud (ADC - Application Default Credentials)
+## 🛠️ Passo 1: Configuração da Infraestrutura na GCP (Console Google Cloud)
 
-Os clientes Go da GCP (`google.DefaultClient` no Healthcare API e `storage.NewClient` para o GCS) utilizam o mecanismo padrão do Google para capturar credenciais.
+Os dados clínicos e imagens PACS do projeto residem na Google Cloud. Siga estas etapas para criar a estrutura necessária:
 
-### 💻 Em ambiente de Desenvolvimento Local:
-Você precisará instalar o **Google Cloud SDK (gcloud CLI)** e autenticar sua máquina local para que a aplicação consiga interagir com as APIs da GCP de forma transparente:
+### 1.1 Criar o Projeto no GCP
+1. Acesse o [Console do Google Cloud](https://console.cloud.google.com/).
+2. No menu superior esquerdo, clique no seletor de projetos e selecione **Novo Projeto**.
+3. Escolha um nome descritivo (ex: `Healthcare Portal`) e anote o **ID do Projeto** gerado automaticamente (ex: `healthcare-portal-45123`).
+4. Atualize a variável no seu arquivo `backend/.env`:
+   ```env
+   GCP_PROJECT_ID=healthcare-portal-45123
+   ```
 
-1. Instale o [Google Cloud SDK](https://cloud.google.com/sdk/docs/install).
-2. Execute o comando de login no seu terminal:
-   ```bash
+### 1.2 Ativar as APIs Necessárias
+No console do GCP, acesse o menu de pesquisa no topo e ative as seguintes APIs clicando em **Ativar**:
+*   **Cloud Healthcare API** (para gerenciamento de dados FHIR e DICOM).
+*   **Vertex AI API** (para análise assistida por IA no módulo `exam_analyzer`).
+*   **Google Cloud Storage JSON API** (para armazenar os arquivos de imagem DICOM).
+
+### 1.3 Criar o Dataset e o FHIR Store
+1. No menu lateral do console GCP, navegue até **Healthcare** (ou pesquise por "Healthcare" na barra de busca).
+2. Clique em **Criar Dataset**.
+3. Configure os detalhes:
+   * **ID do Dataset:** `healthcare-dataset` (ou o nome desejado).
+   * **Região:** Escolha `us-central1` (Região Padrão configurada na aplicação em `GCP_LOCATION_ID`).
+4. Clique em **Criar**.
+5. Dentro do dataset recém-criado, clique em **Criar Armazenamento de Dados** (Data Store).
+6. Configure os detalhes do Data Store:
+   * **Tipo de dados:** Selecione **FHIR**.
+   * **ID do Armazenamento de Dados:** `fhir-store` (ou o nome desejado).
+   * **Versão do FHIR:** Escolha **R4** (versão de prontuários médicos compatível com o backend).
+7. Clique em **Criar**.
+8. Preencha as variáveis correspondentes no seu `backend/.env`:
+   ```env
+   GCP_DATASET_ID=healthcare-dataset
+   GCP_FHIR_STORE_ID=fhir-store
+   ```
+
+### 1.4 Criar o Bucket no Google Cloud Storage (PACS)
+1. No console GCP, navegue até **Cloud Storage** -> **Buckets**.
+2. Clique em **Criar**.
+3. Configure os detalhes do bucket:
+   * **Nome do Bucket:** Escolha um nome globalmente único (ex: `healthcare-pacs-files-prod`).
+   * **Região:** Escolha `us-central1`.
+   * **Classe de Armazenamento:** Selecione **Standard**.
+   * **Controle de Acesso:** Recomendado manter **Uniforme**.
+4. Clique em **Criar**.
+5. Preencha a variável no seu `backend/.env`:
+   ```env
+   GCS_BUCKET_NAME=healthcare-pacs-files-prod
+   ```
+
+---
+
+## 🔑 Passo 2: Configuração de Autenticação do Google Cloud (Máquina Local)
+
+Para rodar a aplicação localmente no seu computador e permitir que o código interaja com a nuvem de forma transparente, é necessário autenticar sua máquina.
+
+### 2.1 Instalar o gcloud CLI (Windows)
+1. Baixe o instalador do [Google Cloud SDK para Windows](https://dl.google.com/dl/cloudsdk/channels/rapid/GoogleCloudSDKInstaller.exe).
+2. Siga o assistente de instalação padrão na sua máquina.
+3. Certifique-se de marcar a opção para abrir o terminal de comandos do gcloud no final da instalação.
+
+### 2.2 Autenticar o seu Terminal
+1. Abra uma nova janela do PowerShell ou Terminal do Windows.
+2. Execute o comando de inicialização rápida:
+   ```powershell
+   gcloud init
+   ```
+3. O terminal solicitará login. Faça login utilizando a sua conta Google associada ao console da GCP onde você criou o projeto.
+4. Selecione o projeto criado na etapa 1 quando solicitado.
+
+### 2.3 Gerar Credenciais Padrão da Aplicação (ADC)
+Este é o passo crucial. Ele salva um arquivo JSON com permissões na sua máquina local, o qual é lido de forma automática pelas bibliotecas Go.
+1. No seu terminal de comandos, execute:
+   ```powershell
    gcloud auth application-default login
    ```
-3. O comando abrirá uma janela do navegador para que você selecione a conta com acesso ao projeto configurado em `GCP_PROJECT_ID`.
-
-### ☁️ Em ambiente de Produção / CI/CD:
-Você deve criar uma **Service Account (Conta de Serviço)** dedicada na GCP, baixar a chave JSON correspondente e passá-la para o contêiner/servidor:
-
-1. Crie uma Service Account com as seguintes permissões (IAM Roles):
-   - **Administrador do Cloud Healthcare (ou roles específicas para Dataset e FHIR Store)**.
-   - **Administrador de Objetos do Storage (Storage Object Admin)** (para leitura e escrita dos exames no bucket).
-   - **Usuário do Vertex AI (Vertex AI User)** (para uso do módulo `exam_analyzer` assistido por IA).
-2. Gere a chave privada JSON.
-3. Configure a variável de ambiente do sistema para apontar para o caminho desse arquivo JSON:
-   ```bash
-   export GOOGLE_APPLICATION_CREDENTIALS="/caminho/para/sua/chave-privada.json"
-   ```
+2. Uma janela do seu navegador se abrirá. Permita o acesso clicando em **Confirmar**.
+3. O terminal exibirá uma mensagem confirmando que as credenciais foram gravadas no caminho `C:\Users\<Usuario>\AppData\Roaming\gcloud\application_default_credentials.json`.
+4. **Pronto!** O backend Go agora tem acesso direto à GCP sem precisar de nenhuma chave JSON hardcoded no código.
 
 ---
 
-## 💻 3. Configurações Pendentes no Frontend (Vite)
+## 💻 Passo 3: Configurando Variáveis de Ambiente no Frontend (Vite)
 
-Atualmente, o endpoint de comunicação da interface React com a API do Backend REST Gateway está hardcoded no arquivo `frontend/src/shared/services/api.ts`:
+Para evitar que a URL do backend (`http://localhost:8080/api`) fique fixa no código, faremos com que ela leia de um arquivo `.env` do Vite.
 
-```typescript
-export const api = axios.create({
-  baseURL: "http://localhost:8080/api",
-  withCredentials: true,
-})
-```
-
-### ⚡ Próximas Configurações Recomendadas no Frontend:
-Para evitar o acoplamento de `localhost` e permitir a flexibilidade em servidores de homologação ou produção:
-
-1. **Introduzir variáveis do Vite**: Criar um arquivo `.env` e `.env.production` no frontend.
-2. **Definir variável base**:
+### 3.1 Criar o Arquivo `.env` no Frontend
+1. Na raiz da pasta `frontend/`, crie um novo arquivo chamado `.env`:
+   * Caminho completo: `frontend/.env`
+2. Adicione a seguinte linha dentro dele:
    ```env
-   VITE_API_BASE_URL=https://api.seu-dominio.com/api
+   VITE_API_BASE_URL=http://localhost:8080/api
    ```
-3. **Refatorar o serviço de API**:
+
+### 3.2 Atualizar o arquivo de configuração de API do Frontend
+Substitua o hardcode em `frontend/src/shared/services/api.ts` para ler a nova variável.
+1. Abra o arquivo [api.ts](file:///c:/Users/andre/Desktop/Projetos/healthcare/frontend/src/shared/services/api.ts).
+2. Substitua o conteúdo pelo seguinte bloco reativo:
    ```typescript
+   import axios from "axios"
+
    export const api = axios.create({
      baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api",
      withCredentials: true,
@@ -85,25 +115,41 @@ Para evitar o acoplamento de `localhost` e permitir a flexibilidade em servidore
 
 ---
 
-## 🐳 4. Porta de Conexão de Infraestrutura (Port Conflicts)
+## 🐳 Passo 4: Solução de Conflitos de Portas no Docker (Postgres e Redis)
 
-O arquivo `docker-compose.yml` da raiz mapeia as seguintes portas na máquina local:
-*   **PostgreSQL**: `5432:5432`
-*   **Redis**: `6379:6379`
+Se ao rodar `docker compose up -d` você receber erros de portas já utilizadas:
 
-> [!WARNING]
-> Se você já tiver instâncias do PostgreSQL ou Redis instaladas nativamente rodando como serviço local em seu sistema operacional, o comando `docker compose up -d` irá falhar devido a conflitos de portas.
-> **Solução:** Pare os serviços locais temporariamente (`pg_ctl` / `services.msc` no Windows) ou edite as portas esquerdas no `docker-compose.yml` e ajuste no `backend/.env` (`DB_URL` e `REDIS_URL`).
+### 4.1 Identificar qual processo está ocupando as portas no Windows
+1. Abra o PowerShell como Administrador.
+2. Execute o comando para descobrir o processo usando a porta do Postgres (`5432`):
+   ```powershell
+   Get-Process -Id (Get-NetTCPConnection -LocalPort 5432).OwningProcess
+   ```
+3. Execute o mesmo para a porta do Redis (`6379`):
+   ```powershell
+   Get-Process -Id (Get-NetTCPConnection -LocalPort 6379).OwningProcess
+   ```
+
+### 4.2 Desativar Serviços Nativos do Windows
+Se os processos identificados pertencerem aos serviços nativos de banco de dados instalados na sua máquina:
+1. Pressione `Win + R`, digite `services.msc` e aperte Enter.
+2. Procure por **PostgreSQL** ou **Redis** na lista de serviços.
+3. Dê dois cliques no serviço, clique no botão **Parar** e altere o **Tipo de inicialização** para **Manual** para evitar conflito nos próximos boots.
 
 ---
 
-## 📋 Checklist de Prontidão de Configuração
+## 🔒 Passo 5: Gerando um JWT Secret Forte de Produção
 
-- [ ] Instalar o Google Cloud SDK (gcloud CLI) na máquina de desenvolvimento.
-- [ ] Executar `gcloud auth application-default login` para gerar as credenciais locais.
-- [ ] Preencher `GCP_PROJECT_ID` no arquivo `backend/.env`.
-- [ ] Criar o Dataset Healthcare na console do Google Cloud no local especificado.
-- [ ] Criar o FHIR Store com o ID configurado no arquivo `.env`.
-- [ ] Criar o bucket do Cloud Storage para PACS e atualizar a chave `GCS_BUCKET_NAME`.
-- [ ] Gerar uma chave segura de produção para `JWT_SECRET` ao implantar em servidores.
-- [ ] Refatorar `frontend/src/shared/services/api.ts` para ler dinamicamente o endpoint do backend via variáveis de ambiente do Vite.
+Nunca utilize chaves fracas em produção. Siga estes passos para gerar uma nova chave de 32 bytes segura:
+
+### 5.1 Usando PowerShell no Windows
+1. Abra o terminal do PowerShell.
+2. Rode o seguinte script nativo de uma linha para obter uma string aleatória:
+   ```powershell
+   -join ((48..57) + (65..90) + (97..122) | Get-Random -Count 64 | % {[char]$_})
+   ```
+3. Copie a string gerada no terminal.
+4. No arquivo `backend/.env`, substitua a linha do `JWT_SECRET`:
+   ```env
+   JWT_SECRET=SuaStringAltamenteAleatoriaGeradaDe64Caracteres
+   ```
