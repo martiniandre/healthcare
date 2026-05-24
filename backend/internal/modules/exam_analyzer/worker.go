@@ -68,7 +68,7 @@ func (w *Worker) processAnalysisJob(ctx context.Context, analysisID uuid.UUID) {
 		return
 	}
 
-	var analysisResponse *ExamAnalysisResponse
+	var analysisResponse *MedicalAnalysisResponse
 	var statusResult string
 	maxRetries := 3
 
