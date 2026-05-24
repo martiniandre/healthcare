@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  # O daemon do Docker rodando dentro do container (Docker-in-Docker)
+  # ATENÇÃO: Requer privilégios elevados (privileged: true) no host
+  docker-daemon:
+    image: docker:dind
+    container_name: dind-daemon
+    privileged: true
+    environment:
+      # Desativa TLS para simplificar a comunicação local (porta 2375)
+      # Se preferir usar com segurança/certificados, mude para DOCKER_TLS_CERTDIR: "/certs"
+      DOCKER_TLS_CERTDIR: ""
+    ports:
+      - "2375:2375"
+    networks:
+      - docker-net
+    restart: unless-stopped
+
+  # Um container cliente de exemplo que executará comandos docker apontando para o daemon acima
+  docker-client:
+    image: docker:latest
+    container_name: dind-client
+    environment:
+      # Aponta a CLI do docker para o container que está rodando o daemon
+      DOCKER_HOST: tcp://docker-daemon:2375
+    depends_on:
+      - docker-daemon
+    networks:
+      - docker-net
+    # Mantém o container vivo e roda o "docker info" como teste inicial
+    entrypoint: ["sh", "-c", "echo 'Aguardando inicialização do daemon...' && sleep 5 && docker info && echo 'Pronto! O container cliente está ativo.' && tail -f /dev/null"]
+
+networks:
+  docker-net:
+    driver: bridge
