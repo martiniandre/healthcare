@@ -17,6 +17,24 @@ import { StaffRole, StaffStatus } from "../../shared/types"
 import { useStaffListQuery, useCreateEmployeeMutation } from "./queries"
 import { toast } from "../../shared/store/toast_store"
 
+interface FlexibleStaffMember {
+  id?: string
+  ID?: string
+  fullName?: string
+  FullName?: string
+  role?: StaffRole
+  Role?: StaffRole
+  license?: string
+  CRMNumber?: string
+  crmNumber?: string
+  email?: string
+  Email?: string
+  status?: StaffStatus
+  Status?: StaffStatus
+  department?: string
+  Department?: string
+}
+
 export const Staff = () => {
   const [filterRole, setFilterRole] = useState<string>("All")
   const [searchQuery, setSearchQuery] = useState<string>(" ")
@@ -63,11 +81,12 @@ export const Staff = () => {
     if (!member) {
       return false
     }
-    const memberRole = member.role || (member as any).Role || ""
+    const flexibleMember = member as unknown as FlexibleStaffMember
+    const memberRole = flexibleMember.role || flexibleMember.Role || ""
     const matchesRole = filterRole === "All" || memberRole === filterRole
-    const memberFullName = member.fullName || (member as any).FullName || ""
-    const memberEmail = member.email || (member as any).Email || ""
-    const memberDepartment = member.department || (member as any).Department || ""
+    const memberFullName = flexibleMember.fullName || flexibleMember.FullName || ""
+    const memberEmail = flexibleMember.email || flexibleMember.Email || ""
+    const memberDepartment = flexibleMember.department || flexibleMember.Department || ""
     const matchesSearch = memberFullName.toLowerCase().includes(searchQuery.trim().toLowerCase()) ||
       memberEmail.toLowerCase().includes(searchQuery.trim().toLowerCase()) ||
       memberDepartment.toLowerCase().includes(searchQuery.trim().toLowerCase())
@@ -146,13 +165,14 @@ export const Staff = () => {
               </thead>
               <tbody className="divide-y divide-border text-gray-700 font-medium bg-white">
                 {filteredStaff.map((member) => {
-                  const memberId = member.id || (member as any).ID || ""
-                  const memberFullName = member.fullName || (member as any).FullName || ""
-                  const memberRole = member.role || (member as any).Role || ""
-                  const memberLicense = member.license || (member as any).CRMNumber || (member as any).crmNumber || "N/A"
-                  const memberDepartment = member.department || (member as any).Department || "Geral"
-                  const memberEmail = member.email || (member as any).Email || ""
-                  const memberStatus = member.status || (member as any).Status || ""
+                  const flexibleMember = member as unknown as FlexibleStaffMember
+                  const memberId = flexibleMember.id || flexibleMember.ID || ""
+                  const memberFullName = flexibleMember.fullName || flexibleMember.FullName || ""
+                  const memberRole = flexibleMember.role || flexibleMember.Role || ""
+                  const memberLicense = flexibleMember.license || flexibleMember.CRMNumber || flexibleMember.crmNumber || "N/A"
+                  const memberDepartment = flexibleMember.department || flexibleMember.Department || "Geral"
+                  const memberEmail = flexibleMember.email || flexibleMember.Email || ""
+                  const memberStatus = flexibleMember.status || flexibleMember.Status || ""
 
                   return (
                     <tr key={memberId} className="hover:bg-gray-50/30 transition-all duration-150">
