@@ -56,7 +56,7 @@ func (handler *GRPCHandler) GetEmployee(ctx context.Context, req *pb.GetEmployee
 		FullName:   employee.FullName,
 		Email:      employee.Email,
 		Role:       string(employee.Role),
-		CrmNumber:  employee.CRMNumber,
+		CrmNumber:  getStringValue(employee.CRMNumber),
 		IsActive:   employee.IsActive,
 	}, nil
 }
@@ -74,7 +74,7 @@ func (handler *GRPCHandler) ListEmployees(ctx context.Context, req *pb.ListEmplo
 			FullName:   employee.FullName,
 			Email:      employee.Email,
 			Role:       string(employee.Role),
-			CrmNumber:  employee.CRMNumber,
+			CrmNumber:  getStringValue(employee.CRMNumber),
 			IsActive:   employee.IsActive,
 		})
 	}
@@ -94,4 +94,11 @@ func (handler *GRPCHandler) DeactivateEmployee(ctx context.Context, req *pb.Deac
 	}
 
 	return &pb.DeactivateEmployeeResponse{}, nil
+}
+
+func getStringValue(stringValuePointer *string) string {
+	if stringValuePointer == nil {
+		return ""
+	}
+	return *stringValuePointer
 }

@@ -23,7 +23,7 @@ func TestStaffService_CreateEmployee(testingInstance *testing.T) {
 	assert.NotNil(testingInstance, employee)
 	assert.Equal(testingInstance, "Dr. João Silva", employee.FullName)
 	assert.Equal(testingInstance, auth.RoleDoctor, employee.Role)
-	assert.Equal(testingInstance, "CRM-12345", employee.CRMNumber)
+	assert.Equal(testingInstance, "CRM-12345", *employee.CRMNumber)
 	assert.True(testingInstance, employee.IsActive)
 }
 

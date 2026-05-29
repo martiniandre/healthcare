@@ -27,13 +27,18 @@ func NewService(repo Repository) Service {
 }
 
 func (staffService *service) CreateEmployee(ctx context.Context, userID uuid.UUID, fullName, email, role, crmNumber string) (*Employee, error) {
+	var crmNumberPtr *string
+	if crmNumber != "" {
+		crmNumberPtr = &crmNumber
+	}
+
 	employee := &Employee{
 		ID:        uuid.New(),
 		UserID:    userID,
 		FullName:  fullName,
 		Email:     email,
 		Role:      auth.Role(role),
-		CRMNumber: crmNumber,
+		CRMNumber: crmNumberPtr,
 		IsActive:  true,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),

@@ -74,6 +74,25 @@ func (handler *HTTPHandler) HandleLogin(httpResponseWriter http.ResponseWriter, 
 }
 
 func (handler *HTTPHandler) HandleLogout(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
+	cookie, cookieError := httpRequest.Cookie("token")
+	if cookieError != nil {
+		render.Error(httpResponseWriter, http.StatusUnauthorized, "Não autenticado.")
+		return
+	}
+
+	_, jwtValidationErr := ValidateJWT(cookie.Value)
+	if jwtValidationErr != nil {
+		render.Error(httpResponseWriter, http.StatusUnauthorized, "Sessão expirada.")
+		return
+	}
+
+	csrfHeader := httpRequest.Header.Get("X-CSRF-Token")
+	csrfCookie, csrfCookieErr := httpRequest.Cookie("csrf_token")
+	if csrfCookieErr != nil || csrfHeader == "" || csrfHeader != csrfCookie.Value {
+		render.Error(httpResponseWriter, http.StatusForbidden, "Token CSRF inválido ou ausente.")
+		return
+	}
+
 	http.SetCookie(httpResponseWriter, &http.Cookie{
 		Name:     "token",
 		Value:    "",

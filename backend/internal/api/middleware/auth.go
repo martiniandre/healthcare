@@ -50,7 +50,7 @@ func ValidateHTTPAuth(httpResponseWriter http.ResponseWriter, httpRequest *http.
 		return nil, false
 	}
 
-	if httpRequest.Method == http.MethodPost || httpRequest.Method == http.MethodPut || httpRequest.Method == http.MethodDelete {
+	if httpRequest.Method == http.MethodPost || httpRequest.Method == http.MethodPut || httpRequest.Method == http.MethodDelete || httpRequest.Method == http.MethodPatch {
 		csrfHeader := httpRequest.Header.Get("X-CSRF-Token")
 		csrfCookie, csrfCookieErr := httpRequest.Cookie("csrf_token")
 		if csrfCookieErr != nil || csrfHeader == "" || csrfHeader != csrfCookie.Value {
