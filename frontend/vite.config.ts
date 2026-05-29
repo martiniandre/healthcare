@@ -8,4 +8,13 @@ export default defineConfig({
     tailwindcss(),
   ],
   base: process.env.GITHUB_ACTIONS === 'true' ? '/healthcare/' : '/',
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+        secure: false,
+      },
+    },
+  },
 })
