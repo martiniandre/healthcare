@@ -60,10 +60,17 @@ export const Staff = () => {
   }
 
   const filteredStaff = staffList.filter((member) => {
-    const matchesRole = filterRole === "All" || member.role === filterRole
-    const matchesSearch = member.fullName.toLowerCase().includes(searchQuery.trim().toLowerCase()) ||
-      member.email.toLowerCase().includes(searchQuery.trim().toLowerCase()) ||
-      member.department.toLowerCase().includes(searchQuery.trim().toLowerCase())
+    if (!member) {
+      return false
+    }
+    const memberRole = member.role || (member as any).Role || ""
+    const matchesRole = filterRole === "All" || memberRole === filterRole
+    const memberFullName = member.fullName || (member as any).FullName || ""
+    const memberEmail = member.email || (member as any).Email || ""
+    const memberDepartment = member.department || (member as any).Department || ""
+    const matchesSearch = memberFullName.toLowerCase().includes(searchQuery.trim().toLowerCase()) ||
+      memberEmail.toLowerCase().includes(searchQuery.trim().toLowerCase()) ||
+      memberDepartment.toLowerCase().includes(searchQuery.trim().toLowerCase())
     return matchesRole && matchesSearch
   })
 
@@ -138,58 +145,68 @@ export const Staff = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border text-gray-700 font-medium bg-white">
-                {filteredStaff.map((member) => (
-                  <tr key={member.id} className="hover:bg-gray-50/30 transition-all duration-150">
-                    <td className="py-4 px-4">
-                      <div className="flex items-center gap-3">
-                        <div className="bg-primary/8 p-2 rounded-lg border border-primary/10">
-                          <Users className="w-4 h-4 text-primary" />
+                {filteredStaff.map((member) => {
+                  const memberId = member.id || (member as any).ID || ""
+                  const memberFullName = member.fullName || (member as any).FullName || ""
+                  const memberRole = member.role || (member as any).Role || ""
+                  const memberLicense = member.license || (member as any).CRMNumber || (member as any).crmNumber || "N/A"
+                  const memberDepartment = member.department || (member as any).Department || "Geral"
+                  const memberEmail = member.email || (member as any).Email || ""
+                  const memberStatus = member.status || (member as any).Status || ""
+
+                  return (
+                    <tr key={memberId} className="hover:bg-gray-50/30 transition-all duration-150">
+                      <td className="py-4 px-4">
+                        <div className="flex items-center gap-3">
+                          <div className="bg-primary/8 p-2 rounded-lg border border-primary/10">
+                            <Users className="w-4 h-4 text-primary" />
+                          </div>
+                          <span className="font-extrabold text-gray-900">{memberFullName}</span>
                         </div>
-                        <span className="font-extrabold text-gray-900">{member.fullName}</span>
-                      </div>
-                    </td>
-                    <td className="py-4 px-4">
-                      <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-bold text-[10px] uppercase border ${
-                        member.role === StaffRole.Doctor 
-                          ? "bg-blue-50 text-blue-600 border-blue-100" 
-                          : member.role === StaffRole.Nurse
-                            ? "bg-teal-50 text-teal-600 border-teal-100"
-                            : member.role === StaffRole.Admin
-                              ? "bg-purple-50 text-purple-600 border-purple-100"
-                              : "bg-gray-50 text-gray-600 border-gray-100"
-                      }`}>
-                        {member.role}
-                      </span>
-                    </td>
-                    <td className="py-4 px-4 font-semibold text-gray-600">{member.license}</td>
-                    <td className="py-4 px-4 font-semibold text-gray-600">{member.department || "Geral"}</td>
-                    <td className="py-4 px-4">
-                      <span className="flex items-center gap-1.5 text-gray-500 font-semibold">
-                        <Mail className="w-3.5 h-3.5 text-gray-400" />
-                        {member.email}
-                      </span>
-                    </td>
-                    <td className="py-4 px-4">
-                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-bold text-[10px] uppercase ${
-                        member.status === StaffStatus.OnDuty
-                          ? "bg-emerald-50 text-emerald-600 border border-emerald-100"
-                          : "bg-gray-50 text-gray-400 border border-gray-100"
-                      }`}>
-                        {member.status === StaffStatus.OnDuty ? (
-                          <>
-                            <UserCheck className="w-3 h-3" />
-                            Plantonista
-                          </>
-                        ) : (
-                          <>
-                            <Clock className="w-3 h-3" />
-                            Fora de Escala
-                          </>
-                        )}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+                      <td className="py-4 px-4">
+                        <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-bold text-[10px] uppercase border ${
+                          memberRole === StaffRole.Doctor 
+                            ? "bg-blue-50 text-blue-600 border-blue-100" 
+                            : memberRole === StaffRole.Nurse
+                              ? "bg-teal-50 text-teal-600 border-teal-100"
+                              : memberRole === StaffRole.Admin
+                                ? "bg-purple-50 text-purple-600 border-purple-100"
+                                : "bg-gray-50 text-gray-600 border-gray-100"
+                        }`}>
+                          {memberRole}
+                        </span>
+                      </td>
+                      <td className="py-4 px-4 font-semibold text-gray-600">{memberLicense}</td>
+                      <td className="py-4 px-4 font-semibold text-gray-600">{memberDepartment}</td>
+                      <td className="py-4 px-4">
+                        <span className="flex items-center gap-1.5 text-gray-500 font-semibold">
+                          <Mail className="w-3.5 h-3.5 text-gray-400" />
+                          {memberEmail}
+                        </span>
+                      </td>
+                      <td className="py-4 px-4">
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-bold text-[10px] uppercase ${
+                          memberStatus === StaffStatus.OnDuty
+                            ? "bg-emerald-50 text-emerald-600 border border-emerald-100"
+                            : "bg-gray-50 text-gray-400 border border-gray-100"
+                        }`}>
+                          {memberStatus === StaffStatus.OnDuty ? (
+                            <>
+                              <UserCheck className="w-3 h-3" />
+                              Plantonista
+                            </>
+                          ) : (
+                            <>
+                              <Clock className="w-3 h-3" />
+                              Fora de Escala
+                            </>
+                          )}
+                        </span>
+                      </td>
+                    </tr>
+                  )
+                })}
               </tbody>
             </table>
           </div>
