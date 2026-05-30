@@ -1,20 +1,65 @@
 import * as z from "zod"
 import { cpfValidation, isPastDate, isValidICD10 } from "../../shared/utils/validators"
 
-export const newPatientSchema = z.object({
-  fullName: z.string().min(3, "O nome deve ter no mínimo 3 caracteres").max(255).trim(),
-  birthDate: z.string().min(10, "Data de nascimento obrigatória").refine(isPastDate, "A data de nascimento deve ser no passado"),
-  documentId: z.string().min(11, "CPF deve ter no mínimo 11 caracteres").refine(cpfValidation, "CPF inválido"),
-  phoneNumber: z.string().regex(/^\(\d{2}\) \d{4,5}-\d{4}$/, "Formato de telefone inválido. Ex: (11) 98765-4321"),
+export const basePatientSchema = z.object({
+  fullName: z.string(),
+  birthDate: z.string(),
+  documentId: z.string(),
+  phoneNumber: z.string(),
 })
 
-export const newEncounterSchema = z.object({
-  reasonDisplay: z.string().min(3, "O motivo deve ter no mínimo 3 caracteres"),
+export const baseEncounterSchema = z.object({
+  reasonDisplay: z.string(),
 })
 
-export const newObservationSchema = z.object({
-  loincCode: z.string().min(1, "Selecione o sinal vital"),
-  valueQuantity: z.number().min(0.1, "Insira um valor numérico válido"),
+export const baseObservationSchema = z.object({
+  loincCode: z.string(),
+  valueQuantity: z.number(),
+})
+
+export const baseReportSchema = z.object({
+  reportDisplay: z.string(),
+  conclusion: z.string(),
+})
+
+export const baseConditionSchema = z.object({
+  icd10Code: z.string(),
+  codeDisplay: z.string(),
+})
+
+export const baseAllergySchema = z.object({
+  allergenCode: z.string(),
+  allergenDisplay: z.string(),
+  reaction: z.string(),
+})
+
+export const baseMedicationSchema = z.object({
+  medicationDisplay: z.string(),
+  dosageInstruction: z.string(),
+})
+
+export type NewPatientFormData = z.infer<typeof basePatientSchema>
+export type NewEncounterFormData = z.infer<typeof baseEncounterSchema>
+export type NewObservationFormData = z.infer<typeof baseObservationSchema>
+export type NewReportFormData = z.infer<typeof baseReportSchema>
+export type NewConditionFormData = z.infer<typeof baseConditionSchema>
+export type NewAllergyFormData = z.infer<typeof baseAllergySchema>
+export type NewMedicationFormData = z.infer<typeof baseMedicationSchema>
+
+export const getNewPatientSchema = (translateFunction: (key: string) => string) => z.object({
+  fullName: z.string().min(3, translateFunction("validation.fullNameMin")).max(255).trim(),
+  birthDate: z.string().min(10, translateFunction("validation.birthDateReq")).refine(isPastDate, translateFunction("validation.birthDatePast")),
+  documentId: z.string().min(11, translateFunction("validation.documentMin")).refine(cpfValidation, translateFunction("validation.documentInvalid")),
+  phoneNumber: z.string().regex(/^\(\d{2}\) \d{4,5}-\d{4}$/, translateFunction("validation.phoneFormat")),
+})
+
+export const getNewEncounterSchema = (translateFunction: (key: string) => string) => z.object({
+  reasonDisplay: z.string().min(3, translateFunction("validation.reasonMin")),
+})
+
+export const getNewObservationSchema = (translateFunction: (key: string) => string) => z.object({
+  loincCode: z.string().min(1, translateFunction("validation.loincReq")),
+  valueQuantity: z.number().min(0.1, translateFunction("validation.valueReq")),
 }).refine(
   (data) => {
     if (data.loincCode === "8867-4") {
@@ -29,38 +74,28 @@ export const newObservationSchema = z.object({
     return true
   },
   {
-    message: "Valor fora do intervalo aceitável (FC: 0-300, Temp: 30-45, PA: 0-300)",
+    message: translateFunction("validation.rangeError"),
     path: ["valueQuantity"],
   }
 )
 
-export const newReportSchema = z.object({
-  reportDisplay: z.string().min(3, "O título do laudo deve ter no mínimo 3 caracteres"),
-  conclusion: z.string().min(5, "A conclusão deve ter no mínimo 5 caracteres"),
+export const getNewReportSchema = (translateFunction: (key: string) => string) => z.object({
+  reportDisplay: z.string().min(3, translateFunction("validation.reportTitleMin")),
+  conclusion: z.string().min(5, translateFunction("validation.conclusionMin")),
 })
 
-export const newConditionSchema = z.object({
-  icd10Code: z.string().min(3, "O código CID-10 deve ter no mínimo 3 caracteres").refine(isValidICD10, "Formato CID-10 inválido. Ex: I10, E11.9"),
-  codeDisplay: z.string().min(3, "A descrição do diagnóstico deve ter no mínimo 3 caracteres"),
+export const getNewConditionSchema = (translateFunction: (key: string) => string) => z.object({
+  icd10Code: z.string().min(3, translateFunction("validation.icdCodeMin")).refine(isValidICD10, translateFunction("validation.icdFormat")),
+  codeDisplay: z.string().min(3, translateFunction("validation.icdDisplayMin")),
 })
 
-export type NewPatientFormData = z.infer<typeof newPatientSchema>
-export type NewEncounterFormData = z.infer<typeof newEncounterSchema>
-export type NewObservationFormData = z.infer<typeof newObservationSchema>
-export type NewReportFormData = z.infer<typeof newReportSchema>
-export type NewConditionFormData = z.infer<typeof newConditionSchema>
-
-export const newAllergySchema = z.object({
-  allergenCode: z.string().min(3, "O código do alérgeno deve ter no mínimo 3 caracteres"),
-  allergenDisplay: z.string().min(3, "A descrição do alérgeno deve ter no mínimo 3 caracteres"),
-  reaction: z.string().min(3, "A reação relatada deve ter no mínimo 3 caracteres"),
+export const getNewAllergySchema = (translateFunction: (key: string) => string) => z.object({
+  allergenCode: z.string().min(3, translateFunction("validation.allergenCodeMin")),
+  allergenDisplay: z.string().min(3, translateFunction("validation.allergenDisplayMin")),
+  reaction: z.string().min(3, translateFunction("validation.reactionMin")),
 })
 
-export type NewAllergyFormData = z.infer<typeof newAllergySchema>
-
-export const newMedicationSchema = z.object({
-  medicationDisplay: z.string().min(3, "O nome da medicação deve ter no mínimo 3 caracteres"),
-  dosageInstruction: z.string().min(3, "A instrução de dosagem deve ter no mínimo 3 caracteres"),
+export const getNewMedicationSchema = (translateFunction: (key: string) => string) => z.object({
+  medicationDisplay: z.string().min(3, translateFunction("validation.medicationMin")),
+  dosageInstruction: z.string().min(3, translateFunction("validation.dosageMin")),
 })
-
-export type NewMedicationFormData = z.infer<typeof newMedicationSchema>
