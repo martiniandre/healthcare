@@ -35,6 +35,7 @@ test.describe("Real-time Telemetry Dashboard Module", () => {
     await confirmButton.click()
 
     await expect(errorMessage).not.toBeVisible()
+    await page.getByText("Leito 02").click()
     const activeBedPatientName = page.getByRole("heading", { name: "Mariana Costa Silva", exact: true })
     await expect(activeBedPatientName).toBeVisible()
   })

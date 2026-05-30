@@ -28,7 +28,7 @@ import { toast } from "../../shared/store/toast_store"
 export const Telemetry = () => {
   const [selectedRoomId, setSelectedRoomId] = useState<string>("room-1")
   const [unlockedRoomIds, setUnlockedRoomIds] = useState<string[]>(["room-1"])
-  const [selectedBedId, setSelectedBedId] = useState<string>("bed-1")
+  const [selectedBedId, setSelectedBedId] = useState<string | null>(null)
   
   const [passcodeInput, setPasscodeInput] = useState<string>("")
   const [passcodeError, setPasscodeError] = useState<string>("")
@@ -43,7 +43,7 @@ export const Telemetry = () => {
   const activeRoom = rooms.find((roomItem) => roomItem.id === selectedRoomId) || rooms[0]
   const isCurrentRoomUnlocked = unlockedRoomIds.includes(selectedRoomId)
 
-  const activeBed = beds.find((bedItem) => bedItem.id === selectedBedId) || beds[0]
+  const activeBed = beds.find((bedItem) => bedItem.id === selectedBedId) || null
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const animationFrameIdRef = useRef<number | null>(null)
@@ -221,10 +221,6 @@ export const Telemetry = () => {
       setUnlockedRoomIds((previousUnlocked) => [...previousUnlocked, selectedRoomId])
       setPasscodeInput("")
       setPasscodeError("")
-
-      if (beds.length > 0) {
-        setSelectedBedId(beds[0].id)
-      }
     } catch {
       setPasscodeError("Senha de Acesso incorreta. Verifique a escala do plantão.")
     }
@@ -238,6 +234,7 @@ export const Telemetry = () => {
     setSelectedRoomId(roomId)
     setPasscodeError("")
     setPasscodeInput("")
+    setSelectedBedId(null)
   }
 
 
@@ -397,104 +394,120 @@ export const Telemetry = () => {
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fade-in">
           <div className="lg:col-span-2 flex flex-col gap-6">
-            <Card className="p-4 flex flex-col gap-4">
-              <div className="flex items-center justify-between border-b border-border pb-3 flex-wrap gap-2">
-                <div className="text-left">
-                  <span className="text-xs font-bold text-primary uppercase tracking-wider">{activeRoom?.name}</span>
-                  <h3 className="text-md font-bold text-gray-900">{activeBed?.bedNumber} • {activeBed?.patientName}</h3>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded font-bold">
-                    {activeBed?.age} anos · {activeBed?.gender}
-                  </span>
-                  {activeBed?.status !== BedStatus.Normal && (
-                    <span className="text-xs bg-red-50 text-red-600 px-2.5 py-1 rounded-full font-bold flex items-center gap-1 border border-red-200">
-                      <AlertTriangle className="w-3.5 h-3.5" />
-                      Crítico
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              <div className="relative border border-border rounded-xl overflow-hidden bg-slate-950 p-1">
-                <canvas
-                  ref={canvasRef}
-                  width={700}
-                  height={260}
-                  className="block w-full max-w-full rounded-lg"
-                />
-                <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded text-[10px] text-emerald-400 font-mono border border-emerald-500/20">
-                  ECG - DERIVAÇÃO II (DII)
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="bg-gray-50 border border-border p-4 rounded-xl flex items-center justify-between">
+            {activeBed ? (
+              <Card className="p-4 flex flex-col gap-4">
+                <div className="flex items-center justify-between border-b border-border pb-3 flex-wrap gap-2">
                   <div className="text-left">
-                    <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block">Freq. Cardíaca</span>
-                    <span className="text-2xl font-black text-gray-900 mt-1 block">
-                      {activeBed?.bpm > 0 ? `${activeBed.bpm} ` : "--- "}
-                      <span className="text-xs font-normal text-gray-400">BPM</span>
-                    </span>
+                    <span className="text-xs font-bold text-primary uppercase tracking-wider">{activeRoom?.name}</span>
+                    <h3 className="text-md font-bold text-gray-900">{activeBed.bedNumber} • {activeBed.patientName}</h3>
                   </div>
-                  <Heart className={`w-8 h-8 text-red-500 shrink-0 ${activeBed?.bpm > 110 ? "animate-pulse" : ""}`} />
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded font-bold">
+                      {activeBed.age} anos · {activeBed.gender}
+                    </span>
+                    {activeBed.status !== BedStatus.Normal && (
+                      <span className="text-xs bg-red-50 text-red-600 px-2.5 py-1 rounded-full font-bold flex items-center gap-1 border border-red-200">
+                        <AlertTriangle className="w-3.5 h-3.5" />
+                        Crítico
+                      </span>
+                    )}
+                  </div>
                 </div>
 
-                <div className="bg-gray-50 border border-border p-4 rounded-xl flex items-center justify-between">
-                  <div className="text-left">
-                    <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block">Saturação O₂</span>
-                    <span className="text-2xl font-black text-gray-900 mt-1 block">
-                      {activeBed?.spo2 > 0 ? `${activeBed.spo2}%` : "---%"}
-                    </span>
+                <div className="relative border border-border rounded-xl overflow-hidden bg-slate-950 p-1">
+                  <canvas
+                    ref={canvasRef}
+                    width={700}
+                    height={260}
+                    className="block w-full max-w-full rounded-lg"
+                  />
+                  <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded text-[10px] text-emerald-400 font-mono border border-emerald-500/20">
+                    ECG - DERIVAÇÃO II (DII)
                   </div>
-                  <Activity className="w-8 h-8 text-emerald-500 shrink-0" />
                 </div>
 
-                <div className="bg-gray-50 border border-border p-4 rounded-xl flex items-center justify-between">
-                  <div className="text-left">
-                    <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block">Temperatura</span>
-                    <span className="text-2xl font-black text-gray-900 mt-1 block">
-                      {activeBed?.temperature.toFixed(1)}°C
-                    </span>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="bg-gray-50 border border-border p-4 rounded-xl flex items-center justify-between">
+                    <div className="text-left">
+                      <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block">Freq. Cardíaca</span>
+                      <span className="text-2xl font-black text-gray-900 mt-1 block">
+                        {activeBed.bpm > 0 ? `${activeBed.bpm} ` : "--- "}
+                        <span className="text-xs font-normal text-gray-400">BPM</span>
+                      </span>
+                    </div>
+                    <Heart className={`w-8 h-8 text-red-500 shrink-0 ${activeBed.bpm > 110 ? "animate-pulse" : ""}`} />
                   </div>
-                  <Thermometer className="w-8 h-8 text-sky-500 shrink-0" />
-                </div>
-              </div>
 
-              <div className="border-t border-border pt-4 text-left flex flex-col gap-2">
-                <span className="text-xs font-bold text-gray-600 block">Injetar Simulação Clínica:</span>
-                <div className="flex gap-2 flex-wrap">
-                  <Button 
-                    variantType={activeBed?.condition === CardiacCondition.Normal ? "primary" : "outline"} 
-                    onClick={() => updateSelectedBedCondition(CardiacCondition.Normal)}
-                    className="px-3.5 py-2 text-xs"
-                  >
-                    Simular Ritmo Normal
-                  </Button>
-                  <Button 
-                    variantType={activeBed?.condition === CardiacCondition.Bradycardia ? "primary" : "outline"} 
-                    onClick={() => updateSelectedBedCondition(CardiacCondition.Bradycardia)}
-                    className="px-3.5 py-2 text-xs"
-                  >
-                    Simular Bradicardia
-                  </Button>
-                  <Button 
-                    variantType={activeBed?.condition === CardiacCondition.Tachycardia ? "primary" : "outline"} 
-                    onClick={() => updateSelectedBedCondition(CardiacCondition.Tachycardia)}
-                    className="px-3.5 py-2 text-xs"
-                  >
-                    Simular Taquicardia
-                  </Button>
-                  <Button 
-                    variantType={activeBed?.condition === CardiacCondition.CardiacArrest ? "danger" : "outline"} 
-                    onClick={() => updateSelectedBedCondition(CardiacCondition.CardiacArrest)}
-                    className="px-3.5 py-2 text-xs text-red-500 hover:text-white"
-                  >
-                    Simular Parada Cardíaca
-                  </Button>
+                  <div className="bg-gray-50 border border-border p-4 rounded-xl flex items-center justify-between">
+                    <div className="text-left">
+                      <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block">Saturação O₂</span>
+                      <span className="text-2xl font-black text-gray-900 mt-1 block">
+                        {activeBed.spo2 > 0 ? `${activeBed.spo2}%` : "---%"}
+                      </span>
+                    </div>
+                    <Activity className="w-8 h-8 text-emerald-500 shrink-0" />
+                  </div>
+
+                  <div className="bg-gray-50 border border-border p-4 rounded-xl flex items-center justify-between">
+                    <div className="text-left">
+                      <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block">Temperatura</span>
+                      <span className="text-2xl font-black text-gray-900 mt-1 block">
+                        {activeBed.temperature.toFixed(1)}°C
+                      </span>
+                    </div>
+                    <Thermometer className="w-8 h-8 text-sky-500 shrink-0" />
+                  </div>
                 </div>
-              </div>
-            </Card>
+
+                <div className="border-t border-border pt-4 text-left flex flex-col gap-2">
+                  <span className="text-xs font-bold text-gray-600 block">Injetar Simulação Clínica:</span>
+                  <div className="flex gap-2 flex-wrap">
+                    <Button 
+                      variantType={activeBed.condition === CardiacCondition.Normal ? "primary" : "outline"} 
+                      onClick={() => updateSelectedBedCondition(CardiacCondition.Normal)}
+                      className="px-3.5 py-2 text-xs"
+                    >
+                      Simular Ritmo Normal
+                    </Button>
+                    <Button 
+                      variantType={activeBed.condition === CardiacCondition.Bradycardia ? "primary" : "outline"} 
+                      onClick={() => updateSelectedBedCondition(CardiacCondition.Bradycardia)}
+                      className="px-3.5 py-2 text-xs"
+                    >
+                      Simular Bradicardia
+                    </Button>
+                    <Button 
+                      variantType={activeBed.condition === CardiacCondition.Tachycardia ? "primary" : "outline"} 
+                      onClick={() => updateSelectedBedCondition(CardiacCondition.Tachycardia)}
+                      className="px-3.5 py-2 text-xs"
+                    >
+                      Simular Taquicardia
+                    </Button>
+                    <Button 
+                      variantType={activeBed.condition === CardiacCondition.CardiacArrest ? "danger" : "outline"} 
+                      onClick={() => updateSelectedBedCondition(CardiacCondition.CardiacArrest)}
+                      className="px-3.5 py-2 text-xs text-red-500 hover:text-white"
+                    >
+                      Simular Parada Cardíaca
+                    </Button>
+                  </div>
+                </div>
+              </Card>
+            ) : (
+              <Card className="flex-1 p-8 border border-border bg-gray-50/50 flex flex-col items-center justify-center text-center gap-4 min-h-[400px]">
+                <div className="bg-primary/5 p-4 rounded-full border border-primary/10 text-primary">
+                  <Activity className="w-8 h-8 animate-pulse" />
+                </div>
+                <div className="max-w-md flex flex-col gap-1">
+                  <h3 className="text-md font-extrabold text-gray-900">
+                    Nenhum Leito Selecionado
+                  </h3>
+                  <p className="text-xs text-gray-500 leading-normal">
+                    Selecione um leito na lista lateral para monitorar os sinais vitais em tempo real e injetar simulações clínicas.
+                  </p>
+                </div>
+              </Card>
+            )}
           </div>
 
           <div className="flex flex-col gap-4 lg:col-span-1 text-left">
@@ -506,7 +519,7 @@ export const Telemetry = () => {
 
               <div className="flex flex-col gap-3">
                 {beds.map((bedItem) => {
-                  const isSelected = bedItem.id === (activeBed?.id || selectedBedId)
+                  const isSelected = bedItem.id === selectedBedId
                   return (
                     <div
                       key={bedItem.id}

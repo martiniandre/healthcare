@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react"
+import { useQueryClient } from "@tanstack/react-query"
 import { Sparkles } from "lucide-react"
 import { FileUploader } from "./components/FileUploader"
 import { AnalysisCard } from "./components/AnalysisCard"
@@ -8,6 +9,7 @@ import {
   useExamAnalysisQuery,
   useUploadExamMutation,
   useDeleteAnalysisMutation,
+  examAnalyzerKeys,
 } from "./queries"
 import { toast } from "../../shared/store/toast_store"
 import type { ExamAnalysis } from "./types"
@@ -15,6 +17,8 @@ import type { ExamAnalysis } from "./types"
 export const ExamAnalyzer = () => {
   const [selectedAnalysisID, setSelectedAnalysisID] = useState<string | null>(null)
   const [uploadPercentageValue, setUploadPercentageValue] = useState<number | null>(null)
+
+  const queryClient = useQueryClient()
 
   const { data: analysesHistory = [], isLoading: isHistoryLoading } = useExamAnalysesQuery()
   const uploadExamMutation = useUploadExamMutation()
@@ -45,9 +49,10 @@ export const ExamAnalyzer = () => {
         polledAnalysisDetails.status === "insufficient_data"
       ) {
         toast.info(`Análise do exame ${polledAnalysisDetails.file_name} concluída.`)
+        queryClient.invalidateQueries({ queryKey: examAnalyzerKeys.all })
       }
     }
-  }, [polledAnalysisDetails])
+  }, [polledAnalysisDetails, queryClient])
 
   const handleFileUpload = async (file: File, consent: boolean, anonymize: boolean) => {
     setUploadPercentageValue(0)

@@ -458,11 +458,44 @@ export const mockAnalyzerAPI = async (pageInstance: Page): Promise<void> => {
   const currentAnalysesList = [
     {
       id: "ana-1",
+      user_id: "user-medico-123",
+      patient_fhir_id: "fhir-pat-1",
+      exam_type: "Radiografia Digital de Tórax (PA)",
       file_name: "rx_torax.png",
+      file_path: "tmp/exam_uploads/ana-1.png",
       status: "completed",
-      findings: ["Área de consolidação pulmonar no lobo inferior direito", "Ausência de derrame pleural"],
-      conclusion: "Sinais sugestivos de pneumonia lobar. Correlacionar com quadro clínico.",
+      analysis_response: {
+        examType: "Radiografia Digital de Tórax (PA)",
+        qualityAssessment: {
+          score: 0.9,
+          warnings: ["Inspiração adequada. Sem artefatos de movimento."]
+        },
+        detectedFindings: [
+          {
+            finding: "Área de consolidação pulmonar no lobo inferior direito",
+            confidence: 0.88,
+            severity: "high"
+          },
+          {
+            finding: "Ausência de derrame pleural",
+            confidence: 0.95,
+            severity: "low"
+          }
+        ],
+        possibleInterpretations: [
+          "Sinais sugestivos de pneumonia lobar. Correlacionar com quadro clínico."
+        ],
+        recommendation: {
+          urgency: "urgent",
+          nextSteps: ["Agendar consulta com pneumologista ou clínico geral."]
+        },
+        limitations: ["Análise baseada em algoritmo assistivo."],
+        disclaimer: "ESTE LAUDO É ASSISTIVO. OS RESULTADOS SÃO PRELIMINARES."
+      },
+      consent_given: true,
+      anonymized: false,
       created_at: "2026-05-18T10:00:00Z",
+      updated_at: "2026-05-18T10:00:00Z"
     }
   ]
 
@@ -476,21 +509,55 @@ export const mockAnalyzerAPI = async (pageInstance: Page): Promise<void> => {
         body: JSON.stringify(currentAnalysesList),
       })
     } else if (httpRequest.method() === "POST") {
-      const newAnalysis = {
+      const newAnalysis: Record<string, unknown> = {
         id: `ana-${currentAnalysesList.length + 1}`,
+        user_id: "user-medico-123",
+        patient_fhir_id: undefined,
+        exam_type: undefined,
         file_name: "mock_uploaded_exam.jpg",
+        file_path: "tmp/exam_uploads/mock_uploaded_exam.jpg",
         status: "processing",
-        findings: [],
-        conclusion: "",
+        analysis_response: {
+          status: "pending"
+        },
+        consent_given: true,
+        anonymized: true,
         created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       }
       currentAnalysesList.push(newAnalysis)
       
-      // Simulate polling by upgrading the status after a delay
       setTimeout(() => {
         newAnalysis.status = "completed"
-        newAnalysis.findings = ["Nódulo pulmonar calcificado", "Aorta normal"]
-        newAnalysis.conclusion = "Achados benignos, sem necessidade de investigação adicional imediata."
+        newAnalysis.exam_type = "Radiografia Digital de Tórax (PA)"
+        newAnalysis.analysis_response = {
+          examType: "Radiografia Digital de Tórax (PA)",
+          qualityAssessment: {
+            score: 0.95,
+            warnings: []
+          },
+          detectedFindings: [
+            {
+              finding: "Nódulo pulmonar calcificado",
+              confidence: 0.92,
+              severity: "low"
+            },
+            {
+              finding: "Aorta normal",
+              confidence: 0.98,
+              severity: "low"
+            }
+          ],
+          possibleInterpretations: [
+            "Achados benignos, sem necessidade de investigação adicional imediata."
+          ],
+          recommendation: {
+            urgency: "normal",
+            nextSteps: ["Acompanhamento clínico periódico padrão."]
+          },
+          limitations: ["Radiografia simples possui limitações estruturais."],
+          disclaimer: "ESTE LAUDO É ASSISTIVO. RECOMENDA-SE AVALIAÇÃO CLÍNICA COMPLETA."
+        }
       }, 3000)
 
       await networkRoute.fulfill({
