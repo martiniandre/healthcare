@@ -1,6 +1,11 @@
 package clinical
 
-import "context"
+import (
+	"context"
+	"errors"
+
+	"github.com/healthcare/backend/internal/shared/validator"
+)
 
 type Service interface {
 	CreateEncounter(ctx context.Context, encounter *Encounter) (*Encounter, error)
@@ -46,6 +51,12 @@ func (clinicalService *service) CreateObservation(ctx context.Context, observati
 	if observation.EncounterFHIRID == "" || observation.PatientFHIRID == "" {
 		return nil, ErrObservationNotFound
 	}
+	if !validator.IsValidLOINC(observation.LoincCode) {
+		return nil, errors.New("invalid LOINC format")
+	}
+	if !validator.IsValidObservationRange(observation.LoincCode, observation.ValueQuantity) {
+		return nil, errors.New("LOINC value quantity out of clinical range")
+	}
 	return clinicalService.repo.CreateObservation(ctx, observation)
 }
 
@@ -61,8 +72,13 @@ func (clinicalService *service) CreateCondition(ctx context.Context, condition *
 	if condition.PatientFHIRID == "" || condition.ICD10Code == "" {
 		return nil, ErrConditionNotFound
 	}
+	if !validator.IsValidICD10(condition.ICD10Code) {
+		return nil, errors.New("invalid ICD-10 format")
+	}
 	if condition.ClinicalStatus == "" {
 		condition.ClinicalStatus = "active"
+	} else if !validator.IsValidClinicalStatus(condition.ClinicalStatus) {
+		return nil, errors.New("invalid clinical status")
 	}
 	return clinicalService.repo.CreateCondition(ctx, condition)
 }
@@ -77,6 +93,8 @@ func (clinicalService *service) CreateAllergyIntolerance(ctx context.Context, al
 	}
 	if allergy.ClinicalStatus == "" {
 		allergy.ClinicalStatus = "active"
+	} else if !validator.IsValidClinicalStatus(allergy.ClinicalStatus) {
+		return nil, errors.New("invalid clinical status")
 	}
 	return clinicalService.repo.CreateAllergyIntolerance(ctx, allergy)
 }

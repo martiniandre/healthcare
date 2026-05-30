@@ -48,6 +48,7 @@ export const ImagingWorkspace = () => {
       setUploadStatus("Transmissão gRPC concluída. Processando DICOM metadata...")
       await waitForUploadFrame(500)
       toast.success("DICOM carregado e processado com sucesso no barramento do PACS!")
+      window.alert("DICOM carregado e processado com sucesso")
     } catch {
       toast.error("Falha no upload do arquivo DICOM.")
     } finally {

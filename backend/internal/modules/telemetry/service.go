@@ -3,6 +3,7 @@ package telemetry
 import (
 	"context"
 	"errors"
+	"strings"
 
 	"github.com/google/uuid"
 )
@@ -31,6 +32,10 @@ func (telemetryService *service) GetRooms(ctx context.Context) ([]*Room, error) 
 }
 
 func (telemetryService *service) UnlockRoom(ctx context.Context, roomID uuid.UUID, passcode string) (*Room, error) {
+	if strings.TrimSpace(passcode) == "" {
+		return nil, errors.New("passcode is required")
+	}
+
 	room, err := telemetryService.repo.GetRoomByID(ctx, roomID)
 	if err != nil {
 		return nil, ErrRoomNotFound
@@ -53,6 +58,16 @@ func (telemetryService *service) GetBeds(ctx context.Context, roomID uuid.UUID) 
 }
 
 func (telemetryService *service) UpdateBedCondition(ctx context.Context, bedID uuid.UUID, bpm, spo2 int32, temperature float64, status, condition string) error {
+	if bpm < 0 || bpm > 300 {
+		return errors.New("BPM out of clinical range (0-300)")
+	}
+	if spo2 < 0 || spo2 > 100 {
+		return errors.New("SpO2 out of clinical range (0-100)")
+	}
+	if temperature < 30.0 || temperature > 45.0 {
+		return errors.New("temperature out of clinical range (30-45)")
+	}
+
 	bed, err := telemetryService.repo.GetBedByID(ctx, bedID)
 	if err != nil {
 		return ErrBedNotFound

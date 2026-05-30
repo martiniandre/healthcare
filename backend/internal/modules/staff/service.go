@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/healthcare/backend/internal/modules/auth"
+	"github.com/healthcare/backend/internal/shared/validator"
 )
 
 var ErrEmployeeNotFound = errors.New("employee not found")
@@ -27,8 +28,20 @@ func NewService(repo Repository) Service {
 }
 
 func (staffService *service) CreateEmployee(ctx context.Context, userID uuid.UUID, fullName, email, role, crmNumber string) (*Employee, error) {
+	parsedRole, roleIsValid := auth.ParseRole(role)
+	if !roleIsValid {
+		return nil, auth.ErrInvalidRole
+	}
+
+	if !validator.IsValidEmail(email) {
+		return nil, errors.New("invalid email format")
+	}
+
 	var crmNumberPtr *string
 	if crmNumber != "" {
+		if !validator.IsValidCRMNumber(crmNumber) {
+			return nil, errors.New("invalid CRM format")
+		}
 		crmNumberPtr = &crmNumber
 	}
 
@@ -37,7 +50,7 @@ func (staffService *service) CreateEmployee(ctx context.Context, userID uuid.UUI
 		UserID:    userID,
 		FullName:  fullName,
 		Email:     email,
-		Role:      auth.Role(role),
+		Role:      parsedRole,
 		CRMNumber: crmNumberPtr,
 		IsActive:  true,
 		CreatedAt: time.Now(),

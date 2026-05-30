@@ -82,6 +82,8 @@ export const Login = () => {
               <Input
                 type="email"
                 placeholder="nome.sobrenome@hospital.com"
+                autoComplete="email"
+                maxLength={255}
                 errorText={errors.email?.message}
                 {...register("email")}
               />
@@ -95,6 +97,7 @@ export const Login = () => {
               <Input
                 type="password"
                 placeholder="••••••••"
+                autoComplete="current-password"
                 errorText={errors.password?.message}
                 {...register("password")}
               />

@@ -14,41 +14,54 @@ export const FileUploader = ({ onUpload, isPending, uploadProgress }: FileUpload
   const [isDragActive, setIsDragActive] = useState<boolean>(false)
   const [consentChecked, setConsentChecked] = useState<boolean>(false)
   const [anonymizeChecked, setAnonymizeChecked] = useState<boolean>(false)
+  const [errorText, setErrorText] = useState<string | null>(null)
   
   const fileInputReference = useRef<HTMLInputElement>(null)
 
-  const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
+  const validateAndSetFile = (file: File) => {
+    setErrorText(null)
+    const fifteenMegaBytes = 15 * 1024 * 1024
+    if (file.size > fifteenMegaBytes) {
+      setErrorText("O arquivo excede o limite permitido de 15MB.")
+      return
+    }
+    const allowedMimeTypes = ["image/jpeg", "image/png", "image/gif", "image/webp", "application/pdf"]
+    if (!allowedMimeTypes.includes(file.type)) {
+      setErrorText("Tipo de arquivo não suportado. Envie imagens ou PDF.")
+      return
+    }
+    setSelectedFile(file)
+  }
+
+  const handleDragOver = (event: React.DragEvent<HTMLElement>) => {
     event.preventDefault()
     setIsDragActive(true)
   }
 
-  const handleDragLeave = (event: React.DragEvent<HTMLDivElement>) => {
+  const handleDragLeave = (event: React.DragEvent<HTMLElement>) => {
     event.preventDefault()
     setIsDragActive(false)
   }
 
-  const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
+  const handleDrop = (event: React.DragEvent<HTMLElement>) => {
     event.preventDefault()
     setIsDragActive(false)
     const file = event.dataTransfer.files?.[0]
     if (file) {
-      setSelectedFile(file)
+      validateAndSetFile(file)
     }
   }
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
-      setSelectedFile(file)
+      validateAndSetFile(file)
     }
-  }
-
-  const handleTriggerSelect = () => {
-    fileInputReference.current?.click()
   }
 
   const handleClearFile = () => {
     setSelectedFile(null)
+    setErrorText(null)
     if (fileInputReference.current) {
       fileInputReference.current.value = ""
     }
@@ -69,11 +82,10 @@ export const FileUploader = ({ onUpload, isPending, uploadProgress }: FileUpload
       </span>
 
       <form onSubmit={handleFormSubmit} className="flex flex-col gap-5">
-        <div
+        <label
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
-          onClick={handleTriggerSelect}
           className={`border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center gap-3 cursor-pointer transition-all duration-300 ${
             isDragActive
               ? "border-primary bg-primary/5 scale-[1.01]"
@@ -94,13 +106,19 @@ export const FileUploader = ({ onUpload, isPending, uploadProgress }: FileUpload
 
           <div className="text-center">
             <span className="text-sm font-semibold text-gray-800 block">
-              Selecione ou solte o arquivo aqui
+              Selecione um Arquivo
             </span>
             <span className="text-[11px] text-muted block mt-1">
               Imagens (PNG, JPG, DICOM) ou arquivos PDF de até 15MB
             </span>
           </div>
-        </div>
+        </label>
+
+        {errorText && (
+          <div className="text-xs font-semibold text-red-500 bg-red-50 border border-red-200 rounded-lg p-3 text-center">
+            {errorText}
+          </div>
+        )}
 
         {selectedFile && (
           <div className="flex items-center justify-between p-3.5 bg-gray-50 border border-border/80 rounded-lg animate-fade-in">
@@ -126,10 +144,13 @@ export const FileUploader = ({ onUpload, isPending, uploadProgress }: FileUpload
         )}
 
         <div className="flex flex-col gap-3">
-          <div
-            onClick={() => setConsentChecked((previous) => !previous)}
-            className="flex items-start gap-3 cursor-pointer select-none group"
-          >
+          <label className="flex items-start gap-3 cursor-pointer select-none group">
+            <input
+              type="checkbox"
+              checked={consentChecked}
+              onChange={(e) => setConsentChecked(e.target.checked)}
+              className="sr-only"
+            />
             <div className="mt-0.5 text-primary">
               {consentChecked ? (
                 <CheckSquare className="w-4.5 h-4.5 group-hover:scale-105 transition-transform" />
@@ -137,7 +158,7 @@ export const FileUploader = ({ onUpload, isPending, uploadProgress }: FileUpload
                 <Square className="w-4.5 h-4.5 text-gray-400 group-hover:scale-105 transition-transform" />
               )}
             </div>
-            <div className="flex-1">
+            <div className="flex-1 text-left">
               <span className="text-xs font-semibold text-gray-700 block">
                 Consentimento do Paciente
               </span>
@@ -145,12 +166,15 @@ export const FileUploader = ({ onUpload, isPending, uploadProgress }: FileUpload
                 Confirmo que possuo a autorização expressa do paciente para submeter seus dados e imagens para processamento clínico assistivo.
               </span>
             </div>
-          </div>
+          </label>
 
-          <div
-            onClick={() => setAnonymizeChecked((previous) => !previous)}
-            className="flex items-start gap-3 cursor-pointer select-none group"
-          >
+          <label className="flex items-start gap-3 cursor-pointer select-none group">
+            <input
+              type="checkbox"
+              checked={anonymizeChecked}
+              onChange={(e) => setAnonymizeChecked(e.target.checked)}
+              className="sr-only"
+            />
             <div className="mt-0.5 text-secondary">
               {anonymizeChecked ? (
                 <CheckSquare className="w-4.5 h-4.5 group-hover:scale-105 transition-transform" />
@@ -158,7 +182,7 @@ export const FileUploader = ({ onUpload, isPending, uploadProgress }: FileUpload
                 <Square className="w-4.5 h-4.5 text-gray-400 group-hover:scale-105 transition-transform" />
               )}
             </div>
-            <div className="flex-1">
+            <div className="flex-1 text-left">
               <span className="text-xs font-semibold text-gray-700 block">
                 Anonimização de Segurança (Recomendado)
               </span>
@@ -166,7 +190,7 @@ export const FileUploader = ({ onUpload, isPending, uploadProgress }: FileUpload
                 Substituir o nome do arquivo enviado por um identificador UUID criptográfico seguro antes da gravação no armazenamento temporário.
               </span>
             </div>
-          </div>
+          </label>
         </div>
 
         {uploadProgress !== null && (
@@ -189,7 +213,7 @@ export const FileUploader = ({ onUpload, isPending, uploadProgress }: FileUpload
           disabled={!selectedFile || !consentChecked || isPending}
           className="w-full py-2.5 mt-2 font-bold"
         >
-          {isPending ? "Processando Análise..." : "Enviar e Analisar Exame"}
+          {isPending ? "Processando Análise..." : "Enviar para Análise"}
         </Button>
       </form>
     </Card>

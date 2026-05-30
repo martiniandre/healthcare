@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Card } from "../../shared/components/ui/Card"
 import { Input } from "../../shared/components/ui/Input"
+import { MaskedInput } from "../../shared/components/ui/MaskedInput"
 import { Button } from "../../shared/components/ui/Button"
 import { newPatientSchema, type NewPatientFormData } from "./patient_schemas"
 import { usePatientsQuery, useCreatePatientMutation } from "./queries"
@@ -43,6 +44,12 @@ export const Patients = () => {
     formState: { errors },
   } = useForm<NewPatientFormData>({
     resolver: zodResolver(newPatientSchema),
+    defaultValues: {
+      fullName: "",
+      birthDate: "",
+      documentId: "",
+      phoneNumber: "",
+    },
   })
 
   const onSubmit = async (formData: NewPatientFormData) => {
@@ -321,7 +328,7 @@ export const Patients = () => {
           <Card glowingType="cyan" className="w-full max-w-[480px] p-7 relative animate-fade-in">
             <h3 className="text-lg font-bold text-gray-900 mb-5 text-left">Registrar Novo Paciente</h3>
 
-            <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4 text-left">
+            <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4 text-left" noValidate>
               <div className="flex flex-col gap-1">
                 <label className="text-xs font-semibold text-gray-600">Nome Completo</label>
                 <Input
@@ -334,8 +341,8 @@ export const Patients = () => {
 
               <div className="flex flex-col gap-1">
                 <label className="text-xs font-semibold text-gray-600">Data de Nascimento</label>
-                <Input
-                  type="text"
+                <MaskedInput
+                  mask="9999-99-99"
                   placeholder="AAAA-MM-DD"
                   errorText={errors.birthDate?.message}
                   {...register("birthDate")}
@@ -344,8 +351,8 @@ export const Patients = () => {
 
               <div className="flex flex-col gap-1">
                 <label className="text-xs font-semibold text-gray-600">CPF ou Documento de Identidade</label>
-                <Input
-                  type="text"
+                <MaskedInput
+                  mask="999.999.999-99"
                   placeholder="123.456.789-00"
                   errorText={errors.documentId?.message}
                   {...register("documentId")}
@@ -354,8 +361,8 @@ export const Patients = () => {
 
               <div className="flex flex-col gap-1">
                 <label className="text-xs font-semibold text-gray-600">Telefone de Contato</label>
-                <Input
-                  type="text"
+                <MaskedInput
+                  mask="(99) 99999-9999"
                   placeholder="(11) 98765-4321"
                   errorText={errors.phoneNumber?.message}
                   {...register("phoneNumber")}

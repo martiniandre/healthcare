@@ -534,11 +534,189 @@ export const mockAnalyzerAPI = async (pageInstance: Page): Promise<void> => {
   })
 }
 
+export const mockStaffAPI = async (pageInstance: Page): Promise<void> => {
+  const currentEmployees = [
+    {
+      id: "emp-1",
+      userId: "user-1",
+      fullName: "Dr. André Silva de Araujo",
+      email: "andre.silva@hospital.com",
+      role: "doctor",
+      crmNumber: "CRM-SP 12345",
+      status: "active",
+      department: "Cardiologia",
+    },
+    {
+      id: "emp-2",
+      userId: "user-2",
+      fullName: "Enf. Roberta Santos Almeida",
+      email: "roberta.santos@hospital.com",
+      role: "nurse",
+      crmNumber: "COREN-SP 54321",
+      status: "active",
+      department: "Pediatria",
+    },
+  ]
+
+  await pageInstance.route("**/api/staff/employees", async (networkRoute) => {
+    const httpRequest = networkRoute.request()
+    if (httpRequest.method() === "GET") {
+      await networkRoute.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(currentEmployees),
+      })
+    } else if (httpRequest.method() === "POST") {
+      const submittedJSON = httpRequest.postDataJSON()
+      const newEmployee = {
+        id: `emp-${currentEmployees.length + 1}`,
+        userId: submittedJSON.user_id || `user-${currentEmployees.length + 1}`,
+        fullName: submittedJSON.full_name,
+        email: submittedJSON.email,
+        role: submittedJSON.role,
+        crmNumber: submittedJSON.crm_number || "N/A",
+        status: "active",
+        department: "Geral",
+      }
+      currentEmployees.push(newEmployee)
+      await networkRoute.fulfill({
+        status: 201,
+        contentType: "application/json",
+        body: JSON.stringify({ employeeId: newEmployee.id }),
+      })
+    }
+  })
+}
+
+export const mockTelemetryAPI = async (pageInstance: Page): Promise<void> => {
+  const roomsList = [
+    {
+      id: "room-1",
+      name: "Sala Verde - Semi-Intensiva",
+      description: "Monitoramento semi-intensivo",
+    },
+    {
+      id: "room-2",
+      name: "Sala Vermelha - Choque & Emergência",
+      description: "Leitos críticos e trauma",
+    },
+  ]
+
+  const bedsByRoom: Record<string, any[]> = {
+    "room-1": [
+      {
+        id: "bed-1",
+        roomId: "room-1",
+        bedNumber: "Leito 01",
+        patientName: "Guilherme de Souza Araujo",
+        age: 38,
+        gender: "male",
+        bpm: 72,
+        spo2: 98,
+        temperature: 36.5,
+        status: "normal",
+        condition: "Normal",
+      },
+    ],
+    "room-2": [
+      {
+        id: "bed-2",
+        roomId: "room-2",
+        bedNumber: "Leito 02",
+        patientName: "Mariana Costa Silva",
+        age: 30,
+        gender: "female",
+        bpm: 80,
+        spo2: 95,
+        temperature: 37.0,
+        status: "normal",
+        condition: "Normal",
+      },
+    ],
+  }
+
+  await pageInstance.route("**/api/telemetry/rooms", async (networkRoute) => {
+    await networkRoute.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify(roomsList),
+    })
+  })
+
+  await pageInstance.route("**/api/telemetry/rooms/*/unlock", async (networkRoute) => {
+    const httpRequest = networkRoute.request()
+    const submittedJSON = httpRequest.postDataJSON()
+    const requestURL = httpRequest.url()
+    const urlParts = requestURL.split("/")
+    const roomId = urlParts[urlParts.length - 2]
+    const matchedRoom = roomsList.find((roomItem) => roomItem.id === roomId)
+
+    if (submittedJSON.passcode === "9999") {
+      await networkRoute.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          success: true,
+          roomName: matchedRoom ? matchedRoom.name : "Sala Desbloqueada",
+        }),
+      })
+    } else {
+      await networkRoute.fulfill({
+        status: 400,
+        contentType: "application/json",
+        body: JSON.stringify({ error: "Passcode incorreto" }),
+      })
+    }
+  })
+
+  await pageInstance.route("**/api/telemetry/rooms/*/beds", async (networkRoute) => {
+    const httpRequest = networkRoute.request()
+    const requestURL = httpRequest.url()
+    const urlParts = requestURL.split("/")
+    const roomId = urlParts[urlParts.length - 2]
+    const beds = bedsByRoom[roomId] || []
+
+    await networkRoute.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify(beds),
+    })
+  })
+
+  await pageInstance.route("**/api/telemetry/beds/*/condition", async (networkRoute) => {
+    const httpRequest = networkRoute.request()
+    const submittedJSON = httpRequest.postDataJSON()
+    const requestURL = httpRequest.url()
+    const urlParts = requestURL.split("/")
+    const bedId = urlParts[urlParts.length - 2]
+
+    for (const key of Object.keys(bedsByRoom)) {
+      const bed = bedsByRoom[key].find((bedItem) => bedItem.id === bedId)
+      if (bed) {
+        bed.bpm = submittedJSON.bpm
+        bed.spo2 = submittedJSON.spo2
+        bed.temperature = submittedJSON.temperature
+        bed.status = submittedJSON.status
+        bed.condition = submittedJSON.condition
+        break
+      }
+    }
+
+    await networkRoute.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ success: true }),
+    })
+  })
+}
+
 export const loginAsDoctor = async (pageInstance: Page): Promise<void> => {
   await mockAuthAPI(pageInstance)
   await mockPatientsAPI(pageInstance)
   await mockClinicalAPI(pageInstance)
   await mockAnalyzerAPI(pageInstance)
+  await mockStaffAPI(pageInstance)
+  await mockTelemetryAPI(pageInstance)
   await pageInstance.goto("/#/login")
   await pageInstance.getByPlaceholder("nome.sobrenome@hospital.com").fill("medico@clinica.com")
   await pageInstance.getByPlaceholder("••••••••").fill("senha123")

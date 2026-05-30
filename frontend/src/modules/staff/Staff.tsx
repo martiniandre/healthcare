@@ -1,5 +1,6 @@
 import { useState } from "react"
-import type { FormEvent } from "react"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
 import { Card } from "../../shared/components/ui/Card"
 import { Button } from "../../shared/components/ui/Button"
 import { Input } from "../../shared/components/ui/Input"
@@ -16,6 +17,7 @@ import {
 import { StaffRole, StaffStatus } from "../../shared/types"
 import { useStaffListQuery, useCreateEmployeeMutation } from "./queries"
 import { toast } from "../../shared/store/toast_store"
+import { staffFormSchema, type StaffFormData } from "./schemas/staff_schemas"
 
 interface FlexibleStaffMember {
   id?: string
@@ -37,40 +39,41 @@ interface FlexibleStaffMember {
 
 export const Staff = () => {
   const [filterRole, setFilterRole] = useState<string>("All")
-  const [searchQuery, setSearchQuery] = useState<string>(" ")
+  const [searchQuery, setSearchQuery] = useState<string>("")
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false)
 
   const { data: staffList = [], isLoading } = useStaffListQuery()
   const createEmployeeMutation = useCreateEmployeeMutation()
 
-  const [newStaffName, setNewStaffName] = useState<string>("")
-  const [newStaffRole, setNewStaffRole] = useState<StaffRole>(StaffRole.Doctor)
-  const [newStaffLicense, setNewStaffLicense] = useState<string>("")
-  const [newStaffEmail, setNewStaffEmail] = useState<string>("")
-  const [newStaffDept, setNewStaffDept] = useState<string>("")
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<StaffFormData>({
+    resolver: zodResolver(staffFormSchema),
+    defaultValues: {
+      fullName: "",
+      role: StaffRole.Doctor,
+      license: "",
+      email: "",
+      department: "",
+    },
+  })
 
-  const handleRegisterStaff = async (event: FormEvent) => {
-    event.preventDefault()
-    if (!newStaffName || !newStaffEmail) {
-      return
-    }
-
+  const handleRegisterStaff = async (formData: StaffFormData) => {
     try {
       const temporaryRandomUserId = crypto.randomUUID()
       await createEmployeeMutation.mutateAsync({
         userId: temporaryRandomUserId,
-        fullName: newStaffName,
-        email: newStaffEmail,
-        role: newStaffRole,
-        crmNumber: newStaffLicense || "N/A",
+        fullName: formData.fullName,
+        email: formData.email,
+        role: formData.role,
+        crmNumber: formData.license || "N/A",
       })
 
       setIsModalOpen(false)
-      setNewStaffName("")
-      setNewStaffRole(StaffRole.Doctor)
-      setNewStaffLicense("")
-      setNewStaffEmail("")
-      setNewStaffDept("")
+      reset()
       toast.success("Profissional de saúde cadastrado com sucesso!")
     } catch {
       toast.error("Falha ao registrar profissional de saúde.")
@@ -242,22 +245,24 @@ export const Staff = () => {
                 Cadastrar Novo Profissional
               </h3>
               <button
-                onClick={() => setIsModalOpen(false)}
+                onClick={() => {
+                  reset()
+                  setIsModalOpen(false)
+                }}
                 className="text-gray-400 hover:text-gray-600 transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <form onSubmit={handleRegisterStaff} className="flex flex-col gap-4">
+            <form onSubmit={handleSubmit(handleRegisterStaff)} className="flex flex-col gap-4" noValidate>
               <div className="flex flex-col gap-1">
                 <label className="text-xs font-semibold text-gray-600">Nome Completo</label>
                 <Input
                   type="text"
                   placeholder="Ex: Dr. André Silva de Araujo"
-                  value={newStaffName}
-                  onChange={(e) => setNewStaffName(e.target.value)}
-                  required
+                  errorText={errors.fullName?.message}
+                  {...register("fullName")}
                 />
               </div>
 
@@ -265,15 +270,19 @@ export const Staff = () => {
                 <div className="flex flex-col gap-1">
                   <label className="text-xs font-semibold text-gray-600">Categoria</label>
                   <select
-                    value={newStaffRole}
-                    onChange={(e) => setNewStaffRole(e.target.value as StaffRole)}
                     className="w-full bg-white border border-border rounded-lg px-3 py-2.5 text-xs text-gray-800 focus:outline-none focus:border-primary/50 transition-all duration-200"
+                    {...register("role")}
                   >
                     <option value={StaffRole.Doctor}>{StaffRole.Doctor}</option>
                     <option value={StaffRole.Nurse}>{StaffRole.Nurse}</option>
                     <option value={StaffRole.Receptionist}>{StaffRole.Receptionist}</option>
-                    <option value={StaffRole.Admin}>Administrativo</option>
+                    <option value={StaffRole.Admin}>{StaffRole.Admin}</option>
                   </select>
+                  {errors.role?.message && (
+                    <span className="text-xs text-red-500 font-medium px-1 mt-1">
+                      {errors.role.message}
+                    </span>
+                  )}
                 </div>
 
                 <div className="flex flex-col gap-1">
@@ -281,8 +290,8 @@ export const Staff = () => {
                   <Input
                     type="text"
                     placeholder="Ex: CRM-SP 12345"
-                    value={newStaffLicense}
-                    onChange={(e) => setNewStaffLicense(e.target.value)}
+                    errorText={errors.license?.message}
+                    {...register("license")}
                   />
                 </div>
               </div>
@@ -293,9 +302,8 @@ export const Staff = () => {
                   <Input
                     type="email"
                     placeholder="Ex: nome@hospital.com"
-                    value={newStaffEmail}
-                    onChange={(e) => setNewStaffEmail(e.target.value)}
-                    required
+                    errorText={errors.email?.message}
+                    {...register("email")}
                   />
                 </div>
 
@@ -304,8 +312,8 @@ export const Staff = () => {
                   <Input
                     type="text"
                     placeholder="Ex: Cardiologia"
-                    value={newStaffDept}
-                    onChange={(e) => setNewStaffDept(e.target.value)}
+                    errorText={errors.department?.message}
+                    {...register("department")}
                   />
                 </div>
               </div>
@@ -314,7 +322,10 @@ export const Staff = () => {
                 <Button
                   type="button"
                   variantType="outline"
-                  onClick={() => setIsModalOpen(false)}
+                  onClick={() => {
+                    reset()
+                    setIsModalOpen(false)
+                  }}
                   className="px-4 py-2 text-xs font-bold"
                 >
                   Cancelar

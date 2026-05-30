@@ -44,14 +44,17 @@ test.describe("Medical Imaging Module (PACS Console)", () => {
       receivedDialogAlertMessage = dialogWindow.message()
       await dialogWindow.accept()
     })
-
+    const fileChooserPromise = page.waitForEvent("filechooser")
     await page.getByRole("button", { name: "Upload Novo .DCM" }).click()
-
+    const fileChooser = await fileChooserPromise
+    await fileChooser.setFiles({
+      name: "test_exam.dcm",
+      mimeType: "application/dicom",
+      buffer: Buffer.from("mock_content")
+    })
     const progressBarContainer = page.locator("text=Iniciando upload e validação de assinatura DICOM...")
     await expect(progressBarContainer).toBeVisible()
-
     await page.waitForTimeout(4000)
-
     expect(receivedDialogAlertMessage).toContain("DICOM carregado e processado com sucesso")
   })
 })

@@ -36,6 +36,9 @@ func (patientService *service) CreatePatient(ctx context.Context, fullName, birt
 	if err != nil {
 		return nil, errors.New("invalid birth date format, expected YYYY-MM-DD")
 	}
+	if !parsedBirthDate.Before(time.Now()) {
+		return nil, errors.New("birth date must be in the past")
+	}
 
 	patient := &Patient{
 		ID:          uuid.New(),

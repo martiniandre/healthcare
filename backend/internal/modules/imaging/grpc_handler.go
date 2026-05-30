@@ -26,7 +26,7 @@ func (handler *GRPCHandler) UploadDICOM(stream pb.ImagingService_UploadDICOMServ
 	}
 
 	metadataMsg := firstRequestMsg.GetMetadata()
-	if metadataMsg == nil {
+	if metadataMsg == nil || metadataMsg.PatientFhirId == "" || metadataMsg.Title == "" || metadataMsg.Modality == "" {
 		return apperrors.ErrBadRequest.ToGRPC()
 	}
 
@@ -106,6 +106,9 @@ func (handler *GRPCHandler) GetImagingStudy(ctx context.Context, req *pb.GetImag
 }
 
 func (handler *GRPCHandler) ListImagingStudies(ctx context.Context, req *pb.ListImagingStudiesRequest) (*pb.ListImagingStudiesResponse, error) {
+	if req.PatientFhirId == "" {
+		return nil, apperrors.ErrBadRequest.WithFields(map[string]string{"patient_fhir_id": "is required"})
+	}
 	studies, queryError := handler.service.ListImagingStudies(ctx, req.PatientFhirId)
 	if queryError != nil {
 		return nil, mapImagingError(queryError)

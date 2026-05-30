@@ -3,10 +3,12 @@ package staff
 import (
 	"context"
 	"errors"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/healthcare/backend/internal/modules/staff/pb"
 	"github.com/healthcare/backend/internal/shared/apperrors"
+	"github.com/healthcare/backend/internal/shared/validator"
 )
 
 func mapStaffError(err error) error {
@@ -25,9 +27,22 @@ func NewGRPCHandler(service Service) *GRPCHandler {
 }
 
 func (handler *GRPCHandler) CreateEmployee(ctx context.Context, req *pb.CreateEmployeeRequest) (*pb.CreateEmployeeResponse, error) {
+	violations := make(map[string]string)
 	userID, err := uuid.Parse(req.UserID)
 	if err != nil {
-		return nil, apperrors.ErrBadRequest.ToGRPC()
+		violations["user_id"] = "invalid UUID format"
+	}
+	if strings.TrimSpace(req.FullName) == "" {
+		violations["full_name"] = "full name is required"
+	}
+	if strings.TrimSpace(req.Email) == "" || !validator.IsValidEmail(req.Email) {
+		violations["email"] = "invalid email format"
+	}
+	if strings.TrimSpace(req.Role) == "" {
+		violations["role"] = "role is required"
+	}
+	if len(violations) > 0 {
+		return nil, apperrors.ErrBadRequest.WithFields(violations)
 	}
 
 	employee, err := handler.service.CreateEmployee(ctx, userID, req.FullName, req.Email, req.Role, req.CrmNumber)

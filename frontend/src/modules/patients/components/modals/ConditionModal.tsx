@@ -32,7 +32,10 @@ export const ConditionModal = ({
   }
 
   const handleFormSubmit = (formData: NewConditionFormData) => {
-    onSubmit(formData)
+    onSubmit({
+      ...formData,
+      icd10Code: formData.icd10Code.toUpperCase().trim(),
+    })
     reset()
   }
 

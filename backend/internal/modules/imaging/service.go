@@ -10,6 +10,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/healthcare/backend/internal/shared/storage"
+	"github.com/healthcare/backend/internal/shared/validator"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -39,6 +40,16 @@ func NewService(dbRepository Repository, storageClient storage.StorageClient, re
 }
 
 func (serviceInstance *service) UploadDICOMStream(ctx context.Context, patientFhirID, title, modality string, streamReader io.Reader) (*ImagingStudy, error) {
+	if patientFhirID == "" {
+		return nil, errors.New("patient fhir id is required")
+	}
+	if title == "" {
+		return nil, errors.New("title is required")
+	}
+	if !validator.IsValidDICOMModality(modality) {
+		return nil, errors.New("invalid dicom modality")
+	}
+
 	limitedReader := &io.LimitedReader{
 		R: streamReader,
 		N: MaxDICOMUploadBytes + 1,
@@ -122,6 +133,9 @@ func (serviceInstance *service) GetImagingStudy(ctx context.Context, studyID uui
 }
 
 func (serviceInstance *service) ListImagingStudies(ctx context.Context, patientFhirID string) ([]*ImagingStudy, error) {
+	if patientFhirID == "" {
+		return nil, errors.New("patient fhir id is required")
+	}
 	return serviceInstance.dbRepository.ListImagingStudiesByPatient(ctx, patientFhirID)
 }
 
