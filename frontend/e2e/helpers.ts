@@ -602,7 +602,7 @@ export const mockTelemetryAPI = async (pageInstance: Page): Promise<void> => {
     },
   ]
 
-  const bedsByRoom: Record<string, any[]> = {
+  const bedsByRoom: Record<string, Record<string, string | number | boolean>[]> = {
     "room-1": [
       {
         id: "bed-1",

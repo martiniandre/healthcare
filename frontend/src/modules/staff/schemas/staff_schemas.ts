@@ -14,7 +14,7 @@ export const staffFormSchema = z.object({
         if (!value || value.trim() === "") {
           return true
         }
-        return /^(CRM|COREN)(-[A-Z]{2})?[\s\-]?\d{1,6}$/i.test(value.trim())
+        return /^(CRM|COREN)(-[A-Z]{2})?[\s-]?\d{1,6}$/i.test(value.trim())
       },
       "Formato inválido. Ex: CRM-SP 12345"
     ),
