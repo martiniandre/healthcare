@@ -777,6 +777,42 @@ export const mockTelemetryAPI = async (pageInstance: Page): Promise<void> => {
   })
 }
 
+export const mockStatsAPI = async (pageInstance: Page): Promise<void> => {
+  await pageInstance.route("**/api/stats", async (networkRoute) => {
+    await networkRoute.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        totalRegisteredPatients: 340,
+        fhirComplianceRate: 99.4,
+        averageServiceDurationMinutes: 14.5,
+        activeConsultationsTotal: 79,
+        totalStudiesCount: 35,
+        examModalitiesData: [
+          { modality: "CT (Tomografia)", percentage: 45, count: 16, color: "#2563eb" },
+          { modality: "MR (Ressonância)", percentage: 30, count: 11, color: "#0d9488" },
+          { modality: "CR (Raio-X)", percentage: 15, count: 5, color: "#8b5cf6" },
+          { modality: "US (Ultrassom)", percentage: 10, count: 3, color: "#f59e0b" }
+        ],
+        consultationsWeeklyData: [
+          { dayName: "stats.days.mon", count: 8 },
+          { dayName: "stats.days.tue", count: 12 },
+          { dayName: "stats.days.wed", count: 14 },
+          { dayName: "stats.days.thu", count: 11 },
+          { dayName: "stats.days.fri", count: 15 },
+          { dayName: "stats.days.sat", count: 5 },
+          { dayName: "stats.days.sun", count: 2 }
+        ],
+        pathologies: [
+          { code: "J45.9", descriptionKey: "stats.pathologies.asthma", categoryKey: "stats.categories.respiratory", activeCases: 44, trend: "+5%" },
+          { code: "I10", descriptionKey: "stats.pathologies.hypertension", categoryKey: "stats.categories.cardiovascular", activeCases: 119, trend: "stable" },
+          { code: "E11.9", descriptionKey: "stats.pathologies.diabetes", categoryKey: "stats.categories.endocrine", activeCases: 85, trend: "+12%" }
+        ]
+      })
+    })
+  })
+}
+
 export const loginAsDoctor = async (pageInstance: Page): Promise<void> => {
   await mockAuthAPI(pageInstance)
   await mockPatientsAPI(pageInstance)
@@ -784,9 +820,11 @@ export const loginAsDoctor = async (pageInstance: Page): Promise<void> => {
   await mockAnalyzerAPI(pageInstance)
   await mockStaffAPI(pageInstance)
   await mockTelemetryAPI(pageInstance)
+  await mockStatsAPI(pageInstance)
   await pageInstance.goto("/#/login")
   await pageInstance.getByPlaceholder("nome.sobrenome@hospital.com").fill("medico@clinica.com")
   await pageInstance.getByPlaceholder("••••••••").fill("senha123")
   await pageInstance.getByRole("button", { name: "Entrar no Console" }).click()
   await expect(pageInstance).toHaveURL(/.*#\/$/)
 }
+
