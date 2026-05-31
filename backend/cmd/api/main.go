@@ -20,6 +20,7 @@ import (
 	"github.com/healthcare/backend/internal/modules/imaging"
 	"github.com/healthcare/backend/internal/modules/patients"
 	"github.com/healthcare/backend/internal/modules/staff"
+	"github.com/healthcare/backend/internal/modules/stats"
 	"github.com/healthcare/backend/internal/modules/telemetry"
 	"github.com/healthcare/backend/internal/shared/cache"
 	"github.com/healthcare/backend/internal/shared/config"
@@ -81,6 +82,7 @@ func main() {
 	imagingService := imaging.Register(applicationServer.GRPCServer, databasePool, storageClient, redisClient, appConfig.GCSBucketName)
 	telemetryService := telemetry.Register(applicationServer.GRPCServer, databasePool)
 	health.Register(applicationServer.GRPCServer, databasePool, redisClient)
+	_, statsHTTPHandler := stats.Register(databasePool, fhirClient)
 
 	examAnalyzerRepo, examAnalyzerSvc, examAnalyzerWorker := exam_analyzer.Register(databasePool, appConfig.GCPProjectID, appConfig.GCPLocationID)
 	go examAnalyzerWorker.Start(mainContext)
@@ -107,6 +109,7 @@ func main() {
 		staffHTTPHandler,
 		telemetryHTTPHandler,
 		examAnalyzerHTTPHandler,
+		statsHTTPHandler,
 	)
 
 	tcpListener, listenerError := net.Listen("tcp", ":"+appConfig.AppPort)
