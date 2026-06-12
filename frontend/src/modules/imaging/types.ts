@@ -1,10 +1,12 @@
+import { DicomModality, ImagingStudyStatus } from "../../shared/types"
+
 export interface ImagingStudy {
   id: string
   patient_fhir_id: string
   title: string
-  modality: string
+  modality: DicomModality
   study_instance_uid: string
-  status: string
+  status: ImagingStudyStatus
   download_url?: string
   created_at: string
 }
@@ -12,6 +14,6 @@ export interface ImagingStudy {
 export interface UploadImagingStudyPayload {
   patientFhirId: string
   title: string
-  modality: string
+  modality: DicomModality
   dicomBlob: Blob
 }

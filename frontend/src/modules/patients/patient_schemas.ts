@@ -1,5 +1,6 @@
 import * as z from "zod"
 import { cpfValidation, isPastDate, isValidICD10 } from "../../shared/utils/validators"
+import { LoincCode } from "../../shared/types"
 
 export const basePatientSchema = z.object({
   fullName: z.string(),
@@ -62,13 +63,13 @@ export const getNewObservationSchema = (translateFunction: (key: string) => stri
   valueQuantity: z.number().min(0.1, translateFunction("validation.valueReq")),
 }).refine(
   (data) => {
-    if (data.loincCode === "8867-4") {
+    if (data.loincCode === LoincCode.HeartRate) {
       return data.valueQuantity >= 0 && data.valueQuantity <= 300
     }
-    if (data.loincCode === "8310-5") {
+    if (data.loincCode === LoincCode.BodyTemperature) {
       return data.valueQuantity >= 30 && data.valueQuantity <= 45
     }
-    if (data.loincCode === "85354-9") {
+    if (data.loincCode === LoincCode.BloodPressure) {
       return data.valueQuantity >= 0 && data.valueQuantity <= 300
     }
     return true
