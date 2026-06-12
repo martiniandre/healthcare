@@ -1,5 +1,6 @@
 import { useState, useRef } from "react"
 import { useParams, useNavigate } from "react-router-dom"
+import { useTranslation } from "react-i18next"
 import { ArrowLeft, UploadCloud } from "lucide-react"
 import { Button } from "../../shared/components/ui/Button"
 import { DicomViewport } from "./components/DicomViewport"
@@ -11,6 +12,7 @@ import { waitForUploadFrame } from "./utils/pacs_helpers"
 import { toast } from "../../shared/store/toast_store"
 
 export const ImagingWorkspace = () => {
+  const { t } = useTranslation()
   const { studyId = "" } = useParams<{ studyId: string }>()
   const navigate = useNavigate()
   const [uploadPercentage, setUploadPercentage] = useState<number | null>(null)
@@ -32,7 +34,7 @@ export const ImagingWorkspace = () => {
     }
 
     setUploadPercentage(0)
-    setUploadStatus("Iniciando upload e validação de assinatura DICOM...")
+    setUploadStatus(t("imaging.uploadStatus.initial"))
     await waitForUploadFrame(300)
     setUploadPercentage(30)
 
@@ -45,12 +47,12 @@ export const ImagingWorkspace = () => {
       })
 
       setUploadPercentage(100)
-      setUploadStatus("Transmissão gRPC concluída. Processando DICOM metadata...")
+      setUploadStatus(t("imaging.uploadStatus.grpcCompleted"))
       await waitForUploadFrame(500)
-      toast.success("DICOM carregado e processado com sucesso no barramento do PACS!")
-      window.alert("DICOM carregado e processado com sucesso")
+      toast.success(t("imaging.toast.uploadSuccess"))
+      window.alert(t("imaging.alert.uploadSuccess"))
     } catch {
-      toast.error("Falha no upload do arquivo DICOM.")
+      toast.error(t("imaging.toast.uploadError"))
     } finally {
       setUploadPercentage(null)
       setUploadStatus(null)
@@ -63,7 +65,7 @@ export const ImagingWorkspace = () => {
   if (isStudyLoading || !study) {
     return (
       <div className="text-center py-16">
-        <span className="text-sm text-muted">Carregando visualizador PACS...</span>
+        <span className="text-sm text-muted">{t("imaging.loading")}</span>
       </div>
     )
   }
@@ -74,11 +76,11 @@ export const ImagingWorkspace = () => {
         <div className="flex items-center gap-4">
           <Button variantType="outline" onClick={() => navigate(`/patients/${study.patient_fhir_id}`)} className="px-3">
             <ArrowLeft className="w-4 h-4" />
-            Voltar Prontuário
+            {t("imaging.backToRecord")}
           </Button>
           <div className="text-left">
             <h2 className="text-xl font-black text-gray-900 leading-none">
-              Console Cirúrgico PACS
+              {t("imaging.titleConsole")}
             </h2>
             <span className="text-xs text-muted mt-1.5 block">
               Estudo: {study.title} • UID: {study.study_instance_uid}
@@ -101,7 +103,7 @@ export const ImagingWorkspace = () => {
             className="px-3.5 gap-2 border-primary/20 text-primary hover:bg-primary/5"
           >
             <UploadCloud className="w-4 h-4" />
-            Upload Novo .DCM
+            {t("imaging.uploadDcm")}
           </Button>
         </div>
       </div>

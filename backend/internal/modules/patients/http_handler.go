@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
+	"strconv"
 
 	"github.com/healthcare/backend/internal/api/middleware"
 	"github.com/healthcare/backend/internal/api/render"
@@ -31,7 +32,19 @@ func (handler *HTTPHandler) RegisterRoutes(mux *http.ServeMux) {
 }
 
 func (handler *HTTPHandler) ListPatients(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
-	patientsList, listError := handler.service.ListPatients(httpRequest.Context())
+	search := httpRequest.URL.Query().Get("search")
+	sortField := httpRequest.URL.Query().Get("sortField")
+	sortDirection := httpRequest.URL.Query().Get("sortDirection")
+	page, _ := strconv.Atoi(httpRequest.URL.Query().Get("page"))
+	if page <= 0 {
+		page = 1
+	}
+	limit, _ := strconv.Atoi(httpRequest.URL.Query().Get("limit"))
+	if limit <= 0 {
+		limit = 50
+	}
+
+	patientsList, listError := handler.service.ListPatients(httpRequest.Context(), search, sortField, sortDirection, page, limit)
 	if listError != nil {
 		slog.Error("failed to list patients", "error", listError, "request_id", middleware.GetRequestID(httpRequest.Context()))
 		render.Error(httpResponseWriter, http.StatusInternalServerError, "Erro ao listar pacientes.")

@@ -1,0 +1,40 @@
+{
+  "title": "PACS Viewer",
+  "subtitle": "Visualizador e manipulador de estudos de imagem DICOM",
+  "tools": {
+    "zoom": "Zoom",
+    "contrast": "Contraste",
+    "rotate": "Rotacionar",
+    "pan": "Mover",
+    "reset": "Redefinir",
+    "measure": "Medir"
+  },
+  "studyDetails": "Detalhes do Estudo",
+  "series": "Série",
+  "instance": "Instância",
+  "loadingDICOM": "Carregando imagem DICOM...",
+  "uploadStatus": {
+    "initial": "Iniciando upload e validação de assinatura DICOM...",
+    "grpcCompleted": "Transmissão gRPC concluída. Processando DICOM metadata..."
+  },
+  "toast": {
+    "uploadSuccess": "DICOM carregado e processado com sucesso no barramento do PACS!",
+    "uploadError": "Falha no upload do arquivo DICOM."
+  },
+  "alert": {
+    "uploadSuccess": "DICOM carregado e processado com sucesso"
+  },
+  "loading": "Carregando visualizador PACS...",
+  "backToRecord": "Voltar Prontuário",
+  "titleConsole": "Console Clínico PACS",
+  "uploadDcm": "Upload Novo .DCM",
+  "details": {
+    "viewportAriaLabel": "Visualizador interativo de estudos médicos DICOM do prontuário eletrônico",
+    "title": "Detalhes do Estudo",
+    "id": "ID do Estudo",
+    "modality": "Modalidade Clínica",
+    "busStatus": "Status do Barramento",
+    "seriesSlices": "Série / Fatias",
+    "activeSlice": "Slice #1 (Visualização Ativa)"
+  }
+}

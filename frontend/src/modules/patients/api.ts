@@ -2,8 +2,15 @@ import { http } from "../../shared/utils/http"
 import type { DiagnosticReport, Encounter, Observation, Patient, Condition, CreatePatientResponse, AllergyIntolerance, MedicationRequest } from "./types"
 
 export const patientsApi = {
-  getPatients: async (): Promise<Patient[]> => {
-    return http.get<Patient[]>("/patients")
+  getPatients: async (search?: string, sortField?: string, sortDirection?: string, page?: number, limit?: number): Promise<Patient[]> => {
+    const params = new URLSearchParams()
+    if (search) params.append("search", search)
+    if (sortField) params.append("sortField", sortField)
+    if (sortDirection) params.append("sortDirection", sortDirection)
+    if (page) params.append("page", page.toString())
+    if (limit) params.append("limit", limit.toString())
+    const queryString = params.toString()
+    return http.get<Patient[]>(`/patients${queryString ? `?${queryString}` : ""}`)
   },
 
   getPatient: async (patientFhirId: string): Promise<Patient | null> => {

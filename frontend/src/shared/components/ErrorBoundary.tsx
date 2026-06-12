@@ -1,5 +1,6 @@
 import { Component } from "react"
 import type { ErrorInfo, ReactNode } from "react"
+import i18next from "i18next"
 import { AlertTriangle } from "lucide-react"
 import { Card } from "./ui/Card"
 import { Button } from "./ui/Button"
@@ -39,9 +40,11 @@ export class ErrorBoundary extends Component<Props, State> {
             <div className="bg-red-50 p-3 rounded-full mb-2">
               <AlertTriangle className="w-8 h-8 text-red-500" />
             </div>
-            <h2 className="text-lg font-bold text-gray-900">Erro Inesperado na Interface</h2>
+            <h2 className="text-lg font-bold text-gray-900">
+              {i18next.t("header:errorBoundary.title")}
+            </h2>
             <p className="text-sm text-gray-500 max-w-sm">
-              Um problema de renderização impediu o carregamento deste componente. Nossa equipe técnica foi notificada silenciosamente nos logs.
+              {i18next.t("header:errorBoundary.description")}
             </p>
             <div className="bg-gray-50 rounded-lg p-3 w-full text-left overflow-hidden border border-gray-100">
               <code className="text-xs text-red-600 block break-words whitespace-pre-wrap font-mono">
@@ -49,7 +52,7 @@ export class ErrorBoundary extends Component<Props, State> {
               </code>
             </div>
             <Button onClick={this.handleReset} className="mt-2 bg-gray-200 text-gray-800 hover:bg-gray-300 border-none">
-              Tentar Novamente
+              {i18next.t("header:errorBoundary.retry")}
             </Button>
           </Card>
         </div>

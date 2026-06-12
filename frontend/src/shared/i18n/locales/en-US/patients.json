@@ -1,0 +1,218 @@
+{
+  "title": "Patients",
+  "subtitle": "Management of FHIR medical records and clinical data",
+  "newPatient": "New Patient",
+  "cards": {
+    "total": "Total Registered",
+    "standard": "Data Standard",
+    "integration": "Integration"
+  },
+  "searchPlaceholder": "Search by name, document or phone...",
+  "filterResults_one": "{{count}} result",
+  "filterResults_other": "{{count}} results",
+  "loading": "Loading clinical records...",
+  "noResults": "No results found",
+  "noPatients": "No patients registered",
+  "noResultsDesc": "No patient matches \"{{searchTerm}}\". Try another search term.",
+  "noPatientsDesc": "Register the first patient to start clinical management.",
+  "table": {
+    "patient": "Patient",
+    "document": "Document / ID",
+    "birthDate": "Birth Date",
+    "phone": "Phone",
+    "action": "Action",
+    "medicalRecord": "Medical Record"
+  },
+  "pagination": {
+    "pageInfo": "Page {{currentPage}} of {{totalPages}} ({{total}} patients)",
+    "prev": "Previous",
+    "next": "Next"
+  },
+  "modal": {
+    "title": "Register New Patient",
+    "name": "Full Name",
+    "namePlaceholder": "Patient's Full Name",
+    "birthDate": "Birth Date",
+    "birthDatePlaceholder": "YYYY-MM-DD",
+    "document": "Document ID / SSN",
+    "documentPlaceholder": "123.456.789-00",
+    "phone": "Contact Phone",
+    "phonePlaceholder": "(11) 98765-4321",
+    "cancel": "Cancel",
+    "confirm": "Confirm Registration"
+  },
+  "toast": {
+    "createSuccess": "Patient successfully registered!",
+    "createError": "Failed to register patient.",
+    "encounterSuccess": "Encounter successfully registered!",
+    "encounterError": "Failed to register encounter.",
+    "observationSuccess": "Vital sign successfully registered!",
+    "observationError": "Error registering vital sign.",
+    "reportSuccess": "Diagnostic report created successfully!",
+    "reportError": "Error creating diagnostic report.",
+    "conditionSuccess": "Diagnosis successfully registered!",
+    "conditionError": "Error registering diagnosis.",
+    "allergySuccess": "Allergy successfully registered!",
+    "allergyError": "Error registering allergy.",
+    "medicationSuccess": "Prescription successfully added!",
+    "medicationError": "Error registering prescription."
+  },
+  "details": {
+    "back": "Back",
+    "cpf": "Document / ID",
+    "birth": "Birth Date",
+    "fhirId": "FHIR ID",
+    "loadingDetails": "Loading clinical records...",
+    "clinicalResources": "Clinical Resources",
+    "focus": "Focus",
+    "activeEncounterFocus": "Encounter in Focus",
+    "changeEncounter": "Change Encounter",
+    "encounters": "Encounters",
+    "vitals": "Vital Signs",
+    "reports": "Clinical Reports",
+    "conditions": "Active Diagnoses",
+    "medications": "Prescriptions",
+    "allergies": "Allergies",
+    "pacs": "PACS DICOM",
+    "noActiveEncounter": "No active encounter",
+    "selectEncounterDesc": "Please select or register an encounter in the \"Encounters\" tab.",
+    "allergiesCard": {
+      "title": "Immunological Allergies & Intolerances (AllergyIntolerance)",
+      "add": "Add Allergy",
+      "empty": "No allergies or intolerances registered for this patient",
+      "code": "Code",
+      "allergen": "Allergen",
+      "reaction": "Adverse Reaction",
+      "status": "Clinical Status",
+      "date": "Registration Date"
+    },
+    "conditionsCard": {
+      "title": "Active Diagnoses & Comorbidities (Conditions - FHIR)",
+      "add": "Add Diagnosis",
+      "empty": "No active diagnoses registered for this patient",
+      "code": "ICD-10 Code",
+      "display": "Clinical-Scientific Description",
+      "status": "Clinical Status",
+      "date": "Registration Date"
+    },
+    "medicationsCard": {
+      "title": "Prescriptions (MedicationRequest - FHIR)",
+      "add": "New Prescription",
+      "empty": "No medications prescribed for this encounter",
+      "display": "Medication",
+      "dosage": "Dosage Instruction",
+      "status": "Status",
+      "date": "Prescription Date"
+    },
+    "reportsCard": {
+      "title": "Clinical Reports & Conclusions (DiagnosticReport)",
+      "add": "New Report",
+      "empty": "No reports attached to this encounter",
+      "display": "Exam / Report",
+      "conclusion": "Clinical Conclusion",
+      "status": "Status",
+      "date": "Report Date"
+    },
+    "encountersCard": {
+      "title": "Encounter History (Encounters)",
+      "add": "New Encounter",
+      "empty": "No encounters registered",
+      "reason": "Encounter Reason",
+      "status": "Status",
+      "date": "Registration Date",
+      "action": "Action"
+    },
+    "pacsCard": {
+      "title": "Imaging Studies (PACS)",
+      "empty": "No DICOM studies attached",
+      "display": "Exam Description",
+      "modality": "Modality",
+      "uid": "Study UID",
+      "date": "Inflow Date",
+      "action": "Open PACS"
+    },
+    "vitalsCard": {
+      "title": "Vital Signs (Observations)",
+      "add": "Add Sign",
+      "empty": "No measurements registered for this encounter",
+      "display": "Measurement Metric",
+      "code": "LOINC Code",
+      "value": "Clinical Value",
+      "date": "Measurement Date"
+    }
+  },
+  "modals": {
+    "allergy": {
+      "title": "Register Allergy",
+      "code": "Allergen Code",
+      "codePlaceholder": "e.g. 300916003, 716185002",
+      "display": "Allergen Description",
+      "displayPlaceholder": "e.g. Penicillin Allergy, Peanut Allergy",
+      "reaction": "Reported Adverse Reaction",
+      "reactionPlaceholder": "e.g. Severe hives, Anaphylactic shock",
+      "confirm": "Register Allergy"
+    },
+    "condition": {
+      "title": "Register Comorbity",
+      "code": "ICD-10 Code",
+      "codePlaceholder": "e.g. I10, E11.9, J45",
+      "display": "Diagnosis Description",
+      "displayPlaceholder": "e.g. Essential hypertension, Type 2 diabetes mellitus",
+      "confirm": "Register Diagnosis"
+    },
+    "encounter": {
+      "title": "Register New Encounter",
+      "reason": "Encounter Reason",
+      "reasonPlaceholder": "e.g. Routine cardiology consultation, Annual check-up",
+      "confirm": "Confirm Encounter"
+    },
+    "medication": {
+      "title": "Prescribe Medication",
+      "name": "Medication / Drug Name",
+      "namePlaceholder": "e.g. Amoxicillin 500mg, Losartan Potassium 50mg",
+      "dosage": "Dosage Instruction",
+      "dosagePlaceholder": "e.g. Take 1 tablet orally every 8 hours for 7 days",
+      "confirm": "Prescribe"
+    },
+    "observation": {
+      "title": "Register Vital Signs",
+      "selectMetric": "Select Metric",
+      "heartRate": "Heart Rate (bpm)",
+      "temperature": "Body Temperature (°C)",
+      "bloodPressure": "Systolic Blood Pressure (mmHg)",
+      "value": "Measured Value",
+      "valuePlaceholder": "e.g. 72, 36.5, 120",
+      "confirm": "Register Sign"
+    },
+    "report": {
+      "title": "Register Clinical Report",
+      "exam": "Exam Identification",
+      "examPlaceholder": "e.g. Complete Blood Count, Chest X-Ray PA",
+      "conclusion": "Report Conclusion and Diagnosis",
+      "conclusionPlaceholder": "Describe clinical conclusions and observations for the exam...",
+      "confirm": "Save Report"
+    }
+  },
+  "validation": {
+    "fullNameMin": "Name must be at least 3 characters",
+    "birthDateReq": "Birth date is required",
+    "birthDatePast": "Birth date must be in the past",
+    "documentMin": "Document must be at least 11 characters",
+    "documentInvalid": "Invalid document / ID",
+    "phoneFormat": "Invalid phone format. e.g. (11) 98765-4321",
+    "reasonMin": "Reason must be at least 3 characters",
+    "loincReq": "Select vital sign",
+    "valueReq": "Enter a valid numeric value",
+    "rangeError": "Value out of acceptable range (HR: 0-300, Temp: 30-45, BP: 0-300)",
+    "reportTitleMin": "Report title must be at least 3 characters",
+    "conclusionMin": "Conclusion must be at least 5 characters",
+    "icdCodeMin": "ICD-10 code must be at least 3 characters",
+    "icdFormat": "Invalid ICD-10 format. e.g. I10, E11.9",
+    "icdDisplayMin": "Diagnosis description must be at least 3 characters",
+    "allergenCodeMin": "Allergen code must be at least 3 characters",
+    "allergenDisplayMin": "Allergen description must be at least 3 characters",
+    "reactionMin": "Reported reaction must be at least 3 characters",
+    "medicationMin": "Medication name must be at least 3 characters",
+    "dosageMin": "Dosage instruction must be at least 3 characters"
+  }
+}

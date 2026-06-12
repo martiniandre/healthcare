@@ -1,19 +1,21 @@
 import { useNavigate, useLocation } from "react-router-dom"
+import { useTranslation } from "react-i18next"
 import { useAuthStore } from "../store/auth_store"
 import { useLayoutStore } from "../store/layout_store"
 import { Activity, Users, Image as ImageIcon, BarChart3, Settings, LogOut, X, Sparkles } from "lucide-react"
 
 const navigationItems = [
-  { label: "Pacientes", icon: Users, path: "/" },
-  { label: "Telemetria UTI", icon: Activity, path: "/telemetry" },
-  { label: "PACS Viewer", icon: ImageIcon, path: "/imaging" },
-  { label: "Análise de Exames", icon: Sparkles, path: "/exam-analyzer" },
-  { label: "Estatísticas", icon: BarChart3, path: "/stats" },
-  { label: "Gestão de Equipes", icon: Users, path: "/staff" },
-  { label: "Configurações", icon: Settings, path: "/settings", disabled: true },
+  { key: "patients", icon: Users, path: "/" },
+  { key: "telemetry", icon: Activity, path: "/telemetry" },
+  { key: "pacsViewer", icon: ImageIcon, path: "/imaging" },
+  { key: "examAnalyzer", icon: Sparkles, path: "/exam-analyzer" },
+  { key: "stats", icon: BarChart3, path: "/stats" },
+  { key: "staffManagement", icon: Users, path: "/staff" },
+  { key: "settings", icon: Settings, path: "/settings", disabled: true },
 ]
 
 export const AppSidebar = () => {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const location = useLocation()
   const { email, logout } = useAuthStore()
@@ -40,9 +42,9 @@ export const AppSidebar = () => {
             </div>
             <div>
               <h1 className="text-sm font-black tracking-tight text-gray-900 leading-none">
-                HealthCare
+                {t("sidebar.title")}
               </h1>
-              <span className="text-[10px] text-muted font-medium">Console Clínico v1.0</span>
+              <span className="text-[10px] text-muted font-medium">{t("sidebar.subtitle")}</span>
             </div>
           </div>
           <button
@@ -57,7 +59,7 @@ export const AppSidebar = () => {
 
         <nav className="flex-1 px-3 py-5 flex flex-col gap-1">
           <span className="text-[9px] font-black text-muted/60 uppercase tracking-[0.15em] px-3 mb-3">
-            Menu Principal
+            {t("sidebar.menuHeader")}
           </span>
           {navigationItems.map((item) => {
             const isActive = location.pathname === item.path ||
@@ -86,10 +88,10 @@ export const AppSidebar = () => {
                 }`}
               >
                 <item.icon className="w-[18px] h-[18px] shrink-0" />
-                {item.label}
+                {t(`sidebar.${item.key}`)}
                 {item.disabled && (
                   <span className="ml-auto text-[8px] bg-gray-100 text-gray-400 px-1.5 py-0.5 rounded font-bold uppercase">
-                    Em breve
+                    {t("sidebar.comingSoon")}
                   </span>
                 )}
               </button>
@@ -106,7 +108,7 @@ export const AppSidebar = () => {
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-semibold text-red-400 hover:text-red-600 hover:bg-red-50 transition-all duration-200"
           >
             <LogOut className="w-[18px] h-[18px] shrink-0" />
-            Sair
+            {t("sidebar.logout")}
           </button>
         </div>
 

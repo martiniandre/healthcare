@@ -1,0 +1,36 @@
+{
+  "title": "Gestión de Equipos Hospitalarios",
+  "subtitle": "Administración de profesionales de la salud, personal activo de guardia y acceso operativo",
+  "addStaff": "Registrar Profesional",
+  "searchPlaceholder": "Buscar por nombre, correo electrónico o especialidad...",
+  "filterAll": "Todos",
+  "loading": "Cargando personal clínico...",
+  "table": {
+    "professional": "Profesional",
+    "role": "Función / Categoría",
+    "license": "Registro (CRM/COREN)",
+    "department": "Departamento",
+    "contact": "Contacto",
+    "status": "Estado de Guardia",
+    "onDuty": "De Guardia",
+    "offDuty": "Fuera de Guardia"
+  },
+  "modal": {
+    "title": "Registrar Nuevo Profesional",
+    "name": "Nombre Completo",
+    "namePlaceholder": "Ej: Dr. Juan Gómez",
+    "category": "Categoría",
+    "license": "Registro Profesional",
+    "licensePlaceholder": "Ej: CRM-SP 12345",
+    "email": "Correo Electrónico Corporativo",
+    "emailPlaceholder": "Ej: nombre@hospital.com",
+    "department": "Departamento",
+    "departmentPlaceholder": "Ej: Cardiología",
+    "cancel": "Cancelar",
+    "confirm": "Guardar Registro"
+  },
+  "toast": {
+    "createSuccess": "¡Profesional de la salud registrado con éxito!",
+    "createError": "Error al registrar profesional de la salud."
+  }
+}

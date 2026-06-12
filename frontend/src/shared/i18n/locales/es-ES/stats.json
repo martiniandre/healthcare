@@ -1,0 +1,64 @@
+{
+  "title": "Estadísticas Clínicas & Analytics",
+  "subtitle": "Visión epidemiológica agregada de historias clínicas FHIR y laudos radiológicos PACS",
+  "days": {
+    "mon": "Lun",
+    "tue": "Mar",
+    "wed": "Mié",
+    "thu": "Jue",
+    "fri": "Vie",
+    "sat": "Sáb",
+    "sun": "Dom"
+  },
+  "metrics": {
+    "activePatients": "Pacientes Activos",
+    "admissionsGrowth": "+12% este mes",
+    "fhirCompliance": "Conformidad FHIR",
+    "fhirCompliantDesc": "R4 Core compliant",
+    "avgConsultationTime": "T. Medio Consulta",
+    "consultationTrend": "-1.2m vs mes anterior",
+    "weeklyConsultations": "Consultas Semanal",
+    "activeIcuBeds": "5 camas de UCI activas"
+  },
+  "exams": {
+    "title": "Distribución de Exámenes (PACS)",
+    "subtitle": "Modalidad de los estudios DICOM integrados",
+    "totalLabel": "Total",
+    "studiesLabel": "Estudios",
+    "examesUnit": "exámenes"
+  },
+  "consultations": {
+    "title": "Volumen de Consultas",
+    "subtitle": "Evolución diaria de consultas médicas y triaje",
+    "consultationsLabel": "Consultas",
+    "minLabel": "Menor:",
+    "sunShort": "(Dom)",
+    "avgLabel": "Media:",
+    "perDay": "/ Día",
+    "peakLabel": "Pico:",
+    "friShort": "(Vie)"
+  },
+  "epidemiology": {
+    "title": "Epidemiología y Diagnósticos (FHIR Core)",
+    "subtitle": "Casos clínicos activos mapeados en la base de datos FHIR",
+    "exportButton": "Exportar CSV",
+    "table": {
+      "code": "Código CIE",
+      "description": "Descripción de la Patología",
+      "category": "Categoría FHIR",
+      "activeCases": "Casos Activos",
+      "trend": "Tendencia",
+      "stable": "Estable"
+    }
+  },
+  "pathologies": {
+    "asthma": "Asma no especificada",
+    "hypertension": "Hipertensión essencial primaria",
+    "diabetes": "Diabetes mellitus tipo 2"
+  },
+  "categories": {
+    "respiratory": "Respiratorio",
+    "cardiovascular": "Cardiovascular",
+    "endocrine": "Endocrino"
+  }
+}

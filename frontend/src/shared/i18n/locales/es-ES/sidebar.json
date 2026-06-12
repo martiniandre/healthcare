@@ -1,0 +1,14 @@
+{
+  "title": "HealthCare",
+  "subtitle": "Consola Clínica v1.0",
+  "menuHeader": "Menú Principal",
+  "patients": "Pacientes",
+  "telemetry": "Telemetría UCI",
+  "pacsViewer": "Visor PACS",
+  "examAnalyzer": "Análisis de Exámenes",
+  "stats": "Estadísticas",
+  "staffManagement": "Gestión de Personal",
+  "settings": "Configuraciones",
+  "comingSoon": "Pronto",
+  "logout": "Salir"
+}

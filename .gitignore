@@ -50,3 +50,5 @@ frontend/.env
 frontend/.env.local
 
 backend/.gocache/
+frontend/playwright-report/
+frontend/test-results/

@@ -1,0 +1,64 @@
+{
+  "title": "Clinical Statistics & Analytics",
+  "subtitle": "Aggregate epidemiological view of FHIR medical records and PACS radiological reports",
+  "days": {
+    "mon": "Mon",
+    "tue": "Tue",
+    "wed": "Wed",
+    "thu": "Thu",
+    "fri": "Fri",
+    "sat": "Sat",
+    "sun": "Sun"
+  },
+  "metrics": {
+    "activePatients": "Active Patients",
+    "admissionsGrowth": "+12% this month",
+    "fhirCompliance": "FHIR Compliance",
+    "fhirCompliantDesc": "R4 Core compliant",
+    "avgConsultationTime": "Avg Consultation Time",
+    "consultationTrend": "-1.2m vs last month",
+    "weeklyConsultations": "Weekly Consultations",
+    "activeIcuBeds": "5 active ICU beds"
+  },
+  "exams": {
+    "title": "Exams Distribution (PACS)",
+    "subtitle": "Modality of integrated DICOM studies",
+    "totalLabel": "Total",
+    "studiesLabel": "Studies",
+    "examesUnit": "exams"
+  },
+  "consultations": {
+    "title": "Consultations Volume",
+    "subtitle": "Daily evolution of medical consultations and triage",
+    "consultationsLabel": "Consultations",
+    "minLabel": "Min:",
+    "sunShort": "(Sun)",
+    "avgLabel": "Avg:",
+    "perDay": "/ Day",
+    "peakLabel": "Peak:",
+    "friShort": "(Fri)"
+  },
+  "epidemiology": {
+    "title": "Epidemiology & Diagnostics (FHIR Core)",
+    "subtitle": "Active clinical cases mapped in the FHIR database",
+    "exportButton": "Export CSV",
+    "table": {
+      "code": "ICD Code",
+      "description": "Pathology Description",
+      "category": "FHIR Category",
+      "activeCases": "Active Cases",
+      "trend": "Trend",
+      "stable": "Stable"
+    }
+  },
+  "pathologies": {
+    "asthma": "Unspecified asthma",
+    "hypertension": "Primary essential hypertension",
+    "diabetes": "Type 2 diabetes mellitus"
+  },
+  "categories": {
+    "respiratory": "Respiratory",
+    "cardiovascular": "Cardiovascular",
+    "endocrine": "Endocrine"
+  }
+}

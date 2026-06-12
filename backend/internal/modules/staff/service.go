@@ -15,7 +15,7 @@ var ErrEmployeeNotFound = errors.New("employee not found")
 type Service interface {
 	CreateEmployee(ctx context.Context, userID uuid.UUID, fullName, email, role, crmNumber string) (*Employee, error)
 	GetEmployee(ctx context.Context, employeeID uuid.UUID) (*Employee, error)
-	ListEmployees(ctx context.Context) ([]*Employee, error)
+	ListEmployees(ctx context.Context, search string, role string) ([]*Employee, error)
 	DeactivateEmployee(ctx context.Context, employeeID uuid.UUID) error
 }
 
@@ -72,8 +72,8 @@ func (staffService *service) GetEmployee(ctx context.Context, employeeID uuid.UU
 	return employee, nil
 }
 
-func (staffService *service) ListEmployees(ctx context.Context) ([]*Employee, error) {
-	return staffService.repo.ListEmployees(ctx)
+func (staffService *service) ListEmployees(ctx context.Context, search string, role string) ([]*Employee, error) {
+	return staffService.repo.ListEmployees(ctx, search, role)
 }
 
 func (staffService *service) DeactivateEmployee(ctx context.Context, employeeID uuid.UUID) error {

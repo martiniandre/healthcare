@@ -1,0 +1,36 @@
+{
+  "title": "Hospital Staff Management",
+  "subtitle": "Administration of clinical professionals, active on-duty staff, and operational access",
+  "addStaff": "Register Professional",
+  "searchPlaceholder": "Search by name, email or specialty...",
+  "filterAll": "All",
+  "loading": "Loading clinical staff...",
+  "table": {
+    "professional": "Professional",
+    "role": "Role / Category",
+    "license": "License (CRM/COREN)",
+    "department": "Department",
+    "contact": "Contact",
+    "status": "Duty Status",
+    "onDuty": "On Duty",
+    "offDuty": "Off Duty"
+  },
+  "modal": {
+    "title": "Register New Professional",
+    "name": "Full Name",
+    "namePlaceholder": "Ex: Dr. John Smith",
+    "category": "Category",
+    "license": "Professional License",
+    "licensePlaceholder": "Ex: CRM-SP 12345",
+    "email": "Corporate E-mail",
+    "emailPlaceholder": "Ex: name@hospital.com",
+    "department": "Department",
+    "departmentPlaceholder": "Ex: Cardiology",
+    "cancel": "Cancel",
+    "confirm": "Save Registration"
+  },
+  "toast": {
+    "createSuccess": "Health professional successfully registered!",
+    "createError": "Failed to register health professional."
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "title": "PACS Viewer",
+  "subtitle": "Visor y manipulador de estudios de imagen DICOM",
+  "tools": {
+    "zoom": "Zoom",
+    "contrast": "Contraste",
+    "rotate": "Rotar",
+    "pan": "Mover",
+    "reset": "Restablecer",
+    "measure": "Medir"
+  },
+  "studyDetails": "Detalles del Estudio",
+  "series": "Serie",
+  "instance": "Instancia",
+  "loadingDICOM": "Cargando imagen DICOM...",
+  "uploadStatus": {
+    "initial": "Iniciando la carga y verificación de firma DICOM...",
+    "grpcCompleted": "Transmisión gRPC completada. Procesando metadatos DICOM..."
+  },
+  "toast": {
+    "uploadSuccess": "¡DICOM cargado y procesado con éxito en el bus del PACS!",
+    "uploadError": "Error al cargar el archivo DICOM."
+  },
+  "alert": {
+    "uploadSuccess": "DICOM cargado y procesado con éxito"
+  },
+  "loading": "Cargando el visor PACS...",
+  "backToRecord": "Volver al Historial Clínico",
+  "titleConsole": "Consola Quirúrgica PACS",
+  "uploadDcm": "Subir Nuevo .DCM",
+  "details": {
+    "viewportAriaLabel": "Visualizador interactivo de estudios médicos DICOM del historial clínico electrónico",
+    "title": "Detalles del Estudio",
+    "id": "ID del Estudio",
+    "modality": "Modalidad Clínica",
+    "busStatus": "Status del Bus",
+    "seriesSlices": "Serie / Rebanadas",
+    "activeSlice": "Rebanada #1 (Visualización Activa)"
+  }
+}

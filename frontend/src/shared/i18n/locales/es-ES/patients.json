@@ -1,0 +1,218 @@
+{
+  "title": "Pacientes",
+  "subtitle": "Gestión de historias clínicas y datos clínicos FHIR",
+  "newPatient": "Nuevo Paciente",
+  "cards": {
+    "total": "Total Registrados",
+    "standard": "Patrón de Datos",
+    "integration": "Integración"
+  },
+  "searchPlaceholder": "Buscar por nombre, documento o teléfono...",
+  "filterResults_one": "{{count}} resultado",
+  "filterResults_other": "{{count}} resultados",
+  "loading": "Cargando registros clínicos...",
+  "noResults": "No se encontraron resultados",
+  "noPatients": "Ningún paciente registrado",
+  "noResultsDesc": "Ningún paciente coincide con \"{{searchTerm}}\". Intente otro término.",
+  "noPatientsDesc": "Registre el primer paciente para iniciar la gestión clínica.",
+  "table": {
+    "patient": "Paciente",
+    "document": "Documento / Identidad",
+    "birthDate": "Fecha de Nacimiento",
+    "phone": "Teléfono",
+    "action": "Acción",
+    "medicalRecord": "Historial Clínico"
+  },
+  "pagination": {
+    "pageInfo": "Página {{currentPage}} de {{totalPages}} ({{total}} pacientes)",
+    "prev": "Anterior",
+    "next": "Siguiente"
+  },
+  "modal": {
+    "title": "Registrar Nuevo Paciente",
+    "name": "Nombre Completo",
+    "namePlaceholder": "Nombre Completo del Paciente",
+    "birthDate": "Fecha de Nacimiento",
+    "birthDatePlaceholder": "AAAA-MM-DD",
+    "document": "Documento o Cédula de Identidad",
+    "documentPlaceholder": "123.456.789-00",
+    "phone": "Teléfono de Contacto",
+    "phonePlaceholder": "(11) 98765-4321",
+    "cancel": "Cancelar",
+    "confirm": "Confirmar Registro"
+  },
+  "toast": {
+    "createSuccess": "¡Paciente registrado con éxito!",
+    "createError": "Error al registrar paciente.",
+    "encounterSuccess": "¡Consulta registrada con éxito!",
+    "encounterError": "Error al registrar consulta.",
+    "observationSuccess": "¡Sinal vital registrado con éxito!",
+    "observationError": "Error al registrar sinal vital.",
+    "reportSuccess": "¡Informe clínico creado con éxito!",
+    "reportError": "Error al crear informe clínico.",
+    "conditionSuccess": "¡Diagnóstico registrado con éxito!",
+    "conditionError": "Error al registrar diagnóstico.",
+    "allergySuccess": "¡Alergia registrada con éxito!",
+    "allergyError": "Error al registrar alergia.",
+    "medicationSuccess": "¡Prescripción médica agregada con éxito!",
+    "medicationError": "Error al registrar prescripción."
+  },
+  "details": {
+    "back": "Volver",
+    "cpf": "Documento / ID",
+    "birth": "Fecha Nac.",
+    "fhirId": "ID FHIR",
+    "loadingDetails": "Cargando historia clínica...",
+    "clinicalResources": "Recursos Clínicos",
+    "focus": "Enfocar",
+    "activeEncounterFocus": "Consulta en Foco",
+    "changeEncounter": "Cambiar Consulta",
+    "encounters": "Consultas",
+    "vitals": "Signos Vitales",
+    "reports": "Informes Clínicos",
+    "conditions": "Diagnósticos Activos",
+    "medications": "Prescripciones",
+    "allergies": "Alergias",
+    "pacs": "PACS DICOM",
+    "noActiveEncounter": "Ninguna consulta activa",
+    "selectEncounterDesc": "Por favor, seleccione o registre una consulta en la pestaña \"Consultas\".",
+    "allergiesCard": {
+      "title": "Alergias e Intolerancias Inmunológicas (AllergyIntolerance)",
+      "add": "Agregar Alergia",
+      "empty": "Ninguna alergia o intolerancia registrada para este paciente",
+      "code": "Código",
+      "allergen": "Alérgeno",
+      "reaction": "Reação Adversa",
+      "status": "Estado Clínico",
+      "date": "Fecha de Registro"
+    },
+    "conditionsCard": {
+      "title": "Diagnósticos Activos y Comorbilidades (Conditions - FHIR)",
+      "add": "Agregar Diagnóstico",
+      "empty": "Ningún diagnóstico activo registrado para este paciente",
+      "code": "Código CIE-10",
+      "display": "Descripción Clínico-Científica",
+      "status": "Estado Clínico",
+      "date": "Fecha de Registro"
+    },
+    "medicationsCard": {
+      "title": "Prescripciones (MedicationRequest - FHIR)",
+      "add": "Nueva Prescripción",
+      "empty": "Ninguna medicación prescrita para esta consulta",
+      "display": "Medicación",
+      "dosage": "Instrucción de Dosificación",
+      "status": "Estado",
+      "date": "Fecha de Prescripción"
+    },
+    "reportsCard": {
+      "title": "Informes Clínicos y Conclusiones (DiagnosticReport)",
+      "add": "Nuevo Informe",
+      "empty": "Ningún informe clínico adjunto a esta consulta",
+      "display": "Examen / Informe",
+      "conclusion": "Conclusión Clínica",
+      "status": "Estado",
+      "date": "Fecha del Informe"
+    },
+    "encountersCard": {
+      "title": "Historial de Consultas (Encounters)",
+      "add": "Nueva Consulta",
+      "empty": "Ninguna consulta registrada",
+      "reason": "Motivo de la Consulta",
+      "status": "Estado",
+      "date": "Fecha del Registro",
+      "action": "Acción"
+    },
+    "pacsCard": {
+      "title": "Estudios de Imagen (PACS)",
+      "empty": "Ningún estudio DICOM adjunto",
+      "display": "Descripción del Examen",
+      "modality": "Modalidade",
+      "uid": "Study UID",
+      "date": "Fecha de Entrada",
+      "action": "Abrir PACS"
+    },
+    "vitalsCard": {
+      "title": "Signos Vitales (Observations)",
+      "add": "Agregar Signo",
+      "empty": "Ninguna medición registrada para esta consulta",
+      "display": "Métrica de Medición",
+      "code": "Código LOINC",
+      "value": "Valor Clínico",
+      "date": "Fecha de la Medición"
+    }
+  },
+  "modals": {
+    "allergy": {
+      "title": "Registrar Alergia",
+      "code": "Código del Alérgeno",
+      "codePlaceholder": "Ej: 300916003, 716185002",
+      "display": "Descripción del Alérgeno",
+      "displayPlaceholder": "Ej: Alergia a Penicilina, Alergia a Maní",
+      "reaction": "Reacción Adversa Reportada",
+      "reactionPlaceholder": "Ej: Urticaria severa, Choque anafiláctico",
+      "confirm": "Registrar Alergia"
+    },
+    "condition": {
+      "title": "Registrar Comorbilidad",
+      "code": "Código CIE-10",
+      "codePlaceholder": "Ej: I10, E11.9, J45",
+      "display": "Descripción del Diagnóstico",
+      "displayPlaceholder": "Ej: Hipertensão essencial, Diabetes mellitus tipo 2",
+      "confirm": "Registrar Diagnóstico"
+    },
+    "encounter": {
+      "title": "Registrar Nueva Consulta",
+      "reason": "Motivo de la Consulta",
+      "reasonPlaceholder": "Ej: Consulta de rutina cardiologia, Chequeo anual",
+      "confirm": "Confirmar Consulta"
+    },
+    "medication": {
+      "title": "Prescribir Medicamento",
+      "name": "Nombre de la Medicación / Droga",
+      "namePlaceholder": "Ej: Amoxicilina 500mg, Losartán Potásico 50mg",
+      "dosage": "Instrucción de Dosificación",
+      "dosagePlaceholder": "Ej: Tomar 1 comprimido vía oral cada 8 horas por 7 dias",
+      "confirm": "Prescribir"
+    },
+    "observation": {
+      "title": "Registrar Signos Vitales",
+      "selectMetric": "Seleccione la Métrica",
+      "heartRate": "Frecuencia Cardíaca (bpm)",
+      "temperature": "Temperatura Corporal (°C)",
+      "bloodPressure": "Presión Arterial Sistólica (mmHg)",
+      "value": "Valor Medido",
+      "valuePlaceholder": "Ej: 72, 36.5, 120",
+      "confirm": "Registrar Signo"
+    },
+    "report": {
+      "title": "Registrar Informe Clínico",
+      "exam": "Identificación del Examen",
+      "examPlaceholder": "Ej: Hemograma Completo, Radiografía de Tórax PA",
+      "conclusion": "Conclusión y Diagnóstico del Informe",
+      "conclusionPlaceholder": "Describa las conclusiones y observaciones clínicas del examen...",
+      "confirm": "Guardar Informe"
+    }
+  },
+  "validation": {
+    "fullNameMin": "El nombre debe tener al menos 3 caracteres",
+    "birthDateReq": "Fecha de nacimiento obligatoria",
+    "birthDatePast": "La fecha de nacimiento debe ser en el pasado",
+    "documentMin": "El documento debe tener al menos 11 caracteres",
+    "documentInvalid": "Documento / Identidad inválido",
+    "phoneFormat": "Formato de teléfono inválido. Ej: (11) 98765-4321",
+    "reasonMin": "El motivo debe tener al menos 3 caracteres",
+    "loincReq": "Seleccione el signo vital",
+    "valueReq": "Ingrese un valor numérico válido",
+    "rangeError": "Valor fuera del rango aceptable (FC: 0-300, Temp: 30-45, PA: 0-300)",
+    "reportTitleMin": "El título del informe debe tener al menos 3 caracteres",
+    "conclusionMin": "La conclusión debe tener al menos 5 caracteres",
+    "icdCodeMin": "El código CIE-10 debe tener al menos 3 caracteres",
+    "icdFormat": "Formato CIE-10 inválido. Ej: I10, E11.9",
+    "icdDisplayMin": "La descripción del diagnóstico debe tener al menos 3 caracteres",
+    "allergenCodeMin": "El código del alérgeno debe tener al menos 3 caracteres",
+    "allergenDisplayMin": "La descripción del alérgeno debe tener al menos 3 caracteres",
+    "reactionMin": "La reacción reportada debe tener al menos 3 caracteres",
+    "medicationMin": "El nombre del medicamento debe tener al menos 3 caracteres",
+    "dosageMin": "La instrucción de dosificación debe tener al menos 3 caracteres"
+  }
+}

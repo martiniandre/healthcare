@@ -1,0 +1,17 @@
+{
+  "offlineStatus": "Offline",
+  "notificationTooltip": "Notifications",
+  "defaultUserEmail": "user@hospital.com",
+  "roles": {
+    "RoleAdmin": "Administrator",
+    "RoleDoctor": "Doctor",
+    "RoleNurse": "Nurse",
+    "RoleReception": "Receptionist",
+    "RoleDefault": "Professional"
+  },
+  "errorBoundary": {
+    "title": "Unexpected Interface Error",
+    "description": "A rendering issue prevented this component from loading. Our technical team has been notified silently in the logs.",
+    "retry": "Try Again"
+  }
+}

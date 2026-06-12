@@ -15,7 +15,7 @@ type Service interface {
 	CreatePatient(ctx context.Context, fullName, birthDate, documentID, phoneNumber string) (*Patient, error)
 	GetPatient(ctx context.Context, fhirResourceID string) (*Patient, error)
 	GetPatientByDocument(ctx context.Context, documentID string) (*Patient, error)
-	ListPatients(ctx context.Context) ([]*Patient, error)
+	ListPatients(ctx context.Context, search string, sortField string, sortDirection string, page int, limit int) ([]*Patient, error)
 }
 
 type service struct {
@@ -74,6 +74,6 @@ func (patientService *service) GetPatientByDocument(ctx context.Context, documen
 	return patient, nil
 }
 
-func (patientService *service) ListPatients(ctx context.Context) ([]*Patient, error) {
-	return patientService.repo.ListPatients(ctx)
+func (patientService *service) ListPatients(ctx context.Context, search string, sortField string, sortDirection string, page int, limit int) ([]*Patient, error) {
+	return patientService.repo.ListPatients(ctx, search, sortField, sortDirection, page, limit)
 }

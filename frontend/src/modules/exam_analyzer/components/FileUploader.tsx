@@ -1,4 +1,5 @@
 import { useState, useRef } from "react"
+import { useTranslation } from "react-i18next"
 import { UploadCloud, CheckSquare, Square, FileText, X } from "lucide-react"
 import { Button } from "../../../shared/components/ui/Button"
 import { Card } from "../../../shared/components/ui/Card"
@@ -10,6 +11,7 @@ interface FileUploaderProperties {
 }
 
 export const FileUploader = ({ onUpload, isPending, uploadProgress }: FileUploaderProperties) => {
+  const { t } = useTranslation("examAnalyzer")
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [isDragActive, setIsDragActive] = useState<boolean>(false)
   const [consentChecked, setConsentChecked] = useState<boolean>(false)
@@ -22,12 +24,12 @@ export const FileUploader = ({ onUpload, isPending, uploadProgress }: FileUpload
     setErrorText(null)
     const fifteenMegaBytes = 15 * 1024 * 1024
     if (file.size > fifteenMegaBytes) {
-      setErrorText("O arquivo excede o limite permitido de 15MB.")
+      setErrorText(t("uploader.errorLimit"))
       return
     }
     const allowedMimeTypes = ["image/jpeg", "image/png", "image/gif", "image/webp", "application/pdf"]
     if (!allowedMimeTypes.includes(file.type)) {
-      setErrorText("Tipo de arquivo não suportado. Envie imagens ou PDF.")
+      setErrorText(t("uploader.errorType"))
       return
     }
     setSelectedFile(file)
@@ -76,9 +78,11 @@ export const FileUploader = ({ onUpload, isPending, uploadProgress }: FileUpload
 
   return (
     <Card glowingType="cyan" className="p-6 bg-white border border-border rounded-xl">
-      <h3 className="text-base font-bold text-gray-900 mb-2">Enviar Exame para Análise</h3>
+      <h3 className="text-base font-bold text-gray-900 mb-2">
+        {t("uploader.title")}
+      </h3>
       <span className="text-xs text-muted block mb-5 leading-normal">
-        Arraste arquivos de exames radiológicos, fotos clínicas ou PDFs laboratoriais. A análise é assistiva e probabilística.
+        {t("uploader.subtitle")}
       </span>
 
       <form onSubmit={handleFormSubmit} className="flex flex-col gap-5">
@@ -106,10 +110,10 @@ export const FileUploader = ({ onUpload, isPending, uploadProgress }: FileUpload
 
           <div className="text-center">
             <span className="text-sm font-semibold text-gray-800 block">
-              Selecione um Arquivo
+              {t("uploader.selectFile")}
             </span>
             <span className="text-[11px] text-muted block mt-1">
-              Imagens (PNG, JPG, DICOM) ou arquivos PDF de até 15MB
+              {t("uploader.fileGuidelines")}
             </span>
           </div>
         </label>
@@ -148,7 +152,7 @@ export const FileUploader = ({ onUpload, isPending, uploadProgress }: FileUpload
             <input
               type="checkbox"
               checked={consentChecked}
-              onChange={(e) => setConsentChecked(e.target.checked)}
+              onChange={(event) => setConsentChecked(event.target.checked)}
               className="sr-only"
             />
             <div className="mt-0.5 text-primary">
@@ -160,10 +164,10 @@ export const FileUploader = ({ onUpload, isPending, uploadProgress }: FileUpload
             </div>
             <div className="flex-1 text-left">
               <span className="text-xs font-semibold text-gray-700 block">
-                Consentimento do Paciente
+                {t("uploader.consentTitle")}
               </span>
               <span className="text-[10px] text-muted block mt-0.5 leading-normal">
-                Confirmo que possuo a autorização expressa do paciente para submeter seus dados e imagens para processamento clínico assistivo.
+                {t("uploader.consentDesc")}
               </span>
             </div>
           </label>
@@ -172,7 +176,7 @@ export const FileUploader = ({ onUpload, isPending, uploadProgress }: FileUpload
             <input
               type="checkbox"
               checked={anonymizeChecked}
-              onChange={(e) => setAnonymizeChecked(e.target.checked)}
+              onChange={(event) => setAnonymizeChecked(event.target.checked)}
               className="sr-only"
             />
             <div className="mt-0.5 text-secondary">
@@ -184,10 +188,10 @@ export const FileUploader = ({ onUpload, isPending, uploadProgress }: FileUpload
             </div>
             <div className="flex-1 text-left">
               <span className="text-xs font-semibold text-gray-700 block">
-                Anonimização de Segurança (Recomendado)
+                {t("uploader.anonymizeTitle")}
               </span>
               <span className="text-[10px] text-muted block mt-0.5 leading-normal">
-                Substituir o nome do arquivo enviado por um identificador UUID criptográfico seguro antes da gravação no armazenamento temporário.
+                {t("uploader.anonymizeDesc")}
               </span>
             </div>
           </label>
@@ -196,7 +200,7 @@ export const FileUploader = ({ onUpload, isPending, uploadProgress }: FileUpload
         {uploadProgress !== null && (
           <div className="flex flex-col gap-1.5 mt-2 animate-fade-in">
             <div className="flex items-center justify-between text-[10px] font-semibold text-muted">
-              <span>Transmitindo arquivo para o servidor...</span>
+              <span>{t("uploader.uploading")}</span>
               <span>{uploadProgress}%</span>
             </div>
             <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
@@ -213,7 +217,7 @@ export const FileUploader = ({ onUpload, isPending, uploadProgress }: FileUpload
           disabled={!selectedFile || !consentChecked || isPending}
           className="w-full py-2.5 mt-2 font-bold"
         >
-          {isPending ? "Processando Análise..." : "Enviar para Análise"}
+          {isPending ? t("uploader.processing") : t("uploader.submit")}
         </Button>
       </form>
     </Card>

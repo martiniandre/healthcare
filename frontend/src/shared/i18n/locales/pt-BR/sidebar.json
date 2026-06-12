@@ -1,0 +1,14 @@
+{
+  "title": "HealthCare",
+  "subtitle": "Console Clínico v1.0",
+  "menuHeader": "Menu Principal",
+  "patients": "Pacientes",
+  "telemetry": "Telemetria UTI",
+  "pacsViewer": "PACS Viewer",
+  "examAnalyzer": "Análise de Exames",
+  "stats": "Estatísticas",
+  "staffManagement": "Gestão de Equipes",
+  "settings": "Configurações",
+  "comingSoon": "Em breve",
+  "logout": "Sair"
+}

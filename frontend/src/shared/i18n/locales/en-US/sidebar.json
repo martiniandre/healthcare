@@ -1,0 +1,14 @@
+{
+  "title": "HealthCare",
+  "subtitle": "Clinical Console v1.0",
+  "menuHeader": "Main Menu",
+  "patients": "Patients",
+  "telemetry": "ICU Telemetry",
+  "pacsViewer": "PACS Viewer",
+  "examAnalyzer": "Exam Analysis",
+  "stats": "Statistics",
+  "staffManagement": "Staff Management",
+  "settings": "Settings",
+  "comingSoon": "Soon",
+  "logout": "Logout"
+}

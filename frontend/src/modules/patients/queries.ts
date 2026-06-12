@@ -11,23 +11,16 @@ export const patientQueryKeys = {
   medications: (encounterFhirId: string) => [...patientQueryKeys.all, "medications", encounterFhirId] as const,
 }
 
-export const usePatientsQuery = (searchQueryValue?: string) => {
+export const usePatientsQuery = (
+  searchQueryValue?: string,
+  sortField?: string,
+  sortDirection?: string,
+  page?: number,
+  limit?: number
+) => {
   return useQuery({
-    queryKey: [...patientQueryKeys.lists(), searchQueryValue],
-    queryFn: async () => {
-      const allPatients = await patientsApi.getPatients()
-      if (!searchQueryValue) {
-        return allPatients
-      }
-      const lowerSearch = searchQueryValue.toLowerCase()
-      return allPatients.filter((patientItem) => {
-        return (
-          patientItem.full_name.toLowerCase().includes(lowerSearch) ||
-          patientItem.document_id.includes(lowerSearch) ||
-          patientItem.phone_number.includes(lowerSearch)
-        )
-      })
-    },
+    queryKey: [...patientQueryKeys.lists(), { searchQueryValue, sortField, sortDirection, page, limit }],
+    queryFn: () => patientsApi.getPatients(searchQueryValue, sortField, sortDirection, page, limit),
   })
 }
 

@@ -30,7 +30,10 @@ func (handler *HTTPHandler) RegisterRoutes(mux *http.ServeMux) {
 }
 
 func (handler *HTTPHandler) ListEmployees(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
-	employeesList, employeesErr := handler.service.ListEmployees(httpRequest.Context())
+	search := httpRequest.URL.Query().Get("search")
+	role := httpRequest.URL.Query().Get("role")
+
+	employeesList, employeesErr := handler.service.ListEmployees(httpRequest.Context(), search, role)
 	if employeesErr != nil {
 		slog.Error("failed to list employees", "error", employeesErr)
 		render.Error(httpResponseWriter, http.StatusInternalServerError, "Erro ao listar corpo clínico.")

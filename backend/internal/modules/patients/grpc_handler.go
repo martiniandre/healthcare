@@ -93,13 +93,13 @@ func (handler *GRPCHandler) GetPatientByDocument(ctx context.Context, req *pb.Ge
 }
 
 func (handler *GRPCHandler) ListPatients(ctx context.Context, req *pb.ListPatientsRequest) (*pb.ListPatientsResponse, error) {
-	patientList, err := handler.service.ListPatients(ctx)
-	if err != nil {
-		return nil, mapPatientError(err)
+	patientsList, listError := handler.service.ListPatients(ctx, "", "", "", 1, 100)
+	if listError != nil {
+		return nil, mapPatientError(listError)
 	}
 
-	patientResponses := make([]*pb.GetPatientResponse, 0, len(patientList))
-	for _, patient := range patientList {
+	patientResponses := make([]*pb.GetPatientResponse, 0, len(patientsList))
+	for _, patient := range patientsList {
 		patientResponses = append(patientResponses, &pb.GetPatientResponse{
 			PatientId:      patient.ID.String(),
 			FhirResourceId: patient.FHIRResourceID,

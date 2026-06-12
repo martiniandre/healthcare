@@ -1,0 +1,17 @@
+{
+  "offlineStatus": "Sem Conexão",
+  "notificationTooltip": "Notificações",
+  "defaultUserEmail": "usuario@hospital.com",
+  "roles": {
+    "RoleAdmin": "Administrador",
+    "RoleDoctor": "Médico",
+    "RoleNurse": "Enfermeiro",
+    "RoleReception": "Recepção",
+    "RoleDefault": "Profissional"
+  },
+  "errorBoundary": {
+    "title": "Erro Inesperado na Interface",
+    "description": "Um problema de renderização impediu o carregamento deste componente. Nossa equipe técnica foi notificada silenciosamente nos logs.",
+    "retry": "Tentar Novamente"
+  }
+}

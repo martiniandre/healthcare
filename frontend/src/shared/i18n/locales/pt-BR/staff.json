@@ -1,0 +1,36 @@
+{
+  "title": "Gestão de Equipes Hospitalares",
+  "subtitle": "Administração de profissionais de saúde, plantonistas ativos e credenciais operacionais",
+  "addStaff": "Cadastrar Profissional",
+  "searchPlaceholder": "Buscar por nome, e-mail ou especialidade...",
+  "filterAll": "Todos",
+  "loading": "Carregando corpo clínico...",
+  "table": {
+    "professional": "Profissional",
+    "role": "Função / Categoria",
+    "license": "Registro (CRM/COREN)",
+    "department": "Departamento",
+    "contact": "Contato",
+    "status": "Escala",
+    "onDuty": "Plantonista",
+    "offDuty": "Fora de Escala"
+  },
+  "modal": {
+    "title": "Cadastrar Novo Profissional",
+    "name": "Nome Completo",
+    "namePlaceholder": "Ex: Dr. André Silva de Araujo",
+    "category": "Categoria",
+    "license": "Registro Profissional",
+    "licensePlaceholder": "Ex: CRM-SP 12345",
+    "email": "E-mail Corporativo",
+    "emailPlaceholder": "Ex: nome@hospital.com",
+    "department": "Departamento",
+    "departmentPlaceholder": "Ex: Cardiologia",
+    "cancel": "Cancelar",
+    "confirm": "Salvar Cadastro"
+  },
+  "toast": {
+    "createSuccess": "Profissional de saúde cadastrado com sucesso!",
+    "createError": "Falha ao registrar profissional de saúde."
+  }
+}

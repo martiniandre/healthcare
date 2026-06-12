@@ -1,5 +1,6 @@
 import { FileText, Trash2, Calendar, Database, Search } from "lucide-react"
 import { useState } from "react"
+import { useTranslation } from "react-i18next"
 import type { ExamAnalysis } from "../types"
 
 interface AnalysisHistoryProperties {
@@ -17,6 +18,7 @@ export const AnalysisHistory = ({
   onSelect,
   onDelete,
 }: AnalysisHistoryProperties) => {
+  const { t, i18n } = useTranslation("examAnalyzer")
   const [searchTerm, setSearchTerm] = useState<string>("")
 
   const filteredHistory = history.filter((item) => {
@@ -32,10 +34,10 @@ export const AnalysisHistory = ({
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2">
           <Database className="w-4 h-4 text-primary" />
-          Histórico de Análises
+          {t("history.title")}
         </h3>
         <span className="text-[10px] text-muted font-bold bg-gray-50 border border-border/80 px-2 py-0.5 rounded-full">
-          {filteredHistory.length} exames
+          {t("history.exams", { count: filteredHistory.length })}
         </span>
       </div>
 
@@ -43,7 +45,7 @@ export const AnalysisHistory = ({
         <Search className="w-3.5 h-3.5 text-gray-400 shrink-0" />
         <input
           type="text"
-          placeholder="Filtrar por nome ou tipo..."
+          placeholder={t("history.filterPlaceholder")}
           value={searchTerm}
           onChange={(event) => setSearchTerm(event.target.value)}
           className="w-full bg-transparent text-xs text-gray-800 placeholder-gray-400 focus:outline-none"
@@ -53,13 +55,13 @@ export const AnalysisHistory = ({
       <div className="flex-1 flex flex-col gap-2 overflow-y-auto max-h-[300px] md:max-h-none pr-1">
         {isLoading ? (
           <div className="py-10 text-center">
-            <span className="text-xs text-muted">Carregando histórico...</span>
+            <span className="text-xs text-muted">{t("history.loading")}</span>
           </div>
         ) : filteredHistory.length === 0 ? (
           <div className="py-10 text-center flex flex-col items-center justify-center gap-2">
             <FileText className="w-8 h-8 text-gray-200" />
             <span className="text-xs text-muted block max-w-[180px] leading-normal mx-auto">
-              {searchTerm ? "Nenhum resultado encontrado" : "Nenhum exame analisado ainda"}
+              {searchTerm ? t("history.noResults") : t("history.empty")}
             </span>
           </div>
         ) : (
@@ -91,15 +93,15 @@ export const AnalysisHistory = ({
                   <span className="text-[10px] text-gray-500 font-medium block">
                     {item.exam_type || (
                       item.status === "pending" || item.status === "processing" 
-                        ? "Processando..." 
-                        : "Dados Insuficientes"
+                        ? t("history.processing") 
+                        : t("history.insufficient")
                     )}
                   </span>
 
                   <div className="flex items-center gap-3 mt-1 text-[9px] text-muted">
                     <span className="flex items-center gap-1">
                       <Calendar className="w-3 h-3 shrink-0" />
-                      {new Date(item.created_at).toLocaleDateString("pt-BR", {
+                      {new Date(item.created_at).toLocaleDateString(i18n.language, {
                         day: "2-digit",
                         month: "2-digit",
                         hour: "2-digit",
@@ -113,10 +115,10 @@ export const AnalysisHistory = ({
                           ? "text-secondary/70 animate-pulse"
                           : "text-red-500/70"
                     }`}>
-                      {item.status === "completed" && "Concluído"}
-                      {(item.status === "pending" || item.status === "processing") && "Fila"}
-                      {item.status === "insufficient_data" && "Qualidade"}
-                      {item.status === "failed" && "Falha"}
+                      {item.status === "completed" && t("history.statusCompleted")}
+                      {(item.status === "pending" || item.status === "processing") && t("history.statusQueue")}
+                      {item.status === "insufficient_data" && t("history.statusQuality")}
+                      {item.status === "failed" && t("history.statusFailed")}
                     </span>
                   </div>
                 </div>

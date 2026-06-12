@@ -1,0 +1,130 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+\usepackage[margin=0.5in]{geometry}
+\usepackage{titlesec}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{fontawesome5}
+\usepackage{xcolor}
+
+\definecolor{darkgray}{HTML}{333333}
+\definecolor{gray}{HTML}{666666}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=darkgray,
+    urlcolor=darkgray,
+    pdftitle={Andre Martini - CV},
+    pdfauthor={Andre Martini}
+}
+
+\pagestyle{empty}
+
+% Section formatting
+\titleformat{\section}{\large\bfseries\uppercase}{}{0em}{}[\titlerule]
+\titlespacing*{\section}{0pt}{12pt}{6pt}
+
+\begin{document}
+
+% Header
+\noindent
+\begin{minipage}[t]{0.6\textwidth}
+  {\Huge \textbf{André Martini}} \\
+  \vspace{4pt}
+  {\large\color{darkgray} Software Engineer \textbar{} Design Engineering} \\
+  \vspace{2pt}
+  {\color{gray} Jundiaí, SP, Brazil \textbar{} Hybrid/Remote}
+\end{minipage}%
+\begin{minipage}[t]{0.4\textwidth}
+  \raggedleft
+  \small
+  \faPhone*~+55 (11) 95472-3379 \\
+  \vspace{2pt}
+  \faEnvelope~\href{mailto:andre.martini10@gmail.com}{andre.martini10@gmail.com} \\
+  \vspace{2pt}
+  \faGlobe~\href{https://andre.vercel.app}{andre.vercel.app} \textbar{}
+  \faLinkedin~\href{https://www.linkedin.com/in/martiniandre}{LinkedIn} \textbar{}
+  \faGithub~\href{https://github.com/martiniandre}{GitHub}
+\end{minipage}
+
+\vspace{10pt}
+
+% PROFESSIONAL SUMMARY
+\section{Professional Summary}
+Software Engineer with 5+ years of experience architecting high-performance web systems. Specialist in Design Engineering and the systematization of UI development through Design Systems and Atomic Design. Robust experience in real-time interfaces (WebSockets), automated quality, and frontend CI/CD pipelines. Currently specializing in AI applied to Health at Hospital Sírio-Libanês, utilizing AI-assisted development to drive efficiency and productivity.
+
+% PROFESSIONAL EXPERIENCE
+\section{Professional Experience}
+
+\noindent\textbf{\textbullet~Frontend Developer} \hfill Jan 2022 -- Present \\
+\textit{Venturus} \hfill Remote
+\begin{itemize}[leftmargin=*,label=\textendash,itemsep=2pt,parsep=0pt,topsep=2pt]
+  \item \textbf{Real-time Interface \& Streaming:} Designed and implemented user interfaces for AI model consumption utilizing WebSockets and streaming strategies, yielding a 10-second reduction in perceived screen load time for the client.
+  \item \textbf{Design System:} Engineered token-based architecture and component library with Chakra UI, ensuring complete elimination of side effects in shared components and accelerating development with 100\% visual consistency.
+  \item \textbf{Complex Data Handling:} Developed interaction flows for data analysis and extraction, ensuring a fluid experience when processing large volumes of files.
+  \item \textbf{UI Architecture:} Utilized AntD and internal Design System to guarantee the structural integrity and robustness of complex chat and data visualization components.
+  \item \textbf{Enterprise Product Development:} Contributed to the development of scalable products for large enterprises, maintaining clean architecture and high performance in complex codebases.
+  \item \textbf{AI \& Engineering Productivity:} Evaluated and integrated AI platforms (Cursor, Windsurf, v0, Figma Make) into daily workflows, optimizing deliverables and accelerating code delivery.
+  \item \textbf{Visual Regression:} Implemented Chromatic integrated with Storybook, securing a zero visual regression rate and automated UI reviews on every pull request.
+  \item \textbf{Quality \& Testing:} Created unit and integration tests with Vitest and React Testing Library (RTL), drastically reducing integration bugs and increasing delivery reliability.
+\end{itemize}
+
+\vspace{4pt}
+
+\noindent\textbf{\textbullet~Frontend Developer Intern} \hfill Feb 2021 -- Dec 2021 \\
+\textit{Venturus} \hfill Remote
+\begin{itemize}[leftmargin=*,label=\textendash,itemsep=2pt,parsep=0pt,topsep=2pt]
+  \item \textbf{Interactive Canvas:} Designed spatial mapping interactive views utilizing KonvaJS, enabling immersive real-time floor plan visualizations.
+  \item \textbf{Product Evolution:} Led the transformation of an internal utility into a scalable, commercialized product powered by Firebase as the supporting backend.
+\end{itemize}
+
+% TECHNICAL SKILLS
+\section{Technical Skills}
+\noindent
+\textbf{Languages:} TypeScript, JavaScript, Python, SQL, Go, HTML, CSS. \\
+\textbf{Frontend:} React.js, Next.js (App Router, Server Components), AntD, Chakra UI, Tailwind CSS, Storybook, Chromatic. \\
+\textbf{Backend \& API:} Node.js, Express, NestJS, REST, GraphQL, WebSockets (Real-time). \\
+\textbf{Data \& Cloud:} PostgreSQL, MongoDB, Redis, Prisma, Firebase, Docker, AWS, Vercel, Azure, GitHub Actions (CI/CD), Azure Pipelines. \\
+\textbf{Integrations:} Google APIs, Firebase. \\
+\textbf{AI Stack:} OpenAI API, Figma MCP, Cursor, Windsurf, v0. \\
+\textbf{Design \& Creative:} Figma. \\
+\textbf{Engineering Practices:} TDD, CI/CD, Code Review, Agile/Scrum, Design Systems, Design Tokens, Atomic Design, Visual Regression, Unit \& Integration Testing. \\
+\textbf{Languages (Spoken):} English (C1 Advanced), Spanish (Intermediate), Portuguese (Native).
+
+% CERTIFICATIONS
+\section{Certifications}
+\noindent\textbf{\textbullet~Streaming HL7 to FHIR Data with Healthcare API} -- Google Cloud \hfill 2026 \\
+\noindent\textbf{\textbullet~Google AI Fundamentals} -- Coursera \hfill 2026 \\
+\noindent\textbf{\textbullet~Data Science Orientation} -- Coursera \hfill 2026 \\
+\noindent\textbf{\textbullet~React Performance} -- Kent C. Dodds Tech \hfill 2025 \\
+\noindent\textbf{\textbullet~Advanced React Hooks Workshop} -- Kent C. Dodds Tech \hfill 2025 \\
+\noindent\textbf{\textbullet~EF SET English Certificate} -- C1 Advanced (61/100) \hfill 2025
+
+% TALKS AND PRESENTATIONS
+\section{Talks and Presentations}
+\noindent\textbf{\textbullet~Venturus Tech Talk} \hfill 2024 \\
+\textit{Building and Structuring Design Systems} \hfill Campinas, Brazil
+\begin{itemize}[leftmargin=*,label=\textendash,itemsep=2pt,parsep=0pt,topsep=2pt]
+  \item Technical presentation covering Design System architecture, Atomic Design, Design Tokens, and Storybook at enterprise scale.
+\end{itemize}
+
+% EDUCATION
+\section{Education}
+
+\noindent\textbf{\textbullet~Postgraduate Specialization in Artificial Intelligence} \hfill 2026 -- 2027 \\
+\textit{Hospital Sírio-Libanês} \hfill São Paulo, Brazil
+\begin{itemize}[leftmargin=*,label=\textendash,itemsep=2pt,parsep=0pt,topsep=2pt]
+  \item Focus on AI in Healthcare, predictive models for clinical data, and hospital clinical decision support.
+\end{itemize}
+
+\vspace{4pt}
+
+\noindent\textbf{\textbullet~Bachelor's in Systems Analysis and Development} \hfill 2019 -- 2021 \\
+\textit{Fatec Jundiaí} \hfill Jundiaí, Brazil
+\begin{itemize}[leftmargin=*,label=\textendash,itemsep=2pt,parsep=0pt,topsep=2pt]
+  \item Social Project Leadership: Developed a geolocalized alert system for the Municipal Guard.
+\end{itemize}
+
+\end{document}

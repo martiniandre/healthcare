@@ -2,6 +2,7 @@ package staff
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -11,7 +12,7 @@ type Repository interface {
 	CreateEmployee(ctx context.Context, employee *Employee) error
 	GetEmployeeByID(ctx context.Context, employeeID uuid.UUID) (*Employee, error)
 	GetEmployeeByUserID(ctx context.Context, userID uuid.UUID) (*Employee, error)
-	ListEmployees(ctx context.Context) ([]*Employee, error)
+	ListEmployees(ctx context.Context, search string, role string) ([]*Employee, error)
 	DeactivateEmployee(ctx context.Context, employeeID uuid.UUID) error
 }
 
@@ -64,11 +65,28 @@ func (staffRepository *repository) GetEmployeeByUserID(ctx context.Context, user
 	return employee, nil
 }
 
-func (staffRepository *repository) ListEmployees(ctx context.Context) ([]*Employee, error) {
+func (staffRepository *repository) ListEmployees(ctx context.Context, search string, role string) ([]*Employee, error) {
 	query := `SELECT id, user_id, full_name, email, role, crm_number, is_active, created_at, updated_at
-			  FROM employees WHERE is_active = true ORDER BY full_name ASC`
+			  FROM employees WHERE is_active = true`
+	
+	args := []interface{}{}
+	argId := 1
 
-	rows, err := staffRepository.db.Query(ctx, query)
+	if role != "" && role != "All" {
+		query += fmt.Sprintf(" AND role = $%d", argId)
+		args = append(args, role)
+		argId++
+	}
+
+	if search != "" {
+		query += fmt.Sprintf(" AND (full_name ILIKE $%d OR email ILIKE $%d)", argId, argId)
+		args = append(args, "%"+search+"%")
+		argId++
+	}
+
+	query += ` ORDER BY full_name ASC`
+
+	rows, err := staffRepository.db.Query(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}

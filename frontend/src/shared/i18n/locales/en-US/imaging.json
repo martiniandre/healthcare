@@ -1,0 +1,40 @@
+{
+  "title": "PACS Viewer",
+  "subtitle": "DICOM image study viewer and manipulator",
+  "tools": {
+    "zoom": "Zoom",
+    "contrast": "Contrast",
+    "rotate": "Rotate",
+    "pan": "Pan",
+    "reset": "Reset",
+    "measure": "Measure"
+  },
+  "studyDetails": "Study Details",
+  "series": "Series",
+  "instance": "Instance",
+  "loadingDICOM": "Loading DICOM image...",
+  "uploadStatus": {
+    "initial": "Starting DICOM upload and signature verification...",
+    "grpcCompleted": "gRPC transmission completed. Processing DICOM metadata..."
+  },
+  "toast": {
+    "uploadSuccess": "DICOM successfully uploaded and processed on the PACS bus!",
+    "uploadError": "Failed to upload DICOM file."
+  },
+  "alert": {
+    "uploadSuccess": "DICOM successfully uploaded and processed"
+  },
+  "loading": "Loading PACS viewer...",
+  "backToRecord": "Back to Medical Record",
+  "titleConsole": "PACS Surgical Console",
+  "uploadDcm": "Upload New .DCM",
+  "details": {
+    "viewportAriaLabel": "Interactive viewer of clinical DICOM imaging studies of electronic health records",
+    "title": "Study Details",
+    "id": "Study ID",
+    "modality": "Clinical Modality",
+    "busStatus": "Bus Status",
+    "seriesSlices": "Series / Slices",
+    "activeSlice": "Slice #1 (Active View)"
+  }
+}

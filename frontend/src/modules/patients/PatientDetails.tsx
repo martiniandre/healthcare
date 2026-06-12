@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { useParams, useNavigate, useSearchParams } from "react-router-dom"
+import { useTranslation } from "react-i18next"
 import {
   usePatientQuery,
   useEncountersQuery,
@@ -47,6 +48,7 @@ import {
 export const PatientDetails = () => {
   const { id = "" } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const { t } = useTranslation("patients")
 
   const [searchParameters, setSearchParameters] = useSearchParams()
   const activeTab = (searchParameters.get("tab") || "encounters") as "encounters" | "vitals" | "reports" | "pacs" | "conditions" | "allergies" | "medications"
@@ -93,9 +95,9 @@ export const PatientDetails = () => {
       setIsEncounterModalOpen(false)
       setSelectedEncounterId(newEncounter.fhir_id)
       setActiveTab("encounters")
-      toast.success("Consulta registrada com sucesso!")
+      toast.success(t("toast.encounterSuccess"))
     } catch {
-      toast.error("Falha ao registrar consulta.")
+      toast.error(t("toast.encounterError"))
     }
   }
 
@@ -125,9 +127,9 @@ export const PatientDetails = () => {
         value_unit: unit,
       })
       setIsObservationModalOpen(false)
-      toast.success("Sinal vital registrado com sucesso!")
+      toast.success(t("toast.observationSuccess"))
     } catch {
-      toast.error("Erro ao registrar sinal vital.")
+      toast.error(t("toast.observationError"))
     }
   }
 
@@ -143,9 +145,9 @@ export const PatientDetails = () => {
         conclusion: formData.conclusion,
       })
       setIsReportModalOpen(false)
-      toast.success("Exame laudado com sucesso!")
+      toast.success(t("toast.reportSuccess"))
     } catch {
-      toast.error("Erro ao laudar exame.")
+      toast.error(t("toast.reportError"))
     }
   }
 
@@ -157,9 +159,9 @@ export const PatientDetails = () => {
         code_display: formData.codeDisplay,
       })
       setIsConditionModalOpen(false)
-      toast.success("Diagnóstico registrado com sucesso!")
+      toast.success(t("toast.conditionSuccess"))
     } catch {
-      toast.error("Erro ao registrar diagnóstico.")
+      toast.error(t("toast.conditionError"))
     }
   }
 
@@ -172,9 +174,9 @@ export const PatientDetails = () => {
         reaction: formData.reaction,
       })
       setIsAllergyModalOpen(false)
-      toast.success("Alergia registrada com sucesso!")
+      toast.success(t("toast.allergySuccess"))
     } catch {
-      toast.error("Erro ao registrar alergia.")
+      toast.error(t("toast.allergyError"))
     }
   }
 
@@ -190,16 +192,16 @@ export const PatientDetails = () => {
         dosage_instruction: formData.dosageInstruction,
       })
       setIsMedicationModalOpen(false)
-      toast.success("Prescrição médica adicionada com sucesso!")
+      toast.success(t("toast.medicationSuccess"))
     } catch {
-      toast.error("Erro ao registrar prescrição.")
+      toast.error(t("toast.medicationError"))
     }
   }
 
   if (isPatientLoading || !patient) {
     return (
       <div className="text-center py-16">
-        <span className="text-sm text-muted">Carregando ficha clínica...</span>
+        <span className="text-sm text-muted">{t("details.loadingDetails")}</span>
       </div>
     )
   }
@@ -211,7 +213,7 @@ export const PatientDetails = () => {
       <div className="flex flex-col md:flex-row gap-6 items-start mt-2">
         <div className="w-full md:w-64 shrink-0 bg-white border border-border p-4 rounded-xl flex flex-col gap-4">
           <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-3 text-left">
-            Recursos Clínicos
+            {t("details.clinicalResources")}
           </span>
           <div className="flex flex-col gap-2">
             <button
@@ -223,7 +225,7 @@ export const PatientDetails = () => {
               }`}
             >
               <History className="w-4 h-4 shrink-0" />
-              Atendimentos
+              {t("details.encounters")}
               <span className="ml-auto text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded font-black">
                 {encounters.length}
               </span>
@@ -238,7 +240,7 @@ export const PatientDetails = () => {
               }`}
             >
               <Heart className="w-4 h-4 shrink-0" />
-              Sinais Vitais
+              {t("details.vitals")}
             </button>
 
             <button
@@ -250,7 +252,7 @@ export const PatientDetails = () => {
               }`}
             >
               <FileText className="w-4 h-4 shrink-0" />
-              Laudos Clínicos
+              {t("details.reports")}
             </button>
 
             <button
@@ -262,7 +264,7 @@ export const PatientDetails = () => {
               }`}
             >
               <Activity className="w-4 h-4 shrink-0" />
-              Diagnósticos Ativos
+              {t("details.conditions")}
               <span className="ml-auto text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded font-black">
                 {conditions.length}
               </span>
@@ -277,7 +279,7 @@ export const PatientDetails = () => {
               }`}
             >
               <Pill className="w-4 h-4 shrink-0" />
-              Prescrições
+              {t("details.medications")}
             </button>
 
             <button
@@ -289,7 +291,7 @@ export const PatientDetails = () => {
               }`}
             >
               <ShieldAlert className="w-4 h-4 shrink-0" />
-              Alergias
+              {t("details.allergies")}
               <span className="ml-auto text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded font-black">
                 {allergies.length}
               </span>
@@ -304,7 +306,7 @@ export const PatientDetails = () => {
               }`}
             >
               <ImageIcon className="w-4 h-4 shrink-0" />
-              PACS DICOM
+              {t("details.pacs")}
               <span className="ml-auto text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded font-black">
                 {studies.length}
               </span>
@@ -319,7 +321,7 @@ export const PatientDetails = () => {
                 <FolderOpen className="w-5 h-5 text-primary shrink-0" />
                 <div>
                   <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block">
-                    Consulta em Foco
+                    {t("details.activeEncounterFocus")}
                   </span>
                   <span className="text-sm font-bold text-gray-800">
                     {selectedEncounter.reason_display}
@@ -330,7 +332,7 @@ export const PatientDetails = () => {
                 onClick={() => setActiveTab("encounters")}
                 className="text-xs text-primary hover:underline font-bold shrink-0"
               >
-                Alterar Consulta
+                {t("details.changeEncounter")}
               </button>
             </div>
           )}
@@ -354,9 +356,11 @@ export const PatientDetails = () => {
               ) : (
                 <Card className="py-20 text-center">
                   <AlertTriangle className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                  <h3 className="text-lg font-bold text-gray-800">Nenhum atendimento ativo</h3>
+                  <h3 className="text-lg font-bold text-gray-800">
+                    {t("details.noActiveEncounter")}
+                  </h3>
                   <p className="text-sm text-muted">
-                    Por favor, selecione ou registre um atendimento na aba "Atendimentos".
+                    {t("details.selectEncounterDesc")}
                   </p>
                 </Card>
               )
@@ -371,9 +375,11 @@ export const PatientDetails = () => {
               ) : (
                 <Card className="py-20 text-center">
                   <AlertTriangle className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                  <h3 className="text-lg font-bold text-gray-800">Nenhum atendimento ativo</h3>
+                  <h3 className="text-lg font-bold text-gray-800">
+                    {t("details.noActiveEncounter")}
+                  </h3>
                   <p className="text-sm text-muted">
-                    Por favor, selecione ou registre um atendimento na aba "Atendimentos".
+                    {t("details.selectEncounterDesc")}
                   </p>
                 </Card>
               )
@@ -395,9 +401,11 @@ export const PatientDetails = () => {
               ) : (
                 <Card className="py-20 text-center">
                   <AlertTriangle className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                  <h3 className="text-lg font-bold text-gray-800">Nenhum atendimento ativo</h3>
+                  <h3 className="text-lg font-bold text-gray-800">
+                    {t("details.noActiveEncounter")}
+                  </h3>
                   <p className="text-sm text-muted">
-                    Por favor, selecione ou registre um atendimento na aba "Atendimentos".
+                    {t("details.selectEncounterDesc")}
                   </p>
                 </Card>
               )

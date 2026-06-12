@@ -1,0 +1,40 @@
+{
+  "title": "Central de Monitoreo y Telemetría",
+  "subtitle": "Monitoreo de signos vitales organizado por alas y salas protegidas por contraseña de guardia",
+  "alarmsMuted": "Alarmas Silenciadas",
+  "alarmsActive": "Alarma Sonora Activa",
+  "monitoredWing": "Ala Monitoreada",
+  "unlocked": "Desbloqueada",
+  "protected": "Protegida",
+  "lockButton": "Bloquear",
+  "restrictedRoom": "Sala de Acceso Restringido",
+  "restrictedRoomDesc": "Esta ala contiene datos clínicos protegidos (HIPAA/LGPD). Ingrese la contraseña de guardia de {{roomName}} para liberar la telemetría.",
+  "passcodeLabel": "Contraseña de Guardia",
+  "passcodePlaceholder": "Ingrese código de sala...",
+  "unlockButton": "Liberar Monitoreo",
+  "clinicalCouncil": "Consejo Técnico de Enfermería y Medicina Intensiva",
+  "noBeds": "Ninguna cama activa en esta sala de monitoreo.",
+  "years": "años",
+  "criticalBadge": "Crítico",
+  "ecgLead": "ECG - DERIVACIÓN II (DII)",
+  "sensors": {
+    "ecg": "Frec. Cardíaca",
+    "spo2": "Saturación O₂",
+    "temp": "Temperatura"
+  },
+  "simulation": {
+    "title": "Inyectar Simulación Clínica:",
+    "normal": "Simular Ritmo Normal",
+    "bradycardia": "Simular Bradicardia",
+    "tachycardia": "Simular Taquicardia",
+    "cardiacArrest": "Simular Paro Cardíaco"
+  },
+  "noBedSelected": "Ninguna Cama Seleccionada",
+  "noBedSelectedDesc": "Seleccione una cama en la lista lateral para monitorear los signos vitales en tiempo real e inyectar simulaciones clínicas.",
+  "availableBeds": "Camas Disponibles ({{count}})",
+  "toast": {
+    "simulateSuccess": "¡Simulación clínica propagada con éxito!",
+    "simulateError": "Error al propagar simulación clínica.",
+    "unlockError": "Contraseña incorrecta. Verifique la escala de guardia."
+  }
+}

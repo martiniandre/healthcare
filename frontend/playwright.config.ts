@@ -5,17 +5,22 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: false,
   retries: 0,
-  workers: undefined,
+  workers: 2,
   reporter: "html",
   use: {
     baseURL: "http://localhost:5173",
     trace: "on-first-retry",
     screenshot: "only-on-failure",
+    locale: "pt-BR",
+    video: "on",
   },
   projects: [
     {
       name: "chromium",
-      use: { ...devices["Desktop Chrome"] },
+      use: { 
+        ...devices["Desktop Chrome"],
+        locale: "pt-BR",
+      },
     },
   ],
   webServer: {

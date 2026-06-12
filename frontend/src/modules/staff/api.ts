@@ -2,8 +2,12 @@ import { http } from "../../shared/utils/http"
 import type { StaffMember, CreateEmployeePayload, CreateEmployeeResponseDto } from "./types"
 
 export const staffApi = {
-  listEmployees: async (): Promise<StaffMember[]> => {
-    return http.get<StaffMember[]>("/staff/employees")
+  listEmployees: async (search?: string, role?: string): Promise<StaffMember[]> => {
+    const params = new URLSearchParams()
+    if (search) params.append("search", search)
+    if (role && role !== "All") params.append("role", role)
+    const queryString = params.toString()
+    return http.get<StaffMember[]>(`/staff/employees${queryString ? `?${queryString}` : ""}`)
   },
 
   createEmployee: async (payload: CreateEmployeePayload): Promise<CreateEmployeeResponseDto> => {

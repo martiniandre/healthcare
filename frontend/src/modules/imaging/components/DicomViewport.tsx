@@ -1,4 +1,5 @@
 import * as React from "react"
+import { useTranslation } from "react-i18next"
 import { Card } from "../../../shared/components/ui/Card"
 import { DicomToolControls } from "./DicomToolControls"
 import type { ImagingPreset, ImagingTool } from "../hooks/useDicomViewer"
@@ -22,6 +23,8 @@ export const DicomViewport = ({
   onToolChange,
   onPresetChange,
 }: DicomViewportProperties) => {
+  const { t } = useTranslation("imaging")
+
   const getContextualCursorClass = (): string => {
     if (activeTool === "zoom") {
       return "cursor-zoom-in"
@@ -44,7 +47,7 @@ export const DicomViewport = ({
           onMouseUp={onMouseUp}
           onMouseLeave={onMouseUp}
           role="img"
-          aria-label="Visualizador interativo de estudos médicos DICOM do prontuário eletrônico"
+          aria-label={t("details.viewportAriaLabel")}
           className={`block w-full max-w-full ${getContextualCursorClass()}`}
         />
       </div>

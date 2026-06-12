@@ -1,0 +1,40 @@
+{
+  "title": "Central Monitoring & Telemetry",
+  "subtitle": "Vital signs monitoring organized by wings and rooms protected by duty passcode",
+  "alarmsMuted": "Alarms Muted",
+  "alarmsActive": "Active Sound Alarm",
+  "monitoredWing": "Monitored Wing",
+  "unlocked": "Unlocked",
+  "protected": "Protected",
+  "lockButton": "Lock",
+  "restrictedRoom": "Restricted Access Room",
+  "restrictedRoomDesc": "This wing contains protected clinical data (HIPAA/LGPD). Enter the duty scale passcode for {{roomName}} to release telemetry.",
+  "passcodeLabel": "Duty Passcode",
+  "passcodePlaceholder": "Enter room passcode...",
+  "unlockButton": "Release Monitoring",
+  "clinicalCouncil": "Technical Council of Nursing and Intensive Care Medicine",
+  "noBeds": "No active beds in this monitoring room.",
+  "years": "years",
+  "criticalBadge": "Critical",
+  "ecgLead": "ECG - LEAD II (DII)",
+  "sensors": {
+    "ecg": "Heart Rate",
+    "spo2": "O₂ Saturation",
+    "temp": "Temperature"
+  },
+  "simulation": {
+    "title": "Inject Clinical Simulation:",
+    "normal": "Simulate Normal Rhythm",
+    "bradycardia": "Simulate Bradycardia",
+    "tachycardia": "Simulate Tachycardia",
+    "cardiacArrest": "Simulate Cardiac Arrest"
+  },
+  "noBedSelected": "No Bed Selected",
+  "noBedSelectedDesc": "Select a bed in the side list to monitor vital signs in real time and inject clinical simulations.",
+  "availableBeds": "Available Beds ({{count}})",
+  "toast": {
+    "simulateSuccess": "Clinical simulation successfully propagated!",
+    "simulateError": "Failed to propagate clinical simulation.",
+    "unlockError": "Incorrect passcode. Verify the duty scale."
+  }
+}

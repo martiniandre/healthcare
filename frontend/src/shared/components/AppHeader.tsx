@@ -1,9 +1,12 @@
 import { useState, useEffect } from "react"
+import { useTranslation } from "react-i18next"
 import { useAuthStore } from "../store/auth_store"
 import { useLayoutStore } from "../store/layout_store"
 import { Menu, Bell, ShieldCheck, WifiOff } from "lucide-react"
+import { LanguageSwitcher } from "./LanguageSwitcher"
 
 export const AppHeader = () => {
+  const { t } = useTranslation()
   const { role, email } = useAuthStore()
   const toggleMobileSidebar = useLayoutStore((state) => state.toggleMobileSidebar)
   const [isOnline, setIsOnline] = useState(navigator.onLine)
@@ -22,18 +25,10 @@ export const AppHeader = () => {
   }, [])
 
   const translateRole = (userRole: string | null) => {
-    switch (userRole) {
-      case "RoleAdmin":
-        return "Administrador"
-      case "RoleDoctor":
-        return "Médico"
-      case "RoleNurse":
-        return "Enfermeiro"
-      case "RoleReception":
-        return "Recepção"
-      default:
-        return "Profissional"
+    if (!userRole) {
+      return t("header.roles.RoleDefault")
     }
+    return t(`header.roles.${userRole}`, { defaultValue: t("header.roles.RoleDefault") })
   }
 
   return (
@@ -48,11 +43,13 @@ export const AppHeader = () => {
       {!isOnline && (
         <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-50 border border-red-200 text-red-600 text-[10px] font-bold animate-pulse select-none mr-2">
           <WifiOff className="w-3.5 h-3.5 text-red-500" />
-          <span>Sem Conexão</span>
+          <span>{t("header.offlineStatus")}</span>
         </div>
       )}
 
-      <button className="relative p-2 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-50 transition-colors">
+      <LanguageSwitcher />
+
+      <button title={t("header.notificationTooltip")} className="relative p-2 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-50 transition-colors">
         <Bell className="w-4 h-4" />
         <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-primary rounded-full" />
       </button>
@@ -65,7 +62,7 @@ export const AppHeader = () => {
         </div>
         <div className="hidden sm:flex flex-col items-start">
           <span className="text-xs font-semibold text-gray-800 leading-tight">
-            {email || "usuario@hospital.com"}
+            {email || t("header.defaultUserEmail")}
           </span>
           <div className="flex items-center gap-1">
             <ShieldCheck className="w-3 h-3 text-secondary" />

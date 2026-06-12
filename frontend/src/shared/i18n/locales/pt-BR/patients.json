@@ -1,0 +1,218 @@
+{
+  "title": "Pacientes",
+  "subtitle": "Gestão de prontuários e dados clínicos FHIR",
+  "newPatient": "Novo Paciente",
+  "cards": {
+    "total": "Total Cadastrados",
+    "standard": "Padrão de Dados",
+    "integration": "Integração"
+  },
+  "searchPlaceholder": "Buscar por nome, CPF ou telefone...",
+  "filterResults_one": "{{count}} resultado",
+  "filterResults_other": "{{count}} resultados",
+  "loading": "Carregando registros clínicos...",
+  "noResults": "Nenhum resultado encontrado",
+  "noPatients": "Nenhum paciente cadastrado",
+  "noResultsDesc": "Nenhum paciente corresponde a \"{{searchTerm}}\". Tente outro termo.",
+  "noPatientsDesc": "Registre o primeiro paciente para começar a gestão clínica.",
+  "table": {
+    "patient": "Paciente",
+    "document": "CPF / Documento",
+    "birthDate": "Data de Nascimento",
+    "phone": "Telefone",
+    "action": "Ação",
+    "medicalRecord": "Prontuário"
+  },
+  "pagination": {
+    "pageInfo": "Página {{currentPage}} de {{totalPages}} ({{total}} pacientes)",
+    "prev": "Anterior",
+    "next": "Próxima"
+  },
+  "modal": {
+    "title": "Registrar Novo Paciente",
+    "name": "Nome Completo",
+    "namePlaceholder": "Nome Completo do Paciente",
+    "birthDate": "Data de Nascimento",
+    "birthDatePlaceholder": "AAAA-MM-DD",
+    "document": "CPF ou Documento de Identidade",
+    "documentPlaceholder": "123.456.789-00",
+    "phone": "Telefone de Contato",
+    "phonePlaceholder": "(11) 98765-4321",
+    "cancel": "Cancelar",
+    "confirm": "Confirmar Cadastro"
+  },
+  "toast": {
+    "createSuccess": "Paciente cadastrado com sucesso!",
+    "createError": "Falha ao registrar paciente.",
+    "encounterSuccess": "Consulta registrada com sucesso!",
+    "encounterError": "Falha ao registrar consulta.",
+    "observationSuccess": "Sinal vital registrado com sucesso!",
+    "observationError": "Erro ao registrar sinal vital.",
+    "reportSuccess": "Exame laudado com sucesso!",
+    "reportError": "Erro ao laudar exame.",
+    "conditionSuccess": "Diagnóstico registrado com sucesso!",
+    "conditionError": "Erro ao registrar diagnóstico.",
+    "allergySuccess": "Alergia registrada com sucesso!",
+    "allergyError": "Erro ao registrar alergia.",
+    "medicationSuccess": "Prescrição médica adicionada com sucesso!",
+    "medicationError": "Erro ao registrar prescrição."
+  },
+  "details": {
+    "back": "Voltar",
+    "cpf": "CPF",
+    "birth": "Nascimento",
+    "fhirId": "ID FHIR",
+    "loadingDetails": "Carregando ficha clínica...",
+    "clinicalResources": "Recursos Clínicos",
+    "focus": "Focar",
+    "activeEncounterFocus": "Consulta em Foco",
+    "changeEncounter": "Alterar Consulta",
+    "encounters": "Atendimentos",
+    "vitals": "Sinais Vitais",
+    "reports": "Laudos Clínicos",
+    "conditions": "Diagnósticos Ativos",
+    "medications": "Prescrições",
+    "allergies": "Alergias",
+    "pacs": "PACS DICOM",
+    "noActiveEncounter": "Nenhum atendimento ativo",
+    "selectEncounterDesc": "Por favor, selecione ou registre um atendimento na aba \"Atendimentos\".",
+    "allergiesCard": {
+      "title": "Alergias & Intolerâncias Imunológicas (AllergyIntolerance)",
+      "add": "Adicionar Alergia",
+      "empty": "Nenhuma alergia ou intolerância registrada para este paciente",
+      "code": "Código",
+      "allergen": "Alérgeno",
+      "reaction": "Reação Adversa",
+      "status": "Status Clínico",
+      "date": "Data de Registro"
+    },
+    "conditionsCard": {
+      "title": "Diagnósticos Ativos & Comorbidades (Conditions - FHIR)",
+      "add": "Adicionar Diagnóstico",
+      "empty": "Nenhum diagnóstico ativo registrado para este paciente",
+      "code": "Código CID-10",
+      "display": "Descrição Clínico-Científica",
+      "status": "Status Clínico",
+      "date": "Data de Registro"
+    },
+    "medicationsCard": {
+      "title": "Prescrições (MedicationRequest - FHIR)",
+      "add": "Nova Prescrição",
+      "empty": "Nenhuma medicação prescrita para este atendimento",
+      "display": "Medicação",
+      "dosage": "Instrução de Dosagem",
+      "status": "Status",
+      "date": "Data de Prescrição"
+    },
+    "reportsCard": {
+      "title": "Laudos Clínicos & Conclusões (DiagnosticReport)",
+      "add": "Novo Laudo",
+      "empty": "Nenhum laudo anexado a este atendimento",
+      "display": "Exame / Laudo",
+      "conclusion": "Conclusão Clínica",
+      "status": "Status",
+      "date": "Data do Laudo"
+    },
+    "encountersCard": {
+      "title": "Histórico de Consultas (Encounters)",
+      "add": "Nova Consulta",
+      "empty": "Nenhum atendimento registrado",
+      "reason": "Motivo da Consulta",
+      "status": "Status",
+      "date": "Data do Registro",
+      "action": "Ação"
+    },
+    "pacsCard": {
+      "title": "Estudos de Imagem (PACS)",
+      "empty": "Nenhum estudo DICOM anexado",
+      "display": "Descrição do Exame",
+      "modality": "Modalidade",
+      "uid": "Study UID",
+      "date": "Data de Entrada",
+      "action": "Abrir PACS"
+    },
+    "vitalsCard": {
+      "title": "Sinais Vitais (Observations)",
+      "add": "Adicionar Sinal",
+      "empty": "Nenhuma medição registrada para esta consulta",
+      "display": "Métrica de Aferição",
+      "code": "Código LOINC",
+      "value": "Valor Clínico",
+      "date": "Data da Aferição"
+    }
+  },
+  "modals": {
+    "allergy": {
+      "title": "Registrar Alergia",
+      "code": "Código do Alérgeno",
+      "codePlaceholder": "Ex: 300916003, 716185002",
+      "display": "Descrição do Alérgeno",
+      "displayPlaceholder": "Ex: Alergia a Penicilina, Alergia a Amendoim",
+      "reaction": "Reação Adversa Relatada",
+      "reactionPlaceholder": "Ex: Urticária severa, Choque anafilático",
+      "confirm": "Registrar Alergia"
+    },
+    "condition": {
+      "title": "Registrar Comorbidade",
+      "code": "Código CID-10",
+      "codePlaceholder": "Ex: I10, E11.9, J45",
+      "display": "Descrição do Diagnóstico",
+      "displayPlaceholder": "Ex: Hipertensão essencial, Diabetes mellitus tipo 2",
+      "confirm": "Registrar Diagnóstico"
+    },
+    "encounter": {
+      "title": "Registrar Nova Consulta",
+      "reason": "Motivo da Consulta",
+      "reasonPlaceholder": "Ex: Consulta de rotina cardiologia, Check-up anual",
+      "confirm": "Confirmar Consulta"
+    },
+    "medication": {
+      "title": "Prescrever Medicamento",
+      "name": "Nome da Medicação / Droga",
+      "namePlaceholder": "Ex: Amoxicilina 500mg, Losartana Potássica 50mg",
+      "dosage": "Instrução de Dosagem",
+      "dosagePlaceholder": "Ex: Tomar 1 comprimido via oral de 8 em 8 horas por 7 dias",
+      "confirm": "Prescrever"
+    },
+    "observation": {
+      "title": "Registrar Sinais Vitais",
+      "selectMetric": "Selecione a Métrica",
+      "heartRate": "Frequência Cardíaca (bpm)",
+      "temperature": "Temperatura Corporal (°C)",
+      "bloodPressure": "Pressão Arterial Sistólica (mmHg)",
+      "value": "Valor Mensurado",
+      "valuePlaceholder": "Ex: 72, 36.5, 120",
+      "confirm": "Registrar Sinal"
+    },
+    "report": {
+      "title": "Registrar Laudo Clínico",
+      "exam": "Identificação do Exame",
+      "examPlaceholder": "Ex: Hemograma Completo, Radiografia de Tórax PA",
+      "conclusion": "Conclusão e Diagnóstico do Laudo",
+      "conclusionPlaceholder": "Descreva as conclusões e observações clínicas do exame...",
+      "confirm": "Salvar Laudo"
+    }
+  },
+  "validation": {
+    "fullNameMin": "O nome deve ter no mínimo 3 caracteres",
+    "birthDateReq": "Data de nascimento obrigatória",
+    "birthDatePast": "A data de nascimento deve ser no passado",
+    "documentMin": "CPF deve ter no mínimo 11 caracteres",
+    "documentInvalid": "CPF inválido",
+    "phoneFormat": "Formato de telefone inválido. Ex: (11) 98765-4321",
+    "reasonMin": "O motivo deve ter no mínimo 3 caracteres",
+    "loincReq": "Selecione o sinal vital",
+    "valueReq": "Insira um valor numérico válido",
+    "rangeError": "Valor fora do intervalo aceitável (FC: 0-300, Temp: 30-45, PA: 0-300)",
+    "reportTitleMin": "O título do laudo deve ter no mínimo 3 caracteres",
+    "conclusionMin": "A conclusão deve ter no mínimo 5 caracteres",
+    "icdCodeMin": "O código CID-10 deve ter no mínimo 3 caracteres",
+    "icdFormat": "Formato CID-10 inválido. Ex: I10, E11.9",
+    "icdDisplayMin": "A descrição do diagnóstico deve ter no mínimo 3 caracteres",
+    "allergenCodeMin": "O código do alérgeno deve ter no mínimo 3 caracteres",
+    "allergenDisplayMin": "A descrição do alérgeno deve ter no mínimo 3 caracteres",
+    "reactionMin": "A reação relatada deve ter no mínimo 3 caracteres",
+    "medicationMin": "O nome da medicação deve ter no mínimo 3 caracteres",
+    "dosageMin": "A instrução de dosagem deve ter no mínimo 3 caracteres"
+  }
+}

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react"
 import { useQueryClient } from "@tanstack/react-query"
+import { useTranslation } from "react-i18next"
 import { Sparkles } from "lucide-react"
 import { FileUploader } from "./components/FileUploader"
 import { AnalysisCard } from "./components/AnalysisCard"
@@ -15,12 +16,14 @@ import { toast } from "../../shared/store/toast_store"
 import type { ExamAnalysis } from "./types"
 
 export const ExamAnalyzer = () => {
+  const { t } = useTranslation()
   const [selectedAnalysisID, setSelectedAnalysisID] = useState<string | null>(null)
   const [uploadPercentageValue, setUploadPercentageValue] = useState<number | null>(null)
 
   const queryClient = useQueryClient()
 
-  const { data: analysesHistory = [], isLoading: isHistoryLoading } = useExamAnalysesQuery()
+  const { data: rawAnalysesHistory = [], isLoading: isHistoryLoading } = useExamAnalysesQuery()
+  const analysesHistory = rawAnalysesHistory || []
   const uploadExamMutation = useUploadExamMutation()
   const deleteAnalysisMutation = useDeleteAnalysisMutation()
 
@@ -48,11 +51,11 @@ export const ExamAnalyzer = () => {
         polledAnalysisDetails.status === "failed" ||
         polledAnalysisDetails.status === "insufficient_data"
       ) {
-        toast.info(`Análise do exame ${polledAnalysisDetails.file_name} concluída.`)
+        toast.info(t("examAnalyzer.toast.analysisCompleted", { fileName: polledAnalysisDetails.file_name }))
         queryClient.invalidateQueries({ queryKey: examAnalyzerKeys.all })
       }
     }
-  }, [polledAnalysisDetails, queryClient])
+  }, [polledAnalysisDetails, queryClient, t])
 
   const handleFileUpload = async (file: File, consent: boolean, anonymize: boolean) => {
     setUploadPercentageValue(0)
@@ -66,10 +69,10 @@ export const ExamAnalyzer = () => {
         },
       })
       
-      toast.success("Exame enviado com sucesso! Iniciando análise...")
+      toast.success(t("examAnalyzer.toast.uploadSuccess"))
       setSelectedAnalysisID(createdRecord.id)
     } catch {
-      toast.error("Falha ao submeter exame para análise.")
+      toast.error(t("examAnalyzer.toast.uploadError"))
     } finally {
       setUploadPercentageValue(null)
     }
@@ -82,12 +85,12 @@ export const ExamAnalyzer = () => {
   const handleDeleteAnalysis = async (id: string) => {
     try {
       await deleteAnalysisMutation.mutateAsync(id)
-      toast.success("Análise excluída com sucesso.")
+      toast.success(t("examAnalyzer.toast.deleteSuccess"))
       if (selectedAnalysisID === id) {
         setSelectedAnalysisID(null)
       }
     } catch {
-      toast.error("Falha ao excluir análise.")
+      toast.error(t("examAnalyzer.toast.deleteError"))
     }
   }
 
@@ -102,15 +105,15 @@ export const ExamAnalyzer = () => {
         <div>
           <div className="flex items-center gap-2">
             <h2 className="text-xl font-black text-gray-900 tracking-tight leading-none">
-              Medical Exam Analyzer
+              {t("examAnalyzer.title")}
             </h2>
             <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-primary/8 border border-primary/10">
               <Sparkles className="w-3 h-3 text-primary animate-pulse" />
-              <span className="text-[10px] font-bold text-primary">IA Multimodal</span>
+              <span className="text-[10px] font-bold text-primary">{t("examAnalyzer.badge")}</span>
             </div>
           </div>
           <span className="text-xs text-muted mt-1.5 block">
-            Análise clínica assistiva de exames médicos por processamento computacional
+            {t("examAnalyzer.subtitle")}
           </span>
         </div>
       </div>

@@ -77,9 +77,9 @@ func (handler *GRPCHandler) GetEmployee(ctx context.Context, req *pb.GetEmployee
 }
 
 func (handler *GRPCHandler) ListEmployees(ctx context.Context, req *pb.ListEmployeesRequest) (*pb.ListEmployeesResponse, error) {
-	employees, err := handler.service.ListEmployees(ctx)
-	if err != nil {
-		return nil, mapStaffError(err)
+	employees, listError := handler.service.ListEmployees(ctx, "", "")
+	if listError != nil {
+		return nil, mapStaffError(listError)
 	}
 
 	employeeResponses := make([]*pb.GetEmployeeResponse, 0, len(employees))

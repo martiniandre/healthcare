@@ -1,6 +1,15 @@
 import { History, Plus, AlertTriangle, CheckCircle } from "lucide-react"
+import { useTranslation } from "react-i18next"
 import { Card } from "../../../shared/components/ui/Card"
 import { Button } from "../../../shared/components/ui/Button"
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell,
+} from "../../../shared/components/ui/Table"
 
 interface EncounterRepresentation {
   fhir_id: string
@@ -24,40 +33,52 @@ export const EncounterHistory = ({
   onSelect,
   onNew
 }: EncounterHistoryProps) => {
+  const { t } = useTranslation("patients")
+
   return (
     <Card className="flex flex-col gap-5 min-h-[450px]">
       <div className="flex items-center justify-between border-b border-border pb-4">
         <h3 className="font-extrabold text-gray-900 text-md flex items-center gap-2">
           <History className="w-4 h-4 text-primary animate-pulse-glow" />
-          Histórico de Consultas (Encounters)
+          {t("details.encountersCard.title")}
         </h3>
         <Button onClick={onNew} className="px-3 py-2 text-xs">
           <Plus className="w-3.5 h-3.5" />
-          Nova Consulta
+          {t("details.encountersCard.add")}
         </Button>
       </div>
 
       {encounters.length === 0 ? (
         <div className="flex-1 flex flex-col items-center justify-center gap-2 py-16">
           <AlertTriangle className="w-8 h-8 text-gray-300" />
-          <span className="text-xs text-gray-500 font-bold">Nenhum atendimento registrado</span>
+          <span className="text-xs text-gray-500 font-bold">
+            {t("details.encountersCard.empty")}
+          </span>
         </div>
       ) : (
         <div className="overflow-x-auto w-full">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-border bg-gray-50/80">
-                <th className="py-3.5 px-4 text-xs font-black text-gray-400 uppercase tracking-wider">Motivo da Consulta</th>
-                <th className="py-3.5 px-4 text-xs font-black text-gray-400 uppercase tracking-wider">Status</th>
-                <th className="py-3.5 px-4 text-xs font-black text-gray-400 uppercase tracking-wider">Data do Registro</th>
-                <th className="py-3.5 px-4 text-right text-xs font-black text-gray-400 uppercase tracking-wider pr-6">Ação</th>
-              </tr>
-            </thead>
-            <tbody>
+          <Table className="w-full text-left border-collapse">
+            <TableHeader>
+              <TableRow className="border-b border-border bg-gray-50/80">
+                <TableHead className="py-3.5 px-4 text-xs font-black text-gray-400 uppercase tracking-wider">
+                  {t("details.encountersCard.reason")}
+                </TableHead>
+                <TableHead className="py-3.5 px-4 text-xs font-black text-gray-400 uppercase tracking-wider">
+                  {t("details.encountersCard.status")}
+                </TableHead>
+                <TableHead className="py-3.5 px-4 text-xs font-black text-gray-400 uppercase tracking-wider">
+                  {t("details.encountersCard.date")}
+                </TableHead>
+                <TableHead className="py-3.5 px-4 text-right text-xs font-black text-gray-400 uppercase tracking-wider pr-6">
+                  {t("details.encountersCard.action")}
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {encounters.map((encounter) => {
                 const isActive = selectedEncounterId === encounter.fhir_id
                 return (
-                  <tr
+                  <TableRow
                     key={encounter.fhir_id}
                     className={`border-b border-border/60 transition-colors duration-300 ${
                       isActive 
@@ -65,36 +86,36 @@ export const EncounterHistory = ({
                         : "hover:bg-gray-50"
                     }`}
                   >
-                    <td className="py-4 px-4">
+                    <TableCell className="py-4 px-4">
                       <span className="text-sm font-bold text-gray-800 block">
                         {encounter.reason_display}
                       </span>
-                    </td>
-                    <td className="py-4 px-4">
+                    </TableCell>
+                    <TableCell className="py-4 px-4">
                       <span className="text-[10px] bg-gray-100 text-gray-600 px-2.5 py-1 rounded font-bold uppercase tracking-wider">
                         {encounter.status}
                       </span>
-                    </td>
-                    <td className="py-4 px-4">
+                    </TableCell>
+                    <TableCell className="py-4 px-4">
                       <span className="text-xs text-gray-400 font-semibold">
                         {new Date(encounter.created_at).toLocaleString()}
                       </span>
-                    </td>
-                    <td className="py-4 px-4 text-right pr-6">
+                    </TableCell>
+                    <TableCell className="py-4 px-4 text-right pr-6">
                       <Button
                         variantType={isActive ? "primary" : "outline"}
                         onClick={() => onSelect(encounter.fhir_id)}
                         className="px-2.5 py-1 text-[10px] font-bold gap-1"
                       >
                         {isActive && <CheckCircle className="w-3 h-3 text-white" />}
-                        Focar
+                        {t("details.focus")}
                       </Button>
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 )
               })}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
       )}
     </Card>

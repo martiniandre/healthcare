@@ -7,10 +7,10 @@ export const staffQueryKeys = {
   lists: () => [...staffQueryKeys.all, "list"] as const,
 }
 
-export const useStaffListQuery = () => {
+export const useStaffListQuery = (search?: string, role?: string) => {
   return useQuery({
-    queryKey: staffQueryKeys.lists(),
-    queryFn: () => staffApi.listEmployees(),
+    queryKey: [...staffQueryKeys.lists(), { search, role }],
+    queryFn: () => staffApi.listEmployees(search, role),
   })
 }
 

@@ -1,0 +1,40 @@
+{
+  "title": "Central de Monitoramento e Telemetria",
+  "subtitle": "Monitoramento de sinais vitais organizado por alas e salas protegidas por senha de plantão",
+  "alarmsMuted": "Alarmes Silenciados",
+  "alarmsActive": "Alarme Sonoro Ativo",
+  "monitoredWing": "Ala Monitorada",
+  "unlocked": "Desbloqueada",
+  "protected": "Protegida",
+  "lockButton": "Bloquear",
+  "restrictedRoom": "Sala com Acesso Restrito",
+  "restrictedRoomDesc": "Esta ala contém dados clínicos protegidos (HIPAA/LGPD). Digite a senha da escala de plantão da {{roomName}} para liberar a telemetria.",
+  "passcodeLabel": "Senha de Escala",
+  "passcodePlaceholder": "Digite o código da sala...",
+  "unlockButton": "Liberar Monitoramento",
+  "clinicalCouncil": "Conselho Técnico de Enfermagem e Medicina Intensiva",
+  "noBeds": "Nenhum leito ativo nesta sala de monitoramento.",
+  "years": "anos",
+  "criticalBadge": "Crítico",
+  "ecgLead": "ECG - DERIVAÇÃO II (DII)",
+  "sensors": {
+    "ecg": "Freq. Cardíaca",
+    "spo2": "Saturação O₂",
+    "temp": "Temperatura"
+  },
+  "simulation": {
+    "title": "Injetar Simulação Clínica:",
+    "normal": "Simular Ritmo Normal",
+    "bradycardia": "Simular Bradicardia",
+    "tachycardia": "Simular Taquicardia",
+    "cardiacArrest": "Simular Parada Cardíaca"
+  },
+  "noBedSelected": "Nenhum Leito Selecionado",
+  "noBedSelectedDesc": "Selecione um leito na lista lateral para monitorar os sinais vitais em tempo real e injetar simulações clínicas.",
+  "availableBeds": "Leitos Disponíveis ({{count}})",
+  "toast": {
+    "simulateSuccess": "Simulação clínica propagada com sucesso!",
+    "simulateError": "Falha ao propagar simulação clínica.",
+    "unlockError": "Senha de Acesso incorreta. Verifique a escala do plantão."
+  }
+}
