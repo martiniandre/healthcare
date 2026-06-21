@@ -16,17 +16,17 @@ type Room struct {
 }
 
 type Bed struct {
-	ID          uuid.UUID `db:"id"`
-	RoomID      uuid.UUID `db:"room_id"`
-	BedNumber   string    `db:"bed_number"`
-	PatientName string    `db:"patient_name"`
-	Age         int32     `db:"age"`
-	Gender      string    `db:"gender"`
-	Bpm         int32     `db:"bpm"`
-	Spo2        int32     `db:"spo2"`
-	Temperature float64   `db:"temperature"`
-	Status      string    `db:"status"`
-	Condition   string    `db:"condition"`
-	CreatedAt   time.Time `db:"created_at"`
-	UpdatedAt   time.Time `db:"updated_at"`
+	ID          uuid.UUID `db:"id" json:"id"`
+	RoomID      uuid.UUID `db:"room_id" json:"roomId"`
+	BedNumber   string    `db:"bed_number" json:"bedNumber"`
+	PatientName string    `db:"patient_name" json:"patientName"`
+	Age         int32     `db:"age" json:"age"`
+	Gender      string    `db:"gender" json:"gender"`
+	Bpm         int32     `db:"bpm" json:"bpm"`
+	Spo2        int32     `db:"spo2" json:"spo2"`
+	Temperature float64   `db:"temperature" json:"temperature"`
+	Status      string    `db:"status" json:"status"`
+	Condition   string    `db:"condition" json:"condition"`
+	CreatedAt   time.Time `db:"created_at" json:"-"`
+	UpdatedAt   time.Time `db:"updated_at" json:"-"`
 }

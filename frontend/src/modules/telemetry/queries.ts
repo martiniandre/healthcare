@@ -27,7 +27,7 @@ export const useTelemetryBedsQuery = (roomIdValue: string | null, isEnabled: boo
     queryKey: telemetryQueryKeys.beds(roomIdValue || ""),
     queryFn: () => telemetryApi.getBeds(roomIdValue || ""),
     enabled: !!roomIdValue && isEnabled,
-    refetchInterval: 1000,
+    refetchInterval: 3000,
   })
 }
 

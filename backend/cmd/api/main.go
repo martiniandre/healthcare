@@ -82,6 +82,7 @@ func main() {
 	}
 	imagingService := imaging.Register(applicationServer.GRPCServer, databasePool, storageClient, redisClient, appConfig.GCSBucketName)
 	telemetryService := telemetry.Register(applicationServer.GRPCServer, databasePool)
+	telemetrySimulator := telemetry.StartSimulator(mainContext, databasePool)
 	health.Register(applicationServer.GRPCServer, databasePool, redisClient)
 	_, statsHTTPHandler := stats.Register(databasePool, fhirClient)
 	auditLogsService := audit_logs.Register(applicationServer.GRPCServer, databasePool)
@@ -153,6 +154,7 @@ func main() {
 	slog.Info("Shutting down servers gracefully...")
 	examAnalyzerWorker.Stop()
 	imagingWorker.Stop()
+	telemetrySimulator.Stop()
 	applicationServer.GRPCServer.GracefulStop()
 
 	ctxShutdownTimeout, cancelShutdown := context.WithTimeout(context.Background(), 5*time.Second)
