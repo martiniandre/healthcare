@@ -49,6 +49,10 @@ backend/.env.local
 frontend/.env
 frontend/.env.local
 
+# GCP Service Account keys (geradas pelo setup-cloudrun.sh)
+sa-key-*.json
+*-sa-key.json
+
 backend/.gocache/
 frontend/playwright-report/
 frontend/test-results/

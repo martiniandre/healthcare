@@ -16,10 +16,10 @@ export const BedStatus = {
 export type BedStatus = typeof BedStatus[keyof typeof BedStatus]
 
 export const StaffRole = {
-  Doctor: "Médico",
-  Nurse: "Enfermeiro",
-  Receptionist: "Recepção",
-  Admin: "Admin"
+  Doctor: "DOCTOR",
+  Nurse: "NURSE",
+  Receptionist: "RECEPTION",
+  Admin: "ADMIN"
 } as const
 
 export type StaffRole = typeof StaffRole[keyof typeof StaffRole]
@@ -35,6 +35,10 @@ export interface AuthResponseDto {
   userId: string
   role: string
   email: string
+  fullName?: string
+  isActive?: boolean
+  createdAt?: string
+  updatedAt?: string
 }
 
 export const EncounterStatus = {

@@ -22,6 +22,7 @@ type Config struct {
 	GCPDatasetID  string
 	GCPFHIRStore  string
 	GCPDICOMStore string
+	GCPVertexModel string
 	GCSBucketName string
 }
 
@@ -33,18 +34,19 @@ func Load() (*Config, error) {
 
 	cfg := &Config{
 		AppPort:       getEnv("APP_PORT", "50051"),
-		HTTPPort:      getEnv("HTTP_PORT", "8080"),
+		HTTPPort:      getEnvAny("PORT", "HTTP_PORT", "8080"),
 		AppEnv:        getEnv("APP_ENV", "development"),
 		DBUrl:         getEnv("DB_URL", ""),
 		RedisUrl:      getEnv("REDIS_URL", "localhost:6379"),
 		SentryDSN:     getEnv("SENTRY_DSN", ""),
 		JWTSecret:     getEnv("JWT_SECRET", ""),
-		GCPProjectID:  getEnv("GCP_PROJECT_ID", ""),
-		GCPLocationID: getEnv("GCP_LOCATION_ID", "us-central1"),
-		GCPDatasetID:  getEnv("GCP_DATASET_ID", ""),
-		GCPFHIRStore:  getEnv("GCP_FHIR_STORE_ID", ""),
-		GCPDICOMStore: getEnv("GCP_DICOM_STORE_ID", "default-dicom"),
-		GCSBucketName: getEnv("GCS_BUCKET_NAME", "default-bucket"),
+		GCPProjectID:   getEnv("GCP_PROJECT_ID", ""),
+		GCPLocationID:  getEnv("GCP_LOCATION_ID", "us-central1"),
+		GCPDatasetID:   getEnv("GCP_DATASET_ID", ""),
+		GCPFHIRStore:   getEnv("GCP_FHIR_STORE_ID", ""),
+		GCPDICOMStore:  getEnv("GCP_DICOM_STORE_ID", "default-dicom"),
+		GCPVertexModel: getEnv("GCP_VERTEX_MODEL", "gemini-2.0-flash-001"),
+		GCSBucketName:  getEnv("GCS_BUCKET_NAME", "default-bucket"),
 	}
 
 	if validationErr := cfg.validate(); validationErr != nil {
@@ -80,6 +82,16 @@ func (cfg *Config) validate() error {
 func getEnv(key, fallback string) string {
 	if value, exists := os.LookupEnv(key); exists {
 		return value
+	}
+	return fallback
+}
+
+func getEnvAny(keys ...string) string {
+	fallback := keys[len(keys)-1]
+	for _, key := range keys[:len(keys)-1] {
+		if value, exists := os.LookupEnv(key); exists && value != "" {
+			return value
+		}
 	}
 	return fallback
 }

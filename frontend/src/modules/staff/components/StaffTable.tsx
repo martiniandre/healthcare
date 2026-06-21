@@ -9,6 +9,7 @@ import {
   TableCell,
 } from "../../../shared/components/ui/Table"
 import { Skeleton } from "../../../shared/components/ui/Skeleton"
+import { StaffRole } from "../../../shared/types"
 import type { StaffMember } from "../types"
 
 interface StaffTableProps {
@@ -17,18 +18,29 @@ interface StaffTableProps {
 }
 
 export const StaffTable = ({ isLoading, filteredStaff }: StaffTableProps) => {
+  console.log({ filteredStaff })
   const { t } = useTranslation()
+
+  const getRoleLabel = (role: string) => {
+    switch (role) {
+      case StaffRole.Doctor: return t("staff.table.roles.doctor", "Médico")
+      case StaffRole.Nurse: return t("staff.table.roles.nurse", "Enfermeiro")
+      case StaffRole.Receptionist: return t("staff.table.roles.receptionist", "Recepção")
+      case StaffRole.Admin: return t("staff.table.roles.admin", "Admin")
+      default: return role
+    }
+  }
 
   return (
     <div className="overflow-x-auto border border-border rounded-xl w-full bg-white">
       <Table className="min-w-[700px] md:min-w-0">
-        <TableHeader className="bg-gray-50/50">
+        <TableHeader>
           <TableRow className="hover:bg-transparent">
-            <TableHead className="font-bold uppercase tracking-wider text-[10px] text-gray-500">{t("staff.table.professional")}</TableHead>
-            <TableHead className="font-bold uppercase tracking-wider text-[10px] text-gray-500">FHIR ID</TableHead>
-            <TableHead className="font-bold uppercase tracking-wider text-[10px] text-gray-500">Document</TableHead>
-            <TableHead className="font-bold uppercase tracking-wider text-[10px] text-gray-500">Birth Date</TableHead>
-            <TableHead className="font-bold uppercase tracking-wider text-[10px] text-gray-500">Phone</TableHead>
+            <TableHead>{t("staff.table.professional")}</TableHead>
+            <TableHead>{t("staff.table.role")}</TableHead>
+            <TableHead>{t("staff.table.license")}</TableHead>
+            <TableHead>{t("staff.table.department")}</TableHead>
+            <TableHead>{t("staff.table.status")}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -52,7 +64,7 @@ export const StaffTable = ({ isLoading, filteredStaff }: StaffTableProps) => {
             ))
           ) : (
             filteredStaff.map((member) => (
-              <TableRow key={member.id} className="hover:bg-gray-50/30 transition-all duration-150 group">
+              <TableRow key={member.id} className="group">
                 <TableCell>
                   <div className="flex items-center gap-3">
                     <div className="bg-primary/8 p-2 rounded-lg border border-primary/10">
@@ -65,7 +77,7 @@ export const StaffTable = ({ isLoading, filteredStaff }: StaffTableProps) => {
                   </div>
                 </TableCell>
                 <TableCell>
-                  <span className="font-semibold text-gray-700 text-xs">{member.role}</span>
+                  <span className="font-semibold text-gray-700 text-xs">{getRoleLabel(member.role)}</span>
                 </TableCell>
                 <TableCell className="font-mono text-xs text-gray-600">
                   {member.license}

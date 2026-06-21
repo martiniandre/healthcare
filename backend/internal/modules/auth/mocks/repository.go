@@ -35,3 +35,16 @@ func (mockRepository *MockRepository) GetUserByEmail(contextParam context.Contex
 	}
 	return user, nil
 }
+
+func (mockRepository *MockRepository) GetUserByID(contextParam context.Context, userID string) (*auth.User, error) {
+	if mockRepository.Err != nil {
+		return nil, mockRepository.Err
+	}
+	for _, user := range mockRepository.Users {
+		if user.ID.String() == userID {
+			return user, nil
+		}
+	}
+	return nil, auth.ErrUserNotFound
+}
+

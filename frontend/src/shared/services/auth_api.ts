@@ -15,6 +15,10 @@ export const authApi = {
     }
   },
 
+  me: async (): Promise<AuthResponseDto> => {
+    return await http.get<AuthResponseDto>("/auth/me")
+  },
+
   logout: async (): Promise<void> => {
     try {
       await http.post("/auth/logout")

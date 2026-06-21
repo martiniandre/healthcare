@@ -1,7 +1,7 @@
 import { FileText, Trash2, Calendar, Database, Search } from "lucide-react"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
-import type { ExamAnalysis } from "../types"
+import { ExamAnalysisStatus, type ExamAnalysis } from "../types"
 
 interface AnalysisHistoryProperties {
   history: ExamAnalysis[]
@@ -24,7 +24,7 @@ export const AnalysisHistory = ({
   const filteredHistory = history.filter((item) => {
     const term = searchTerm.toLowerCase()
     return (
-      item.file_name.toLowerCase().includes(term) ||
+      item.file_name?.toLowerCase().includes(term) ||
       (item.exam_type && item.exam_type.toLowerCase().includes(term))
     )
   })
@@ -77,23 +77,21 @@ export const AnalysisHistory = ({
               <div
                 key={item.id}
                 onClick={() => onSelect(item)}
-                className={`flex items-start justify-between gap-3 p-3 rounded-lg border transition-all duration-200 cursor-pointer select-none group ${
-                  isCurrentlySelected
-                    ? "bg-primary/5 border-primary/30 shadow-sm"
-                    : "bg-white border-border/80 hover:bg-gray-50/50 hover:border-gray-300"
-                }`}
+                className={`flex items-start justify-between gap-3 p-3 rounded-lg border transition-all duration-200 cursor-pointer select-none group ${isCurrentlySelected
+                  ? "bg-primary/5 border-primary/30 shadow-sm"
+                  : "bg-white border-border/80 hover:bg-gray-50/50 hover:border-gray-300"
+                  }`}
               >
                 <div className="min-w-0 flex-1 flex flex-col gap-1 text-left">
-                  <span className={`text-xs font-semibold block truncate group-hover:text-primary transition-colors ${
-                    isCurrentlySelected ? "text-primary" : "text-gray-800"
-                  }`}>
-                    {item.file_name}
+                  <span className={`text-xs font-semibold block truncate group-hover:text-primary transition-colors ${isCurrentlySelected ? "text-primary" : "text-gray-800"
+                    }`}>
+                    {item.file_name || t("history.unknownFile", "Unknown File")}
                   </span>
-                  
+
                   <span className="text-[10px] text-gray-500 font-medium block">
                     {item.exam_type || (
-                      item.status === "pending" || item.status === "processing" 
-                        ? t("history.processing") 
+                      item.status === ExamAnalysisStatus.PENDING || item.status === ExamAnalysisStatus.PROCESSING
+                        ? t("history.processing")
                         : t("history.insufficient")
                     )}
                   </span>
@@ -101,24 +99,23 @@ export const AnalysisHistory = ({
                   <div className="flex items-center gap-3 mt-1 text-[9px] text-muted">
                     <span className="flex items-center gap-1">
                       <Calendar className="w-3 h-3 shrink-0" />
-                      {new Date(item.created_at).toLocaleDateString(i18n.language, {
+                      {item.created_at ? new Date(item.created_at).toLocaleDateString(i18n.language, {
                         day: "2-digit",
                         month: "2-digit",
                         hour: "2-digit",
                         minute: "2-digit",
-                      })}
+                      }) : "—"}
                     </span>
-                    <span className={`font-bold uppercase tracking-wider ${
-                      item.status === "completed" 
-                        ? "text-primary/70"
-                        : item.status === "pending" || item.status === "processing"
-                          ? "text-secondary/70 animate-pulse"
-                          : "text-red-500/70"
-                    }`}>
-                      {item.status === "completed" && t("history.statusCompleted")}
-                      {(item.status === "pending" || item.status === "processing") && t("history.statusQueue")}
-                      {item.status === "insufficient_data" && t("history.statusQuality")}
-                      {item.status === "failed" && t("history.statusFailed")}
+                    <span className={`font-bold uppercase tracking-wider ${item.status === ExamAnalysisStatus.COMPLETED
+                      ? "text-primary/70"
+                      : item.status === ExamAnalysisStatus.PENDING || item.status === ExamAnalysisStatus.PROCESSING
+                        ? "text-secondary/70 animate-pulse"
+                        : "text-red-500/70"
+                      }`}>
+                      {item.status === ExamAnalysisStatus.COMPLETED && t("history.statusCompleted")}
+                      {(item.status === ExamAnalysisStatus.PENDING || item.status === ExamAnalysisStatus.PROCESSING) && t("history.statusQueue")}
+                      {item.status === ExamAnalysisStatus.INSUFFICIENT_DATA && t("history.statusQuality")}
+                      {item.status === ExamAnalysisStatus.FAILED && t("history.statusFailed")}
                     </span>
                   </div>
                 </div>

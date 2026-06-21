@@ -20,6 +20,7 @@ var (
 type Service interface {
 	Register(ctx context.Context, email, password, fullName, role string) (*User, error)
 	Login(ctx context.Context, email, password string) (*User, string, error)
+	Me(ctx context.Context, userID string) (*User, error)
 }
 
 type service struct {
@@ -83,10 +84,14 @@ func (authService *service) Login(ctx context.Context, email, password string) (
 		return nil, "", ErrInvalidPassword
 	}
 
-	token, err := GenerateJWT(user.ID.String(), string(user.Role))
+	token, err := GenerateJWT(user.ID.String(), string(user.Role), user.Email)
 	if err != nil {
 		return nil, "", err
 	}
 
 	return user, token, nil
+}
+
+func (authService *service) Me(ctx context.Context, userID string) (*User, error) {
+	return authService.repo.GetUserByID(ctx, userID)
 }

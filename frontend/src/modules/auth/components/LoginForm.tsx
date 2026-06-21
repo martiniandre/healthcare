@@ -29,11 +29,14 @@ export const LoginForm = () => {
     setIsSubmitting(true)
     setGeneralError(null)
     try {
-      const authResponseData = await authApi.login(formData.email, formData.password)
+      await authApi.login(formData.email, formData.password)
+      const fullSessionData = await authApi.me()
       loginToStore(
-        authResponseData.userId,
-        authResponseData.role,
-        authResponseData.email
+        fullSessionData.userId,
+        fullSessionData.role,
+        fullSessionData.email,
+        fullSessionData.fullName,
+        fullSessionData.isActive,
       )
     } catch (loginRequestError) {
       if (loginRequestError instanceof Error) {

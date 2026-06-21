@@ -52,29 +52,29 @@ export const PatientsTable = ({
       <div className="overflow-x-auto w-full">
         <Table className="min-w-[650px] md:min-w-0">
           <TableHeader>
-            <TableRow className="border-b border-border bg-gray-50/80 hover:bg-gray-50/80">
+            <TableRow>
               <TableHead
-                className="text-[10px] font-bold text-muted uppercase tracking-widest cursor-pointer hover:text-gray-700 transition-colors select-none"
+                className="cursor-pointer hover:text-gray-700 transition-colors select-none"
                 onClick={() => onSort("full_name")}
               >
                 {t("patients.table.patient")}{sortIndicator("full_name")}
               </TableHead>
               <TableHead
-                className="text-[10px] font-bold text-muted uppercase tracking-widest cursor-pointer hover:text-gray-700 transition-colors select-none"
+                className="cursor-pointer hover:text-gray-700 transition-colors select-none"
                 onClick={() => onSort("document_id")}
               >
                 {t("patients.table.document")}{sortIndicator("document_id")}
               </TableHead>
               <TableHead
-                className="text-[10px] font-bold text-muted uppercase tracking-widest cursor-pointer hover:text-gray-700 transition-colors select-none"
+                className="cursor-pointer hover:text-gray-700 transition-colors select-none"
                 onClick={() => onSort("birth_date")}
               >
                 {t("patients.table.birthDate")}{sortIndicator("birth_date")}
               </TableHead>
-              <TableHead className="text-[10px] font-bold text-muted uppercase tracking-widest">
+              <TableHead>
                 {t("patients.table.phone")}
               </TableHead>
-              <TableHead className="text-[10px] font-bold text-muted uppercase tracking-widest text-right">
+              <TableHead className="text-right">
                 {t("patients.table.action")}
               </TableHead>
             </TableRow>
@@ -101,11 +101,10 @@ export const PatientsTable = ({
                 </TableRow>
               ))
             ) : (
-              patients.map((patient, rowIndex) => (
+              patients.map((patient) => (
                 <TableRow
                   key={patient.patient_id}
-                  className={`group transition-colors duration-150 ${rowIndex % 2 === 1 ? "bg-gray-50/30" : ""
-                    }`}
+                  className="group"
                 >
                   <TableCell>
                     <div className="flex items-center gap-3">

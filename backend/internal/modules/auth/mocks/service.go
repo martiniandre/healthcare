@@ -29,3 +29,10 @@ func (mockService *MockService) Login(contextParam context.Context, email, passw
 	}
 	return mockService.User, mockService.Token, nil
 }
+
+func (mockService *MockService) Me(contextParam context.Context, userID string) (*auth.User, error) {
+	if mockService.Err != nil {
+		return nil, mockService.Err
+	}
+	return mockService.User, nil
+}

@@ -24,6 +24,16 @@ export interface MedicalAnalysisResponse {
   disclaimer: string
 }
 
+export const ExamAnalysisStatus = {
+  PENDING: "pending",
+  PROCESSING: "processing",
+  COMPLETED: "completed",
+  FAILED: "failed",
+  INSUFFICIENT_DATA: "insufficient_data"
+} as const
+
+export type ExamAnalysisStatus = typeof ExamAnalysisStatus[keyof typeof ExamAnalysisStatus]
+
 export interface ExamAnalysis {
   id: string
   user_id?: string
@@ -31,8 +41,8 @@ export interface ExamAnalysis {
   exam_type?: string
   file_name: string
   file_path: string
-  status: "pending" | "processing" | "completed" | "failed" | "insufficient_data"
-  analysis_response: MedicalAnalysisResponse | { status: "insufficient_data"; message: string }
+  status: ExamAnalysisStatus
+  analysis_response: MedicalAnalysisResponse | { status: typeof ExamAnalysisStatus.INSUFFICIENT_DATA; message: string }
   consent_given: boolean
   anonymized: boolean
   created_at: string

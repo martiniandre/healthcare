@@ -21,12 +21,13 @@ type Service interface {
 }
 
 type service struct {
-	projectID  string
-	locationID string
-	httpClient *http.Client
+	projectID   string
+	locationID  string
+	vertexModel string
+	httpClient  *http.Client
 }
 
-func NewService(projectID, locationID string) Service {
+func NewService(projectID, locationID, vertexModel string) Service {
 	ctx := context.Background()
 	googleHTTPClient, err := google.DefaultClient(ctx, "https://www.googleapis.com/auth/cloud-platform")
 	if err != nil {
@@ -35,9 +36,10 @@ func NewService(projectID, locationID string) Service {
 	}
 
 	return &service{
-		projectID:  projectID,
-		locationID: locationID,
-		httpClient: googleHTTPClient,
+		projectID:   projectID,
+		locationID:  locationID,
+		vertexModel: vertexModel,
+		httpClient:  googleHTTPClient,
 	}
 }
 
@@ -57,7 +59,7 @@ func (svc *service) AnalyzeExamFile(ctx context.Context, filePath string, fileNa
 		if parseErr == nil {
 			return analysisResponse, "completed", nil
 		}
-		slog.Warn("Vertex AI call failed or returned error, executing heuristic simulator", "error", parseErr)
+		slog.Error("Vertex AI call failed. Falling back to heuristic simulator.", "error", parseErr, "fileName", fileName)
 	}
 
 	simulatedResponse := svc.runHeuristicSimulation(fileName, filePath)
@@ -136,8 +138,8 @@ Target JSON schema:
 	}
 
 	vertexURL := fmt.Sprintf(
-		"https://%s-aiplatform.googleapis.com/v1/projects/%s/locations/%s/publishers/google/models/gemini-1.5-flash:generateContent",
-		svc.locationID, svc.projectID, svc.locationID,
+		"https://%s-aiplatform.googleapis.com/v1/projects/%s/locations/%s/publishers/google/models/%s:generateContent",
+		svc.locationID, svc.projectID, svc.locationID, svc.vertexModel,
 	)
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, vertexURL, bytes.NewReader(jsonBytes))

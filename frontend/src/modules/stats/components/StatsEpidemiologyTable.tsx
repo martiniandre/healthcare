@@ -54,12 +54,12 @@ export const StatsEpidemiologyTable = ({ pathologies }: StatsEpidemiologyTablePr
           {pathologies?.length ? (
             <Table className="min-w-[500px] md:min-w-0">
               <TableHeader>
-                <TableRow className="border-b border-border bg-transparent hover:bg-transparent">
-                  <TableHead className="font-bold uppercase tracking-wider text-gray-500">{translate("stats.epidemiology.table.code")}</TableHead>
-                  <TableHead className="font-bold uppercase tracking-wider text-gray-500">{translate("stats.epidemiology.table.description")}</TableHead>
-                  <TableHead className="font-bold uppercase tracking-wider text-gray-500">{translate("stats.epidemiology.table.category")}</TableHead>
-                  <TableHead className="font-bold uppercase tracking-wider text-gray-500">{translate("stats.epidemiology.table.activeCases")}</TableHead>
-                  <TableHead className="text-right font-bold uppercase tracking-wider text-gray-500">{translate("stats.epidemiology.table.trend")}</TableHead>
+                <TableRow>
+                  <TableHead>{translate("stats.epidemiology.table.code")}</TableHead>
+                  <TableHead>{translate("stats.epidemiology.table.description")}</TableHead>
+                  <TableHead>{translate("stats.epidemiology.table.category")}</TableHead>
+                  <TableHead>{translate("stats.epidemiology.table.activeCases")}</TableHead>
+                  <TableHead className="text-right">{translate("stats.epidemiology.table.trend")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody className="text-gray-700 font-medium">
@@ -73,7 +73,7 @@ export const StatsEpidemiologyTable = ({ pathologies }: StatsEpidemiologyTablePr
                     : translate(`stats.categories.${pathologyItem.categoryKey}`)
 
                   return (
-                    <TableRow key={pathologyItem.code} className="hover:bg-gray-50/50">
+                    <TableRow key={pathologyItem.code}>
                       <TableCell className="font-mono font-bold text-primary">{pathologyItem.code}</TableCell>
                       <TableCell>{translatedDescription}</TableCell>
                       <TableCell>{translatedCategory}</TableCell>

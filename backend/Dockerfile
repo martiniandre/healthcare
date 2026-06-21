@@ -23,6 +23,6 @@ COPY --from=builder /app/healthcare-api /app/healthcare-api
 
 USER appuser
 
-EXPOSE 50051 8080
+EXPOSE 8080
 
 CMD ["/app/healthcare-api"]

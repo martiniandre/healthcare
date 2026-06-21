@@ -84,7 +84,7 @@ func main() {
 	health.Register(applicationServer.GRPCServer, databasePool, redisClient)
 	_, statsHTTPHandler := stats.Register(databasePool, fhirClient)
 
-	examAnalyzerRepo, examAnalyzerSvc, examAnalyzerWorker := exam_analyzer.Register(databasePool, appConfig.GCPProjectID, appConfig.GCPLocationID)
+	examAnalyzerRepo, examAnalyzerSvc, examAnalyzerWorker := exam_analyzer.Register(databasePool, appConfig.GCPProjectID, appConfig.GCPLocationID, appConfig.GCPVertexModel)
 	go examAnalyzerWorker.Start(mainContext)
 
 	imagingWorker := imaging.NewWorker(imaging.NewRepository(databasePool), redisClient, fhirClient)

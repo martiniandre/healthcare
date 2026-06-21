@@ -12,27 +12,34 @@ interface FileUploaderProperties {
 
 export const FileUploader = ({ onUpload, isPending, uploadProgress }: FileUploaderProperties) => {
   const { t } = useTranslation("examAnalyzer")
-  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [uploaderState, setUploaderState] = useState<{
+    file: File | null
+    consentChecked: boolean
+    anonymizeChecked: boolean
+    error: string | null
+  }>({
+    file: null,
+    consentChecked: false,
+    anonymizeChecked: false,
+    error: null,
+  })
   const [isDragActive, setIsDragActive] = useState<boolean>(false)
-  const [consentChecked, setConsentChecked] = useState<boolean>(false)
-  const [anonymizeChecked, setAnonymizeChecked] = useState<boolean>(false)
-  const [errorText, setErrorText] = useState<string | null>(null)
   
   const fileInputReference = useRef<HTMLInputElement>(null)
 
   const validateAndSetFile = (file: File) => {
-    setErrorText(null)
+    setUploaderState((prev) => ({ ...prev, error: null }))
     const fifteenMegaBytes = 15 * 1024 * 1024
     if (file.size > fifteenMegaBytes) {
-      setErrorText(t("uploader.errorLimit"))
+      setUploaderState((prev) => ({ ...prev, error: t("uploader.errorLimit") }))
       return
     }
     const allowedMimeTypes = ["image/jpeg", "image/png", "image/gif", "image/webp", "application/pdf"]
     if (!allowedMimeTypes.includes(file.type)) {
-      setErrorText(t("uploader.errorType"))
+      setUploaderState((prev) => ({ ...prev, error: t("uploader.errorType") }))
       return
     }
-    setSelectedFile(file)
+    setUploaderState((prev) => ({ ...prev, file }))
   }
 
   const handleDragOver = (event: React.DragEvent<HTMLElement>) => {
@@ -62,8 +69,7 @@ export const FileUploader = ({ onUpload, isPending, uploadProgress }: FileUpload
   }
 
   const handleClearFile = () => {
-    setSelectedFile(null)
-    setErrorText(null)
+    setUploaderState((prev) => ({ ...prev, file: null, error: null }))
     if (fileInputReference.current) {
       fileInputReference.current.value = ""
     }
@@ -71,8 +77,8 @@ export const FileUploader = ({ onUpload, isPending, uploadProgress }: FileUpload
 
   const handleFormSubmit = (event: React.FormEvent) => {
     event.preventDefault()
-    if (selectedFile && consentChecked) {
-      onUpload(selectedFile, consentChecked, anonymizeChecked)
+    if (uploaderState.file && uploaderState.consentChecked) {
+      onUpload(uploaderState.file, uploaderState.consentChecked, uploaderState.anonymizeChecked)
     }
   }
 
@@ -118,22 +124,22 @@ export const FileUploader = ({ onUpload, isPending, uploadProgress }: FileUpload
           </div>
         </label>
 
-        {errorText && (
+        {uploaderState.error && (
           <div className="text-xs font-semibold text-red-500 bg-red-50 border border-red-200 rounded-lg p-3 text-center">
-            {errorText}
+            {uploaderState.error}
           </div>
         )}
 
-        {selectedFile && (
+        {uploaderState.file && (
           <div className="flex items-center justify-between p-3.5 bg-gray-50 border border-border/80 rounded-lg animate-fade-in">
             <div className="flex items-center gap-3 min-w-0">
               <FileText className="w-5 h-5 text-primary shrink-0" />
               <div className="min-w-0">
                 <span className="text-xs font-semibold text-gray-800 block truncate">
-                  {selectedFile.name}
+                  {uploaderState.file.name}
                 </span>
                 <span className="text-[10px] text-muted block mt-0.5">
-                  {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB
+                  {(uploaderState.file.size / (1024 * 1024)).toFixed(2)} MB
                 </span>
               </div>
             </div>
@@ -151,12 +157,12 @@ export const FileUploader = ({ onUpload, isPending, uploadProgress }: FileUpload
           <label className="flex items-start gap-3 cursor-pointer select-none group">
             <input
               type="checkbox"
-              checked={consentChecked}
-              onChange={(event) => setConsentChecked(event.target.checked)}
+              checked={uploaderState.consentChecked}
+              onChange={(event) => setUploaderState((prev) => ({ ...prev, consentChecked: event.target.checked }))}
               className="sr-only"
             />
             <div className="mt-0.5 text-primary">
-              {consentChecked ? (
+              {uploaderState.consentChecked ? (
                 <CheckSquare className="w-4.5 h-4.5 group-hover:scale-105 transition-transform" />
               ) : (
                 <Square className="w-4.5 h-4.5 text-gray-400 group-hover:scale-105 transition-transform" />
@@ -175,12 +181,12 @@ export const FileUploader = ({ onUpload, isPending, uploadProgress }: FileUpload
           <label className="flex items-start gap-3 cursor-pointer select-none group">
             <input
               type="checkbox"
-              checked={anonymizeChecked}
-              onChange={(event) => setAnonymizeChecked(event.target.checked)}
+              checked={uploaderState.anonymizeChecked}
+              onChange={(event) => setUploaderState((prev) => ({ ...prev, anonymizeChecked: event.target.checked }))}
               className="sr-only"
             />
             <div className="mt-0.5 text-secondary">
-              {anonymizeChecked ? (
+              {uploaderState.anonymizeChecked ? (
                 <CheckSquare className="w-4.5 h-4.5 group-hover:scale-105 transition-transform" />
               ) : (
                 <Square className="w-4.5 h-4.5 text-gray-400 group-hover:scale-105 transition-transform" />
@@ -214,7 +220,7 @@ export const FileUploader = ({ onUpload, isPending, uploadProgress }: FileUpload
 
         <Button
           type="submit"
-          disabled={!selectedFile || !consentChecked || isPending}
+          disabled={!uploaderState.file || !uploaderState.consentChecked || isPending}
           className="w-full py-2.5 mt-2 font-bold"
         >
           {isPending ? t("uploader.processing") : t("uploader.submit")}

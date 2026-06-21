@@ -1,7 +1,7 @@
 import { useState, useRef } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { useTranslation } from "react-i18next"
-import { ArrowLeft, UploadCloud } from "lucide-react"
+import { ArrowLeft, UploadCloud, Image as ImageIcon } from "lucide-react"
 import { Button } from "../../shared/components/ui/Button"
 import { DicomViewport } from "./components/DicomViewport"
 import { ImagingStudyDetails } from "./components/ImagingStudyDetails"
@@ -15,8 +15,10 @@ export const ImagingWorkspace = () => {
   const { t } = useTranslation()
   const { studyId = "" } = useParams<{ studyId: string }>()
   const navigate = useNavigate()
-  const [uploadPercentage, setUploadPercentage] = useState<number | null>(null)
-  const [uploadStatus, setUploadStatus] = useState<string | null>(null)
+  const [uploadState, setUploadState] = useState<{
+    percentage: number | null
+    status: string | null
+  }>({ percentage: null, status: null })
   const fileInputReference = useRef<HTMLInputElement>(null)
 
   const { data: study, isLoading: isStudyLoading } = useImagingStudyQuery(studyId)
@@ -33,10 +35,9 @@ export const ImagingWorkspace = () => {
       return
     }
 
-    setUploadPercentage(0)
-    setUploadStatus(t("imaging.uploadStatus.initial"))
+    setUploadState({ percentage: 0, status: t("imaging.uploadStatus.initial") })
     await waitForUploadFrame(300)
-    setUploadPercentage(30)
+    setUploadState((prev) => ({ ...prev, percentage: 30 }))
 
     try {
       await uploadImagingStudyMutation.mutateAsync({
@@ -46,20 +47,35 @@ export const ImagingWorkspace = () => {
         dicomBlob: selectedFile,
       })
 
-      setUploadPercentage(100)
-      setUploadStatus(t("imaging.uploadStatus.grpcCompleted"))
+      setUploadState({ percentage: 100, status: t("imaging.uploadStatus.grpcCompleted") })
       await waitForUploadFrame(500)
       toast.success(t("imaging.toast.uploadSuccess"))
       window.alert(t("imaging.alert.uploadSuccess"))
     } catch {
       toast.error(t("imaging.toast.uploadError"))
     } finally {
-      setUploadPercentage(null)
-      setUploadStatus(null)
+      setUploadState({ percentage: null, status: null })
       if (fileInputReference.current) {
         fileInputReference.current.value = ""
       }
     }
+  }
+
+  if (!studyId) {
+    return (
+      <div className="flex-1 p-8 flex flex-col items-center justify-center text-center">
+        <div className="bg-white p-8 rounded-2xl border border-border shadow-sm max-w-md w-full">
+          <ImageIcon className="w-12 h-12 text-primary/40 mx-auto mb-4" />
+          <h2 className="text-xl font-bold text-gray-900 mb-2">PACS Viewer</h2>
+          <p className="text-sm text-muted mb-6">
+            Please select a patient from the patients list, and then select an imaging study to view it in the PACS viewer.
+          </p>
+          <Button variantType="primary" onClick={() => navigate("/")}>
+            Go to Patients
+          </Button>
+        </div>
+      </div>
+    )
   }
 
   if (isStudyLoading || !study) {
@@ -99,7 +115,7 @@ export const ImagingWorkspace = () => {
           <Button
             variantType="outline"
             onClick={handleButtonClick}
-            disabled={uploadImagingStudyMutation.isPending || uploadPercentage !== null}
+            disabled={uploadImagingStudyMutation.isPending || uploadState.percentage !== null}
             className="px-3.5 gap-2 border-primary/20 text-primary hover:bg-primary/5"
           >
             <UploadCloud className="w-4 h-4" />
@@ -108,8 +124,8 @@ export const ImagingWorkspace = () => {
         </div>
       </div>
 
-      {uploadPercentage !== null && uploadStatus && (
-        <ImagingUploadProgress percentage={uploadPercentage} status={uploadStatus} />
+      {uploadState.percentage !== null && uploadState.status && (
+        <ImagingUploadProgress percentage={uploadState.percentage} status={uploadState.status} />
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">

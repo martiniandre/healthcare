@@ -1,38 +1,26 @@
-import { useState } from "react"
+import { useState, Suspense, lazy } from "react"
 import { useParams, useNavigate, useSearchParams } from "react-router-dom"
 import { useTranslation } from "react-i18next"
 import {
   usePatientQuery,
   useEncountersQuery,
-  useCreateEncounterMutation,
-  useObservationsQuery,
-  useCreateObservationMutation,
-  useDiagnosticReportsQuery,
-  useCreateDiagnosticReportMutation,
   usePatientConditionsQuery,
-  useCreateConditionMutation,
   usePatientAllergiesQuery,
-  useCreateAllergyMutation,
-  useMedicationsQuery,
-  useCreateMedicationMutation
 } from "./queries"
-import { toast } from "../../shared/store/toast_store"
 import { useImagingStudiesQuery } from "../imaging/queries"
 import { PatientHeader } from "./components/PatientHeader"
-import { EncounterHistory } from "./components/EncounterHistory"
-import { VitalSigns } from "./components/VitalSigns"
-import { ClinicalReports } from "./components/ClinicalReports"
+
+const EncounterHistory = lazy(() => import("./components/EncounterHistory"))
+const VitalSigns = lazy(() => import("./components/VitalSigns"))
+const ClinicalReports = lazy(() => import("./components/ClinicalReports"))
+const ClinicalConditions = lazy(() => import("./components/ClinicalConditions"))
+const ClinicalAllergies = lazy(() => import("./components/ClinicalAllergies"))
+const ClinicalMedications = lazy(() => import("./components/ClinicalMedications"))
+
 import { PACSStudies } from "./components/PACSStudies"
-import { ClinicalConditions } from "./components/ClinicalConditions"
-import { ClinicalAllergies } from "./components/ClinicalAllergies"
-import { ClinicalMedications } from "./components/ClinicalMedications"
-import { EncounterModal } from "./components/modals/EncounterModal"
-import { ObservationModal } from "./components/modals/ObservationModal"
-import { ReportModal } from "./components/modals/ReportModal"
-import { ConditionModal } from "./components/modals/ConditionModal"
-import { AllergyModal } from "./components/modals/AllergyModal"
-import { MedicationModal } from "./components/modals/MedicationModal"
+import { ExamAnalyzerModal } from "./components/modals/ExamAnalyzerModal"
 import { Card } from "../../shared/components/ui/Card"
+import { Button } from "../../shared/components/ui/Button"
 import { 
   History, 
   Heart, 
@@ -42,7 +30,9 @@ import {
   FolderOpen,
   Activity,
   ShieldAlert,
-  Pill
+  Pill,
+  Sparkles,
+  Loader2
 } from "lucide-react"
 
 export const PatientDetails = () => {
@@ -57,146 +47,18 @@ export const PatientDetails = () => {
   }
   const [selectedEncounterId, setSelectedEncounterId] = useState<string | null>(null)
 
-  const [isEncounterModalOpen, setIsEncounterModalOpen] = useState(false)
-  const [isObservationModalOpen, setIsObservationModalOpen] = useState(false)
-  const [isReportModalOpen, setIsReportModalOpen] = useState(false)
-  const [isConditionModalOpen, setIsConditionModalOpen] = useState(false)
-  const [isAllergyModalOpen, setIsAllergyModalOpen] = useState(false)
-  const [isMedicationModalOpen, setIsMedicationModalOpen] = useState(false)
+  const [isExamModalOpen, setIsExamModalOpen] = useState(false)
 
   const { data: patient, isLoading: isPatientLoading } = usePatientQuery(id)
   const { data: encounters = [] } = useEncountersQuery(id)
   
   const activeEncounterId = selectedEncounterId || (encounters.length > 0 ? encounters[encounters.length - 1].fhir_id : null)
 
-  const { data: observations = [] } = useObservationsQuery(activeEncounterId || "")
-  const { data: reports = [] } = useDiagnosticReportsQuery(activeEncounterId || "")
-  const { data: studies = [] } = useImagingStudiesQuery(id)
   const { data: conditions = [] } = usePatientConditionsQuery(id)
   const { data: allergies = [] } = usePatientAllergiesQuery(id)
-  const { data: medications = [] } = useMedicationsQuery(activeEncounterId || "")
-
-  const createEncounterMutation = useCreateEncounterMutation()
-  const createObservationMutation = useCreateObservationMutation()
-  const createReportMutation = useCreateDiagnosticReportMutation()
-  const createConditionMutation = useCreateConditionMutation()
-  const createAllergyMutation = useCreateAllergyMutation()
-  const createMedicationMutation = useCreateMedicationMutation()
+  const { data: studies = [] } = useImagingStudiesQuery(id)
 
   const selectedEncounter = encounters.find((encounterItem) => encounterItem.fhir_id === activeEncounterId) || null
-
-  const handleCreateEncounter = async (formData: { reasonDisplay: string }) => {
-    try {
-      const newEncounter = await createEncounterMutation.mutateAsync({
-        patient_fhir_id: id,
-        reason_display: formData.reasonDisplay,
-        practitioner_id: "practitioner-1",
-      })
-      setIsEncounterModalOpen(false)
-      setSelectedEncounterId(newEncounter.fhir_id)
-      setActiveTab("encounters")
-      toast.success(t("toast.encounterSuccess"))
-    } catch {
-      toast.error(t("toast.encounterError"))
-    }
-  }
-
-  const handleCreateObservation = async (formData: { loincCode: string; valueQuantity: number }) => {
-    if (!selectedEncounter) {
-      return
-    }
-    
-    let display = "Frequência Cardíaca"
-    let unit = "bpm"
-
-    if (formData.loincCode === "8310-5") {
-      display = "Temperatura Corporal"
-      unit = "°C"
-    } else if (formData.loincCode === "85354-9") {
-      display = "Pressão Arterial Sistólica"
-      unit = "mmHg"
-    }
-
-    try {
-      await createObservationMutation.mutateAsync({
-        encounter_fhir_id: selectedEncounter.fhir_id,
-        patient_fhir_id: id,
-        loinc_code: formData.loincCode,
-        code_display: display,
-        value_quantity: formData.valueQuantity,
-        value_unit: unit,
-      })
-      setIsObservationModalOpen(false)
-      toast.success(t("toast.observationSuccess"))
-    } catch {
-      toast.error(t("toast.observationError"))
-    }
-  }
-
-  const handleCreateReport = async (formData: { reportDisplay: string; conclusion: string }) => {
-    if (!selectedEncounter) {
-      return
-    }
-    try {
-      await createReportMutation.mutateAsync({
-        encounter_fhir_id: selectedEncounter.fhir_id,
-        patient_fhir_id: id,
-        report_display: formData.reportDisplay,
-        conclusion: formData.conclusion,
-      })
-      setIsReportModalOpen(false)
-      toast.success(t("toast.reportSuccess"))
-    } catch {
-      toast.error(t("toast.reportError"))
-    }
-  }
-
-  const handleCreateCondition = async (formData: { icd10Code: string; codeDisplay: string }) => {
-    try {
-      await createConditionMutation.mutateAsync({
-        patient_fhir_id: id,
-        icd10_code: formData.icd10Code,
-        code_display: formData.codeDisplay,
-      })
-      setIsConditionModalOpen(false)
-      toast.success(t("toast.conditionSuccess"))
-    } catch {
-      toast.error(t("toast.conditionError"))
-    }
-  }
-
-  const handleCreateAllergy = async (formData: { allergenCode: string; allergenDisplay: string; reaction: string }) => {
-    try {
-      await createAllergyMutation.mutateAsync({
-        patient_fhir_id: id,
-        allergen_code: formData.allergenCode,
-        allergen_display: formData.allergenDisplay,
-        reaction: formData.reaction,
-      })
-      setIsAllergyModalOpen(false)
-      toast.success(t("toast.allergySuccess"))
-    } catch {
-      toast.error(t("toast.allergyError"))
-    }
-  }
-
-  const handleCreateMedication = async (formData: { medicationDisplay: string; dosageInstruction: string }) => {
-    if (!selectedEncounter) {
-      return
-    }
-    try {
-      await createMedicationMutation.mutateAsync({
-        encounter_fhir_id: selectedEncounter.fhir_id,
-        patient_fhir_id: id,
-        medication_display: formData.medicationDisplay,
-        dosage_instruction: formData.dosageInstruction,
-      })
-      setIsMedicationModalOpen(false)
-      toast.success(t("toast.medicationSuccess"))
-    } catch {
-      toast.error(t("toast.medicationError"))
-    }
-  }
 
   if (isPatientLoading || !patient) {
     return (
@@ -206,9 +68,27 @@ export const PatientDetails = () => {
     )
   }
 
+  const TabFallback = () => (
+    <Card className="flex items-center justify-center min-h-[450px]">
+      <div className="flex flex-col items-center gap-2">
+        <Loader2 className="w-8 h-8 text-primary animate-spin" />
+        <span className="text-sm text-gray-500 font-medium">Carregando componente...</span>
+      </div>
+    </Card>
+  )
+
   return (
     <div className="flex-1 p-4 sm:p-6 md:p-8 flex flex-col gap-4 md:gap-6 max-w-7xl mx-auto w-full">
-      <PatientHeader patient={patient} onBack={() => navigate("/")} />
+      <div className="flex flex-col xl:flex-row xl:items-start justify-between gap-4">
+        <PatientHeader patient={patient} onBack={() => navigate("/")} />
+        <Button 
+          onClick={() => setIsExamModalOpen(true)} 
+          className="gap-2 shrink-0 self-start xl:self-auto bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20 hover:border-primary/40 font-bold"
+        >
+          <Sparkles className="w-4 h-4 text-primary" />
+          Analisar Exame com IA
+        </Button>
+      </div>
 
       <div className="flex flex-col md:flex-row gap-6 items-start mt-2">
         <div className="w-full md:w-64 shrink-0 bg-white border border-border p-4 rounded-xl flex flex-col gap-4">
@@ -338,137 +218,101 @@ export const PatientDetails = () => {
           )}
 
           <div className="flex flex-col gap-6">
-            {activeTab === "encounters" && (
-              <EncounterHistory
-                encounters={encounters}
-                selectedEncounterId={activeEncounterId}
-                onSelect={setSelectedEncounterId}
-                onNew={() => setIsEncounterModalOpen(true)}
-              />
-            )}
-
-            {activeTab === "vitals" && (
-              selectedEncounter ? (
-                <VitalSigns
-                  observations={observations}
-                  onAdd={() => setIsObservationModalOpen(true)}
+            <Suspense fallback={<TabFallback />}>
+              {activeTab === "encounters" && (
+                <EncounterHistory
+                  patientId={id}
+                  selectedEncounterId={activeEncounterId}
+                  onSelect={setSelectedEncounterId}
                 />
-              ) : (
-                <Card className="py-20 text-center">
-                  <AlertTriangle className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                  <h3 className="text-lg font-bold text-gray-800">
-                    {t("details.noActiveEncounter")}
-                  </h3>
-                  <p className="text-sm text-muted">
-                    {t("details.selectEncounterDesc")}
-                  </p>
-                </Card>
-              )
-            )}
+              )}
 
-            {activeTab === "reports" && (
-              selectedEncounter ? (
-                <ClinicalReports
-                  reports={reports}
-                  onAdd={() => setIsReportModalOpen(true)}
+              {activeTab === "vitals" && (
+                selectedEncounter ? (
+                  <VitalSigns
+                    patientId={id}
+                    encounterId={selectedEncounter.fhir_id}
+                  />
+                ) : (
+                  <Card className="py-20 text-center">
+                    <AlertTriangle className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                    <h3 className="text-lg font-bold text-gray-800">
+                      {t("details.noActiveEncounter")}
+                    </h3>
+                    <p className="text-sm text-muted">
+                      {t("details.selectEncounterDesc")}
+                    </p>
+                  </Card>
+                )
+              )}
+
+              {activeTab === "reports" && (
+                selectedEncounter ? (
+                  <ClinicalReports
+                    patientId={id}
+                    encounterId={selectedEncounter.fhir_id}
+                  />
+                ) : (
+                  <Card className="py-20 text-center">
+                    <AlertTriangle className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                    <h3 className="text-lg font-bold text-gray-800">
+                      {t("details.noActiveEncounter")}
+                    </h3>
+                    <p className="text-sm text-muted">
+                      {t("details.selectEncounterDesc")}
+                    </p>
+                  </Card>
+                )
+              )}
+
+              {activeTab === "conditions" && (
+                <ClinicalConditions
+                  patientId={id}
                 />
-              ) : (
-                <Card className="py-20 text-center">
-                  <AlertTriangle className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                  <h3 className="text-lg font-bold text-gray-800">
-                    {t("details.noActiveEncounter")}
-                  </h3>
-                  <p className="text-sm text-muted">
-                    {t("details.selectEncounterDesc")}
-                  </p>
-                </Card>
-              )
-            )}
+              )}
 
-            {activeTab === "conditions" && (
-              <ClinicalConditions
-                conditions={conditions}
-                onAdd={() => setIsConditionModalOpen(true)}
-              />
-            )}
+              {activeTab === "medications" && (
+                selectedEncounter ? (
+                  <ClinicalMedications
+                    patientId={id}
+                    encounterId={selectedEncounter.fhir_id}
+                  />
+                ) : (
+                  <Card className="py-20 text-center">
+                    <AlertTriangle className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                    <h3 className="text-lg font-bold text-gray-800">
+                      {t("details.noActiveEncounter")}
+                    </h3>
+                    <p className="text-sm text-muted">
+                      {t("details.selectEncounterDesc")}
+                    </p>
+                  </Card>
+                )
+              )}
 
-            {activeTab === "medications" && (
-              selectedEncounter ? (
-                <ClinicalMedications
-                  medications={medications}
-                  onAdd={() => setIsMedicationModalOpen(true)}
+              {activeTab === "allergies" && (
+                <ClinicalAllergies
+                  patientId={id}
                 />
-              ) : (
-                <Card className="py-20 text-center">
-                  <AlertTriangle className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                  <h3 className="text-lg font-bold text-gray-800">
-                    {t("details.noActiveEncounter")}
-                  </h3>
-                  <p className="text-sm text-muted">
-                    {t("details.selectEncounterDesc")}
-                  </p>
-                </Card>
-              )
-            )}
+              )}
 
-            {activeTab === "allergies" && (
-              <ClinicalAllergies
-                allergies={allergies}
-                onAdd={() => setIsAllergyModalOpen(true)}
-              />
-            )}
-
-            {activeTab === "pacs" && (
-              <PACSStudies
-                studies={studies}
-                onOpen={(studyId) => navigate(`/imaging/${studyId}`)}
-              />
-            )}
+              {activeTab === "pacs" && (
+                <PACSStudies
+                  studies={studies}
+                  onOpen={(studyId) => navigate(`/imaging/${studyId}`)}
+                />
+              )}
+            </Suspense>
           </div>
         </div>
       </div>
 
-      <EncounterModal
-        isOpen={isEncounterModalOpen}
-        onClose={() => setIsEncounterModalOpen(false)}
-        onSubmit={handleCreateEncounter}
-        isPending={createEncounterMutation.isPending}
-      />
-
-      <ObservationModal
-        isOpen={isObservationModalOpen}
-        onClose={() => setIsObservationModalOpen(false)}
-        onSubmit={handleCreateObservation}
-        isPending={createObservationMutation.isPending}
-      />
-
-      <ReportModal
-        isOpen={isReportModalOpen}
-        onClose={() => setIsReportModalOpen(false)}
-        onSubmit={handleCreateReport}
-        isPending={createReportMutation.isPending}
-      />
-
-      <ConditionModal
-        isOpen={isConditionModalOpen}
-        onClose={() => setIsConditionModalOpen(false)}
-        onSubmit={handleCreateCondition}
-        isPending={createConditionMutation.isPending}
-      />
-
-      <AllergyModal
-        isOpen={isAllergyModalOpen}
-        onClose={() => setIsAllergyModalOpen(false)}
-        onSubmit={handleCreateAllergy}
-        isPending={createAllergyMutation.isPending}
-      />
-
-      <MedicationModal
-        isOpen={isMedicationModalOpen}
-        onClose={() => setIsMedicationModalOpen(false)}
-        onSubmit={handleCreateMedication}
-        isPending={createMedicationMutation.isPending}
+      <ExamAnalyzerModal
+        isOpen={isExamModalOpen}
+        onClose={() => setIsExamModalOpen(false)}
+        patientFhirId={id}
       />
     </div>
   )
 }
+

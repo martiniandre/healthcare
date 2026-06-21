@@ -15,14 +15,18 @@ import {
 import { toast } from "../../shared/store/toast_store"
 import type { ExamAnalysis } from "./types"
 
-export const ExamAnalyzer = () => {
+export interface ExamAnalyzerProps {
+  patientFhirId?: string
+}
+
+export const ExamAnalyzer = ({ patientFhirId }: ExamAnalyzerProps = {}) => {
   const { t } = useTranslation()
   const [selectedAnalysisID, setSelectedAnalysisID] = useState<string | null>(null)
   const [uploadPercentageValue, setUploadPercentageValue] = useState<number | null>(null)
 
   const queryClient = useQueryClient()
 
-  const { data: rawAnalysesHistory = [], isLoading: isHistoryLoading } = useExamAnalysesQuery()
+  const { data: rawAnalysesHistory = [], isLoading: isHistoryLoading } = useExamAnalysesQuery(patientFhirId)
   const analysesHistory = rawAnalysesHistory || []
   const uploadExamMutation = useUploadExamMutation()
   const deleteAnalysisMutation = useDeleteAnalysisMutation()
@@ -39,7 +43,7 @@ export const ExamAnalyzer = () => {
   const { data: polledAnalysisDetails } = useExamAnalysisQuery(
     selectedAnalysisID || "",
     {
-      enabled: shouldPollForUpdates,
+      enabled: !!selectedAnalysisID,
       refetchInterval: shouldPollForUpdates ? 2500 : undefined,
     }
   )
@@ -64,6 +68,7 @@ export const ExamAnalyzer = () => {
         file,
         consent,
         anonymize,
+        patientFhirId,
         onUploadProgress: (percentage) => {
           setUploadPercentageValue(percentage)
         },
@@ -94,10 +99,12 @@ export const ExamAnalyzer = () => {
     }
   }
 
-  const activeAnalysisToRender =
-    shouldPollForUpdates && polledAnalysisDetails
-      ? polledAnalysisDetails
-      : activeRecordInHistory || null
+  const activeAnalysisToRender = (() => {
+    if (polledAnalysisDetails) {
+      return polledAnalysisDetails
+    }
+    return activeRecordInHistory || null
+  })()
 
   return (
     <div className="flex-1 p-4 sm:p-6 md:p-8 flex flex-col gap-6 max-w-7xl mx-auto w-full select-none animate-fade-in">

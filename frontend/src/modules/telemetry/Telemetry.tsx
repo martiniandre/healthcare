@@ -25,8 +25,10 @@ export const Telemetry = () => {
   const [unlockedRoomIds, setUnlockedRoomIds] = useState<string[]>(["room-1"])
   const [selectedBedId, setSelectedBedId] = useState<string | null>(null)
   
-  const [passcodeInput, setPasscodeInput] = useState<string>("")
-  const [passcodeError, setPasscodeError] = useState<string>("")
+  const [passcode, setPasscode] = useState<{
+    input: string
+    error: string
+  }>({ input: "", error: "" })
   const [isMuted, setIsMuted] = useState<boolean>(true)
 
   const { data: rooms = [] } = useTelemetryRoomsQuery()
@@ -210,14 +212,13 @@ export const Telemetry = () => {
     try {
       await unlockRoomMutation.mutateAsync({
         roomIdValue: selectedRoomId,
-        passcodeValue: passcodeInput,
+        passcodeValue: passcode.input,
       })
 
       setUnlockedRoomIds((previousUnlocked) => [...previousUnlocked, selectedRoomId])
-      setPasscodeInput("")
-      setPasscodeError("")
+      setPasscode({ input: "", error: "" })
     } catch {
-      setPasscodeError(t("telemetry.toast.unlockError"))
+      setPasscode((prev) => ({ ...prev, error: t("telemetry.toast.unlockError") }))
     }
   }
 
@@ -227,8 +228,7 @@ export const Telemetry = () => {
 
   const handleSelectRoom = (roomId: string) => {
     setSelectedRoomId(roomId)
-    setPasscodeError("")
-    setPasscodeInput("")
+    setPasscode({ input: "", error: "" })
     setSelectedBedId(null)
   }
 
@@ -250,9 +250,9 @@ export const Telemetry = () => {
       {!isCurrentRoomUnlocked ? (
         <TelemetryRestrictedState 
           activeRoomName={activeRoom?.name}
-          passcodeInput={passcodeInput}
-          setPasscodeInput={setPasscodeInput}
-          passcodeError={passcodeError}
+          passcodeInput={passcode.input}
+          setPasscodeInput={(val) => setPasscode((prev) => ({ ...prev, input: val }))}
+          passcodeError={passcode.error}
           isPending={unlockRoomMutation.isPending}
           handleUnlockRoom={handleUnlockRoom}
         />

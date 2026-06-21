@@ -24,6 +24,7 @@ func NewHTTPHandler(service Service, secureCookies bool) *HTTPHandler {
 func (handler *HTTPHandler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("POST /api/auth/login", handler.HandleLogin)
 	mux.HandleFunc("POST /api/auth/logout", handler.HandleLogout)
+	mux.HandleFunc("GET /api/auth/me", handler.HandleMe)
 }
 
 func (handler *HTTPHandler) HandleLogin(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
@@ -115,3 +116,40 @@ func (handler *HTTPHandler) HandleLogout(httpResponseWriter http.ResponseWriter,
 
 	render.JSON(httpResponseWriter, http.StatusOK, map[string]string{"message": "Logged out successfully"})
 }
+
+func (handler *HTTPHandler) HandleMe(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
+	cookie, cookieError := httpRequest.Cookie("token")
+	if cookieError != nil {
+		render.Error(httpResponseWriter, http.StatusUnauthorized, "Não autenticado.")
+		return
+	}
+
+	claims, jwtValidationError := ValidateJWT(cookie.Value)
+	if jwtValidationError != nil {
+		render.Error(httpResponseWriter, http.StatusUnauthorized, "Sessão expirada.")
+		return
+	}
+
+	userID, userIDOk := claims["user_id"].(string)
+	if !userIDOk || userID == "" {
+		render.Error(httpResponseWriter, http.StatusUnauthorized, "Token inválido.")
+		return
+	}
+
+	user, serviceError := handler.service.Me(httpRequest.Context(), userID)
+	if serviceError != nil {
+		render.Error(httpResponseWriter, http.StatusUnauthorized, "Usuário não encontrado.")
+		return
+	}
+
+	render.JSON(httpResponseWriter, http.StatusOK, map[string]interface{}{
+		"userId":    user.ID.String(),
+		"email":     user.Email,
+		"fullName":  user.FullName,
+		"role":      string(user.Role),
+		"isActive":  user.IsActive,
+		"createdAt": user.CreatedAt,
+		"updatedAt": user.UpdatedAt,
+	})
+}
+

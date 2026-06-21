@@ -14,8 +14,10 @@ export const Patients = () => {
   const [searchParams, setSearchParams] = useSearchParams()
   const [searchTerm, setSearchTerm] = useState("")
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [sortField, setSortField] = useState<SortField>("full_name")
-  const [sortDirection, setSortDirection] = useState<SortDirection>("asc")
+  const [sort, setSort] = useState<{
+    field: SortField
+    direction: SortDirection
+  }>({ field: "full_name", direction: "asc" })
   
   const currentPage = parseInt(searchParams.get("page") || "1", 10)
   const itemsPerPage = 5
@@ -35,19 +37,19 @@ export const Patients = () => {
 
   const { data: patients = [], isLoading } = usePatientsQuery(
     debouncedSearchTerm,
-    sortField,
-    sortDirection,
+    sort.field,
+    sort.direction,
     currentPage,
     itemsPerPage
   )
 
   const handleSortToggle = (field: SortField) => {
-    if (sortField === field) {
-      setSortDirection(sortDirection === "asc" ? "desc" : "asc")
-    } else {
-      setSortField(field)
-      setSortDirection("asc")
-    }
+    setSort((prev) => {
+      if (prev.field === field) {
+        return { field, direction: prev.direction === "asc" ? "desc" : "asc" }
+      }
+      return { field, direction: "asc" }
+    })
     setCurrentPage(1)
   }
 
@@ -80,8 +82,8 @@ export const Patients = () => {
       ) : (
         <PatientsTable
           patients={patients}
-          sortField={sortField}
-          sortDirection={sortDirection}
+          sortField={sort.field}
+          sortDirection={sort.direction}
           onSort={handleSortToggle}
           currentPage={currentPage}
           totalPages={totalPages}

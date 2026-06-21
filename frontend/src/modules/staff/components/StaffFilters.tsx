@@ -31,19 +31,32 @@ export const StaffFilters = ({
       </div>
 
       <div className="flex gap-2 flex-wrap">
-        {["All", StaffRole.Doctor, StaffRole.Nurse, StaffRole.Receptionist, StaffRole.Admin].map((roleOption) => (
-          <button
-            key={roleOption}
-            onClick={() => onFilterChange(roleOption)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 border ${
-              filterRole === roleOption
-                ? "bg-primary/5 text-primary border-primary"
-                : "bg-white text-gray-500 border-border hover:bg-gray-50 hover:text-gray-900"
-            }`}
-          >
-            {roleOption === "All" ? t("staff.filterAll") : roleOption}
-          </button>
-        ))}
+        {["All", StaffRole.Doctor, StaffRole.Nurse, StaffRole.Receptionist, StaffRole.Admin].map((roleOption) => {
+          const getRoleLabel = (role: string) => {
+            switch (role) {
+              case "All": return t("staff.filterAll")
+              case StaffRole.Doctor: return t("staff.table.roles.doctor", "Médico")
+              case StaffRole.Nurse: return t("staff.table.roles.nurse", "Enfermeiro")
+              case StaffRole.Receptionist: return t("staff.table.roles.receptionist", "Recepção")
+              case StaffRole.Admin: return t("staff.table.roles.admin", "Admin")
+              default: return role
+            }
+          }
+
+          return (
+            <button
+              key={roleOption}
+              onClick={() => onFilterChange(roleOption)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 border ${
+                filterRole === roleOption
+                  ? "bg-primary/5 text-primary border-primary"
+                  : "bg-white text-gray-500 border-border hover:bg-gray-50 hover:text-gray-900"
+              }`}
+            >
+              {getRoleLabel(roleOption)}
+            </button>
+          )
+        })}
       </div>
     </div>
   )

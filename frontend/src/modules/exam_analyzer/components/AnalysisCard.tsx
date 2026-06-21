@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next"
 import { AlertTriangle, Clock, ShieldAlert, Sparkles, HelpCircle, Activity } from "lucide-react"
 import { Card } from "../../../shared/components/ui/Card"
-import type { ExamAnalysis, MedicalAnalysisResponse } from "../types"
+import { ExamAnalysisStatus, type ExamAnalysis, type MedicalAnalysisResponse } from "../types"
 
 interface AnalysisCardProperties {
   activeAnalysis: ExamAnalysis | null
@@ -26,7 +26,7 @@ export const AnalysisCard = ({ activeAnalysis }: AnalysisCardProperties) => {
     )
   }
 
-  if (activeAnalysis.status === "pending" || activeAnalysis.status === "processing") {
+  if (activeAnalysis.status === ExamAnalysisStatus.PENDING || activeAnalysis.status === ExamAnalysisStatus.PROCESSING) {
     return (
       <Card glowingType="amethyst" className="flex-1 flex flex-col items-center justify-center p-16 text-center bg-white min-h-[300px] animate-pulse">
         <div className="w-12 h-12 rounded-xl bg-secondary/8 flex items-center justify-center mb-4 animate-spin">
@@ -42,7 +42,7 @@ export const AnalysisCard = ({ activeAnalysis }: AnalysisCardProperties) => {
     )
   }
 
-  if (activeAnalysis.status === "failed") {
+  if (activeAnalysis.status === ExamAnalysisStatus.FAILED) {
     return (
       <Card glowingType="none" className="flex-1 flex flex-col items-center justify-center p-16 text-center bg-white min-h-[300px]">
         <div className="w-12 h-12 rounded-xl bg-red-50 flex items-center justify-center mb-4 border border-red-100">
@@ -58,7 +58,7 @@ export const AnalysisCard = ({ activeAnalysis }: AnalysisCardProperties) => {
     )
   }
 
-  if (activeAnalysis.status === "insufficient_data") {
+  if (activeAnalysis.status === ExamAnalysisStatus.INSUFFICIENT_DATA) {
     const insufficientMessage = (activeAnalysis.analysis_response as { message: string })?.message || 
       t("card.insufficientDefault")
 
@@ -93,6 +93,10 @@ export const AnalysisCard = ({ activeAnalysis }: AnalysisCardProperties) => {
   }
 
   const analysisPayload = activeAnalysis.analysis_response as MedicalAnalysisResponse
+
+  if (!analysisPayload) {
+    return null
+  }
 
   return (
     <div className="flex-1 flex flex-col gap-6 animate-fade-in">
