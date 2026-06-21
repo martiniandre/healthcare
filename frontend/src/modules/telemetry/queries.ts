@@ -22,11 +22,11 @@ export const useUnlockRoomMutation = () => {
   })
 }
 
-export const useTelemetryBedsQuery = (roomIdValue: string) => {
+export const useTelemetryBedsQuery = (roomIdValue: string | null, isEnabled: boolean = true) => {
   return useQuery({
-    queryKey: telemetryQueryKeys.beds(roomIdValue),
-    queryFn: () => telemetryApi.getBeds(roomIdValue),
-    enabled: !!roomIdValue,
+    queryKey: telemetryQueryKeys.beds(roomIdValue || ""),
+    queryFn: () => telemetryApi.getBeds(roomIdValue || ""),
+    enabled: !!roomIdValue && isEnabled,
     refetchInterval: 1000,
   })
 }

@@ -7,12 +7,12 @@ import (
 )
 
 type Room struct {
-	ID          uuid.UUID `db:"id"`
-	Name        string    `db:"name"`
-	Passcode    string    `db:"passcode"`
-	Description string    `db:"description"`
-	CreatedAt   time.Time `db:"created_at"`
-	UpdatedAt   time.Time `db:"updated_at"`
+	ID          uuid.UUID `db:"id" json:"id"`
+	Name        string    `db:"name" json:"name"`
+	Passcode    string    `db:"passcode" json:"-"`
+	Description string    `db:"description" json:"description"`
+	CreatedAt   time.Time `db:"created_at" json:"created_at"`
+	UpdatedAt   time.Time `db:"updated_at" json:"updated_at"`
 }
 
 type Bed struct {

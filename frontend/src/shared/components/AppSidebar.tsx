@@ -2,7 +2,7 @@ import { useNavigate, useLocation } from "react-router-dom"
 import { useTranslation } from "react-i18next"
 import { useAuthStore } from "../store/auth_store"
 import { useLayoutStore } from "../store/layout_store"
-import { Activity, Users, Image as ImageIcon, BarChart3, Settings, LogOut, X, Sparkles } from "lucide-react"
+import { Activity, Users, Image as ImageIcon, BarChart3, Settings, LogOut, X, Sparkles, History } from "lucide-react"
 
 const navigationItems = [
   { key: "patients", icon: Users, path: "/" },
@@ -11,6 +11,7 @@ const navigationItems = [
   { key: "examAnalyzer", icon: Sparkles, path: "/exam-analyzer" },
   { key: "stats", icon: BarChart3, path: "/stats" },
   { key: "staffManagement", icon: Users, path: "/staff" },
+  { key: "auditLogs", icon: History, path: "/audit-logs", adminOnly: true },
   { key: "settings", icon: Settings, path: "/settings", disabled: true },
 ]
 
@@ -18,7 +19,7 @@ export const AppSidebar = () => {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const location = useLocation()
-  const { email, logout } = useAuthStore()
+  const { email, logout, role } = useAuthStore()
   const { isMobileSidebarOpen, closeMobileSidebar } = useLayoutStore()
 
   return (
@@ -61,32 +62,34 @@ export const AppSidebar = () => {
           <span className="text-[9px] font-black text-muted/60 uppercase tracking-[0.15em] px-3 mb-3">
             {t("sidebar.menuHeader")}
           </span>
-          {navigationItems.map((item) => {
-            const isActive = location.pathname === item.path ||
-              (item.path !== "/" && location.pathname.startsWith(item.path))
-            const isHomeActive = item.path === "/" && (
-              location.pathname === "/" || location.pathname.startsWith("/patients")
-            )
-            const isCurrentlyActive = isActive || isHomeActive
+          {navigationItems
+            .filter((item) => !item.adminOnly || role === "ADMIN")
+            .map((item) => {
+              const isActive = location.pathname === item.path ||
+                (item.path !== "/" && location.pathname.startsWith(item.path))
+              const isHomeActive = item.path === "/" && (
+                location.pathname === "/" || location.pathname.startsWith("/patients")
+              )
+              const isCurrentlyActive = isActive || isHomeActive
 
-            return (
-              <button
-                key={item.path}
-                onClick={() => {
-                  if (!item.disabled) {
-                    navigate(item.path)
-                    closeMobileSidebar()
-                  }
-                }}
-                disabled={item.disabled}
-                className={`w-full text-left flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-semibold transition-all duration-200 ${
-                  item.disabled
-                    ? "text-gray-300 cursor-not-allowed"
-                    : isCurrentlyActive
-                      ? "bg-primary/8 text-primary"
-                      : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
-                }`}
-              >
+              return (
+                <button
+                  key={item.path}
+                  onClick={() => {
+                    if (!item.disabled) {
+                      navigate(item.path)
+                      closeMobileSidebar()
+                    }
+                  }}
+                  disabled={item.disabled}
+                  className={`w-full text-left flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-semibold transition-all duration-200 ${
+                    item.disabled
+                      ? "text-gray-300 cursor-not-allowed"
+                      : isCurrentlyActive
+                        ? "bg-primary/8 text-primary"
+                        : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
+                  }`}
+                >
                 <item.icon className="w-[18px] h-[18px] shrink-0" />
                 {t(`sidebar.${item.key}`)}
                 {item.disabled && (

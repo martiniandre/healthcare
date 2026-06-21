@@ -10,7 +10,7 @@ interface Room {
 
 interface TelemetryRoomListProps {
   rooms: Room[]
-  selectedRoomId: string
+  selectedRoomId: string | null
   unlockedRoomIds: string[]
   handleSelectRoom: (roomId: string) => void
   handleLockRoom: (roomId: string) => void

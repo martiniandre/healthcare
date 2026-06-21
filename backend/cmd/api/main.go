@@ -13,6 +13,7 @@ import (
 
 	"github.com/healthcare/backend/internal/api"
 	"github.com/healthcare/backend/internal/app"
+	"github.com/healthcare/backend/internal/modules/audit_logs"
 	"github.com/healthcare/backend/internal/modules/auth"
 	"github.com/healthcare/backend/internal/modules/clinical"
 	"github.com/healthcare/backend/internal/modules/exam_analyzer"
@@ -83,6 +84,7 @@ func main() {
 	telemetryService := telemetry.Register(applicationServer.GRPCServer, databasePool)
 	health.Register(applicationServer.GRPCServer, databasePool, redisClient)
 	_, statsHTTPHandler := stats.Register(databasePool, fhirClient)
+	auditLogsService := audit_logs.Register(applicationServer.GRPCServer, databasePool)
 
 	examAnalyzerRepo, examAnalyzerSvc, examAnalyzerWorker := exam_analyzer.Register(databasePool, appConfig.GCPProjectID, appConfig.GCPLocationID, appConfig.GCPVertexModel)
 	go examAnalyzerWorker.Start(mainContext)
@@ -99,6 +101,7 @@ func main() {
 	staffHTTPHandler := staff.NewHTTPHandler(staffService)
 	telemetryHTTPHandler := telemetry.NewHTTPHandler(telemetryService)
 	examAnalyzerHTTPHandler := exam_analyzer.NewHTTPHandler(examAnalyzerRepo, examAnalyzerSvc, examAnalyzerWorker)
+	auditLogsHTTPHandler := audit_logs.NewHTTPHandler(auditLogsService)
 
 	router := api.NewRouter(
 		secureCookies,
@@ -110,6 +113,7 @@ func main() {
 		telemetryHTTPHandler,
 		examAnalyzerHTTPHandler,
 		statsHTTPHandler,
+		auditLogsHTTPHandler,
 	)
 
 	tcpListener, listenerError := net.Listen("tcp", ":"+appConfig.AppPort)

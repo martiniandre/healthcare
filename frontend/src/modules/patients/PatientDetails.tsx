@@ -8,7 +8,20 @@ import {
   usePatientAllergiesQuery,
 } from "./queries"
 import { useImagingStudiesQuery } from "../imaging/queries"
+import { ImagingWorkspace } from "../imaging/ImagingWorkspace"
 import { PatientHeader } from "./components/PatientHeader"
+
+const PatientTab = {
+  Encounters: "encounters",
+  Vitals: "vitals",
+  Reports: "reports",
+  Pacs: "pacs",
+  Conditions: "conditions",
+  Allergies: "allergies",
+  Medications: "medications"
+} as const
+
+type PatientTab = typeof PatientTab[keyof typeof PatientTab]
 
 const EncounterHistory = lazy(() => import("./components/EncounterHistory"))
 const VitalSigns = lazy(() => import("./components/VitalSigns"))
@@ -50,9 +63,11 @@ export const PatientDetails = () => {
   const { t } = useTranslation("patients")
 
   const [searchParameters, setSearchParameters] = useSearchParams()
-  const activeTab = (searchParameters.get("tab") || "encounters") as "encounters" | "vitals" | "reports" | "pacs" | "conditions" | "allergies" | "medications"
-  const setActiveTab = (tabName: "encounters" | "vitals" | "reports" | "pacs" | "conditions" | "allergies" | "medications") => {
+  const activeTab = (searchParameters.get("tab") || PatientTab.Encounters) as PatientTab
+  const [selectedStudyId, setSelectedStudyId] = useState<string | null>(null)
+  const setActiveTab = (tabName: PatientTab) => {
     setSearchParameters({ tab: tabName })
+    setSelectedStudyId(null)
   }
   const [selectedEncounterId, setSelectedEncounterId] = useState<string | null>(null)
 
@@ -98,9 +113,9 @@ export const PatientDetails = () => {
           </span>
           <div className="flex flex-col gap-2">
             <button
-              onClick={() => setActiveTab("encounters")}
+              onClick={() => setActiveTab(PatientTab.Encounters)}
               className={`w-full text-left flex items-center gap-3 px-4 py-3 rounded-lg text-xs font-extrabold transition-all duration-300 ${
-                activeTab === "encounters"
+                activeTab === PatientTab.Encounters
                   ? "bg-primary/8 text-primary"
                   : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
               }`}
@@ -113,9 +128,9 @@ export const PatientDetails = () => {
             </button>
 
             <button
-              onClick={() => setActiveTab("vitals")}
+              onClick={() => setActiveTab(PatientTab.Vitals)}
               className={`w-full text-left flex items-center gap-3 px-4 py-3 rounded-lg text-xs font-extrabold transition-all duration-300 ${
-                activeTab === "vitals"
+                activeTab === PatientTab.Vitals
                   ? "bg-primary/8 text-primary"
                   : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
               }`}
@@ -125,9 +140,9 @@ export const PatientDetails = () => {
             </button>
 
             <button
-              onClick={() => setActiveTab("reports")}
+              onClick={() => setActiveTab(PatientTab.Reports)}
               className={`w-full text-left flex items-center gap-3 px-4 py-3 rounded-lg text-xs font-extrabold transition-all duration-300 ${
-                activeTab === "reports"
+                activeTab === PatientTab.Reports
                   ? "bg-primary/8 text-primary"
                   : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
               }`}
@@ -137,9 +152,9 @@ export const PatientDetails = () => {
             </button>
 
             <button
-              onClick={() => setActiveTab("conditions")}
+              onClick={() => setActiveTab(PatientTab.Conditions)}
               className={`w-full text-left flex items-center gap-3 px-4 py-3 rounded-lg text-xs font-extrabold transition-all duration-300 ${
-                activeTab === "conditions"
+                activeTab === PatientTab.Conditions
                   ? "bg-primary/8 text-primary"
                   : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
               }`}
@@ -152,9 +167,9 @@ export const PatientDetails = () => {
             </button>
 
             <button
-              onClick={() => setActiveTab("medications")}
+              onClick={() => setActiveTab(PatientTab.Medications)}
               className={`w-full text-left flex items-center gap-3 px-4 py-3 rounded-lg text-xs font-extrabold transition-all duration-300 ${
-                activeTab === "medications"
+                activeTab === PatientTab.Medications
                   ? "bg-primary/8 text-primary"
                   : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
               }`}
@@ -164,9 +179,9 @@ export const PatientDetails = () => {
             </button>
 
             <button
-              onClick={() => setActiveTab("allergies")}
+              onClick={() => setActiveTab(PatientTab.Allergies)}
               className={`w-full text-left flex items-center gap-3 px-4 py-3 rounded-lg text-xs font-extrabold transition-all duration-300 ${
-                activeTab === "allergies"
+                activeTab === PatientTab.Allergies
                   ? "bg-primary/8 text-primary"
                   : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
               }`}
@@ -179,9 +194,9 @@ export const PatientDetails = () => {
             </button>
 
             <button
-              onClick={() => setActiveTab("pacs")}
+              onClick={() => setActiveTab(PatientTab.Pacs)}
               className={`w-full text-left flex items-center gap-3 px-4 py-3 rounded-lg text-xs font-extrabold transition-all duration-300 ${
-                activeTab === "pacs"
+                activeTab === PatientTab.Pacs
                   ? "bg-primary/8 text-primary"
                   : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
               }`}
@@ -196,7 +211,7 @@ export const PatientDetails = () => {
         </div>
 
         <div className="flex-1 flex flex-col gap-6 min-w-0 w-full">
-          {selectedEncounter && activeTab !== "encounters" && activeTab !== "pacs" && (
+          {selectedEncounter && activeTab !== PatientTab.Encounters && activeTab !== PatientTab.Pacs && (
             <div className="flex items-center justify-between bg-primary/5 border border-primary/20 p-4 rounded-xl text-left">
               <div className="flex items-center gap-3">
                 <FolderOpen className="w-5 h-5 text-primary shrink-0" />
@@ -210,7 +225,7 @@ export const PatientDetails = () => {
                 </div>
               </div>
               <button
-                onClick={() => setActiveTab("encounters")}
+                onClick={() => setActiveTab(PatientTab.Encounters)}
                 className="text-xs text-primary hover:underline font-bold shrink-0"
               >
                 {t("details.changeEncounter")}
@@ -220,7 +235,7 @@ export const PatientDetails = () => {
 
           <div className="flex flex-col gap-6">
             <Suspense fallback={<TabFallback />}>
-              {activeTab === "encounters" && (
+              {activeTab === PatientTab.Encounters && (
                 <EncounterHistory
                   patientId={id}
                   selectedEncounterId={activeEncounterId}
@@ -228,7 +243,7 @@ export const PatientDetails = () => {
                 />
               )}
 
-              {activeTab === "vitals" && (
+              {activeTab === PatientTab.Vitals && (
                 selectedEncounter ? (
                   <VitalSigns
                     patientId={id}
@@ -247,7 +262,7 @@ export const PatientDetails = () => {
                 )
               )}
 
-              {activeTab === "reports" && (
+              {activeTab === PatientTab.Reports && (
                 selectedEncounter ? (
                   <ClinicalReports
                     patientId={id}
@@ -266,13 +281,13 @@ export const PatientDetails = () => {
                 )
               )}
 
-              {activeTab === "conditions" && (
+              {activeTab === PatientTab.Conditions && (
                 <ClinicalConditions
                   patientId={id}
                 />
               )}
 
-              {activeTab === "medications" && (
+              {activeTab === PatientTab.Medications && (
                 selectedEncounter ? (
                   <ClinicalMedications
                     patientId={id}
@@ -291,17 +306,24 @@ export const PatientDetails = () => {
                 )
               )}
 
-              {activeTab === "allergies" && (
+              {activeTab === PatientTab.Allergies && (
                 <ClinicalAllergies
                   patientId={id}
                 />
               )}
 
-              {activeTab === "pacs" && (
-                <PACSStudies
-                  studies={studies}
-                  onOpen={(studyId) => navigate(`/imaging/${studyId}`)}
-                />
+              {activeTab === PatientTab.Pacs && (
+                selectedStudyId ? (
+                  <ImagingWorkspace
+                    studyId={selectedStudyId}
+                    onBack={() => setSelectedStudyId(null)}
+                  />
+                ) : (
+                  <PACSStudies
+                    studies={studies}
+                    onOpen={(studyId) => setSelectedStudyId(studyId)}
+                  />
+                )
               )}
             </Suspense>
           </div>

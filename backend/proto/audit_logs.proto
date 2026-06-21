@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+package audit_logs.v1;
+
+option go_package = "github.com/healthcare/backend/internal/modules/audit_logs/pb";
+
+service AuditLogsService {
+  rpc CreateAuditLog(CreateAuditLogRequest) returns (CreateAuditLogResponse);
+  rpc ListAuditLogs(ListAuditLogsRequest) returns (ListAuditLogsResponse);
+}
+
+message CreateAuditLogRequest {
+  string correlation_id = 1;
+  string caller_user_id = 2;
+  string caller_role = 3;
+  string method = 4;
+  bool access_granted = 5;
+}
+
+message CreateAuditLogResponse {
+  string id = 1;
+}
+
+message ListAuditLogsRequest {
+  int32 limit = 1;
+  int32 offset = 2;
+}
+
+message AuditLog {
+  string id = 1;
+  string correlation_id = 2;
+  string caller_user_id = 3;
+  string caller_role = 4;
+  string method = 5;
+  bool access_granted = 6;
+  string created_at = 7;
+}
+
+message ListAuditLogsResponse {
+  repeated AuditLog audit_logs = 1;
+  int32 total = 2;
+}

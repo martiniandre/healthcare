@@ -8,9 +8,12 @@ var publicMethods = map[string]bool{
 	"/auth.v1.AuthService/Logout":   true,
 	"/grpc.health.v1.Health/Check":  true,
 	"/grpc.health.v1.Health/Watch":  true,
+	"/audit_logs.v1.AuditLogsService/CreateAuditLog": true,
 }
 
 var methodPermissions = map[string][]auth.Role{
+	"/audit_logs.v1.AuditLogsService/ListAuditLogs":     {auth.RoleAdmin},
+
 	"/telemetry.v1.TelemetryService/GetRooms":           {auth.RoleAdmin, auth.RoleDoctor, auth.RoleNurse, auth.RoleReception},
 	"/telemetry.v1.TelemetryService/UnlockRoom":         {auth.RoleAdmin, auth.RoleDoctor, auth.RoleNurse},
 	"/telemetry.v1.TelemetryService/GetBeds":           {auth.RoleAdmin, auth.RoleDoctor, auth.RoleNurse},

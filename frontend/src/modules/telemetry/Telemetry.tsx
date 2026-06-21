@@ -21,8 +21,8 @@ import { TelemetryBedList } from "./components/TelemetryBedList"
 
 export const Telemetry = () => {
   const { t } = useTranslation()
-  const [selectedRoomId, setSelectedRoomId] = useState<string>("room-1")
-  const [unlockedRoomIds, setUnlockedRoomIds] = useState<string[]>(["room-1"])
+  const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null)
+  const [unlockedRoomIds, setUnlockedRoomIds] = useState<string[]>([])
   const [selectedBedId, setSelectedBedId] = useState<string | null>(null)
   
   const [passcode, setPasscode] = useState<{
@@ -32,13 +32,14 @@ export const Telemetry = () => {
   const [isMuted, setIsMuted] = useState<boolean>(true)
 
   const { data: rooms = [] } = useTelemetryRoomsQuery()
-  const { data: beds = [] } = useTelemetryBedsQuery(selectedRoomId)
+  
+  const isCurrentRoomUnlocked = selectedRoomId ? unlockedRoomIds.includes(selectedRoomId) : false
+  const { data: beds = [] } = useTelemetryBedsQuery(selectedRoomId, isCurrentRoomUnlocked)
   
   const unlockRoomMutation = useUnlockRoomMutation()
   const updateBedConditionMutation = useUpdateBedConditionMutation()
 
-  const activeRoom = rooms.find((roomItem) => roomItem.id === selectedRoomId) || rooms[0]
-  const isCurrentRoomUnlocked = unlockedRoomIds.includes(selectedRoomId)
+  const activeRoom = rooms.find((roomItem) => roomItem.id === selectedRoomId) || null
 
   const activeBed = beds.find((bedItem) => bedItem.id === selectedBedId) || null
 
@@ -205,7 +206,7 @@ export const Telemetry = () => {
 
   const handleUnlockRoom = async (event: FormEvent) => {
     event.preventDefault()
-    if (!activeRoom) {
+    if (!activeRoom || !selectedRoomId) {
       return
     }
 
@@ -247,7 +248,21 @@ export const Telemetry = () => {
         handleLockRoom={handleLockRoom}
       />
 
-      {!isCurrentRoomUnlocked ? (
+      {!selectedRoomId ? (
+        <Card className="flex-1 p-8 border border-border bg-gray-50/50 flex flex-col items-center justify-center text-center gap-4 min-h-[400px]">
+          <div className="bg-primary/5 p-4 rounded-full border border-primary/10 text-primary">
+            <Activity className="w-8 h-8 animate-pulse" />
+          </div>
+          <div className="max-w-md flex flex-col gap-1">
+            <h3 className="text-md font-extrabold text-gray-900">
+              Nenhuma sala selecionada
+            </h3>
+            <p className="text-xs text-gray-500 leading-normal">
+              Selecione uma das salas acima para conectar e monitorar os leitos em tempo real.
+            </p>
+          </div>
+        </Card>
+      ) : !isCurrentRoomUnlocked ? (
         <TelemetryRestrictedState 
           activeRoomName={activeRoom?.name}
           passcodeInput={passcode.input}

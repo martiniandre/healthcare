@@ -1,7 +1,6 @@
 import { useState, useRef } from "react"
-import { useParams, useNavigate } from "react-router-dom"
 import { useTranslation } from "react-i18next"
-import { ArrowLeft, UploadCloud, Image as ImageIcon } from "lucide-react"
+import { ArrowLeft, UploadCloud } from "lucide-react"
 import { Button } from "../../shared/components/ui/Button"
 import { DicomViewport } from "./components/DicomViewport"
 import { ImagingStudyDetails } from "./components/ImagingStudyDetails"
@@ -11,10 +10,13 @@ import { useImagingStudyQuery, useUploadImagingStudyMutation } from "./queries"
 import { waitForUploadFrame } from "./utils/pacs_helpers"
 import { toast } from "../../shared/store/toast_store"
 
-export const ImagingWorkspace = () => {
+interface ImagingWorkspaceProps {
+  studyId: string
+  onBack: () => void
+}
+
+export const ImagingWorkspace = ({ studyId, onBack }: ImagingWorkspaceProps) => {
   const { t } = useTranslation()
-  const { studyId = "" } = useParams<{ studyId: string }>()
-  const navigate = useNavigate()
   const [uploadState, setUploadState] = useState<{
     percentage: number | null
     status: string | null
@@ -62,20 +64,7 @@ export const ImagingWorkspace = () => {
   }
 
   if (!studyId) {
-    return (
-      <div className="flex-1 p-8 flex flex-col items-center justify-center text-center">
-        <div className="bg-white p-8 rounded-2xl border border-border shadow-sm max-w-md w-full">
-          <ImageIcon className="w-12 h-12 text-primary/40 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-gray-900 mb-2">PACS Viewer</h2>
-          <p className="text-sm text-muted mb-6">
-            Please select a patient from the patients list, and then select an imaging study to view it in the PACS viewer.
-          </p>
-          <Button variantType="primary" onClick={() => navigate("/")}>
-            Go to Patients
-          </Button>
-        </div>
-      </div>
-    )
+    return null
   }
 
   if (isStudyLoading || !study) {
@@ -90,7 +79,7 @@ export const ImagingWorkspace = () => {
     <div className="flex-1 p-8 flex flex-col gap-6 max-w-7xl mx-auto w-full select-none">
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div className="flex items-center gap-4">
-          <Button variantType="outline" onClick={() => navigate(`/patients/${study.patient_fhir_id}`)} className="px-3">
+          <Button variantType="outline" onClick={onBack} className="px-3">
             <ArrowLeft className="w-4 h-4" />
             {t("imaging.backToRecord")}
           </Button>

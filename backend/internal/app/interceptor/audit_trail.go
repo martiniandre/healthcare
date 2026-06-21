@@ -4,48 +4,73 @@ import (
 	"context"
 	"log/slog"
 
+	"github.com/healthcare/backend/internal/modules/audit_logs"
+	"github.com/healthcare/backend/internal/shared/ctxkeys"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
-	"github.com/healthcare/backend/internal/shared/ctxkeys"
 )
+
+var globalAuditLogsService audit_logs.Service
+
+func SetAuditLogsService(service audit_logs.Service) {
+	globalAuditLogsService = service
+}
 
 func UnaryAuditTrailInterceptor() grpc.UnaryServerInterceptor {
 	return func(
-		ctx context.Context,
-		req interface{},
-		info *grpc.UnaryServerInfo,
-		handler grpc.UnaryHandler,
+		contextVal context.Context,
+		requestVal interface{},
+		serverInfo *grpc.UnaryServerInfo,
+		unaryHandler grpc.UnaryHandler,
 	) (interface{}, error) {
-		response, err := handler(ctx, req)
+		handlerResponse, executionError := unaryHandler(contextVal, requestVal)
 
-		if isClinicalMethod(info.FullMethod) {
-			callerUserID := extractContextValue(ctx, ctxkeys.UserIDKey)
-			callerRole := extractContextValue(ctx, ctxkeys.RoleKey)
-			correlationID := extractContextValue(ctx, ctxkeys.CorrelationIDKey)
+		if isClinicalOrCriticalMethod(serverInfo.FullMethod) {
+			callerUserID := extractContextValue(contextVal, ctxkeys.UserIDKey)
+			callerRole := extractContextValue(contextVal, ctxkeys.RoleKey)
+			correlationID := extractContextValue(contextVal, ctxkeys.CorrelationIDKey)
 
 			go func() {
-				slog.Info("audit trail",
-					"correlation_id", correlationID,
-					"caller_user_id", callerUserID,
-					"caller_role", callerRole,
-					"method", info.FullMethod,
-					"access_granted", err == nil,
-				)
+				if globalAuditLogsService != nil {
+					_, logError := globalAuditLogsService.CreateAuditLog(
+						context.Background(),
+						correlationID,
+						callerUserID,
+						callerRole,
+						serverInfo.FullMethod,
+						executionError == nil,
+					)
+					if logError != nil {
+						slog.Error("failed to persist unary audit log", "error", logError)
+					}
+				} else {
+					slog.Info("audit trail",
+						"correlation_id", correlationID,
+						"caller_user_id", callerUserID,
+						"caller_role", callerRole,
+						"method", serverInfo.FullMethod,
+						"access_granted", executionError == nil,
+					)
+				}
 			}()
 		}
 
-		return response, err
+		return handlerResponse, executionError
 	}
 }
 
-func isClinicalMethod(fullMethod string) bool {
-	clinicalPrefixes := []string{
+func isClinicalOrCriticalMethod(fullMethod string) bool {
+	prefixes := []string{
 		"/patients.",
 		"/clinical.",
 		"/observations.",
 		"/encounters.",
+		"/auth.v1.AuthService/",
+		"/staff.v1.StaffService/CreateEmployee",
+		"/staff.v1.StaffService/DeactivateEmployee",
+		"/telemetry.v1.TelemetryService/UnlockRoom",
 	}
-	for _, prefix := range clinicalPrefixes {
+	for _, prefix := range prefixes {
 		if len(fullMethod) >= len(prefix) && fullMethod[:len(prefix)] == prefix {
 			return true
 		}
@@ -53,14 +78,14 @@ func isClinicalMethod(fullMethod string) bool {
 	return false
 }
 
-func extractContextValue(ctx context.Context, key ctxkeys.ContextKey) string {
-	if incomingMetadata, ok := metadata.FromIncomingContext(ctx); ok {
+func extractContextValue(contextVal context.Context, key ctxkeys.ContextKey) string {
+	if incomingMetadata, metadataOk := metadata.FromIncomingContext(contextVal); metadataOk {
 		values := incomingMetadata.Get(string(key))
 		if len(values) > 0 {
 			return values[0]
 		}
 	}
-	if value, ok := ctx.Value(key).(string); ok {
+	if value, assertOk := contextVal.Value(key).(string); assertOk {
 		return value
 	}
 	return ""
@@ -68,30 +93,44 @@ func extractContextValue(ctx context.Context, key ctxkeys.ContextKey) string {
 
 func StreamAuditTrailInterceptor() grpc.StreamServerInterceptor {
 	return func(
-		srv interface{},
-		stream grpc.ServerStream,
-		info *grpc.StreamServerInfo,
-		handler grpc.StreamHandler,
+		serviceImpl interface{},
+		serverStream grpc.ServerStream,
+		streamInfo *grpc.StreamServerInfo,
+		streamHandler grpc.StreamHandler,
 	) error {
-		err := handler(srv, stream)
+		executionError := streamHandler(serviceImpl, serverStream)
 
-		if isClinicalMethod(info.FullMethod) {
-			ctx := stream.Context()
-			callerUserID := extractContextValue(ctx, ctxkeys.UserIDKey)
-			callerRole := extractContextValue(ctx, ctxkeys.RoleKey)
-			correlationID := extractContextValue(ctx, ctxkeys.CorrelationIDKey)
+		if isClinicalOrCriticalMethod(streamInfo.FullMethod) {
+			contextVal := serverStream.Context()
+			callerUserID := extractContextValue(contextVal, ctxkeys.UserIDKey)
+			callerRole := extractContextValue(contextVal, ctxkeys.RoleKey)
+			correlationID := extractContextValue(contextVal, ctxkeys.CorrelationIDKey)
 
 			go func() {
-				slog.Info("audit trail",
-					"correlation_id", correlationID,
-					"caller_user_id", callerUserID,
-					"caller_role", callerRole,
-					"method", info.FullMethod,
-					"access_granted", err == nil,
-				)
+				if globalAuditLogsService != nil {
+					_, logError := globalAuditLogsService.CreateAuditLog(
+						context.Background(),
+						correlationID,
+						callerUserID,
+						callerRole,
+						streamInfo.FullMethod,
+						executionError == nil,
+					)
+					if logError != nil {
+						slog.Error("failed to persist stream audit log", "error", logError)
+					}
+				} else {
+					slog.Info("audit trail",
+						"correlation_id", correlationID,
+						"caller_user_id", callerUserID,
+						"caller_role", callerRole,
+						"method", streamInfo.FullMethod,
+						"access_granted", executionError == nil,
+					)
+				}
 			}()
 		}
 
-		return err
+		return executionError
 	}
 }

@@ -36,6 +36,20 @@ export const mockAuthAPI = async (pageInstance: Page): Promise<void> => {
       }),
     })
   })
+
+  await pageInstance.route("**/api/auth/me", async (networkRoute) => {
+    await networkRoute.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        userId: "user-medico-123",
+        role: "doctor",
+        email: "medico@clinica.com",
+        fullName: "Dr. André Silva de Araujo",
+        isActive: true,
+      }),
+    })
+  })
 }
 
 export const mockPatientsAPI = async (pageInstance: Page): Promise<void> => {
