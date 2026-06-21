@@ -35,6 +35,15 @@ import {
   Loader2
 } from "lucide-react"
 
+const TabFallback = () => (
+  <Card className="flex items-center justify-center min-h-[450px]">
+    <div className="flex flex-col items-center gap-2">
+      <Loader2 className="w-8 h-8 text-primary animate-spin" />
+      <span className="text-sm text-gray-500 font-medium">Carregando componente...</span>
+    </div>
+  </Card>
+)
+
 export const PatientDetails = () => {
   const { id = "" } = useParams<{ id: string }>()
   const navigate = useNavigate()
@@ -68,14 +77,6 @@ export const PatientDetails = () => {
     )
   }
 
-  const TabFallback = () => (
-    <Card className="flex items-center justify-center min-h-[450px]">
-      <div className="flex flex-col items-center gap-2">
-        <Loader2 className="w-8 h-8 text-primary animate-spin" />
-        <span className="text-sm text-gray-500 font-medium">Carregando componente...</span>
-      </div>
-    </Card>
-  )
 
   return (
     <div className="flex-1 p-4 sm:p-6 md:p-8 flex flex-col gap-4 md:gap-6 max-w-7xl mx-auto w-full">
