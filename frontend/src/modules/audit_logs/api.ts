@@ -1,8 +1,8 @@
 import { http } from "../../shared/utils/http"
-import type { AuditLog, AuditLogsFilter } from "./types"
+import type { AuditLogsFilter, AuditLogsResponse } from "./types"
 
 export const auditLogsApi = {
-  listAuditLogs: async (filters: AuditLogsFilter): Promise<AuditLog[]> => {
+  listAuditLogs: async (filters: AuditLogsFilter): Promise<AuditLogsResponse> => {
     const queryParameters = new URLSearchParams()
     if (filters.action && filters.action !== "All") {
       queryParameters.append("action", filters.action)
@@ -20,7 +20,7 @@ export const auditLogsApi = {
       queryParameters.append("endDate", filters.endDate)
     }
     const queryString = queryParameters.toString()
-    return http.get<AuditLog[]>(`/audit-logs${queryString ? `?${queryString}` : ""}`)
+    return http.get<AuditLogsResponse>(`/audit-logs${queryString ? `?${queryString}` : ""}`)
   },
 
   createAuditLog: async (payload: { action: string; details: string; status: string }): Promise<void> => {

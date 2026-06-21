@@ -7,6 +7,7 @@ import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from ".
 import { Badge } from "../../shared/components/ui/Badge"
 import { Button } from "../../shared/components/ui/Button"
 import { Skeleton } from "../../shared/components/ui/Skeleton"
+import { Alert, AlertTitle, AlertDescription } from "../../shared/components/ui/Alert"
 import { useAuditLogsQuery } from "./queries"
 import type { AuditLogsFilter, AuditLog } from "./types"
 
@@ -29,7 +30,8 @@ export const AuditLogs = () => {
     endDate: endDate,
   }
 
-  const { data: auditLogsList = [], isLoading, refetch, isFetching } = useAuditLogsQuery(activeFilters)
+  const { data, isLoading, isError, refetch, isFetching } = useAuditLogsQuery(activeFilters)
+  const auditLogsList = data?.audit_logs ?? []
 
   const toggleRowExpansion = (logId: string) => {
     setExpandedLogId(expandedLogId === logId ? null : logId)
@@ -169,6 +171,15 @@ export const AuditLogs = () => {
               {t("auditLogs.clearFilters", "Clear Filters")}
             </button>
           </div>
+        )}
+        {isError && (
+          <Alert variant="destructive">
+            <XCircle className="w-4 h-4" />
+            <AlertTitle>{t("auditLogs.errorTitle", "Error Loading Logs")}</AlertTitle>
+            <AlertDescription>
+              {t("auditLogs.errorDescription", "There was an error retrieving the audit logs from the server. Please try again.")}
+            </AlertDescription>
+          </Alert>
         )}
 
         <div className="overflow-x-auto border border-border rounded-xl w-full bg-white">

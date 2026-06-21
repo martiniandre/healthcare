@@ -16,3 +16,8 @@ export interface AuditLogsFilter {
   startDate: string
   endDate: string
 }
+
+export interface AuditLogsResponse {
+  audit_logs: AuditLog[]
+  total: number
+}
