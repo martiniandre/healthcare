@@ -4,7 +4,7 @@ import { loginAsDoctor } from "./helpers"
 test.describe("Medications / Prescriptions Module", () => {
   test.beforeEach(async ({ page }) => {
     await loginAsDoctor(page)
-    await page.goto("/#/patients/fhir-pat-1?tab=medications")
+    await page.goto("/patients/fhir-pat-1?tab=medications")
   })
 
   test("should render the empty medications list initially", async ({ page }) => {

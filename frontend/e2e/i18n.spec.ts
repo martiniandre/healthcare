@@ -7,12 +7,12 @@ test.describe("Internationalization (i18n) - Locale Switching", () => {
   })
 
   test("should successfully switch between pt-BR, en-US, and es-ES", async ({ page }) => {
-    await page.goto("/#/login")
+    await page.goto("/login")
     await page.getByPlaceholder("nome.sobrenome@hospital.com").fill("medico@clinica.com")
     await page.getByPlaceholder("••••••••").fill("senha123")
     await page.getByRole("button", { name: "Entrar no Console" }).click()
 
-    await expect(page).toHaveURL(/.*#\/$/)
+    await expect(page).toHaveURL(/\/$/)
 
     const portuguesePatientsLabel = page.getByRole("button", { name: "Pacientes" })
     await expect(portuguesePatientsLabel).toBeVisible()

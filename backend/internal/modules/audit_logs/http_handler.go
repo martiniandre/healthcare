@@ -9,6 +9,7 @@ import (
 	"github.com/healthcare/backend/internal/api/middleware"
 	"github.com/healthcare/backend/internal/api/render"
 	"github.com/healthcare/backend/internal/modules/auth"
+	"github.com/healthcare/backend/internal/shared/ctxkeys"
 )
 
 type HTTPHandler struct {
@@ -72,6 +73,15 @@ func (auditLogsHTTPHandler *HTTPHandler) CreateAuditLog(httpResponseWriter http.
 	if payloadDecodeErr := json.NewDecoder(httpRequest.Body).Decode(&payload); payloadDecodeErr != nil {
 		render.Error(httpResponseWriter, http.StatusBadRequest, "Payload inválido.")
 		return
+	}
+
+	userID, _ := httpRequest.Context().Value(ctxkeys.UserIDKey).(string)
+	role, _ := httpRequest.Context().Value(ctxkeys.RoleKey).(string)
+	if payload.CallerUserID == "" {
+		payload.CallerUserID = userID
+	}
+	if payload.CallerRole == "" {
+		payload.CallerRole = role
 	}
 
 	auditLog, createError := auditLogsHTTPHandler.service.CreateAuditLog(

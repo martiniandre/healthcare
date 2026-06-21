@@ -4,7 +4,7 @@ import { loginAsDoctor } from "./helpers"
 test.describe("Medical Imaging Module (PACS Console)", () => {
   test.beforeEach(async ({ page }) => {
     await loginAsDoctor(page)
-    await page.goto("/#/patients/fhir-pat-1?tab=pacs")
+    await page.goto("/patients/fhir-pat-1?tab=pacs")
     await page.getByRole("button", { name: "Visualizar" }).click()
   })
 

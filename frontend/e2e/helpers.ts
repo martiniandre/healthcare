@@ -835,10 +835,10 @@ export const loginAsDoctor = async (pageInstance: Page): Promise<void> => {
   await mockStaffAPI(pageInstance)
   await mockTelemetryAPI(pageInstance)
   await mockStatsAPI(pageInstance)
-  await pageInstance.goto("/#/login")
+  await pageInstance.goto("/login")
   await pageInstance.getByPlaceholder("nome.sobrenome@hospital.com").fill("medico@clinica.com")
   await pageInstance.getByPlaceholder("••••••••").fill("senha123")
   await pageInstance.getByRole("button", { name: "Entrar no Console" }).click()
-  await expect(pageInstance).toHaveURL(/.*#\/$/)
+  await expect(pageInstance).toHaveURL(/\/$/)
 }
 

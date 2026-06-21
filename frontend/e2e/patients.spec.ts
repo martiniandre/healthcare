@@ -46,7 +46,7 @@ test.describe("Patients Management Module", () => {
     const patientRow = page.locator("tr", { hasText: "Guilherme de Souza Araujo" })
     await patientRow.getByRole("button", { name: "Prontuário" }).click()
 
-    await expect(page).toHaveURL(/.*#\/patients\/fhir-pat-1$/)
+    await expect(page).toHaveURL(/\/patients\/fhir-pat-1$/)
     const recordHeading = page.locator("text=Recursos Clínicos")
     await expect(recordHeading).toBeVisible()
   })

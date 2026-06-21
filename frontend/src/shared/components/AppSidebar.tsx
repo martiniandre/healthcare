@@ -2,12 +2,11 @@ import { useNavigate, useLocation } from "react-router-dom"
 import { useTranslation } from "react-i18next"
 import { useAuthStore } from "../store/auth_store"
 import { useLayoutStore } from "../store/layout_store"
-import { Activity, Users, Image as ImageIcon, BarChart3, Settings, LogOut, X, Sparkles, History } from "lucide-react"
+import { Activity, Users, BarChart3, Settings, LogOut, X, Sparkles, History } from "lucide-react"
 
 const navigationItems = [
   { key: "patients", icon: Users, path: "/" },
   { key: "telemetry", icon: Activity, path: "/telemetry" },
-  { key: "pacsViewer", icon: ImageIcon, path: "/imaging" },
   { key: "examAnalyzer", icon: Sparkles, path: "/exam-analyzer" },
   { key: "stats", icon: BarChart3, path: "/stats" },
   { key: "staffManagement", icon: Users, path: "/staff" },

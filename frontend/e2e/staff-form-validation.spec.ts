@@ -48,7 +48,7 @@ test.describe("Staff Registration Validation", () => {
     })
 
     await loginAsDoctor(page)
-    await page.goto("/#/staff")
+    await page.goto("/staff")
   })
 
   test("should display validation errors for invalid staff inputs", async ({ page }) => {

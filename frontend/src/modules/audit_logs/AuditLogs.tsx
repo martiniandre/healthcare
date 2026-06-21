@@ -215,7 +215,7 @@ export const AuditLogs = () => {
               ) : (
                 auditLogsList.map((log: AuditLog) => {
                   const isExpanded = expandedLogId === log.id
-                  const isSuccess = log.status.toUpperCase() === "SUCCESS"
+                  const isSuccess = log.access_granted
                   return (
                     <React.Fragment key={log.id}>
                       <TableRow
@@ -223,23 +223,23 @@ export const AuditLogs = () => {
                         className="cursor-pointer hover:bg-gray-50/80 transition-colors"
                       >
                         <TableCell className="text-xs text-gray-600 font-medium">
-                          {formatTimestamp(log.timestamp)}
+                          {formatTimestamp(log.created_at)}
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
                             <div className="bg-gray-100 p-1.5 rounded-lg border border-gray-200">
                               <Shield className="w-3.5 h-3.5 text-gray-500" />
                             </div>
-                            <span className="font-bold text-gray-900 text-xs">{log.email || log.userId}</span>
+                            <span className="font-bold text-gray-900 text-xs">{log.caller_user_id}</span>
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Badge variant={getRoleBadgeVariant(log.role)}>
-                            {log.role}
+                          <Badge variant={getRoleBadgeVariant(log.caller_role)}>
+                            {log.caller_role}
                           </Badge>
                         </TableCell>
                         <TableCell className="font-mono text-xs text-gray-700">
-                          {log.action}
+                          {log.method}
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-1.5">
@@ -276,7 +276,7 @@ export const AuditLogs = () => {
                                   {t("auditLogs.details", "Details / Metadata")}
                                 </span>
                                 <pre className="whitespace-pre-wrap font-mono text-gray-800 bg-gray-50 p-2.5 rounded border border-border">
-                                  {log.details || t("auditLogs.noDetails", "No additional details available")}
+                                  {log.correlation_id || t("auditLogs.noDetails", "No additional details available")}
                                 </pre>
                               </div>
                             </div>

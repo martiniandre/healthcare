@@ -4,7 +4,7 @@ import { loginAsDoctor } from "./helpers"
 test.describe("Real-time Telemetry Dashboard Module", () => {
   test.beforeEach(async ({ page }) => {
     await loginAsDoctor(page)
-    await page.goto("/#/telemetry")
+    await page.goto("/telemetry")
   })
 
   test("should display telemetry rooms and default unlocked room status", async ({ page }) => {
@@ -53,7 +53,7 @@ test.describe("Real-time Telemetry Dashboard Module", () => {
 test.describe("Clinical Statistics and Analytics Module", () => {
   test.beforeEach(async ({ page }) => {
     await loginAsDoctor(page)
-    await page.goto("/#/stats")
+    await page.goto("/stats")
   })
 
   test("should load diagnostic statistics and key KPIs", async ({ page }) => {
@@ -88,7 +88,7 @@ test.describe("Clinical Statistics and Analytics Module", () => {
 test.describe("Hospital Staff Management Module", () => {
   test.beforeEach(async ({ page }) => {
     await loginAsDoctor(page)
-    await page.goto("/#/staff")
+    await page.goto("/staff")
   })
 
   test("should render the staff members list page", async ({ page }) => {

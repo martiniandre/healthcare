@@ -17,7 +17,7 @@ export const useAuditLogsQuery = (filters: AuditLogsFilter) => {
 export const useCreateAuditLogMutation = () => {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (payload: { action: string; details: string; status: string }) =>
+    mutationFn: (payload: { method: string; correlation_id: string; access_granted: boolean }) =>
       auditLogsApi.createAuditLog(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({

@@ -4,7 +4,7 @@ import { loginAsDoctor } from "./helpers"
 test.describe("Exam Analyzer Module", () => {
   test.beforeEach(async ({ page }) => {
     await loginAsDoctor(page)
-    await page.goto("/#/exam-analyzer")
+    await page.goto("/exam-analyzer")
   })
 
   test("should render the initial history and page title", async ({ page }) => {

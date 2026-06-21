@@ -4,7 +4,7 @@ import { loginAsDoctor } from "./helpers"
 test.describe("Patient Record and Clinical File Module", () => {
   test.beforeEach(async ({ page }) => {
     await loginAsDoctor(page)
-    await page.goto("/#/patients/fhir-pat-1")
+    await page.goto("/patients/fhir-pat-1")
   })
 
   test("should render the patient's initial clinical file", async ({ page }) => {

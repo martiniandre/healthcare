@@ -1,12 +1,11 @@
 export interface AuditLog {
   id: string
-  timestamp: string
-  userId: string
-  email: string
-  role: string
-  action: string
-  status: string
-  details: string
+  correlation_id: string
+  caller_user_id: string
+  caller_role: string
+  method: string
+  access_granted: boolean
+  created_at: string
 }
 
 export interface AuditLogsFilter {

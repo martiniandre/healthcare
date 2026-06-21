@@ -23,7 +23,7 @@ export const auditLogsApi = {
     return http.get<AuditLogsResponse>(`/audit-logs${queryString ? `?${queryString}` : ""}`)
   },
 
-  createAuditLog: async (payload: { action: string; details: string; status: string }): Promise<void> => {
+  createAuditLog: async (payload: { method: string; correlation_id: string; access_granted: boolean }): Promise<void> => {
     return http.post<void>("/audit-logs", payload)
   },
 }
