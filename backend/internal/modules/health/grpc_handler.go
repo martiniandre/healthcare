@@ -5,9 +5,9 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"
-	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/health/grpc_health_v1"
-	"google.golang.org/grpc/status"
+
+	"github.com/healthcare/backend/internal/shared/apperrors"
 )
 
 type GRPCHandler struct {
@@ -48,5 +48,5 @@ func (handler *GRPCHandler) Check(ctx context.Context, request *grpc_health_v1.H
 }
 
 func (handler *GRPCHandler) Watch(request *grpc_health_v1.HealthCheckRequest, stream grpc_health_v1.Health_WatchServer) error {
-	return status.Error(codes.Unimplemented, "health watch is not implemented")
+	return apperrors.ErrNotImplemented.ToGRPC()
 }

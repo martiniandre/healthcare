@@ -11,7 +11,7 @@ import (
 )
 
 func TestService_AnalyzeExamFile_InsufficientData(testingInstance *testing.T) {
-	serviceInstance := NewService("", "")
+	serviceInstance := NewService("", "", "")
 	contextParam := context.Background()
 
 	temporaryDirectory := testingInstance.TempDir()
@@ -28,7 +28,7 @@ func TestService_AnalyzeExamFile_InsufficientData(testingInstance *testing.T) {
 }
 
 func TestService_AnalyzeExamFile_Simulation_Xray(testingInstance *testing.T) {
-	serviceInstance := NewService("", "")
+	serviceInstance := NewService("", "", "")
 	contextParam := context.Background()
 
 	temporaryDirectory := testingInstance.TempDir()
@@ -55,7 +55,7 @@ func TestService_AnalyzeExamFile_Simulation_Xray(testingInstance *testing.T) {
 }
 
 func TestService_AnalyzeExamFile_Simulation_Pdf(testingInstance *testing.T) {
-	serviceInstance := NewService("", "")
+	serviceInstance := NewService("", "", "")
 	contextParam := context.Background()
 
 	temporaryDirectory := testingInstance.TempDir()

@@ -2,7 +2,10 @@ package stats
 
 import (
 	"context"
+	"fmt"
 	"time"
+
+	"github.com/healthcare/backend/internal/shared/apperrors"
 )
 
 type Service interface {
@@ -22,7 +25,7 @@ func NewService(statsRepository Repository) Service {
 func (statsService *service) GetStats(contextParameter context.Context) (Stats, error) {
 	totalPatientsCount, errorInstance := statsService.statsRepository.GetTotalPatientsCount(contextParameter)
 	if errorInstance != nil {
-		return Stats{}, errorInstance
+		return Stats{}, fmt.Errorf("failed to get total patients count: %w", apperrors.ErrInternalServer)
 	}
 	if totalPatientsCount <= 2 {
 		totalPatientsCount = 340
@@ -30,7 +33,7 @@ func (statsService *service) GetStats(contextParameter context.Context) (Stats, 
 
 	encounters, errorInstance := statsService.statsRepository.GetEncounters(contextParameter)
 	if errorInstance != nil {
-		return Stats{}, errorInstance
+		return Stats{}, fmt.Errorf("failed to get encounters: %w", apperrors.ErrInternalServer)
 	}
 
 	var totalDuration float64
@@ -96,7 +99,7 @@ func (statsService *service) GetStats(contextParameter context.Context) (Stats, 
 
 	modalityCounts, errorInstance := statsService.statsRepository.GetExamModalitiesCounts(contextParameter)
 	if errorInstance != nil {
-		return Stats{}, errorInstance
+		return Stats{}, fmt.Errorf("failed to get modality counts: %w", apperrors.ErrInternalServer)
 	}
 
 	var totalExamsCount int
@@ -161,7 +164,7 @@ func (statsService *service) GetStats(contextParameter context.Context) (Stats, 
 
 	conditions, errorInstance := statsService.statsRepository.GetConditions(contextParameter)
 	if errorInstance != nil {
-		return Stats{}, errorInstance
+		return Stats{}, fmt.Errorf("failed to get conditions: %w", apperrors.ErrInternalServer)
 	}
 
 	asthmaCount := 0

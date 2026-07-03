@@ -13,6 +13,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/healthcare/backend/internal/shared/apperrors"
 	"golang.org/x/oauth2/google"
 )
 
@@ -46,7 +47,7 @@ func NewService(projectID, locationID, vertexModel string) Service {
 func (svc *service) AnalyzeExamFile(ctx context.Context, filePath string, fileName string) (*MedicalAnalysisResponse, string, error) {
 	fileInfo, err := os.Stat(filePath)
 	if err != nil {
-		return nil, "error", fmt.Errorf("failed to read file info: %w", err)
+		return nil, "error", fmt.Errorf("failed to read file info: %w", apperrors.ErrInternalServer)
 	}
 
 	normalizedName := strings.ToLower(fileName)

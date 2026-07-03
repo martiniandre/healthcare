@@ -32,7 +32,7 @@ func mapClinicalError(err error) error {
 	case errors.Is(err, ErrDiagnosticReportNotFound):
 		return apperrors.ErrDiagnosticReportNotFound.ToGRPC()
 	default:
-		return apperrors.ErrInternalServer.ToGRPC()
+		return apperrors.ToGRPCStatus(err)
 	}
 }
 
