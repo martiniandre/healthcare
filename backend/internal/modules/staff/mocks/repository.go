@@ -49,7 +49,7 @@ func (mockRepo *MockStaffRepository) GetEmployeeByUserID(contextParam context.Co
 	return nil, staff.ErrEmployeeNotFound
 }
 
-func (mockRepo *MockStaffRepository) ListEmployees(contextParam context.Context) ([]*staff.Employee, error) {
+func (mockRepo *MockStaffRepository) ListEmployees(contextParam context.Context, search string, role string) ([]*staff.Employee, error) {
 	if mockRepo.Err != nil {
 		return nil, mockRepo.Err
 	}

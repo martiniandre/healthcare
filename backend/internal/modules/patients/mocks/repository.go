@@ -54,7 +54,7 @@ func (mockRepo *MockPatientRepository) GetPatientByDocumentID(contextParam conte
 	return patient, nil
 }
 
-func (mockRepo *MockPatientRepository) ListPatients(contextParam context.Context) ([]*patients.Patient, error) {
+func (mockRepo *MockPatientRepository) ListPatients(contextParam context.Context, search string, sortField string, sortDirection string, page int, limit int) ([]*patients.Patient, error) {
 	if mockRepo.Err != nil {
 		return nil, mockRepo.Err
 	}
