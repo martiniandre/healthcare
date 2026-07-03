@@ -12,6 +12,8 @@ import (
 	"github.com/healthcare/backend/internal/shared/healthcare"
 )
 
+const documentIdentifierSystem = "urn:oid:2.16.840.1.113883.13.237"
+
 type Repository interface {
 	CreatePatient(ctx context.Context, patient *Patient) (*Patient, error)
 	GetPatientByID(ctx context.Context, fhirResourceID string) (*Patient, error)
@@ -51,7 +53,6 @@ func (patientRepository *repository) CreatePatient(ctx context.Context, patient 
 	}
 
 	patient.FHIRResourceID = fhirID
-	patient.ID = uuid.New()
 	return patient, nil
 }
 
@@ -65,7 +66,7 @@ func (patientRepository *repository) GetPatientByID(ctx context.Context, fhirRes
 }
 
 func (patientRepository *repository) GetPatientByDocumentID(ctx context.Context, documentID string) (*Patient, error) {
-	queryParams := url.Values{"identifier": []string{documentID}}.Encode()
+	queryParams := url.Values{"identifier": []string{documentIdentifierSystem + "|" + documentID}}.Encode()
 	responseBody, err := patientRepository.fhirClient.SearchResources(ctx, "Patient", queryParams)
 	if err != nil {
 		return nil, fmt.Errorf("failed to search patient by document in healthcare api: %w", err)
@@ -183,12 +184,24 @@ func parsePatientFromFHIR(responseBody json.RawMessage, fhirResourceID string) (
 		return nil, fmt.Errorf("failed to parse fhir resource: %w", err)
 	}
 
+	patientID := uuid.NewSHA1(uuid.NameSpaceDNS, []byte(fhirResourceID))
+
 	patient := &Patient{
-		ID:             uuid.New(),
+		ID:             patientID,
 		FHIRResourceID: fhirResourceID,
 		IsActive:       true,
 		CreatedAt:      time.Now(),
 		UpdatedAt:      time.Now(),
+	}
+
+	if meta, hasMeta := fhirResource["meta"].(map[string]interface{}); hasMeta {
+		if lastUpdated, hasLastUpdated := meta["lastUpdated"].(string); hasLastUpdated {
+			parsedTime, parseErr := time.Parse(time.RFC3339, lastUpdated)
+			if parseErr == nil {
+				patient.UpdatedAt = parsedTime
+				patient.CreatedAt = parsedTime
+			}
+		}
 	}
 
 	if names, ok := fhirResource["name"].([]interface{}); ok && len(names) > 0 {
