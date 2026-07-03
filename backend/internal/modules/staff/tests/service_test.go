@@ -67,7 +67,7 @@ func TestStaffService_ListEmployees(testingInstance *testing.T) {
 	staffService.CreateEmployee(contextParam, uuid.New(), "Dr. A", "a@clinic.com", string(auth.RoleDoctor), "CRM-1")
 	staffService.CreateEmployee(contextParam, uuid.New(), "Dr. B", "b@clinic.com", string(auth.RoleDoctor), "CRM-2")
 
-	employees, err := staffService.ListEmployees(contextParam)
+	employees, err := staffService.ListEmployees(contextParam, "", "")
 
 	assert.NoError(testingInstance, err)
 	assert.Len(testingInstance, employees, 2)
