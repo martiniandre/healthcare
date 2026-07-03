@@ -7,6 +7,7 @@ import (
 	"github.com/healthcare/backend/internal/modules/auth"
 	"github.com/healthcare/backend/internal/shared/apperrors"
 	"github.com/healthcare/backend/internal/shared/ctxkeys"
+	"github.com/healthcare/backend/internal/shared/role"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 )
@@ -42,7 +43,7 @@ func UnaryAuthInterceptor() grpc.UnaryServerInterceptor {
 			return nil, apperrors.ErrTokenExpired.ToGRPC()
 		}
 
-		callerRole := auth.Role(roleStr)
+		callerRole := role.Role(roleStr)
 		if permErr := checkPermission(info.FullMethod, callerRole); permErr != nil {
 			return nil, permErr
 		}
@@ -55,7 +56,7 @@ func UnaryAuthInterceptor() grpc.UnaryServerInterceptor {
 	}
 }
 
-func checkPermission(fullMethod string, callerRole auth.Role) error {
+func checkPermission(fullMethod string, callerRole role.Role) error {
 	allowedRoles, methodIsDefined := methodPermissions[fullMethod]
 	if !methodIsDefined {
 		return apperrors.ErrMethodNotInPermissionMatrix.ToGRPC()
@@ -129,7 +130,7 @@ func StreamAuthInterceptor() grpc.StreamServerInterceptor {
 			return apperrors.ErrTokenExpired.ToGRPC()
 		}
 
-		callerRole := auth.Role(roleStr)
+		callerRole := role.Role(roleStr)
 		if permErr := checkPermission(info.FullMethod, callerRole); permErr != nil {
 			return permErr
 		}

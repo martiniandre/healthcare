@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/healthcare/backend/internal/modules/auth/pb"
 	"github.com/healthcare/backend/internal/shared/apperrors"
+	"github.com/healthcare/backend/internal/shared/role"
 	"github.com/healthcare/backend/internal/shared/validator"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
@@ -75,7 +76,7 @@ func (handler *GRPCHandler) Register(ctx context.Context, req *pb.RegisterReques
 		if errors.Is(registerError, ErrUserExists) {
 			return nil, apperrors.ErrUserAlreadyExists.ToGRPC()
 		}
-		if errors.Is(registerError, ErrInvalidRole) {
+		if errors.Is(registerError, role.ErrInvalidRole) {
 			return nil, apperrors.ErrBadRequest.ToGRPC()
 		}
 		return nil, apperrors.ErrInternalServer.ToGRPC()

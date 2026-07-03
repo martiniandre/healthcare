@@ -6,7 +6,7 @@ import (
 
 	"github.com/healthcare/backend/internal/api/middleware"
 	"github.com/healthcare/backend/internal/api/render"
-	"github.com/healthcare/backend/internal/modules/auth"
+	"github.com/healthcare/backend/internal/shared/role"
 )
 
 type HTTPHandler struct {
@@ -20,7 +20,7 @@ func NewHTTPHandler(statsService Service) *HTTPHandler {
 }
 
 func (statsHTTPHandler *HTTPHandler) RegisterRoutes(httpServeMux *http.ServeMux) {
-	authorizedRoles := middleware.RequireRoles(auth.RoleAdmin, auth.RoleDoctor, auth.RoleNurse)
+	authorizedRoles := middleware.RequireRoles(role.RoleAdmin, role.RoleDoctor, role.RoleNurse)
 	httpServeMux.Handle("GET /api/stats", authorizedRoles(http.HandlerFunc(statsHTTPHandler.GetStats)))
 }
 

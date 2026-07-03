@@ -71,24 +71,24 @@ func main() {
 
 	applicationServer := app.NewServer(redisClient)
 
-	authService := auth.Register(applicationServer.GRPCServer, databasePool)
-	staffService := staff.Register(applicationServer.GRPCServer, databasePool)
-	patientsService := patients.Register(applicationServer.GRPCServer, fhirClient)
-	clinicalService := clinical.Register(applicationServer.GRPCServer, fhirClient)
+	authService := auth.Register(applicationServer.GRPCServer, auth.Dependency{DB: databasePool})
+	staffService := staff.Register(applicationServer.GRPCServer, staff.Dependency{DB: databasePool})
+	patientsService := patients.Register(applicationServer.GRPCServer, patients.Dependency{FHIRClient: fhirClient})
+	clinicalService := clinical.Register(applicationServer.GRPCServer, clinical.Dependency{FHIRClient: fhirClient})
 	storageClient, storageClientErr := storage.NewGCSClient(mainContext)
 	if storageClientErr != nil {
 		slog.Warn("Failed to initialize GCS client, falling back to dummy", "error", storageClientErr)
 		storageClient = storage.NewStorageClient()
 	}
-	imagingService := imaging.Register(applicationServer.GRPCServer, databasePool, storageClient, redisClient, appConfig.GCSBucketName)
-	telemetryService := telemetry.Register(applicationServer.GRPCServer, databasePool)
+	imagingService := imaging.Register(applicationServer.GRPCServer, imaging.Dependency{DB: databasePool, Storage: storageClient, Redis: redisClient, BucketName: appConfig.GCSBucketName})
+	telemetryService := telemetry.Register(applicationServer.GRPCServer, telemetry.Dependency{DB: databasePool})
 	telemetrySimulator := telemetry.StartSimulator(mainContext, databasePool)
-	health.Register(applicationServer.GRPCServer, databasePool, redisClient)
-	_, statsHTTPHandler := stats.Register(databasePool, fhirClient)
-	auditLogsService := audit_logs.Register(applicationServer.GRPCServer, databasePool)
+	health.Register(applicationServer.GRPCServer, health.Dependency{DB: databasePool, Redis: redisClient})
+	statsHTTPHandler := stats.Register(stats.Dependency{DB: databasePool, FHIRClient: fhirClient})
+	auditLogsService := audit_logs.Register(applicationServer.GRPCServer, audit_logs.Dependency{DB: databasePool})
 
-	examAnalyzerRepo, examAnalyzerSvc, examAnalyzerWorker := exam_analyzer.Register(databasePool, appConfig.GCPProjectID, appConfig.GCPLocationID, appConfig.GCPVertexModel)
-	go examAnalyzerWorker.Start(mainContext)
+	exam_analyzer.Register(exam_analyzer.Dependency{DB: databasePool, ProjectID: appConfig.GCPProjectID, LocationID: appConfig.GCPLocationID, VertexModel: appConfig.GCPVertexModel})
+	go exam_analyzer.WorkerInstance.Start(mainContext)
 
 	imagingWorker := imaging.NewWorker(imaging.NewRepository(databasePool), redisClient, fhirClient)
 	go imagingWorker.Start(mainContext)
@@ -101,7 +101,7 @@ func main() {
 	imagingHTTPHandler := imaging.NewHTTPHandler(imagingService)
 	staffHTTPHandler := staff.NewHTTPHandler(staffService)
 	telemetryHTTPHandler := telemetry.NewHTTPHandler(telemetryService)
-	examAnalyzerHTTPHandler := exam_analyzer.NewHTTPHandler(examAnalyzerRepo, examAnalyzerSvc, examAnalyzerWorker)
+	examAnalyzerHTTPHandler := exam_analyzer.NewHTTPHandler(exam_analyzer.Repo, exam_analyzer.Svc, exam_analyzer.WorkerInstance)
 	auditLogsHTTPHandler := audit_logs.NewHTTPHandler(auditLogsService)
 
 	router := api.NewRouter(
@@ -152,7 +152,7 @@ func main() {
 	<-quitSignalChannel
 
 	slog.Info("Shutting down servers gracefully...")
-	examAnalyzerWorker.Stop()
+	exam_analyzer.WorkerInstance.Stop()
 	imagingWorker.Stop()
 	telemetrySimulator.Stop()
 	applicationServer.GRPCServer.GracefulStop()

@@ -8,6 +8,7 @@ import (
 	"github.com/healthcare/backend/internal/modules/auth"
 	"github.com/healthcare/backend/internal/modules/auth/mocks"
 	"github.com/healthcare/backend/internal/modules/auth/pb"
+	"github.com/healthcare/backend/internal/shared/role"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
@@ -32,7 +33,7 @@ func TestGRPCHandler_Login(testingInstance *testing.T) {
 
 	mockService.User = &auth.User{
 		ID:   uuid.New(),
-		Role: auth.RoleDoctor,
+		Role: role.RoleDoctor,
 	}
 	mockService.Token = "fake-jwt-token"
 
@@ -46,7 +47,7 @@ func TestGRPCHandler_Login(testingInstance *testing.T) {
 	assert.NoError(testingInstance, loginError)
 	assert.NotNil(testingInstance, response)
 	assert.Equal(testingInstance, mockService.Token, response.Token)
-	assert.Equal(testingInstance, string(auth.RoleDoctor), response.Role)
+	assert.Equal(testingInstance, string(role.RoleDoctor), response.Role)
 
 	cookieHeader := stream.header.Get("set-cookie")
 	assert.Len(testingInstance, cookieHeader, 2)

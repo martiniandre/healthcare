@@ -6,14 +6,14 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/healthcare/backend/internal/modules/auth"
+	"github.com/healthcare/backend/internal/shared/role"
 	"github.com/healthcare/backend/internal/shared/validator"
 )
 
 var ErrEmployeeNotFound = errors.New("employee not found")
 
 type Service interface {
-	CreateEmployee(ctx context.Context, userID uuid.UUID, fullName, email, role, crmNumber string) (*Employee, error)
+	CreateEmployee(ctx context.Context, userID uuid.UUID, fullName, email, requestedRole, crmNumber string) (*Employee, error)
 	GetEmployee(ctx context.Context, employeeID uuid.UUID) (*Employee, error)
 	ListEmployees(ctx context.Context, search string, role string) ([]*Employee, error)
 	DeactivateEmployee(ctx context.Context, employeeID uuid.UUID) error
@@ -27,10 +27,10 @@ func NewService(repo Repository) Service {
 	return &service{repo: repo}
 }
 
-func (staffService *service) CreateEmployee(ctx context.Context, userID uuid.UUID, fullName, email, role, crmNumber string) (*Employee, error) {
-	parsedRole, roleIsValid := auth.ParseRole(role)
+func (staffService *service) CreateEmployee(ctx context.Context, userID uuid.UUID, fullName, email, requestedRole, crmNumber string) (*Employee, error) {
+	parsedRole, roleIsValid := role.ParseRole(requestedRole)
 	if !roleIsValid {
-		return nil, auth.ErrInvalidRole
+		return nil, role.ErrInvalidRole
 	}
 
 	if !validator.IsValidEmail(email) {

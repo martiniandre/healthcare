@@ -9,13 +9,13 @@ import { Button } from "../../../shared/components/ui/Button"
 import { Alert, AlertDescription } from "../../../shared/components/ui/Alert"
 import { getLoginFormSchema, type LoginFormData } from "../auth_schemas"
 import { KeyRound, Mail, ShieldAlert } from "lucide-react"
-import { authApi } from "../../../shared/services/auth_api"
+import { useLoginMutation } from "../queries"
 
 export const LoginForm = () => {
   const { t } = useTranslation()
   const loginToStore = useAuthStore((state) => state.login)
   const [generalError, setGeneralError] = useState<string | null>(null)
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const loginMutation = useLoginMutation()
 
   const {
     register,
@@ -26,17 +26,15 @@ export const LoginForm = () => {
   })
 
   const onSubmit = async (formData: LoginFormData) => {
-    setIsSubmitting(true)
     setGeneralError(null)
     try {
-      await authApi.login(formData.email, formData.password)
-      const fullSessionData = await authApi.me()
+      const response = await loginMutation.mutateAsync({ email: formData.email, password: formData.password })
       loginToStore(
-        fullSessionData.userId,
-        fullSessionData.role,
-        fullSessionData.email,
-        fullSessionData.fullName,
-        fullSessionData.isActive,
+        response.userId,
+        response.role,
+        response.email,
+        response.fullName,
+        response.isActive,
       )
     } catch (loginRequestError) {
       if (loginRequestError instanceof Error) {
@@ -44,8 +42,6 @@ export const LoginForm = () => {
       } else {
         setGeneralError(t("auth.defaultError"))
       }
-    } finally {
-      setIsSubmitting(false)
     }
   }
 
@@ -94,10 +90,10 @@ export const LoginForm = () => {
 
         <Button
           type="submit"
-          disabled={isSubmitting}
+          disabled={loginMutation.isPending}
           className="w-full py-3.5 mt-2 text-sm font-bold tracking-wide uppercase"
         >
-          {isSubmitting ? t("auth.loadingText") : t("auth.submitText")}
+          {loginMutation.isPending ? t("auth.loadingText") : t("auth.submitText")}
         </Button>
       </form>
     </Card>

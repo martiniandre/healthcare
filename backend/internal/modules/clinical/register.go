@@ -6,8 +6,12 @@ import (
 	"google.golang.org/grpc"
 )
 
-func Register(grpcServer *grpc.Server, fhirClient healthcare.FHIRClient) Service {
-	repo := NewRepository(fhirClient)
+type Dependency struct {
+	FHIRClient healthcare.FHIRClient
+}
+
+func Register(grpcServer *grpc.Server, dep Dependency) Service {
+	repo := NewRepository(dep.FHIRClient)
 	svc := NewService(repo)
 	handler := NewGRPCHandler(svc)
 	clinicalpb.RegisterClinicalServiceServer(grpcServer, handler)

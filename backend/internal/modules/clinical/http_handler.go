@@ -8,7 +8,7 @@ import (
 
 	"github.com/healthcare/backend/internal/api/middleware"
 	"github.com/healthcare/backend/internal/api/render"
-	"github.com/healthcare/backend/internal/modules/auth"
+	"github.com/healthcare/backend/internal/shared/role"
 )
 
 type HTTPHandler struct {
@@ -22,9 +22,9 @@ func NewHTTPHandler(service Service) *HTTPHandler {
 }
 
 func (handler *HTTPHandler) RegisterRoutes(mux *http.ServeMux) {
-	medicalStaff := middleware.RequireRoles(auth.RoleAdmin, auth.RoleDoctor, auth.RoleNurse, auth.RoleReception)
-	clinicalWrite := middleware.RequireRoles(auth.RoleDoctor, auth.RoleNurse)
-	clinicalRead := middleware.RequireRoles(auth.RoleAdmin, auth.RoleDoctor, auth.RoleNurse)
+	medicalStaff := middleware.RequireRoles(role.RoleAdmin, role.RoleDoctor, role.RoleNurse, role.RoleReception)
+	clinicalWrite := middleware.RequireRoles(role.RoleDoctor, role.RoleNurse)
+	clinicalRead := middleware.RequireRoles(role.RoleAdmin, role.RoleDoctor, role.RoleNurse)
 
 	mux.Handle("GET /api/patients/{patientFhirId}/encounters", medicalStaff(http.HandlerFunc(handler.ListEncountersByPatient)))
 	mux.Handle("POST /api/patients/{patientFhirId}/encounters", medicalStaff(http.HandlerFunc(handler.CreateEncounter)))
@@ -44,7 +44,7 @@ func (handler *HTTPHandler) RegisterRoutes(mux *http.ServeMux) {
 	mux.Handle("POST /api/encounters/{encounterFhirId}/reports", clinicalWrite(http.HandlerFunc(handler.CreateReport)))
 
 	mux.Handle("GET /api/encounters/{encounterFhirId}/medications", clinicalRead(http.HandlerFunc(handler.ListMedicationsByEncounter)))
-	mux.Handle("POST /api/encounters/{encounterFhirId}/medications", middleware.RequireRoles(auth.RoleDoctor)(http.HandlerFunc(handler.CreateMedication)))
+	mux.Handle("POST /api/encounters/{encounterFhirId}/medications", middleware.RequireRoles(role.RoleDoctor)(http.HandlerFunc(handler.CreateMedication)))
 }
 
 func (handler *HTTPHandler) ListEncountersByPatient(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {

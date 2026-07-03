@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/healthcare/backend/internal/shared/role"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -13,7 +14,6 @@ var (
 	ErrUserNotFound    = errors.New("user not found")
 	ErrInvalidPassword = errors.New("invalid password")
 	ErrUserExists      = errors.New("user already exists")
-	ErrInvalidRole     = errors.New("invalid role")
 	ErrUserInactive    = errors.New("user inactive")
 )
 
@@ -31,15 +31,15 @@ func NewService(repo Repository) Service {
 	return &service{repo: repo}
 }
 
-func (authService *service) Register(ctx context.Context, email, password, fullName, role string) (*User, error) {
+func (authService *service) Register(ctx context.Context, email, password, fullName, requestedRole string) (*User, error) {
 	existingUser, _ := authService.repo.GetUserByEmail(ctx, email)
 	if existingUser != nil {
 		return nil, ErrUserExists
 	}
 
-	parsedRole, roleIsValid := ParseRole(role)
+	parsedRole, roleIsValid := role.ParseRole(requestedRole)
 	if !roleIsValid {
-		return nil, ErrInvalidRole
+		return nil, role.ErrInvalidRole
 	}
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)

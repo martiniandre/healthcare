@@ -5,9 +5,9 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/healthcare/backend/internal/modules/auth"
 	"github.com/healthcare/backend/internal/modules/staff"
 	"github.com/healthcare/backend/internal/modules/staff/mocks"
+	"github.com/healthcare/backend/internal/shared/role"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -17,12 +17,12 @@ func TestStaffService_CreateEmployee(testingInstance *testing.T) {
 	contextParam := context.Background()
 	userID := uuid.New()
 
-	employee, err := staffService.CreateEmployee(contextParam, userID, "Dr. João Silva", "joao@clinic.com", string(auth.RoleDoctor), "CRM-12345")
+	employee, err := staffService.CreateEmployee(contextParam, userID, "Dr. João Silva", "joao@clinic.com", string(role.RoleDoctor), "CRM-12345")
 
 	assert.NoError(testingInstance, err)
 	assert.NotNil(testingInstance, employee)
 	assert.Equal(testingInstance, "Dr. João Silva", employee.FullName)
-	assert.Equal(testingInstance, auth.RoleDoctor, employee.Role)
+	assert.Equal(testingInstance, role.RoleDoctor, employee.Role)
 	assert.Equal(testingInstance, "CRM-12345", *employee.CRMNumber)
 	assert.True(testingInstance, employee.IsActive)
 }
@@ -33,7 +33,7 @@ func TestStaffService_GetEmployee(testingInstance *testing.T) {
 	contextParam := context.Background()
 	userID := uuid.New()
 
-	createdEmployee, _ := staffService.CreateEmployee(contextParam, userID, "Enf. Maria Costa", "maria@clinic.com", string(auth.RoleNurse), "")
+	createdEmployee, _ := staffService.CreateEmployee(contextParam, userID, "Enf. Maria Costa", "maria@clinic.com", string(role.RoleNurse), "")
 
 	foundEmployee, err := staffService.GetEmployee(contextParam, createdEmployee.ID)
 
@@ -50,7 +50,7 @@ func TestStaffService_DeactivateEmployee(testingInstance *testing.T) {
 	contextParam := context.Background()
 	userID := uuid.New()
 
-	createdEmployee, _ := staffService.CreateEmployee(contextParam, userID, "Recep. Ana Lima", "ana@clinic.com", string(auth.RoleReception), "")
+	createdEmployee, _ := staffService.CreateEmployee(contextParam, userID, "Recep. Ana Lima", "ana@clinic.com", string(role.RoleReception), "")
 
 	err := staffService.DeactivateEmployee(contextParam, createdEmployee.ID)
 	assert.NoError(testingInstance, err)
@@ -64,8 +64,8 @@ func TestStaffService_ListEmployees(testingInstance *testing.T) {
 	staffService := staff.NewService(mockRepository)
 	contextParam := context.Background()
 
-	staffService.CreateEmployee(contextParam, uuid.New(), "Dr. A", "a@clinic.com", string(auth.RoleDoctor), "CRM-1")
-	staffService.CreateEmployee(contextParam, uuid.New(), "Dr. B", "b@clinic.com", string(auth.RoleDoctor), "CRM-2")
+	staffService.CreateEmployee(contextParam, uuid.New(), "Dr. A", "a@clinic.com", string(role.RoleDoctor), "CRM-1")
+	staffService.CreateEmployee(contextParam, uuid.New(), "Dr. B", "b@clinic.com", string(role.RoleDoctor), "CRM-2")
 
 	employees, err := staffService.ListEmployees(contextParam, "", "")
 

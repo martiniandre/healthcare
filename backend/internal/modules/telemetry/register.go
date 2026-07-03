@@ -8,8 +8,12 @@ import (
 	"google.golang.org/grpc"
 )
 
-func Register(grpcServer *grpc.Server, dbPool *pgxpool.Pool) Service {
-	repo := NewRepository(dbPool)
+type Dependency struct {
+	DB *pgxpool.Pool
+}
+
+func Register(grpcServer *grpc.Server, dep Dependency) Service {
+	repo := NewRepository(dep.DB)
 	svc := NewService(repo)
 	handler := NewGRPCHandler(svc)
 	telemetrypb.RegisterTelemetryServiceServer(grpcServer, handler)

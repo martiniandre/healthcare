@@ -17,12 +17,12 @@ import (
 type Worker struct {
 	dbRepository     Repository
 	redisClient      *redis.Client
-	healthcareClient *healthcare.Client
+	healthcareClient healthcare.FHIRClient
 	stopChannel      chan struct{}
 	stopOnce         sync.Once
 }
 
-func NewWorker(dbRepository Repository, redisClient *redis.Client, healthcareClient *healthcare.Client) *Worker {
+func NewWorker(dbRepository Repository, redisClient *redis.Client, healthcareClient healthcare.FHIRClient) *Worker {
 	return &Worker{
 		dbRepository:     dbRepository,
 		redisClient:      redisClient,
@@ -93,36 +93,35 @@ func (worker *Worker) processDICOM(ctx context.Context, studyIDString string) {
 
 	studyInstanceUID := fmt.Sprintf("1.2.826.0.1.3680043.8.498.%s", uuid.New().String())
 
-	fhirStudy := &fhir.ImagingStudyResource{
-		ResourceType: "ImagingStudy",
-		Status:       "available",
-		Subject: fhir.Reference{
-			Reference: fmt.Sprintf("Patient/%s", study.PatientFhirID),
-		},
-		Started:     study.CreatedAt.Format(time.RFC3339),
-		Description: study.Title,
-		Series: []fhir.Series{
-			{
-				Uid:    fmt.Sprintf("1.2.826.0.1.3680043.8.498.series.%s", uuid.New().String()),
-				Number: 1,
-				Modality: fhir.Coding{
-					System:  "http://dicom.nema.org/resources/ontology/DCM",
-					Code:    study.Modality,
-					Display: study.Modality,
-				},
-				Instance: []fhir.Instance{
-					{
-						Uid: studyInstanceUID,
-						SopClass: fhir.Coding{
-							System: "http://dicom.nema.org/resources/ontology/DCM",
-							Code:   "1.2.840.10008.5.1.4.1.1.7",
-						},
-						Number: 1,
+	imagingSeries := []fhir.Series{
+		{
+			Uid:    fmt.Sprintf("1.2.826.0.1.3680043.8.498.series.%s", uuid.New().String()),
+			Number: 1,
+			Modality: fhir.Coding{
+				System:  "http://dicom.nema.org/resources/ontology/DCM",
+				Code:    study.Modality,
+				Display: study.Modality,
+			},
+			Instance: []fhir.Instance{
+				{
+					Uid: studyInstanceUID,
+					SopClass: fhir.Coding{
+						System: "http://dicom.nema.org/resources/ontology/DCM",
+						Code:   "1.2.840.10008.5.1.4.1.1.7",
 					},
+					Number: 1,
 				},
 			},
 		},
 	}
+
+	fhirStudy := fhir.NewImagingStudyResource(
+		study.PatientFhirID,
+		"available",
+		study.CreatedAt.Format(time.RFC3339),
+		study.Title,
+		imagingSeries,
+	)
 
 	var creationError error
 	if worker.healthcareClient != nil {

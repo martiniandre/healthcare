@@ -5,9 +5,13 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func Register(databasePool *pgxpool.Pool, fhirClient healthcare.FHIRClient) (Service, *HTTPHandler) {
-	statsRepository := NewRepository(databasePool, fhirClient)
+type Dependency struct {
+	DB         *pgxpool.Pool
+	FHIRClient healthcare.FHIRClient
+}
+
+func Register(dep Dependency) *HTTPHandler {
+	statsRepository := NewRepository(dep.DB, dep.FHIRClient)
 	statsService := NewService(statsRepository)
-	statsHTTPHandler := NewHTTPHandler(statsService)
-	return statsService, statsHTTPHandler
+	return NewHTTPHandler(statsService)
 }

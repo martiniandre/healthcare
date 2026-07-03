@@ -16,9 +16,13 @@ export const useTelemetryRoomsQuery = () => {
 }
 
 export const useUnlockRoomMutation = () => {
+  const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (payload: { roomIdValue: string; passcodeValue: string }) =>
       telemetryApi.unlockRoom(payload.roomIdValue, payload.passcodeValue),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: telemetryQueryKeys.all })
+    },
   })
 }
 

@@ -41,13 +41,14 @@ go.work
 go.work.sum
 
 # Environment variables & secrets
-.env
+.env.*
 .env.local
 .env.*.local
 backend/.env
 backend/.env.local
 frontend/.env
 frontend/.env.local
+
 
 # GCP Service Account keys (geradas pelo setup-cloudrun.sh)
 sa-key-*.json

@@ -2,23 +2,40 @@ package fhir
 
 import "time"
 
-func NewMedicationRequestResource(patientFHIRID, encounterFHIRID, practitionerFHIRID, medicationCode, medicationName, dosageInstructions string) map[string]interface{} {
-	return map[string]interface{}{
-		"resourceType": "MedicationRequest",
-		"status":       "active",
-		"intent":       "order",
-		"medicationCodeableConcept": map[string]interface{}{
-			"coding": []map[string]interface{}{
-				{"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": medicationCode, "display": medicationName},
+type MedicationRequestResource struct {
+	ResourceType               string                `json:"resourceType"`
+	ID                         string                `json:"id,omitempty"`
+	Status                     string                `json:"status"`
+	Intent                     string                `json:"intent"`
+	MedicationCodeableConcept  CodeableConcept       `json:"medicationCodeableConcept"`
+	Subject                    Reference             `json:"subject"`
+	Encounter                  Reference             `json:"encounter"`
+	Requester                  Reference             `json:"requester"`
+	AuthoredOn                 string                `json:"authoredOn"`
+	DosageInstruction          []DosageInstruction   `json:"dosageInstruction"`
+}
+
+type DosageInstruction struct {
+	Text string `json:"text"`
+}
+
+func NewMedicationRequestResource(patientFHIRID, encounterFHIRID, practitionerFHIRID, medicationCode, medicationName, dosageInstructions string) *MedicationRequestResource {
+	return &MedicationRequestResource{
+		ResourceType: "MedicationRequest",
+		Status:       "active",
+		Intent:       "order",
+		MedicationCodeableConcept: CodeableConcept{
+			Coding: []Coding{
+				{System: "http://www.nlm.nih.gov/research/umls/rxnorm", Code: medicationCode, Display: medicationName},
 			},
-			"text": medicationName,
+			Text: medicationName,
 		},
-		"subject":    map[string]interface{}{"reference": "Patient/" + patientFHIRID},
-		"encounter":  map[string]interface{}{"reference": "Encounter/" + encounterFHIRID},
-		"requester":  map[string]interface{}{"reference": "Practitioner/" + practitionerFHIRID},
-		"authoredOn": time.Now().Format(time.RFC3339),
-		"dosageInstruction": []map[string]interface{}{
-			{"text": dosageInstructions},
+		Subject:   Reference{Reference: "Patient/" + patientFHIRID},
+		Encounter: Reference{Reference: "Encounter/" + encounterFHIRID},
+		Requester: Reference{Reference: "Practitioner/" + practitionerFHIRID},
+		AuthoredOn: time.Now().Format(time.RFC3339),
+		DosageInstruction: []DosageInstruction{
+			{Text: dosageInstructions},
 		},
 	}
 }

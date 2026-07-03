@@ -8,7 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/healthcare/backend/internal/api/middleware"
 	"github.com/healthcare/backend/internal/api/render"
-	"github.com/healthcare/backend/internal/modules/auth"
+	"github.com/healthcare/backend/internal/shared/role"
 )
 
 type HTTPHandler struct {
@@ -22,9 +22,9 @@ func NewHTTPHandler(service Service) *HTTPHandler {
 }
 
 func (handler *HTTPHandler) RegisterRoutes(mux *http.ServeMux) {
-	medicalStaff := middleware.RequireRoles(auth.RoleAdmin, auth.RoleDoctor, auth.RoleNurse, auth.RoleReception)
-	clinicalStaff := middleware.RequireRoles(auth.RoleAdmin, auth.RoleDoctor, auth.RoleNurse)
-	clinicalWrite := middleware.RequireRoles(auth.RoleDoctor, auth.RoleNurse)
+	medicalStaff := middleware.RequireRoles(role.RoleAdmin, role.RoleDoctor, role.RoleNurse, role.RoleReception)
+	clinicalStaff := middleware.RequireRoles(role.RoleAdmin, role.RoleDoctor, role.RoleNurse)
+	clinicalWrite := middleware.RequireRoles(role.RoleDoctor, role.RoleNurse)
 
 	mux.Handle("GET /api/telemetry/rooms", medicalStaff(http.HandlerFunc(handler.ListRooms)))
 	mux.Handle("POST /api/telemetry/rooms/{roomId}/unlock", clinicalStaff(http.HandlerFunc(handler.UnlockRoom)))

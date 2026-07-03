@@ -81,8 +81,8 @@ export const PatientsTable = ({
           </TableHeader>
           <TableBody>
             {isLoading ? (
-              Array.from({ length: 5 }).map((_, i) => (
-                <TableRow key={`skeleton-${i}`}>
+              Array.from({ length: 5 }).map((_, index) => (
+                <TableRow key={`skeleton-${index}`}>
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <Skeleton className="w-8 h-8 rounded-lg" />

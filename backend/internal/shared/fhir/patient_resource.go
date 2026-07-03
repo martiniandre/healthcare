@@ -1,16 +1,12 @@
 package fhir
 
-import "time"
-
 type PatientResource struct {
-	ResourceType string              `json:"resourceType"`
-	ID           string              `json:"id,omitempty"`
-	Name         []HumanName         `json:"name"`
-	BirthDate    string              `json:"birthDate"`
-	Telecom      []ContactPoint      `json:"telecom,omitempty"`
-	Identifier   []Identifier        `json:"identifier"`
-	BloodType    string              `json:"-"`
-	Allergies    []AllergyEntry      `json:"-"`
+	ResourceType string         `json:"resourceType"`
+	ID           string         `json:"id,omitempty"`
+	Name         []HumanName    `json:"name"`
+	BirthDate    string         `json:"birthDate"`
+	Telecom      []ContactPoint `json:"telecom,omitempty"`
+	Identifier   []Identifier   `json:"identifier"`
 }
 
 type HumanName struct {
@@ -30,17 +26,11 @@ type Identifier struct {
 	Value  string `json:"value"`
 }
 
-type AllergyEntry struct {
-	Substance string    `json:"substance"`
-	Reaction  string    `json:"reaction"`
-	Recorded  time.Time `json:"recorded"`
-}
-
-func NewPatientResource(fullName, documentID, phoneNumber, birthDate string) *PatientResource {
+func NewPatientResource(givenName, familyName, documentID, phoneNumber, birthDate string) *PatientResource {
 	return &PatientResource{
 		ResourceType: "Patient",
 		Name: []HumanName{
-			{Use: "official", Family: fullName},
+			{Use: "official", Family: familyName, Given: []string{givenName}},
 		},
 		BirthDate: birthDate,
 		Telecom: []ContactPoint{

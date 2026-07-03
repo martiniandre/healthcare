@@ -1,5 +1,4 @@
 import { http } from "../../shared/utils/http"
-import { api } from "../../shared/services/api"
 import type { ExamAnalysis } from "./types"
 
 export const examAnalyzerApi = {
@@ -41,6 +40,6 @@ export const examAnalyzerApi = {
   },
 
   deleteAnalysis: async (id: string): Promise<{ success: string }> => {
-    return api.delete<{ success: string }>(`/exam-analyses/${id}`).then((responseData) => responseData.data)
+    return http.delete<{ success: string }>(`/exam-analyses/${id}`)
   },
 }

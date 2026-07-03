@@ -8,9 +8,16 @@ import (
 	"google.golang.org/grpc"
 )
 
-func Register(grpcServer *grpc.Server, dbPool *pgxpool.Pool, storageClient storage.StorageClient, redisClient *redis.Client, bucketName string) Service {
-	repo := NewRepository(dbPool)
-	svc := NewService(repo, storageClient, redisClient, bucketName)
+type Dependency struct {
+	DB         *pgxpool.Pool
+	Storage    storage.StorageClient
+	Redis      *redis.Client
+	BucketName string
+}
+
+func Register(grpcServer *grpc.Server, dep Dependency) Service {
+	repo := NewRepository(dep.DB)
+	svc := NewService(repo, dep.Storage, dep.Redis, dep.BucketName)
 	handler := NewGRPCHandler(svc)
 	pb.RegisterImagingServiceServer(grpcServer, handler)
 	return svc

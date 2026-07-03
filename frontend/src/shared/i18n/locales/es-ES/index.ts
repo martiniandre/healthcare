@@ -7,6 +7,7 @@ import imaging from "./imaging.json"
 import examAnalyzer from "./examAnalyzer.json"
 import stats from "./stats.json"
 import staff from "./staff.json"
+import auditLogs from "./auditLogs.json"
 
 const esESResource = {
   sidebar,
@@ -17,7 +18,8 @@ const esESResource = {
   imaging,
   examAnalyzer,
   stats,
-  staff
+  staff,
+  auditLogs
 }
 
 export default esESResource

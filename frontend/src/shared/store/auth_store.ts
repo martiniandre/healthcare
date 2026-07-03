@@ -1,5 +1,5 @@
 import { create } from "zustand"
-import { authApi } from "../services/auth_api"
+import { authApi } from "../../modules/auth/api"
 
 interface AuthenticatedUserState {
   isAuthenticated: boolean

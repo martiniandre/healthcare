@@ -1,6 +1,6 @@
 package interceptor
 
-import "github.com/healthcare/backend/internal/modules/auth"
+import "github.com/healthcare/backend/internal/shared/role"
 
 var publicMethods = map[string]bool{
 	"/auth.v1.AuthService/Login":    true,
@@ -11,40 +11,40 @@ var publicMethods = map[string]bool{
 	"/audit_logs.v1.AuditLogsService/CreateAuditLog": true,
 }
 
-var methodPermissions = map[string][]auth.Role{
-	"/audit_logs.v1.AuditLogsService/ListAuditLogs":     {auth.RoleAdmin},
+var methodPermissions = map[string][]role.Role{
+	"/audit_logs.v1.AuditLogsService/ListAuditLogs":     {role.RoleAdmin},
 
-	"/telemetry.v1.TelemetryService/GetRooms":           {auth.RoleAdmin, auth.RoleDoctor, auth.RoleNurse, auth.RoleReception},
-	"/telemetry.v1.TelemetryService/UnlockRoom":         {auth.RoleAdmin, auth.RoleDoctor, auth.RoleNurse},
-	"/telemetry.v1.TelemetryService/GetBeds":           {auth.RoleAdmin, auth.RoleDoctor, auth.RoleNurse},
-	"/telemetry.v1.TelemetryService/UpdateBedCondition": {auth.RoleDoctor, auth.RoleNurse},
+	"/telemetry.v1.TelemetryService/GetRooms":           {role.RoleAdmin, role.RoleDoctor, role.RoleNurse, role.RoleReception},
+	"/telemetry.v1.TelemetryService/UnlockRoom":         {role.RoleAdmin, role.RoleDoctor, role.RoleNurse},
+	"/telemetry.v1.TelemetryService/GetBeds":           {role.RoleAdmin, role.RoleDoctor, role.RoleNurse},
+	"/telemetry.v1.TelemetryService/UpdateBedCondition": {role.RoleDoctor, role.RoleNurse},
 
-	"/staff.v1.StaffService/CreateEmployee":     {auth.RoleAdmin},
+	"/staff.v1.StaffService/CreateEmployee":     {role.RoleAdmin},
 
-	"/staff.v1.StaffService/GetEmployee":        {auth.RoleAdmin, auth.RoleDoctor, auth.RoleNurse, auth.RoleReception},
-	"/staff.v1.StaffService/ListEmployees":      {auth.RoleAdmin, auth.RoleDoctor, auth.RoleNurse, auth.RoleReception},
-	"/staff.v1.StaffService/DeactivateEmployee": {auth.RoleAdmin},
+	"/staff.v1.StaffService/GetEmployee":        {role.RoleAdmin, role.RoleDoctor, role.RoleNurse, role.RoleReception},
+	"/staff.v1.StaffService/ListEmployees":      {role.RoleAdmin, role.RoleDoctor, role.RoleNurse, role.RoleReception},
+	"/staff.v1.StaffService/DeactivateEmployee": {role.RoleAdmin},
 
-	"/patients.v1.PatientService/CreatePatient":        {auth.RoleAdmin, auth.RoleReception},
-	"/patients.v1.PatientService/GetPatient":           {auth.RoleAdmin, auth.RoleDoctor, auth.RoleNurse, auth.RoleReception},
-	"/patients.v1.PatientService/GetPatientByDocument": {auth.RoleAdmin, auth.RoleDoctor, auth.RoleNurse, auth.RoleReception},
-	"/patients.v1.PatientService/ListPatients":         {auth.RoleAdmin, auth.RoleDoctor, auth.RoleNurse, auth.RoleReception},
+	"/patients.v1.PatientService/CreatePatient":        {role.RoleAdmin, role.RoleReception},
+	"/patients.v1.PatientService/GetPatient":           {role.RoleAdmin, role.RoleDoctor, role.RoleNurse, role.RoleReception},
+	"/patients.v1.PatientService/GetPatientByDocument": {role.RoleAdmin, role.RoleDoctor, role.RoleNurse, role.RoleReception},
+	"/patients.v1.PatientService/ListPatients":         {role.RoleAdmin, role.RoleDoctor, role.RoleNurse, role.RoleReception},
 
-	"/clinical.v1.ClinicalService/CreateEncounter":          {auth.RoleDoctor},
-	"/clinical.v1.ClinicalService/GetEncounters":             {auth.RoleAdmin, auth.RoleDoctor, auth.RoleNurse},
-	"/clinical.v1.ClinicalService/CreateObservation":         {auth.RoleDoctor, auth.RoleNurse},
-	"/clinical.v1.ClinicalService/GetObservations":           {auth.RoleAdmin, auth.RoleDoctor, auth.RoleNurse},
-	"/clinical.v1.ClinicalService/CreateCondition":           {auth.RoleDoctor},
-	"/clinical.v1.ClinicalService/GetConditions":             {auth.RoleAdmin, auth.RoleDoctor, auth.RoleNurse},
-	"/clinical.v1.ClinicalService/CreateAllergyIntolerance":  {auth.RoleDoctor, auth.RoleNurse},
-	"/clinical.v1.ClinicalService/GetAllergyIntolerances":    {auth.RoleAdmin, auth.RoleDoctor, auth.RoleNurse},
-	"/clinical.v1.ClinicalService/CreateMedicationRequest":   {auth.RoleDoctor},
-	"/clinical.v1.ClinicalService/GetMedicationRequests":     {auth.RoleAdmin, auth.RoleDoctor, auth.RoleNurse},
-	"/clinical.v1.ClinicalService/CreateDiagnosticReport":    {auth.RoleDoctor},
-	"/clinical.v1.ClinicalService/GetDiagnosticReports":      {auth.RoleAdmin, auth.RoleDoctor, auth.RoleNurse},
+	"/clinical.v1.ClinicalService/CreateEncounter":          {role.RoleDoctor},
+	"/clinical.v1.ClinicalService/GetEncounters":             {role.RoleAdmin, role.RoleDoctor, role.RoleNurse},
+	"/clinical.v1.ClinicalService/CreateObservation":         {role.RoleDoctor, role.RoleNurse},
+	"/clinical.v1.ClinicalService/GetObservations":           {role.RoleAdmin, role.RoleDoctor, role.RoleNurse},
+	"/clinical.v1.ClinicalService/CreateCondition":           {role.RoleDoctor},
+	"/clinical.v1.ClinicalService/GetConditions":             {role.RoleAdmin, role.RoleDoctor, role.RoleNurse},
+	"/clinical.v1.ClinicalService/CreateAllergyIntolerance":  {role.RoleDoctor, role.RoleNurse},
+	"/clinical.v1.ClinicalService/GetAllergyIntolerances":    {role.RoleAdmin, role.RoleDoctor, role.RoleNurse},
+	"/clinical.v1.ClinicalService/CreateMedicationRequest":   {role.RoleDoctor},
+	"/clinical.v1.ClinicalService/GetMedicationRequests":     {role.RoleAdmin, role.RoleDoctor, role.RoleNurse},
+	"/clinical.v1.ClinicalService/CreateDiagnosticReport":    {role.RoleDoctor},
+	"/clinical.v1.ClinicalService/GetDiagnosticReports":      {role.RoleAdmin, role.RoleDoctor, role.RoleNurse},
 
-	"/clinical.v1.ImagingService/UploadDICOM":         {auth.RoleAdmin, auth.RoleDoctor, auth.RoleNurse},
-	"/clinical.v1.ImagingService/GetImagingStudy":     {auth.RoleAdmin, auth.RoleDoctor, auth.RoleNurse, auth.RolePatient},
-	"/clinical.v1.ImagingService/ListImagingStudies":   {auth.RoleAdmin, auth.RoleDoctor, auth.RoleNurse, auth.RolePatient},
-	"/clinical.v1.ImagingService/GetDICOMDownloadURL": {auth.RoleAdmin, auth.RoleDoctor, auth.RoleNurse, auth.RolePatient},
+	"/clinical.v1.ImagingService/UploadDICOM":         {role.RoleAdmin, role.RoleDoctor, role.RoleNurse},
+	"/clinical.v1.ImagingService/GetImagingStudy":     {role.RoleAdmin, role.RoleDoctor, role.RoleNurse, role.RolePatient},
+	"/clinical.v1.ImagingService/ListImagingStudies":   {role.RoleAdmin, role.RoleDoctor, role.RoleNurse, role.RolePatient},
+	"/clinical.v1.ImagingService/GetDICOMDownloadURL": {role.RoleAdmin, role.RoleDoctor, role.RoleNurse, role.RolePatient},
 }

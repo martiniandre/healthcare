@@ -22,13 +22,14 @@ type Service interface {
 }
 
 type service struct {
+	repository  Repository
 	projectID   string
 	locationID  string
 	vertexModel string
 	httpClient  *http.Client
 }
 
-func NewService(projectID, locationID, vertexModel string) Service {
+func NewService(repository Repository, projectID, locationID, vertexModel string) Service {
 	ctx := context.Background()
 	googleHTTPClient, err := google.DefaultClient(ctx, "https://www.googleapis.com/auth/cloud-platform")
 	if err != nil {
@@ -37,6 +38,7 @@ func NewService(projectID, locationID, vertexModel string) Service {
 	}
 
 	return &service{
+		repository:  repository,
 		projectID:   projectID,
 		locationID:  locationID,
 		vertexModel: vertexModel,

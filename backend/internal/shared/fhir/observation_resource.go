@@ -40,16 +40,6 @@ type ValueQuantity struct {
 }
 
 func NewObservationResource(patientFHIRID, encounterFHIRID, loincCode, codeDisplay string, valueQuantity float64, valueUnit string) *ObservationResource {
-	var valueQuantityObject *ValueQuantity
-	if valueQuantity != 0 {
-		valueQuantityObject = &ValueQuantity{
-			Value:  valueQuantity,
-			Unit:   valueUnit,
-			System: "http://unitsofmeasure.org",
-			Code:   valueUnit,
-		}
-	}
-
 	return &ObservationResource{
 		ResourceType: "Observation",
 		Status:       "final",
@@ -78,7 +68,12 @@ func NewObservationResource(patientFHIRID, encounterFHIRID, loincCode, codeDispl
 			Reference: fmt.Sprintf("Patient/%s", patientFHIRID),
 		},
 		EffectiveDateTime: time.Now().Format(time.RFC3339),
-		ValueQuantity:     valueQuantityObject,
+		ValueQuantity: &ValueQuantity{
+			Value:  valueQuantity,
+			Unit:   valueUnit,
+			System: "http://unitsofmeasure.org",
+			Code:   valueUnit,
+		},
 	}
 }
 

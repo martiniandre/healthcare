@@ -12,8 +12,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/healthcare/backend/internal/api/middleware"
 	"github.com/healthcare/backend/internal/api/render"
-	"github.com/healthcare/backend/internal/modules/auth"
 	"github.com/healthcare/backend/internal/shared/ctxkeys"
+	"github.com/healthcare/backend/internal/shared/role"
 )
 
 type HTTPHandler struct {
@@ -31,8 +31,8 @@ func NewHTTPHandler(repository Repository, service Service, worker *Worker) *HTT
 }
 
 func (handler *HTTPHandler) RegisterRoutes(mux *http.ServeMux) {
-	clinicalRead := middleware.RequireRoles(auth.RoleAdmin, auth.RoleDoctor, auth.RoleNurse)
-	clinicalDelete := middleware.RequireRoles(auth.RoleAdmin, auth.RoleDoctor)
+	clinicalRead := middleware.RequireRoles(role.RoleAdmin, role.RoleDoctor, role.RoleNurse)
+	clinicalDelete := middleware.RequireRoles(role.RoleAdmin, role.RoleDoctor)
 
 	mux.Handle("GET /api/exam-analyses", clinicalRead(http.HandlerFunc(handler.ListAnalyses)))
 	mux.Handle("POST /api/exam-analyses", clinicalRead(http.HandlerFunc(handler.CreateAnalysis)))

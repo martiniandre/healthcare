@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { authApi } from "../services/auth_api"
+import { authApi } from "../../modules/auth/api"
 import { useAuthStore } from "../store/auth_store"
 
 export const useAuthInit = () => {
@@ -22,9 +22,7 @@ export const useAuthInit = () => {
           )
         }
       })
-      .catch(() => {
-        // Cookie ausente ou expirado — não há sessão ativa, não fazemos nada.
-      })
+      .catch(() => {})
       .finally(() => {
         if (!cancelled) {
           setIsLoading(false)

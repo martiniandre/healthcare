@@ -7,9 +7,10 @@ import (
 
 	"github.com/healthcare/backend/internal/modules/auth"
 	"github.com/healthcare/backend/internal/shared/ctxkeys"
+	"github.com/healthcare/backend/internal/shared/role"
 )
 
-func ValidateHTTPAuth(httpResponseWriter http.ResponseWriter, httpRequest *http.Request, allowedRoles []auth.Role) (context.Context, bool) {
+func ValidateHTTPAuth(httpResponseWriter http.ResponseWriter, httpRequest *http.Request, allowedRoles []role.Role) (context.Context, bool) {
 	cookie, cookieError := httpRequest.Cookie("token")
 	if cookieError != nil {
 		httpResponseWriter.Header().Set("Content-Type", "application/json")
@@ -34,7 +35,7 @@ func ValidateHTTPAuth(httpResponseWriter http.ResponseWriter, httpRequest *http.
 		return nil, false
 	}
 
-	callerRole := auth.Role(roleStr)
+	callerRole := role.Role(roleStr)
 	roleAllowed := false
 	for _, allowedRole := range allowedRoles {
 		if callerRole == allowedRole {
@@ -67,7 +68,7 @@ func ValidateHTTPAuth(httpResponseWriter http.ResponseWriter, httpRequest *http.
 	return contextWithValues, true
 }
 
-func RequireRoles(allowedRoles ...auth.Role) func(http.Handler) http.Handler {
+func RequireRoles(allowedRoles ...role.Role) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
 			authenticatedContext, authorizationPassed := ValidateHTTPAuth(httpResponseWriter, httpRequest, allowedRoles)

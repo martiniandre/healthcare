@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -30,8 +31,16 @@ func NewRepository(fhirClient healthcare.FHIRClient) Repository {
 }
 
 func (patientRepository *repository) CreatePatient(ctx context.Context, patient *Patient) (*Patient, error) {
+	nameParts := strings.SplitN(patient.FullName, " ", 2)
+	givenName := nameParts[0]
+	familyName := ""
+	if len(nameParts) > 1 {
+		familyName = nameParts[1]
+	}
+
 	fhirPatient := fhir.NewPatientResource(
-		patient.FullName,
+		givenName,
+		familyName,
 		patient.DocumentID,
 		patient.PhoneNumber,
 		patient.BirthDate.Format("2006-01-02"),

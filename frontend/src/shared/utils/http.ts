@@ -13,4 +13,8 @@ export const http = {
   ): Promise<TResponse> {
     return await api.post<TResponse>(url, body, config).then((responseData) => responseData.data)
   },
+
+  async delete<TResponse>(url: string, config?: AxiosRequestConfig): Promise<TResponse> {
+    return await api.delete<TResponse>(url, config).then((responseData) => responseData.data)
+  },
 }

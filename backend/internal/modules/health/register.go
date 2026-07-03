@@ -7,6 +7,11 @@ import (
 	"google.golang.org/grpc/health/grpc_health_v1"
 )
 
-func Register(grpcServer *grpc.Server, databaseConnectionPool *pgxpool.Pool, cacheConnectionClient *redis.Client) {
-	grpc_health_v1.RegisterHealthServer(grpcServer, NewGRPCHandler(databaseConnectionPool, cacheConnectionClient))
+type Dependency struct {
+	DB    *pgxpool.Pool
+	Redis *redis.Client
+}
+
+func Register(grpcServer *grpc.Server, dep Dependency) {
+	grpc_health_v1.RegisterHealthServer(grpcServer, NewGRPCHandler(dep.DB, dep.Redis))
 }

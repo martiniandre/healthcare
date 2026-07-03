@@ -6,8 +6,12 @@ import (
 	"google.golang.org/grpc"
 )
 
-func Register(grpcServer *grpc.Server, dbPool *pgxpool.Pool) Service {
-	auditLogsRepository := NewRepository(dbPool)
+type Dependency struct {
+	DB *pgxpool.Pool
+}
+
+func Register(grpcServer *grpc.Server, dep Dependency) Service {
+	auditLogsRepository := NewRepository(dep.DB)
 	auditLogsService := NewService(auditLogsRepository)
 	auditLogsGRPCHandler := NewGRPCHandler(auditLogsService)
 	auditlogspb.RegisterAuditLogsServiceServer(grpcServer, auditLogsGRPCHandler)

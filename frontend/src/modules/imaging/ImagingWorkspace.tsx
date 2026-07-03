@@ -52,7 +52,6 @@ export const ImagingWorkspace = ({ studyId, onBack }: ImagingWorkspaceProps) => 
       setUploadState({ percentage: 100, status: t("imaging.uploadStatus.grpcCompleted") })
       await waitForUploadFrame(500)
       toast.success(t("imaging.toast.uploadSuccess"))
-      window.alert(t("imaging.alert.uploadSuccess"))
     } catch {
       toast.error(t("imaging.toast.uploadError"))
     } finally {

@@ -8,8 +8,8 @@ import (
 
 	"github.com/healthcare/backend/internal/api/middleware"
 	"github.com/healthcare/backend/internal/api/render"
-	"github.com/healthcare/backend/internal/modules/auth"
 	"github.com/healthcare/backend/internal/shared/ctxkeys"
+	"github.com/healthcare/backend/internal/shared/role"
 )
 
 type HTTPHandler struct {
@@ -23,8 +23,8 @@ func NewHTTPHandler(service Service) *HTTPHandler {
 }
 
 func (auditLogsHTTPHandler *HTTPHandler) RegisterRoutes(mux *http.ServeMux) {
-	adminOnly := middleware.RequireRoles(auth.RoleAdmin)
-	authenticated := middleware.RequireRoles(auth.RoleAdmin, auth.RoleDoctor, auth.RoleNurse, auth.RoleReception, auth.RolePatient)
+	adminOnly := middleware.RequireRoles(role.RoleAdmin)
+	authenticated := middleware.RequireRoles(role.RoleAdmin, role.RoleDoctor, role.RoleNurse, role.RoleReception, role.RolePatient)
 
 	mux.Handle("GET /api/audit-logs", adminOnly(http.HandlerFunc(auditLogsHTTPHandler.ListAuditLogs)))
 	mux.Handle("POST /api/audit-logs", authenticated(http.HandlerFunc(auditLogsHTTPHandler.CreateAuditLog)))
