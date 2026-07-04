@@ -3,6 +3,8 @@
   "subtitle": "Clinical Console v1.0",
   "menuHeader": "Main Menu",
   "patients": "Patients",
+  "dashboard": "Clinical Dashboard",
+  "portal": "My Portal",
   "telemetry": "ICU Telemetry",
   "pacsViewer": "PACS Viewer",
   "examAnalyzer": "Exam Analysis",

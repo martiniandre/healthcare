@@ -14,6 +14,8 @@ const Stats = lazy(() => import("../modules/analytics/Stats").then((module) => (
 const Staff = lazy(() => import("../modules/staff/Staff").then((module) => ({ default: module.Staff })))
 const ExamAnalyzer = lazy(() => import("../modules/exam_analyzer/ExamAnalyzer").then((module) => ({ default: module.ExamAnalyzer })))
 const AuditLogs = lazy(() => import("../modules/audit_logs/AuditLogs").then((module) => ({ default: module.AuditLogs })))
+const PortalPage = lazy(() => import("../modules/portal/PortalPage").then((module) => ({ default: module.PortalPage })))
+const ClinicalDashboard = lazy(() => import("../modules/analytics/ClinicalDashboard").then((module) => ({ default: module.ClinicalDashboard })))
 
 const PageViewLogger = () => {
   usePageViewLogger()
@@ -50,7 +52,9 @@ export const AppRoutes = () => {
                     <AppHeader />
                     <main className="flex-1 flex flex-col">
                       <Routes>
-                        <Route path="/" element={<Patients />} />
+                        <Route path="/" element={role === "PATIENT" ? <Navigate to="/portal" replace /> : <Patients />} />
+                        <Route path="/portal/*" element={<PortalPage />} />
+                        <Route path="/dashboard" element={<ClinicalDashboard />} />
                         <Route path="/patients/:id" element={<PatientDetails />} />
                         <Route path="/telemetry" element={<Telemetry />} />
                         <Route path="/analytics" element={<Stats />} />

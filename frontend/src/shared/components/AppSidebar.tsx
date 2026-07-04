@@ -2,16 +2,18 @@ import { useNavigate, useLocation } from "react-router-dom"
 import { useTranslation } from "react-i18next"
 import { useAuthStore } from "../store/auth_store"
 import { useLayoutStore } from "../store/layout_store"
-import { Activity, Users, BarChart3, Settings, LogOut, X, Sparkles, History } from "lucide-react"
+import { Activity, Users, BarChart3, Settings, LogOut, X, Sparkles, History, UserRound, LayoutDashboard } from "lucide-react"
 
 const navigationItems = [
-  { key: "patients", icon: Users, path: "/" },
-  { key: "telemetry", icon: Activity, path: "/telemetry" },
-  { key: "examAnalyzer", icon: Sparkles, path: "/exam-analyzer" },
-  { key: "analytics", icon: BarChart3, path: "/analytics" },
-  { key: "staffManagement", icon: Users, path: "/staff" },
-  { key: "auditLogs", icon: History, path: "/audit-logs", adminOnly: true },
-  { key: "settings", icon: Settings, path: "/settings", disabled: true },
+  { key: "patients", icon: Users, path: "/", staffOnly: true },
+  { key: "dashboard", icon: LayoutDashboard, path: "/dashboard", staffOnly: true },
+  { key: "portal", icon: UserRound, path: "/portal", patientOnly: true },
+  { key: "telemetry", icon: Activity, path: "/telemetry", staffOnly: true },
+  { key: "examAnalyzer", icon: Sparkles, path: "/exam-analyzer", staffOnly: true },
+  { key: "analytics", icon: BarChart3, path: "/analytics", staffOnly: true },
+  { key: "staffManagement", icon: Users, path: "/staff", staffOnly: true },
+  { key: "auditLogs", icon: History, path: "/audit-logs", adminOnly: true, staffOnly: true },
+  { key: "settings", icon: Settings, path: "/settings", disabled: true, staffOnly: true },
 ]
 
 export const AppSidebar = () => {
@@ -62,6 +64,11 @@ export const AppSidebar = () => {
             {t("sidebar.menuHeader")}
           </span>
           {navigationItems
+            .filter((item) => {
+              if (item.patientOnly) return role === "PATIENT"
+              if (item.staffOnly) return role !== "PATIENT"
+              return true
+            })
             .filter((item) => !item.adminOnly || role === "ADMIN")
             .map((item) => {
               const isActive = location.pathname === item.path ||

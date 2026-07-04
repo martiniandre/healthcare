@@ -3,6 +3,8 @@
   "subtitle": "Console Clínico v1.0",
   "menuHeader": "Menu Principal",
   "patients": "Pacientes",
+  "dashboard": "Dashboard Clínico",
+  "portal": "Meu Portal",
   "telemetry": "Telemetria UTI",
   "pacsViewer": "PACS Viewer",
   "examAnalyzer": "Análise de Exames",

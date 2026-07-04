@@ -25,6 +25,10 @@ type Repository interface {
 	GetEncounters(contextParameter context.Context) ([]FHIREncounter, error)
 	GetConditions(contextParameter context.Context) ([]FHIRCondition, error)
 	GetExamModalitiesCounts(contextParameter context.Context) (map[string]int, error)
+	GetConsultationsPerDoctor(contextParameter context.Context) ([]DoctorConsultation, error)
+	GetOccupancyRateData(contextParameter context.Context) (*OccupancyRate, error)
+	GetAvgWaitTimeData(contextParameter context.Context) (*AvgWaitTime, error)
+	GetTopDiagnosesData(contextParameter context.Context) ([]DiagnosisCount, error)
 }
 
 type repository struct {
@@ -129,6 +133,99 @@ func (analyticsRepository *repository) GetConditions(contextParameter context.Co
 		conditions = append(conditions, condition)
 	}
 	return conditions, nil
+}
+
+func (analyticsRepository *repository) GetConsultationsPerDoctor(contextParameter context.Context) ([]DoctorConsultation, error) {
+	queryStatement := `
+		SELECT s.name, s.specialty, COUNT(e.id) as consultation_count
+		FROM encounters e
+		JOIN staff s ON e.practitioner_id = s.id
+		WHERE e.created_at >= NOW() - INTERVAL '30 days'
+		GROUP BY s.id, s.name, s.specialty
+		ORDER BY consultation_count DESC
+	`
+	rowsResult, queryError := analyticsRepository.dbPool.Query(contextParameter, queryStatement)
+	if queryError != nil {
+		return nil, queryError
+	}
+	defer rowsResult.Close()
+
+	consultationsList := make([]DoctorConsultation, 0)
+	for rowsResult.Next() {
+		var doctorConsultation DoctorConsultation
+		if scanError := rowsResult.Scan(&doctorConsultation.DoctorName, &doctorConsultation.Specialty, &doctorConsultation.Count); scanError != nil {
+			return nil, scanError
+		}
+		consultationsList = append(consultationsList, doctorConsultation)
+	}
+	if rowsError := rowsResult.Err(); rowsError != nil {
+		return nil, rowsError
+	}
+	return consultationsList, nil
+}
+
+func (analyticsRepository *repository) GetOccupancyRateData(contextParameter context.Context) (*OccupancyRate, error) {
+	queryStatement := `
+		SELECT
+			COUNT(*) as total_beds,
+			COUNT(*) FILTER (WHERE status = 'occupied') as occupied_beds
+		FROM beds
+	`
+	rowResult := analyticsRepository.dbPool.QueryRow(contextParameter, queryStatement)
+	var occupancyRate OccupancyRate
+	if scanError := rowResult.Scan(&occupancyRate.TotalBeds, &occupancyRate.OccupiedBeds); scanError != nil {
+		return nil, scanError
+	}
+	if occupancyRate.TotalBeds > 0 {
+		occupancyRate.Rate = (float64(occupancyRate.OccupiedBeds) / float64(occupancyRate.TotalBeds)) * 100
+	}
+	return &occupancyRate, nil
+}
+
+func (analyticsRepository *repository) GetAvgWaitTimeData(contextParameter context.Context) (*AvgWaitTime, error) {
+	queryStatement := `
+		SELECT
+			AVG(EXTRACT(EPOCH FROM (started_at - arrived_at)) / 60) as avg_minutes
+		FROM encounters
+		WHERE started_at IS NOT NULL AND arrived_at IS NOT NULL
+			AND created_at >= NOW() - INTERVAL '30 days'
+	`
+	rowResult := analyticsRepository.dbPool.QueryRow(contextParameter, queryStatement)
+	var avgWaitTime AvgWaitTime
+	avgWaitTime.ByDepartment = make([]DepartmentWaitTime, 0)
+	if scanError := rowResult.Scan(&avgWaitTime.AverageMinutes); scanError != nil {
+		return nil, scanError
+	}
+	return &avgWaitTime, nil
+}
+
+func (analyticsRepository *repository) GetTopDiagnosesData(contextParameter context.Context) ([]DiagnosisCount, error) {
+	queryStatement := `
+		SELECT c.code, c.display, COUNT(*) as diagnosis_count
+		FROM conditions c
+		WHERE c.created_at >= NOW() - INTERVAL '30 days'
+		GROUP BY c.code, c.display
+		ORDER BY diagnosis_count DESC
+		LIMIT 10
+	`
+	rowsResult, queryError := analyticsRepository.dbPool.Query(contextParameter, queryStatement)
+	if queryError != nil {
+		return nil, queryError
+	}
+	defer rowsResult.Close()
+
+	diagnosesList := make([]DiagnosisCount, 0)
+	for rowsResult.Next() {
+		var diagnosisCount DiagnosisCount
+		if scanError := rowsResult.Scan(&diagnosisCount.ICD10Code, &diagnosisCount.Description, &diagnosisCount.Count); scanError != nil {
+			return nil, scanError
+		}
+		diagnosesList = append(diagnosesList, diagnosisCount)
+	}
+	if rowsError := rowsResult.Err(); rowsError != nil {
+		return nil, rowsError
+	}
+	return diagnosesList, nil
 }
 
 func (analyticsRepository *repository) GetExamModalitiesCounts(contextParameter context.Context) (map[string]int, error) {

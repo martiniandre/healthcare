@@ -11,6 +11,11 @@ export default defineConfig({
   base: process.env.GITHUB_ACTIONS === 'true' ? '/healthcare/' : '/',
   server: {
     proxy: {
+      '/api/v1': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+        secure: false,
+      },
       '/api': {
         target: 'http://localhost:8080',
         changeOrigin: true,

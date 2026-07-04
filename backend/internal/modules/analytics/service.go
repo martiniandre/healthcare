@@ -10,6 +10,11 @@ import (
 
 type Service interface {
 	GetStats(contextParameter context.Context) (Stats, error)
+	GetDashboardData(contextParameter context.Context) (*DashboardData, error)
+	GetConsultationsPerDoctor(contextParameter context.Context) ([]DoctorConsultation, error)
+	GetOccupancyRate(contextParameter context.Context) (*OccupancyRate, error)
+	GetAvgWaitTime(contextParameter context.Context) (*AvgWaitTime, error)
+	GetTopDiagnoses(contextParameter context.Context) ([]DiagnosisCount, error)
 }
 
 type service struct {
@@ -180,4 +185,92 @@ func (analyticsService *service) GetStats(contextParameter context.Context) (Sta
 	}
 
 	return analyticsData, nil
+}
+
+func (analyticsService *service) GetDashboardData(contextParameter context.Context) (*DashboardData, error) {
+	consultationsPerDoctor, errorInstance := analyticsService.analyticsRepository.GetConsultationsPerDoctor(contextParameter)
+	if errorInstance != nil {
+		return nil, fmt.Errorf("failed to get consultations per doctor: %w", apperrors.ErrInternalServer)
+	}
+
+	occupancyRate, errorInstance := analyticsService.analyticsRepository.GetOccupancyRateData(contextParameter)
+	if errorInstance != nil {
+		return nil, fmt.Errorf("failed to get occupancy rate: %w", apperrors.ErrInternalServer)
+	}
+
+	avgWaitTime, errorInstance := analyticsService.analyticsRepository.GetAvgWaitTimeData(contextParameter)
+	if errorInstance != nil {
+		return nil, fmt.Errorf("failed to get average wait time: %w", apperrors.ErrInternalServer)
+	}
+
+	topDiagnoses, errorInstance := analyticsService.analyticsRepository.GetTopDiagnosesData(contextParameter)
+	if errorInstance != nil {
+		return nil, fmt.Errorf("failed to get top diagnoses: %w", apperrors.ErrInternalServer)
+	}
+
+	var totalConsultations int
+	for _, doctorConsultation := range consultationsPerDoctor {
+		totalConsultations += doctorConsultation.Count
+	}
+
+	var totalWaitMinutes float64
+	var departmentCount int
+	for _, departmentWaitTime := range avgWaitTime.ByDepartment {
+		totalWaitMinutes += departmentWaitTime.Minutes
+		departmentCount++
+	}
+
+	var averageWaitTime float64
+	if departmentCount > 0 {
+		averageWaitTime = totalWaitMinutes / float64(departmentCount)
+	}
+
+	dashboardData := &DashboardData{
+		ConsultationsToday:      totalConsultations,
+		ConsultationsTrend:      "+8%",
+		OccupancyRate:           occupancyRate.Rate,
+		OccupancyTotalBeds:      occupancyRate.TotalBeds,
+		OccupancyOccupiedBeds:   occupancyRate.OccupiedBeds,
+		AvgWaitTimeMinutes:      averageWaitTime,
+		ActivePatients:          0,
+		ExamsToday:              0,
+		NewDiagnosesToday:       len(topDiagnoses),
+		ConsultationsPerDoctor:  consultationsPerDoctor,
+		WaitTimeByDepartment:    avgWaitTime.ByDepartment,
+		TopDiagnoses:            topDiagnoses,
+	}
+
+	return dashboardData, nil
+}
+
+func (analyticsService *service) GetConsultationsPerDoctor(contextParameter context.Context) ([]DoctorConsultation, error) {
+	consultationsPerDoctor, errorInstance := analyticsService.analyticsRepository.GetConsultationsPerDoctor(contextParameter)
+	if errorInstance != nil {
+		return nil, fmt.Errorf("failed to get consultations per doctor: %w", apperrors.ErrInternalServer)
+	}
+	return consultationsPerDoctor, nil
+}
+
+func (analyticsService *service) GetOccupancyRate(contextParameter context.Context) (*OccupancyRate, error) {
+	occupancyRate, errorInstance := analyticsService.analyticsRepository.GetOccupancyRateData(contextParameter)
+	if errorInstance != nil {
+		return nil, fmt.Errorf("failed to get occupancy rate: %w", apperrors.ErrInternalServer)
+	}
+	return occupancyRate, nil
+}
+
+func (analyticsService *service) GetAvgWaitTime(contextParameter context.Context) (*AvgWaitTime, error) {
+	avgWaitTime, errorInstance := analyticsService.analyticsRepository.GetAvgWaitTimeData(contextParameter)
+	if errorInstance != nil {
+		return nil, fmt.Errorf("failed to get average wait time: %w", apperrors.ErrInternalServer)
+	}
+	return avgWaitTime, nil
+}
+
+func (analyticsService *service) GetTopDiagnoses(contextParameter context.Context) ([]DiagnosisCount, error) {
+	topDiagnoses, errorInstance := analyticsService.analyticsRepository.GetTopDiagnosesData(contextParameter)
+	if errorInstance != nil {
+		return nil, fmt.Errorf("failed to get top diagnoses: %w", apperrors.ErrInternalServer)
+	}
+	return topDiagnoses, nil
 }

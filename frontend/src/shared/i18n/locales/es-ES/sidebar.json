@@ -3,6 +3,8 @@
   "subtitle": "Consola Clínica v1.0",
   "menuHeader": "Menú Principal",
   "patients": "Pacientes",
+  "dashboard": "Dashboard Clínico",
+  "portal": "Mi Portal",
   "telemetry": "Telemetría UCI",
   "pacsViewer": "Visor PACS",
   "examAnalyzer": "Análisis de Exámenes",

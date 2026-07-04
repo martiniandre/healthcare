@@ -39,6 +39,7 @@ import (
 	"github.com/healthcare/backend/internal/modules/medication"
 	"github.com/healthcare/backend/internal/modules/observation"
 	"github.com/healthcare/backend/internal/modules/patients"
+	"github.com/healthcare/backend/internal/modules/portal"
 	"github.com/healthcare/backend/internal/modules/staff"
 	"github.com/healthcare/backend/internal/modules/telemetry"
 	"github.com/healthcare/backend/internal/shared/cache"
@@ -122,6 +123,7 @@ func main() {
 	telemetrySimulator := telemetry.StartSimulator(mainContext, databasePool)
 	health.Register(applicationServer.GRPCServer, health.Dependency{DB: databasePool, Redis: redisClient})
 	analyticsHTTPHandler := analytics.Register(analytics.Dependency{DB: databasePool, FHIRClient: fhirClient})
+	portalHTTPHandler := portal.Register(portal.Dependency{FHIRClient: fhirClient})
 	auditLogsService := audit_logs.Register(applicationServer.GRPCServer, audit_logs.Dependency{DB: databasePool})
 
 	examAnalyzerRepo, examAnalyzerSvc, examAnalyzerWorker := exam_analyzer.Register(exam_analyzer.Dependency{DB: databasePool, ProjectID: appConfig.GCPProjectID, LocationID: appConfig.GCPLocationID, VertexModel: appConfig.GCPVertexModel})
@@ -162,6 +164,7 @@ func main() {
 		telemetryHTTPHandler,
 		examAnalyzerHTTPHandler,
 		analyticsHTTPHandler,
+		portalHTTPHandler,
 		auditLogsHTTPHandler,
 		healthHTTPHandler,
 	)
