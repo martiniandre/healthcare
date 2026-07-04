@@ -2,6 +2,8 @@ package encounter
 
 import (
 	"context"
+
+	"github.com/healthcare/backend/internal/shared/eventbus"
 )
 
 type Service interface {
@@ -11,18 +13,36 @@ type Service interface {
 }
 
 type service struct {
-	repo Repository
+	repo     Repository
+	eventBus eventbus.Bus
 }
 
-func NewService(repo Repository) Service {
-	return &service{repo: repo}
+func NewService(repo Repository, eventBus eventbus.Bus) Service {
+	return &service{repo: repo, eventBus: eventBus}
 }
 
 func (encounterService *service) CreateEncounter(ctx context.Context, encounter *Encounter) (*Encounter, error) {
 	if encounter.PatientFHIRID == "" {
 		return nil, ErrEncounterNotFound
 	}
-	return encounterService.repo.CreateEncounter(ctx, encounter)
+	createdEncounter, err := encounterService.repo.CreateEncounter(ctx, encounter)
+	if err != nil {
+		return nil, err
+	}
+
+	if encounterService.eventBus != nil {
+		encounterService.eventBus.Publish(ctx, eventbus.Event{
+		Name: "encounter.created",
+		Data: map[string]any{
+			"title":         "Novo Atendimento Criado",
+			"body":          "Atendimento para paciente " + createdEncounter.PatientFHIRID + " foi registrado.",
+			"resource_type": "encounter",
+			"resource_id":   createdEncounter.FHIRResourceID,
+		},
+	})
+	}
+
+	return createdEncounter, nil
 }
 
 func (encounterService *service) GetEncounter(ctx context.Context, fhirResourceID string) (*Encounter, error) {

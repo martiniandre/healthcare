@@ -2,8 +2,9 @@ import { useState, useEffect } from "react"
 import { useTranslation } from "react-i18next"
 import { useAuthStore } from "../store/auth_store"
 import { useLayoutStore } from "../store/layout_store"
-import { Menu, Bell, ShieldCheck, WifiOff } from "lucide-react"
+import { Menu, ShieldCheck, WifiOff } from "lucide-react"
 import { LanguageSwitcher } from "./LanguageSwitcher"
+import { NotificationBell } from "../../modules/notifications/components/NotificationBell"
 
 export const AppHeader = () => {
   const { t } = useTranslation()
@@ -49,10 +50,7 @@ export const AppHeader = () => {
 
       <LanguageSwitcher />
 
-      <button title={t("header.notificationTooltip")} className="relative p-2 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-50 transition-colors">
-        <Bell className="w-4 h-4" />
-        <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-primary rounded-full" />
-      </button>
+      <NotificationBell />
 
       <div className="h-5 w-px bg-border" />
 

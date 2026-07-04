@@ -3,9 +3,11 @@ package telemetry
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/google/uuid"
+	"github.com/healthcare/backend/internal/shared/eventbus"
 )
 
 var ErrInvalidPasscode = errors.New("invalid passcode for telemetry room")
@@ -20,11 +22,12 @@ type Service interface {
 }
 
 type service struct {
-	repo Repository
+	repo     Repository
+	eventBus eventbus.Bus
 }
 
-func NewService(repo Repository) Service {
-	return &service{repo: repo}
+func NewService(repo Repository, eventBus eventbus.Bus) Service {
+	return &service{repo: repo, eventBus: eventBus}
 }
 
 func (telemetryService *service) GetRooms(ctx context.Context) ([]*Room, error) {
@@ -73,11 +76,30 @@ func (telemetryService *service) UpdateBedCondition(ctx context.Context, bedID u
 		return ErrBedNotFound
 	}
 
+	previousStatus := bed.Status
+
 	bed.Bpm = bpm
 	bed.Spo2 = spo2
 	bed.Temperature = temperature
 	bed.Status = status
 	bed.Condition = condition
 
-	return telemetryService.repo.UpdateBedCondition(ctx, bed)
+	err = telemetryService.repo.UpdateBedCondition(ctx, bed)
+	if err != nil {
+		return err
+	}
+
+	if status == "danger" && previousStatus != "danger" && telemetryService.eventBus != nil {
+		telemetryService.eventBus.Publish(ctx, eventbus.Event{
+			Name: "telemetry.alert",
+			Data: map[string]any{
+				"title":         "Alerta Clínico - Leito " + bed.BedNumber,
+				"body":          fmt.Sprintf("Paciente %s apresenta condição %s (BPM: %d, SpO2: %d%%).", bed.PatientName, condition, bpm, spo2),
+				"resource_type": "bed",
+				"resource_id":   bed.ID.String(),
+			},
+		})
+	}
+
+	return nil
 }

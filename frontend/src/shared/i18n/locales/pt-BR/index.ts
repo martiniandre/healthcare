@@ -8,6 +8,7 @@ import examAnalyzer from "./examAnalyzer.json"
 import analytics from "./analytics.json"
 import staff from "./staff.json"
 import auditLogs from "./auditLogs.json"
+import notifications from "./notifications.json"
 
 const ptBRResource = {
   sidebar,
@@ -19,7 +20,8 @@ const ptBRResource = {
   examAnalyzer,
   analytics,
   staff,
-  auditLogs
+  auditLogs,
+  notifications
 }
 
 export default ptBRResource

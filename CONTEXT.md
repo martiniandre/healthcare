@@ -72,6 +72,10 @@ _Avoid_: Station, spot, unit, slot
 Authentication and authorization subsystem that issues JWT tokens, manages sessions, and enforces role-based access control across all API surfaces.
 _Avoid_: Security, login, identity, access control
 
+### Notification:
+A persisted, role-routed message about a domain event (clinical alert, operational update, system completion, or audit event) delivered in real-time via WebSocket and viewable in a prioritized in-app feed.
+_Avoid_: Alert (when used generically), message, broadcast, push, activity item
+
 ### OTEL:
 OpenTelemetry tracing infrastructure exporting traces via OTLP HTTP for observability across gRPC and HTTP APIs.
 _Avoid_: Tracing, monitoring, telemetry, APM

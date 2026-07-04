@@ -12,7 +12,7 @@ import (
 
 func TestTelemetryService_GetRooms(testingInstance *testing.T) {
 	mockRepository := mocks.NewMockTelemetryRepository()
-	telemetryService := telemetry.NewService(mockRepository)
+	telemetryService := telemetry.NewService(mockRepository, nil)
 	contextParam := context.Background()
 
 	roomID := uuid.New()
@@ -31,7 +31,7 @@ func TestTelemetryService_GetRooms(testingInstance *testing.T) {
 
 func TestTelemetryService_UnlockRoom(testingInstance *testing.T) {
 	mockRepository := mocks.NewMockTelemetryRepository()
-	telemetryService := telemetry.NewService(mockRepository)
+	telemetryService := telemetry.NewService(mockRepository, nil)
 	contextParam := context.Background()
 
 	roomID := uuid.New()
@@ -56,7 +56,7 @@ func TestTelemetryService_UnlockRoom(testingInstance *testing.T) {
 
 func TestTelemetryService_GetBeds(testingInstance *testing.T) {
 	mockRepository := mocks.NewMockTelemetryRepository()
-	telemetryService := telemetry.NewService(mockRepository)
+	telemetryService := telemetry.NewService(mockRepository, nil)
 	contextParam := context.Background()
 
 	roomID := uuid.New()
@@ -88,7 +88,7 @@ func TestTelemetryService_GetBeds(testingInstance *testing.T) {
 
 func TestTelemetryService_UpdateBedCondition(testingInstance *testing.T) {
 	mockRepository := mocks.NewMockTelemetryRepository()
-	telemetryService := telemetry.NewService(mockRepository)
+	telemetryService := telemetry.NewService(mockRepository, nil)
 	contextParam := context.Background()
 
 	roomID := uuid.New()

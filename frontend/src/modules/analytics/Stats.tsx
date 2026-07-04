@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react"
+import { useTranslation } from "react-i18next"
 import { useStatsQuery } from "./queries"
 import { StatsHeader } from "./components/StatsHeader"
 import { StatsMetricsGrid } from "./components/StatsMetricsGrid"
@@ -7,8 +8,11 @@ import { StatsConsultationsChart } from "./components/StatsConsultationsChart"
 import { StatsEpidemiologyTable } from "./components/StatsEpidemiologyTable"
 import { StatsLoadingState } from "./components/StatsLoadingState"
 import { StatsErrorState } from "./components/StatsErrorState"
+import { EmptyState } from "../../shared/components/ui/EmptyState"
+import { BarChart3 } from "lucide-react"
 
 export const Stats = () => {
+  const { t: translate } = useTranslation()
   const [selectedModality, setSelectedModality] = useState<string | null>(null)
   const [hoveredBarIndex, setHoveredBarIndex] = useState<number | null>(null)
 
@@ -57,6 +61,24 @@ export const Stats = () => {
 
   if (isError || !analyticsData) {
     return <StatsErrorState />
+  }
+
+  const hasAnyData =
+    analyticsData.totalRegisteredPatients > 0 ||
+    (analyticsData.examModalitiesData && analyticsData.examModalitiesData.length > 0) ||
+    (analyticsData.consultationsWeeklyData && analyticsData.consultationsWeeklyData.length > 0) ||
+    (analyticsData.pathologies && analyticsData.pathologies.length > 0)
+
+  if (!hasAnyData) {
+    return (
+      <div className="flex-1 p-4 sm:p-6 md:p-8 flex flex-col items-center justify-center max-w-7xl mx-auto w-full">
+        <EmptyState
+          icon={BarChart3}
+          title={translate("analytics.empty.title")}
+          description={translate("analytics.empty.description")}
+        />
+      </div>
+    )
   }
 
   return (

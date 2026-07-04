@@ -926,12 +926,93 @@ export const loginAsAdmin = async (pageInstance: Page): Promise<void> => {
   await mockTelemetryAPI(pageInstance)
   await mockAnalyticsAPI(pageInstance)
   await mockAuditLogsAPI(pageInstance)
+  await mockNotificationsAPI(pageInstance)
 
   await pageInstance.goto("/login")
   await pageInstance.getByPlaceholder("nome.sobrenome@hospital.com").fill("admin@hospital.com")
   await pageInstance.getByPlaceholder("••••••••").fill("admin123")
   await pageInstance.getByRole("button", { name: "Entrar no Console" }).click()
   await expect(pageInstance).toHaveURL(/\/$/)
+}
+
+export const mockNotificationsAPI = async (pageInstance: Page): Promise<void> => {
+  const currentNotifications: Record<string, unknown>[] = [
+    {
+      id: "notif-1",
+      type: "system",
+      priority: "low",
+      title: "Bem-vindo ao sistema",
+      body: "Seu cadastro foi realizado com sucesso.",
+      resource_type: "",
+      resource_id: "",
+      is_read: false,
+      created_at: new Date().toISOString(),
+    },
+    {
+      id: "notif-2",
+      type: "telemetry_alert",
+      priority: "critical",
+      title: "Alerta Crítico - Leito 01",
+      body: "Paciente apresenta sinais vitais instáveis.",
+      resource_type: "bed",
+      resource_id: "bed-1",
+      is_read: false,
+      created_at: new Date().toISOString(),
+    },
+  ]
+
+  await pageInstance.route("**/api/v1/notifications", async (networkRoute) => {
+    const httpRequest = networkRoute.request()
+    if (httpRequest.method() === "GET") {
+      await networkRoute.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ notifications: currentNotifications, total: currentNotifications.length }),
+      })
+    }
+  })
+
+  await pageInstance.route("**/api/v1/notifications/unread-count", async (networkRoute) => {
+    const httpRequest = networkRoute.request()
+    if (httpRequest.method() === "GET") {
+      const unreadCount = currentNotifications.filter((n) => n.is_read === false).length
+      await networkRoute.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ count: unreadCount }),
+      })
+    }
+  })
+
+  await pageInstance.route("**/api/v1/notifications/*/read", async (networkRoute) => {
+    const httpRequest = networkRoute.request()
+    const requestURL = httpRequest.url()
+    const urlParts = requestURL.split("/")
+    const notificationId = urlParts[urlParts.length - 2]
+    if (httpRequest.method() === "POST") {
+      const notification = currentNotifications.find((n) => n.id === notificationId)
+      if (notification) {
+        notification.is_read = true
+      }
+      await networkRoute.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ success: true }),
+      })
+    }
+  })
+
+  await pageInstance.route("**/api/v1/notifications/stream", async (networkRoute) => {
+    await networkRoute.fulfill({
+      status: 200,
+      contentType: "text/event-stream",
+      headers: {
+        "Cache-Control": "no-cache",
+        Connection: "keep-alive",
+      },
+      body: "",
+    })
+  })
 }
 
 export const loginAsDoctor = async (pageInstance: Page): Promise<void> => {
@@ -942,6 +1023,7 @@ export const loginAsDoctor = async (pageInstance: Page): Promise<void> => {
   await mockStaffAPI(pageInstance)
   await mockTelemetryAPI(pageInstance)
   await mockAnalyticsAPI(pageInstance)
+  await mockNotificationsAPI(pageInstance)
   await pageInstance.goto("/login")
   await pageInstance.getByPlaceholder("nome.sobrenome@hospital.com").fill("medico@clinica.com")
   await pageInstance.getByPlaceholder("••••••••").fill("senha123")

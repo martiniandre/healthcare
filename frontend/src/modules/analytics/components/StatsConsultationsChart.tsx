@@ -71,8 +71,8 @@ export const StatsConsultationsChart = ({
         ) : (
           <div className="h-48 border-b border-border mb-2 pt-6">
             <EmptyState 
-              title={translate("analytics.empty.consultations") || "Sem consultas"} 
-              description={translate("analytics.empty.consultationsDesc") || "Nenhum dado de consulta disponível para o período."} 
+              title={translate("analytics.empty.consultations")} 
+              description={translate("analytics.empty.consultationsDesc")} 
               className="h-full"
             />
           </div>

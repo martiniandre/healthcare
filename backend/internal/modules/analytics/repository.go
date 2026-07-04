@@ -3,16 +3,18 @@ package analytics
 import (
 	"context"
 	"encoding/json"
+	"strings"
 
 	"github.com/healthcare/backend/internal/shared/healthcare"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type FHIREncounter struct {
-	ID        string
-	Status    string
-	StartedAt string
-	EndedAt   string
+	ID             string
+	Status         string
+	StartedAt      string
+	EndedAt        string
+	PractitionerID string
 }
 
 type FHIRCondition struct {
@@ -93,6 +95,16 @@ func (analyticsRepository *repository) GetEncounters(contextParameter context.Co
 			encounter.StartedAt, _ = periodMap["start"].(string)
 			encounter.EndedAt, _ = periodMap["end"].(string)
 		}
+		if participantList, participantOk := resourceMap["participant"].([]interface{}); participantOk && len(participantList) > 0 {
+			if firstParticipant, firstOk := participantList[0].(map[string]interface{}); firstOk {
+				if individualMap, individualOk := firstParticipant["individual"].(map[string]interface{}); individualOk {
+					if referenceValue, refOk := individualMap["reference"].(string); refOk {
+						referenceParts := strings.Split(referenceValue, "/")
+						encounter.PractitionerID = referenceParts[len(referenceParts)-1]
+					}
+				}
+			}
+		}
 		encounters = append(encounters, encounter)
 	}
 	return encounters, nil
@@ -136,30 +148,63 @@ func (analyticsRepository *repository) GetConditions(contextParameter context.Co
 }
 
 func (analyticsRepository *repository) GetConsultationsPerDoctor(contextParameter context.Context) ([]DoctorConsultation, error) {
-	queryStatement := `
-		SELECT s.name, s.specialty, COUNT(e.id) as consultation_count
-		FROM encounters e
-		JOIN staff s ON e.practitioner_id = s.id
-		WHERE e.created_at >= NOW() - INTERVAL '30 days'
-		GROUP BY s.id, s.name, s.specialty
-		ORDER BY consultation_count DESC
-	`
-	rowsResult, queryError := analyticsRepository.dbPool.Query(contextParameter, queryStatement)
+	encounters, errorInstance := analyticsRepository.GetEncounters(contextParameter)
+	if errorInstance != nil {
+		return nil, errorInstance
+	}
+
+	employeeRows, queryError := analyticsRepository.dbPool.Query(contextParameter,
+		`SELECT id, full_name, COALESCE(crm_number, '') FROM employees WHERE role = 'doctor' AND is_active = true`)
 	if queryError != nil {
 		return nil, queryError
 	}
-	defer rowsResult.Close()
+	defer employeeRows.Close()
 
-	consultationsList := make([]DoctorConsultation, 0)
-	for rowsResult.Next() {
-		var doctorConsultation DoctorConsultation
-		if scanError := rowsResult.Scan(&doctorConsultation.DoctorName, &doctorConsultation.Specialty, &doctorConsultation.Count); scanError != nil {
+	type doctorInfo struct {
+		Name     string
+		CRM      string
+	}
+	doctorsByID := make(map[string]doctorInfo)
+	for employeeRows.Next() {
+		var id string
+		var info doctorInfo
+		if scanError := employeeRows.Scan(&id, &info.Name, &info.CRM); scanError != nil {
 			return nil, scanError
 		}
-		consultationsList = append(consultationsList, doctorConsultation)
+		doctorsByID[id] = info
 	}
-	if rowsError := rowsResult.Err(); rowsError != nil {
+	if rowsError := employeeRows.Err(); rowsError != nil {
 		return nil, rowsError
+	}
+
+	consultationCounts := make(map[string]*DoctorConsultation)
+	for _, encounterElement := range encounters {
+		if encounterElement.PractitionerID == "" {
+			continue
+		}
+		doctorData, doctorExists := doctorsByID[encounterElement.PractitionerID]
+		if !doctorExists {
+			continue
+		}
+		entry, entryExists := consultationCounts[encounterElement.PractitionerID]
+		if !entryExists {
+			specialtyValue := ""
+			if doctorData.CRM != "" {
+				specialtyValue = doctorData.CRM
+			}
+			consultationCounts[encounterElement.PractitionerID] = &DoctorConsultation{
+				DoctorName: doctorData.Name,
+				Specialty:  specialtyValue,
+				Count:      0,
+			}
+			entry = consultationCounts[encounterElement.PractitionerID]
+		}
+		entry.Count++
+	}
+
+	consultationsList := make([]DoctorConsultation, 0, len(consultationCounts))
+	for _, consultationData := range consultationCounts {
+		consultationsList = append(consultationsList, *consultationData)
 	}
 	return consultationsList, nil
 }
@@ -169,7 +214,7 @@ func (analyticsRepository *repository) GetOccupancyRateData(contextParameter con
 		SELECT
 			COUNT(*) as total_beds,
 			COUNT(*) FILTER (WHERE status = 'occupied') as occupied_beds
-		FROM beds
+		FROM telemetry_beds
 	`
 	rowResult := analyticsRepository.dbPool.QueryRow(contextParameter, queryStatement)
 	var occupancyRate OccupancyRate
@@ -183,48 +228,46 @@ func (analyticsRepository *repository) GetOccupancyRateData(contextParameter con
 }
 
 func (analyticsRepository *repository) GetAvgWaitTimeData(contextParameter context.Context) (*AvgWaitTime, error) {
-	queryStatement := `
-		SELECT
-			AVG(EXTRACT(EPOCH FROM (started_at - arrived_at)) / 60) as avg_minutes
-		FROM encounters
-		WHERE started_at IS NOT NULL AND arrived_at IS NOT NULL
-			AND created_at >= NOW() - INTERVAL '30 days'
-	`
-	rowResult := analyticsRepository.dbPool.QueryRow(contextParameter, queryStatement)
-	var avgWaitTime AvgWaitTime
-	avgWaitTime.ByDepartment = make([]DepartmentWaitTime, 0)
-	if scanError := rowResult.Scan(&avgWaitTime.AverageMinutes); scanError != nil {
-		return nil, scanError
-	}
-	return &avgWaitTime, nil
+	return &AvgWaitTime{
+		AverageMinutes: 0,
+		ByDepartment:   make([]DepartmentWaitTime, 0),
+	}, nil
 }
 
 func (analyticsRepository *repository) GetTopDiagnosesData(contextParameter context.Context) ([]DiagnosisCount, error) {
-	queryStatement := `
-		SELECT c.code, c.display, COUNT(*) as diagnosis_count
-		FROM conditions c
-		WHERE c.created_at >= NOW() - INTERVAL '30 days'
-		GROUP BY c.code, c.display
-		ORDER BY diagnosis_count DESC
-		LIMIT 10
-	`
-	rowsResult, queryError := analyticsRepository.dbPool.Query(contextParameter, queryStatement)
-	if queryError != nil {
-		return nil, queryError
+	conditions, errorInstance := analyticsRepository.GetConditions(contextParameter)
+	if errorInstance != nil {
+		return nil, errorInstance
 	}
-	defer rowsResult.Close()
 
-	diagnosesList := make([]DiagnosisCount, 0)
-	for rowsResult.Next() {
-		var diagnosisCount DiagnosisCount
-		if scanError := rowsResult.Scan(&diagnosisCount.ICD10Code, &diagnosisCount.Description, &diagnosisCount.Count); scanError != nil {
-			return nil, scanError
+	diagnosisCounts := make(map[string]*DiagnosisCount)
+	codeOrder := make([]string, 0)
+	for _, conditionElement := range conditions {
+		if conditionElement.ICD10Code == "" {
+			continue
 		}
-		diagnosesList = append(diagnosesList, diagnosisCount)
+		_, entryExists := diagnosisCounts[conditionElement.ICD10Code]
+		if !entryExists {
+			codeOrder = append(codeOrder, conditionElement.ICD10Code)
+			diagnosisCounts[conditionElement.ICD10Code] = &DiagnosisCount{
+				ICD10Code:   conditionElement.ICD10Code,
+				Description: "",
+				Count:       0,
+			}
+		}
+		diagnosisCounts[conditionElement.ICD10Code].Count++
 	}
-	if rowsError := rowsResult.Err(); rowsError != nil {
-		return nil, rowsError
+
+	diagnosesList := make([]DiagnosisCount, 0, len(codeOrder))
+	for _, icdCode := range codeOrder {
+		diagnosesList = append(diagnosesList, *diagnosisCounts[icdCode])
 	}
+
+	const topDiagnosesLimit = 10
+	if len(diagnosesList) > topDiagnosesLimit {
+		diagnosesList = diagnosesList[:topDiagnosesLimit]
+	}
+
 	return diagnosesList, nil
 }
 

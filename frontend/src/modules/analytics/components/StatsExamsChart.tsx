@@ -89,8 +89,8 @@ export const StatsExamsChart = ({
             ))
           ) : (
             <EmptyState 
-              title={translate("analytics.empty.exams") || "Nenhum exame"} 
-              description={translate("analytics.empty.examsDesc") || "Não há dados de modalidades disponíveis."} 
+              title={translate("analytics.empty.exams")} 
+              description={translate("analytics.empty.examsDesc")} 
               className="h-full"
             />
           )}

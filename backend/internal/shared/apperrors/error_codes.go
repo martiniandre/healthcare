@@ -205,6 +205,12 @@ var (
 		Message:  "telemetry bed not found",
 	}
 
+	ErrNotificationNotFound = AppError{
+		GRPCCode: codes.NotFound,
+		HTTPCode: http.StatusNotFound,
+		Message:  "notification not found",
+	}
+
 )
 
 func ToGRPCStatus(err error) error {

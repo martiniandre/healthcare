@@ -11,15 +11,15 @@ export const StatsErrorState = () => {
         <div className="bg-red-50 p-4 rounded-full">
           <Activity className="w-10 h-10 text-red-500 animate-bounce" />
         </div>
-        <h3 className="text-lg font-black text-gray-900">{translate("analytics.errorTitle") || "Erro ao carregar dados"}</h3>
+        <h3 className="text-lg font-black text-gray-900">{translate("analytics.errorTitle")}</h3>
         <p className="text-xs text-gray-500 leading-relaxed">
-          {translate("analytics.errorDescription") || "Não foi possível estabelecer conexão com o serviço de analytics FHIR."}
+          {translate("analytics.errorDescription")}
         </p>
         <Button 
           onClick={() => window.location.reload()} 
           className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 rounded-xl transition-all duration-200 mt-2"
         >
-          {translate("analytics.retryButton") || "Tentar Novamente"}
+          {translate("analytics.retryButton")}
         </Button>
       </div>
     </div>

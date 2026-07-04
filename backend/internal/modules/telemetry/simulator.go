@@ -2,20 +2,25 @@ package telemetry
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"math/rand"
 	"time"
+
+	"github.com/healthcare/backend/internal/shared/eventbus"
 )
 
 type Simulator struct {
 	repo     Repository
+	eventBus eventbus.Bus
 	interval time.Duration
 	stopChan chan struct{}
 }
 
-func NewSimulator(repo Repository) *Simulator {
+func NewSimulator(repo Repository, eventBus eventbus.Bus) *Simulator {
 	return &Simulator{
 		repo:     repo,
+		eventBus: eventBus,
 		interval: 4 * time.Second,
 		stopChan: make(chan struct{}),
 	}
@@ -60,9 +65,33 @@ func (simulator *Simulator) tick(ctx context.Context) {
 		}
 
 		for _, bed := range beds {
+			previousStatus := bed.Status
+			previousCondition := bed.Condition
+
 			simulator.fluctuateVitals(bed)
+
 			if updateErr := simulator.repo.UpdateBedCondition(ctx, bed); updateErr != nil {
 				slog.Warn("telemetry simulator: failed to update bed", "bed_id", bed.ID, "error", updateErr)
+				continue
+			}
+
+			if bed.Status == "danger" && previousStatus != "danger" && simulator.eventBus != nil {
+				simulator.eventBus.Publish(ctx, eventbus.Event{
+					Name: "telemetry.alert",
+					Data: map[string]any{
+						"title":         "Alerta Clínico - Leito " + bed.BedNumber,
+						"body":          fmt.Sprintf("Paciente %s apresenta condição %s (BPM: %d, SpO2: %d%%).", bed.PatientName, bed.Condition, bed.Bpm, bed.Spo2),
+						"resource_type": "bed",
+						"resource_id":   bed.ID.String(),
+					},
+				})
+
+				slog.Warn("telemetry alert published",
+					"bed_id", bed.ID,
+					"patient", bed.PatientName,
+					"condition", bed.Condition,
+					"previous_condition", previousCondition,
+				)
 			}
 		}
 	}

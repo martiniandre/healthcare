@@ -12,7 +12,7 @@ import (
 
 func TestPatientService_CreatePatient(testingInstance *testing.T) {
 	mockRepository := mocks.NewMockPatientRepository()
-	patientService := patients.NewService(mockRepository)
+	patientService := patients.NewService(mockRepository, nil)
 	contextParam := context.Background()
 
 	patient, creationError := patientService.CreatePatient(contextParam, "Pedro Alves", "1990-05-20", "123.456.789-00", "+55 11 99999-0000")
@@ -28,7 +28,7 @@ func TestPatientService_CreatePatient(testingInstance *testing.T) {
 
 func TestPatientService_CreatePatient_InvalidDate(testingInstance *testing.T) {
 	mockRepository := mocks.NewMockPatientRepository()
-	patientService := patients.NewService(mockRepository)
+	patientService := patients.NewService(mockRepository, nil)
 	contextParam := context.Background()
 
 	_, creationError := patientService.CreatePatient(contextParam, "Nome Teste", "20/05/1990", "999.999.999-99", "")
@@ -39,7 +39,7 @@ func TestPatientService_CreatePatient_InvalidDate(testingInstance *testing.T) {
 
 func TestPatientService_GetPatient(testingInstance *testing.T) {
 	mockRepository := mocks.NewMockPatientRepository()
-	patientService := patients.NewService(mockRepository)
+	patientService := patients.NewService(mockRepository, nil)
 	contextParam := context.Background()
 
 	created, _ := patientService.CreatePatient(contextParam, "Ana Souza", "1985-10-15", "987.654.321-00", "")
@@ -54,7 +54,7 @@ func TestPatientService_GetPatient(testingInstance *testing.T) {
 
 func TestPatientService_GetPatientByDocument(testingInstance *testing.T) {
 	mockRepository := mocks.NewMockPatientRepository()
-	patientService := patients.NewService(mockRepository)
+	patientService := patients.NewService(mockRepository, nil)
 	contextParam := context.Background()
 
 	patientService.CreatePatient(contextParam, "Carlos Melo", "2000-01-01", "111.222.333-44", "")

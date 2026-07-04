@@ -1,6 +1,7 @@
 package patients
 
 import (
+	"github.com/healthcare/backend/internal/shared/eventbus"
 	"github.com/healthcare/backend/internal/shared/healthcare"
 	patientspb "github.com/healthcare/backend/internal/modules/patients/pb"
 	"google.golang.org/grpc"
@@ -8,11 +9,12 @@ import (
 
 type Dependency struct {
 	FHIRClient healthcare.FHIRClient
+	EventBus   eventbus.Bus
 }
 
 func Register(grpcServer *grpc.Server, dep Dependency) Service {
 	repo := NewRepository(dep.FHIRClient)
-	svc := NewService(repo)
+	svc := NewService(repo, dep.EventBus)
 	handler := NewGRPCHandler(svc)
 	patientspb.RegisterPatientServiceServer(grpcServer, handler)
 	return svc

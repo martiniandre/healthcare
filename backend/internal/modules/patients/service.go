@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/healthcare/backend/internal/shared/eventbus"
 )
 
 var ErrPatientNotFound = errors.New("patient not found")
@@ -19,11 +20,12 @@ type Service interface {
 }
 
 type service struct {
-	repo Repository
+	repo     Repository
+	eventBus eventbus.Bus
 }
 
-func NewService(repo Repository) Service {
-	return &service{repo: repo}
+func NewService(repo Repository, eventBus eventbus.Bus) Service {
+	return &service{repo: repo, eventBus: eventBus}
 }
 
 func (patientService *service) CreatePatient(ctx context.Context, fullName, birthDate, documentID, phoneNumber string) (*Patient, error) {
@@ -55,6 +57,19 @@ func (patientService *service) CreatePatient(ctx context.Context, fullName, birt
 	if err != nil {
 		return nil, err
 	}
+
+	if patientService.eventBus != nil {
+		patientService.eventBus.Publish(ctx, eventbus.Event{
+		Name: "patient.created",
+		Data: map[string]any{
+			"title":         "Novo Paciente Cadastrado",
+			"body":          "Paciente " + createdPatient.FullName + " foi cadastrado no sistema.",
+			"resource_type": "patient",
+			"resource_id":   createdPatient.ID.String(),
+		},
+	})
+	}
+
 	return createdPatient, nil
 }
 

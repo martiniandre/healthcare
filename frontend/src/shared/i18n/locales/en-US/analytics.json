@@ -60,5 +60,18 @@
     "respiratory": "Respiratory",
     "cardiovascular": "Cardiovascular",
     "endocrine": "Endocrine"
-  }
+  },
+  "empty": {
+    "title": "No statistics available",
+    "description": "There is no clinical data to display. Start registering patients and encounters to see analytics.",
+    "exams": "No exams",
+    "examsDesc": "No modality data available.",
+    "consultations": "No consultations",
+    "consultationsDesc": "No consultation data available for the period.",
+    "epidemiology": "No cases",
+    "epidemiologyDesc": "No epidemiological data to display."
+  },
+  "errorTitle": "Error loading data",
+  "errorDescription": "Could not connect to the FHIR analytics service.",
+  "retryButton": "Try Again"
 }

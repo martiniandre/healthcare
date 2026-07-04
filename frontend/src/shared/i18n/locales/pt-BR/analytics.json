@@ -60,5 +60,18 @@
     "respiratory": "Respiratório",
     "cardiovascular": "Cardiovascular",
     "endocrine": "Endócrino"
-  }
+  },
+  "empty": {
+    "title": "Nenhuma estatística disponível",
+    "description": "Não há dados clínicos para exibir. Comece registrando pacientes e atendimentos para visualizar as análises.",
+    "exams": "Nenhum exame",
+    "examsDesc": "Não há dados de modalidades disponíveis.",
+    "consultations": "Sem consultas",
+    "consultationsDesc": "Nenhum dado de consulta disponível para o período.",
+    "epidemiology": "Nenhum caso",
+    "epidemiologyDesc": "Nenhum dado epidemiológico para exibir."
+  },
+  "errorTitle": "Erro ao carregar dados",
+  "errorDescription": "Não foi possível estabelecer conexão com o serviço de analytics FHIR.",
+  "retryButton": "Tentar Novamente"
 }

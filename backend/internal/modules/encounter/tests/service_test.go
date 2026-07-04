@@ -10,7 +10,7 @@ import (
 )
 
 func TestCreateEncounter_Success(t *testing.T) {
-	encounterService := encounter.NewService(&mocks.MockEncounterRepository{})
+	encounterService := encounter.NewService(&mocks.MockEncounterRepository{}, nil)
 
 	entity := &encounter.Encounter{
 		PatientFHIRID:  "patient-fhir-123",
@@ -26,7 +26,7 @@ func TestCreateEncounter_Success(t *testing.T) {
 }
 
 func TestCreateEncounter_MissingPatientFHIRID_ReturnsError(t *testing.T) {
-	encounterService := encounter.NewService(&mocks.MockEncounterRepository{})
+	encounterService := encounter.NewService(&mocks.MockEncounterRepository{}, nil)
 
 	entity := &encounter.Encounter{PatientFHIRID: "", PractitionerID: "practitioner-456"}
 

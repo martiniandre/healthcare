@@ -53,4 +53,8 @@ var methodPermissions = map[string][]role.Role{
 	"/imaging.v1.ImagingService/GetImagingStudy":     {role.RoleAdmin, role.RoleDoctor, role.RoleNurse, role.RolePatient},
 	"/imaging.v1.ImagingService/ListImagingStudies":   {role.RoleAdmin, role.RoleDoctor, role.RoleNurse, role.RolePatient},
 	"/imaging.v1.ImagingService/GetDICOMDownloadURL": {role.RoleAdmin, role.RoleDoctor, role.RoleNurse, role.RolePatient},
+
+	"/notification.v1.NotificationService/ListNotifications": {role.RoleAdmin, role.RoleDoctor, role.RoleNurse, role.RoleReception, role.RolePatient},
+	"/notification.v1.NotificationService/MarkRead":         {role.RoleAdmin, role.RoleDoctor, role.RoleNurse, role.RoleReception, role.RolePatient},
+	"/notification.v1.NotificationService/GetUnreadCount":   {role.RoleAdmin, role.RoleDoctor, role.RoleNurse, role.RoleReception, role.RolePatient},
 }

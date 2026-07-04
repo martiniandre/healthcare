@@ -90,8 +90,8 @@ export const StatsEpidemiologyTable = ({ pathologies }: StatsEpidemiologyTablePr
             </Table>
           ) : (
             <EmptyState 
-              title={translate("analytics.empty.epidemiology") || "Nenhum caso"} 
-              description={translate("analytics.empty.epidemiologyDesc") || "Nenhum dado epidemiológico para exibir."} 
+              title={translate("analytics.empty.epidemiology")} 
+              description={translate("analytics.empty.epidemiologyDesc")} 
             />
           )}
       </div>

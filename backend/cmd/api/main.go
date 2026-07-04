@@ -37,6 +37,7 @@ import (
 	"github.com/healthcare/backend/internal/modules/health"
 	"github.com/healthcare/backend/internal/modules/imaging"
 	"github.com/healthcare/backend/internal/modules/medication"
+	"github.com/healthcare/backend/internal/modules/notifications"
 	"github.com/healthcare/backend/internal/modules/observation"
 	"github.com/healthcare/backend/internal/modules/patients"
 	"github.com/healthcare/backend/internal/modules/portal"
@@ -45,6 +46,7 @@ import (
 	"github.com/healthcare/backend/internal/shared/cache"
 	"github.com/healthcare/backend/internal/shared/config"
 	"github.com/healthcare/backend/internal/shared/database"
+	"github.com/healthcare/backend/internal/shared/eventbus"
 	"github.com/healthcare/backend/internal/shared/healthcare"
 	"github.com/healthcare/backend/internal/shared/logger"
 	"github.com/healthcare/backend/internal/shared/migrations"
@@ -102,12 +104,14 @@ func main() {
 
 	redisClient := cache.Connect(appConfig.RedisUrl)
 
+	eventBus := eventbus.New()
+
 	applicationServer := app.NewServer(redisClient)
 
 	authService := auth.Register(applicationServer.GRPCServer, auth.Dependency{DB: databasePool})
 	staffService := staff.Register(applicationServer.GRPCServer, staff.Dependency{DB: databasePool})
-	patientsService := patients.Register(applicationServer.GRPCServer, patients.Dependency{FHIRClient: fhirClient})
-	encounterService := encounter.Register(applicationServer.GRPCServer, encounter.Dependency{FHIRClient: fhirClient})
+	patientsService := patients.Register(applicationServer.GRPCServer, patients.Dependency{FHIRClient: fhirClient, EventBus: eventBus})
+	encounterService := encounter.Register(applicationServer.GRPCServer, encounter.Dependency{FHIRClient: fhirClient, EventBus: eventBus})
 	observationService := observation.Register(applicationServer.GRPCServer, observation.Dependency{FHIRClient: fhirClient})
 	conditionService := condition.Register(applicationServer.GRPCServer, condition.Dependency{FHIRClient: fhirClient})
 	allergyService := allergy.Register(applicationServer.GRPCServer, allergy.Dependency{FHIRClient: fhirClient})
@@ -119,12 +123,13 @@ func main() {
 		storageClient = storage.NewStorageClient()
 	}
 	imagingService := imaging.Register(applicationServer.GRPCServer, imaging.Dependency{DB: databasePool, Storage: storageClient, Redis: redisClient, BucketName: appConfig.GCSBucketName})
-	telemetryService := telemetry.Register(applicationServer.GRPCServer, telemetry.Dependency{DB: databasePool})
-	telemetrySimulator := telemetry.StartSimulator(mainContext, databasePool)
+	telemetryService := telemetry.Register(applicationServer.GRPCServer, telemetry.Dependency{DB: databasePool, EventBus: eventBus})
+	telemetrySimulator := telemetry.StartSimulator(mainContext, databasePool, eventBus)
 	health.Register(applicationServer.GRPCServer, health.Dependency{DB: databasePool, Redis: redisClient})
 	analyticsHTTPHandler := analytics.Register(analytics.Dependency{DB: databasePool, FHIRClient: fhirClient})
 	portalHTTPHandler := portal.Register(portal.Dependency{FHIRClient: fhirClient})
 	auditLogsService := audit_logs.Register(applicationServer.GRPCServer, audit_logs.Dependency{DB: databasePool})
+	_, notificationsHTTPHandler := notifications.Register(applicationServer.GRPCServer, notifications.Dependency{DB: databasePool, EventBus: eventBus})
 
 	examAnalyzerRepo, examAnalyzerSvc, examAnalyzerWorker := exam_analyzer.Register(exam_analyzer.Dependency{DB: databasePool, ProjectID: appConfig.GCPProjectID, LocationID: appConfig.GCPLocationID, VertexModel: appConfig.GCPVertexModel})
 	go examAnalyzerWorker.Start(mainContext)
@@ -166,6 +171,7 @@ func main() {
 		analyticsHTTPHandler,
 		portalHTTPHandler,
 		auditLogsHTTPHandler,
+		notificationsHTTPHandler,
 		healthHTTPHandler,
 	)
 
