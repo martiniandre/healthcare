@@ -1,0 +1,2635 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "Healthcare platform API with FHIR R4 interoperability",
+        "title": "Healthcare API",
+        "termsOfService": "http://swagger.io/terms/",
+        "contact": {
+            "name": "API Support",
+            "email": "support@healthcare.com"
+        },
+        "license": {
+            "name": "MIT",
+            "url": "https://opensource.org/licenses/MIT"
+        },
+        "version": "1.0"
+    },
+    "host": "localhost:8080",
+    "basePath": "/api",
+    "paths": {
+        "/analytics": {
+            "get": {
+                "description": "Returns aggregated healthcare statistics including patient counts, consultation data, and exam modality distribution",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "analytics"
+                ],
+                "summary": "Get analytics statistics",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/analytics.Stats"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/audit-logs": {
+            "get": {
+                "description": "Returns a paginated list of audit logs (admin only)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "audit_logs"
+                ],
+                "summary": "List audit logs",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Number of items per page",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 0,
+                        "description": "Number of items to skip",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/audit_logs.AuditLogListResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Creates a new audit log entry for tracking access and actions",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "audit_logs"
+                ],
+                "summary": "Create audit log entry",
+                "parameters": [
+                    {
+                        "description": "Audit log data",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/audit_logs.CreateAuditLogRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/audit_logs.AuditLog"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/login": {
+            "post": {
+                "description": "Authenticates a user with email and password, returns JWT token via cookie",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Login",
+                "parameters": [
+                    {
+                        "description": "Login credentials",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/auth.LoginRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/auth.LoginResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/logout": {
+            "post": {
+                "description": "Clears authentication and CSRF cookies to log the user out",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Logout",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/me": {
+            "get": {
+                "description": "Returns the authenticated user's profile information",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Get current user",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/encounters/{encounterFhirId}/medications": {
+            "get": {
+                "description": "Returns all medication requests/prescriptions for an encounter",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "medications"
+                ],
+                "summary": "List medications by encounter",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Encounter FHIR ID",
+                        "name": "encounterFhirId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/medication.MedicationResponse"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Creates a new medication request/prescription for an encounter",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "medications"
+                ],
+                "summary": "Create a medication",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Encounter FHIR ID",
+                        "name": "encounterFhirId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Medication data",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/medication.CreateMedicationRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/medication.CreateMedicationResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/encounters/{encounterFhirId}/observations": {
+            "get": {
+                "description": "Returns all observations/vital signs for an encounter",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "observations"
+                ],
+                "summary": "List observations by encounter",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Encounter FHIR ID",
+                        "name": "encounterFhirId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/observation.ObservationResponse"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Creates a new observation/vital sign for an encounter",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "observations"
+                ],
+                "summary": "Create an observation",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Encounter FHIR ID",
+                        "name": "encounterFhirId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Observation data",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/observation.CreateObservationRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/observation.CreateObservationResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/encounters/{encounterFhirId}/reports": {
+            "get": {
+                "description": "Returns all diagnostic reports for an encounter",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "diagnostic_reports"
+                ],
+                "summary": "List diagnostic reports by encounter",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Encounter FHIR ID",
+                        "name": "encounterFhirId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/diagnostic_report.DiagnosticReportResponse"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Creates a new diagnostic report for an encounter",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "diagnostic_reports"
+                ],
+                "summary": "Create a diagnostic report",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Encounter FHIR ID",
+                        "name": "encounterFhirId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Report data",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/diagnostic_report.CreateDiagnosticReportRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/diagnostic_report.CreateDiagnosticReportResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/exam-analyses": {
+            "get": {
+                "description": "Returns all exam analyses, optionally filtered by patient FHIR ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "exam_analyzer"
+                ],
+                "summary": "List exam analyses",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Filter by patient FHIR ID",
+                        "name": "patientFhirId",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/exam_analyzer.ExamAnalysisResponse"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Uploads a medical exam file for AI analysis with consent tracking and optional anonymization",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "exam_analyzer"
+                ],
+                "summary": "Create exam analysis",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Patient FHIR ID",
+                        "name": "patientFhirId",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Patient consent (must be 'true')",
+                        "name": "consent",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Anonymize file (true/false)",
+                        "name": "anonymize",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "file",
+                        "description": "Medical exam file",
+                        "name": "file",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/exam_analyzer.ExamAnalysisResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/exam-analyses/{analysisId}": {
+            "get": {
+                "description": "Returns details of a specific exam analysis by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "exam_analyzer"
+                ],
+                "summary": "Get exam analysis",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Analysis UUID",
+                        "name": "analysisId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/exam_analyzer.ExamAnalysisResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Permanently deletes an exam analysis and its associated file",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "exam_analyzer"
+                ],
+                "summary": "Delete exam analysis",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Analysis UUID",
+                        "name": "analysisId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/exam_analyzer.DeleteAnalysisResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/patients": {
+            "get": {
+                "description": "Returns a paginated list of patients with optional search/filter",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "patients"
+                ],
+                "summary": "List all patients",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Search term",
+                        "name": "search",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Sort field",
+                        "name": "sortField",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Sort direction (asc/desc)",
+                        "name": "sortDirection",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 50,
+                        "description": "Items per page",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/patients.PatientListResponse"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Creates a new patient record and FHIR resource",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "patients"
+                ],
+                "summary": "Create a new patient",
+                "parameters": [
+                    {
+                        "description": "Patient data",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/patients.CreatePatientRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/patients.CreatePatientResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/patients/{patientFhirId}": {
+            "get": {
+                "description": "Returns a single patient by their FHIR resource ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "patients"
+                ],
+                "summary": "Get patient by FHIR ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Patient FHIR ID",
+                        "name": "patientFhirId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/patients/{patientFhirId}/allergies": {
+            "get": {
+                "description": "Returns all allergy intolerances for a patient",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "allergies"
+                ],
+                "summary": "List allergies by patient",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Patient FHIR ID",
+                        "name": "patientFhirId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/allergy.AllergyResponse"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Creates a new allergy intolerance record for a patient",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "allergies"
+                ],
+                "summary": "Create an allergy",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Patient FHIR ID",
+                        "name": "patientFhirId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Allergy data",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/allergy.CreateAllergyRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/allergy.CreateAllergyResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/patients/{patientFhirId}/conditions": {
+            "get": {
+                "description": "Returns all medical conditions/diagnoses for a patient",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "conditions"
+                ],
+                "summary": "List conditions by patient",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Patient FHIR ID",
+                        "name": "patientFhirId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/condition.ConditionResponse"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Creates a new medical condition/diagnosis for a patient",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "conditions"
+                ],
+                "summary": "Create a condition",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Patient FHIR ID",
+                        "name": "patientFhirId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Condition data",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/condition.CreateConditionRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/condition.CreateConditionResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/patients/{patientFhirId}/encounters": {
+            "get": {
+                "description": "Returns all encounters/consultations for a patient",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "encounters"
+                ],
+                "summary": "List encounters by patient",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Patient FHIR ID",
+                        "name": "patientFhirId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/encounter.EncounterResponse"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Creates a new encounter/consultation for a patient",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "encounters"
+                ],
+                "summary": "Create an encounter",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Patient FHIR ID",
+                        "name": "patientFhirId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Encounter data",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/encounter.CreateEncounterRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/encounter.CreateEncounterResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/patients/{patientFhirId}/observations": {
+            "get": {
+                "description": "Returns all observations/vital signs for a patient",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "observations"
+                ],
+                "summary": "List observations by patient",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Patient FHIR ID",
+                        "name": "patientFhirId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/observation.ObservationResponse"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/patients/{patientFhirId}/studies": {
+            "get": {
+                "description": "Returns all imaging studies associated with a patient",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "imaging"
+                ],
+                "summary": "List imaging studies for a patient",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Patient FHIR ID",
+                        "name": "patientFhirId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/imaging.HTTPImagingStudyResponse"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Uploads a DICOM imaging study for a patient with metadata via multipart form",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "imaging"
+                ],
+                "summary": "Upload DICOM study",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Patient FHIR ID",
+                        "name": "patientFhirId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Study title",
+                        "name": "title",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Modality (e.g., CT, MR, XR)",
+                        "name": "modality",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "DICOM file",
+                        "name": "file",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/imaging.HTTPImagingStudyResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/staff/employees": {
+            "get": {
+                "description": "Returns the list of healthcare staff/employees with optional search and role filter",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "staff"
+                ],
+                "summary": "List employees",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Search by name or email",
+                        "name": "search",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by role (admin, doctor, nurse, reception)",
+                        "name": "role",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/staff.EmployeeResponse"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Registers a new healthcare professional as an employee",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "staff"
+                ],
+                "summary": "Create a new employee",
+                "parameters": [
+                    {
+                        "description": "Employee data",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/staff.CreateEmployeeRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/staff.CreateEmployeeResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/studies/{studyId}": {
+            "get": {
+                "description": "Returns details of a specific imaging study including download URL",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "imaging"
+                ],
+                "summary": "Get imaging study details",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Study UUID",
+                        "name": "studyId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/imaging.HTTPImagingStudyResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/telemetry/beds/{bedId}/condition": {
+            "post": {
+                "description": "Updates vital signs and status for a telemetry bed",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "telemetry"
+                ],
+                "summary": "Update bed telemetry condition",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bed UUID",
+                        "name": "bedId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Bed condition data",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/telemetry.UpdateBedConditionRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/telemetry.UpdateBedConditionResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/telemetry/rooms": {
+            "get": {
+                "description": "Returns all monitored rooms with telemetry capabilities",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "telemetry"
+                ],
+                "summary": "List telemetry rooms",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/telemetry.TelemetryRoomResponse"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/telemetry/rooms/{roomId}/beds": {
+            "get": {
+                "description": "Returns all telemetry beds in a specific room",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "telemetry"
+                ],
+                "summary": "List beds in a room",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Room UUID",
+                        "name": "roomId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/telemetry.TelemetryBedResponse"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/telemetry/rooms/{roomId}/unlock": {
+            "post": {
+                "description": "Unlocks a room using a passcode",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "telemetry"
+                ],
+                "summary": "Unlock a telemetry room",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Room UUID",
+                        "name": "roomId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Passcode",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/telemetry.UnlockRoomRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/telemetry.UnlockRoomResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "allergy.AllergyResponse": {
+            "type": "object",
+            "properties": {
+                "allergen_code": {
+                    "type": "string"
+                },
+                "allergen_display": {
+                    "type": "string"
+                },
+                "clinical_status": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "fhir_id": {
+                    "type": "string"
+                },
+                "patient_fhir_id": {
+                    "type": "string"
+                },
+                "reaction": {
+                    "type": "string"
+                }
+            }
+        },
+        "allergy.CreateAllergyRequest": {
+            "type": "object",
+            "properties": {
+                "allergen_code": {
+                    "type": "string"
+                },
+                "allergen_display": {
+                    "type": "string"
+                },
+                "reaction": {
+                    "type": "string"
+                }
+            }
+        },
+        "allergy.CreateAllergyResponse": {
+            "type": "object",
+            "properties": {
+                "allergen_code": {
+                    "type": "string"
+                },
+                "allergen_display": {
+                    "type": "string"
+                },
+                "clinical_status": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "fhir_id": {
+                    "type": "string"
+                },
+                "patient_fhir_id": {
+                    "type": "string"
+                },
+                "reaction": {
+                    "type": "string"
+                }
+            }
+        },
+        "analytics.ExamModality": {
+            "type": "object",
+            "properties": {
+                "color": {
+                    "type": "string"
+                },
+                "count": {
+                    "type": "integer"
+                },
+                "modality": {
+                    "type": "string"
+                },
+                "percentage": {
+                    "type": "number"
+                }
+            }
+        },
+        "analytics.PathologyCase": {
+            "type": "object",
+            "properties": {
+                "activeCases": {
+                    "type": "integer"
+                },
+                "category": {
+                    "type": "string"
+                },
+                "code": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "trend": {
+                    "type": "string"
+                }
+            }
+        },
+        "analytics.Stats": {
+            "type": "object",
+            "properties": {
+                "avg_service_duration_minutes": {
+                    "type": "number"
+                },
+                "exam_modalities": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/analytics.ExamModality"
+                    }
+                },
+                "fhir_compliance_rate": {
+                    "type": "number"
+                },
+                "pathology_cases": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/analytics.PathologyCase"
+                    }
+                },
+                "total_patients": {
+                    "type": "integer"
+                },
+                "weekly_consultations": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/analytics.WeeklyConsultation"
+                    }
+                }
+            }
+        },
+        "analytics.WeeklyConsultation": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer"
+                },
+                "dayName": {
+                    "type": "string"
+                }
+            }
+        },
+        "audit_logs.AuditLog": {
+            "type": "object",
+            "properties": {
+                "access_granted": {
+                    "type": "boolean"
+                },
+                "caller_role": {
+                    "type": "string"
+                },
+                "caller_user_id": {
+                    "type": "string"
+                },
+                "correlation_id": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "method": {
+                    "type": "string"
+                }
+            }
+        },
+        "audit_logs.AuditLogListResponse": {
+            "type": "object",
+            "properties": {
+                "audit_logs": {},
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "audit_logs.CreateAuditLogRequest": {
+            "type": "object",
+            "properties": {
+                "access_granted": {
+                    "type": "boolean"
+                },
+                "caller_role": {
+                    "type": "string"
+                },
+                "caller_user_id": {
+                    "type": "string"
+                },
+                "correlation_id": {
+                    "type": "string"
+                },
+                "method": {
+                    "type": "string"
+                }
+            }
+        },
+        "auth.LoginRequest": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
+        "auth.LoginResponse": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "role": {
+                    "type": "string"
+                },
+                "userId": {
+                    "type": "string"
+                }
+            }
+        },
+        "condition.ConditionResponse": {
+            "type": "object",
+            "properties": {
+                "clinical_status": {
+                    "type": "string"
+                },
+                "code_display": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "fhir_id": {
+                    "type": "string"
+                },
+                "icd10_code": {
+                    "type": "string"
+                },
+                "patient_fhir_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "condition.CreateConditionRequest": {
+            "type": "object",
+            "properties": {
+                "code_display": {
+                    "type": "string"
+                },
+                "icd10_code": {
+                    "type": "string"
+                }
+            }
+        },
+        "condition.CreateConditionResponse": {
+            "type": "object",
+            "properties": {
+                "clinical_status": {
+                    "type": "string"
+                },
+                "code_display": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "fhir_id": {
+                    "type": "string"
+                },
+                "icd10_code": {
+                    "type": "string"
+                },
+                "patient_fhir_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "diagnostic_report.CreateDiagnosticReportRequest": {
+            "type": "object",
+            "properties": {
+                "conclusion": {
+                    "type": "string"
+                },
+                "patient_fhir_id": {
+                    "type": "string"
+                },
+                "report_display": {
+                    "type": "string"
+                }
+            }
+        },
+        "diagnostic_report.CreateDiagnosticReportResponse": {
+            "type": "object",
+            "properties": {
+                "conclusion": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "encounter_fhir_id": {
+                    "type": "string"
+                },
+                "fhir_id": {
+                    "type": "string"
+                },
+                "patient_fhir_id": {
+                    "type": "string"
+                },
+                "report_display": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "diagnostic_report.DiagnosticReportResponse": {
+            "type": "object",
+            "properties": {
+                "conclusion": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "encounter_fhir_id": {
+                    "type": "string"
+                },
+                "fhir_id": {
+                    "type": "string"
+                },
+                "patient_fhir_id": {
+                    "type": "string"
+                },
+                "report_display": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "encounter.CreateEncounterRequest": {
+            "type": "object",
+            "properties": {
+                "practitioner_id": {
+                    "type": "string"
+                },
+                "reason_display": {
+                    "type": "string"
+                }
+            }
+        },
+        "encounter.CreateEncounterResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "fhir_id": {
+                    "type": "string"
+                },
+                "patient_fhir_id": {
+                    "type": "string"
+                },
+                "practitioner_id": {
+                    "type": "string"
+                },
+                "reason_display": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "encounter.EncounterResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "fhir_id": {
+                    "type": "string"
+                },
+                "patient_fhir_id": {
+                    "type": "string"
+                },
+                "practitioner_id": {
+                    "type": "string"
+                },
+                "reason_display": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "exam_analyzer.DeleteAnalysisResponse": {
+            "type": "object",
+            "properties": {
+                "success": {
+                    "type": "string"
+                }
+            }
+        },
+        "exam_analyzer.ExamAnalysisResponse": {
+            "type": "object",
+            "properties": {
+                "analysis_response": {
+                    "type": "string"
+                },
+                "anonymized": {
+                    "type": "boolean"
+                },
+                "consent_given": {
+                    "type": "boolean"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "exam_type": {
+                    "type": "string"
+                },
+                "file_name": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "patient_fhir_id": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "imaging.HTTPImagingStudyResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "download_url": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "modality": {
+                    "type": "string"
+                },
+                "patient_fhir_id": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "study_instance_uid": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "medication.CreateMedicationRequest": {
+            "type": "object",
+            "properties": {
+                "dosage_instructions": {
+                    "type": "string"
+                },
+                "medication_code": {
+                    "type": "string"
+                },
+                "medication_name": {
+                    "type": "string"
+                },
+                "patient_fhir_id": {
+                    "type": "string"
+                },
+                "practitioner_fhir_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "medication.CreateMedicationResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "dosage_instructions": {
+                    "type": "string"
+                },
+                "encounter_fhir_id": {
+                    "type": "string"
+                },
+                "fhir_id": {
+                    "type": "string"
+                },
+                "medication_code": {
+                    "type": "string"
+                },
+                "medication_name": {
+                    "type": "string"
+                },
+                "patient_fhir_id": {
+                    "type": "string"
+                },
+                "practitioner_fhir_id": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "medication.MedicationResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "dosage_instructions": {
+                    "type": "string"
+                },
+                "encounter_fhir_id": {
+                    "type": "string"
+                },
+                "fhir_id": {
+                    "type": "string"
+                },
+                "medication_code": {
+                    "type": "string"
+                },
+                "medication_name": {
+                    "type": "string"
+                },
+                "patient_fhir_id": {
+                    "type": "string"
+                },
+                "practitioner_fhir_id": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "observation.CreateObservationRequest": {
+            "type": "object",
+            "properties": {
+                "code_display": {
+                    "type": "string"
+                },
+                "loinc_code": {
+                    "type": "string"
+                },
+                "patient_fhir_id": {
+                    "type": "string"
+                },
+                "value_quantity": {
+                    "type": "number"
+                },
+                "value_unit": {
+                    "type": "string"
+                }
+            }
+        },
+        "observation.CreateObservationResponse": {
+            "type": "object",
+            "properties": {
+                "code_display": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "encounter_fhir_id": {
+                    "type": "string"
+                },
+                "fhir_id": {
+                    "type": "string"
+                },
+                "loinc_code": {
+                    "type": "string"
+                },
+                "patient_fhir_id": {
+                    "type": "string"
+                },
+                "value_quantity": {
+                    "type": "number"
+                },
+                "value_unit": {
+                    "type": "string"
+                }
+            }
+        },
+        "observation.ObservationResponse": {
+            "type": "object",
+            "properties": {
+                "code_display": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "encounter_fhir_id": {
+                    "type": "string"
+                },
+                "fhir_id": {
+                    "type": "string"
+                },
+                "loinc_code": {
+                    "type": "string"
+                },
+                "patient_fhir_id": {
+                    "type": "string"
+                },
+                "value_quantity": {
+                    "type": "number"
+                },
+                "value_unit": {
+                    "type": "string"
+                }
+            }
+        },
+        "patients.CreatePatientRequest": {
+            "type": "object",
+            "properties": {
+                "birth_date": {
+                    "type": "string"
+                },
+                "document_id": {
+                    "type": "string"
+                },
+                "full_name": {
+                    "type": "string"
+                },
+                "phone_number": {
+                    "type": "string"
+                }
+            }
+        },
+        "patients.CreatePatientResponse": {
+            "type": "object",
+            "properties": {
+                "fhir_resource_id": {
+                    "type": "string"
+                },
+                "patient_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "patients.PatientListResponse": {
+            "type": "object",
+            "properties": {
+                "birth_date": {
+                    "type": "string"
+                },
+                "document_id": {
+                    "type": "string"
+                },
+                "fhir_resource_id": {
+                    "type": "string"
+                },
+                "full_name": {
+                    "type": "string"
+                },
+                "patient_id": {
+                    "type": "string"
+                },
+                "phone_number": {
+                    "type": "string"
+                }
+            }
+        },
+        "staff.CreateEmployeeRequest": {
+            "type": "object",
+            "properties": {
+                "crm_number": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "full_name": {
+                    "type": "string"
+                },
+                "role": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "staff.CreateEmployeeResponse": {
+            "type": "object",
+            "properties": {
+                "employee_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "staff.EmployeeResponse": {
+            "type": "object",
+            "properties": {
+                "crm_number": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "full_name": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "role": {
+                    "type": "string"
+                }
+            }
+        },
+        "telemetry.TelemetryBedResponse": {
+            "type": "object",
+            "properties": {
+                "bed_label": {
+                    "type": "string"
+                },
+                "bpm": {
+                    "type": "integer"
+                },
+                "condition": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "room_id": {
+                    "type": "string"
+                },
+                "spo2": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "temperature": {
+                    "type": "number"
+                }
+            }
+        },
+        "telemetry.TelemetryRoomResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "telemetry.UnlockRoomRequest": {
+            "type": "object",
+            "properties": {
+                "passcode": {
+                    "type": "string"
+                }
+            }
+        },
+        "telemetry.UnlockRoomResponse": {
+            "type": "object",
+            "properties": {
+                "roomName": {
+                    "type": "string"
+                },
+                "success": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "telemetry.UpdateBedConditionRequest": {
+            "type": "object",
+            "properties": {
+                "bpm": {
+                    "type": "integer"
+                },
+                "condition": {
+                    "type": "string"
+                },
+                "spo2": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "temperature": {
+                    "type": "number"
+                }
+            }
+        },
+        "telemetry.UpdateBedConditionResponse": {
+            "type": "object",
+            "properties": {
+                "success": {
+                    "type": "boolean"
+                }
+            }
+        }
+    },
+    "securityDefinitions": {
+        "BearerAuth": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
+        }
+    }
+}

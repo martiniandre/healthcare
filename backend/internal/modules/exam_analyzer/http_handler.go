@@ -40,6 +40,17 @@ func (handler *HTTPHandler) RegisterRoutes(mux *http.ServeMux) {
 	mux.Handle("DELETE /api/exam-analyses/{analysisId}", clinicalDelete(http.HandlerFunc(handler.DeleteAnalysis)))
 }
 
+// ListAnalyses godoc
+//
+//	@Summary		List exam analyses
+//	@Description	Returns all exam analyses, optionally filtered by patient FHIR ID
+//	@Tags			exam_analyzer
+//	@Accept			json
+//	@Produce		json
+//	@Param			patientFhirId	query	string	false	"Filter by patient FHIR ID"
+//	@Success		200				{array}	ExamAnalysisResponse
+//	@Failure		500				{object}	map[string]string
+//	@Router			/exam-analyses [get]
 func (handler *HTTPHandler) ListAnalyses(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
 	patientFhirID := httpRequest.URL.Query().Get("patientFhirId")
 	var filterPatient *string
@@ -57,6 +68,21 @@ func (handler *HTTPHandler) ListAnalyses(httpResponseWriter http.ResponseWriter,
 	render.JSON(httpResponseWriter, http.StatusOK, analysesList)
 }
 
+// CreateAnalysis godoc
+//
+//	@Summary		Create exam analysis
+//	@Description	Uploads a medical exam file for AI analysis with consent tracking and optional anonymization
+//	@Tags			exam_analyzer
+//	@Accept			mpfd
+//	@Produce		json
+//	@Param			patientFhirId	formData	string	false	"Patient FHIR ID"
+//	@Param			consent			formData	string	true	"Patient consent (must be 'true')"
+//	@Param			anonymize		formData	string	false	"Anonymize file (true/false)"
+//	@Param			file			formData	file	true	"Medical exam file"
+//	@Success		201				{object}	ExamAnalysisResponse
+//	@Failure		400				{object}	map[string]string
+//	@Failure		500				{object}	map[string]string
+//	@Router			/exam-analyses [post]
 func (handler *HTTPHandler) CreateAnalysis(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
 	httpRequest.Body = http.MaxBytesReader(httpResponseWriter, httpRequest.Body, 15<<20)
 	if parseErr := httpRequest.ParseMultipartForm(15 << 20); parseErr != nil {
@@ -179,6 +205,18 @@ func (handler *HTTPHandler) CreateAnalysis(httpResponseWriter http.ResponseWrite
 	render.JSON(httpResponseWriter, http.StatusCreated, newAnalysisRecord)
 }
 
+// GetAnalysis godoc
+//
+//	@Summary		Get exam analysis
+//	@Description	Returns details of a specific exam analysis by ID
+//	@Tags			exam_analyzer
+//	@Accept			json
+//	@Produce		json
+//	@Param			analysisId	path	string	true	"Analysis UUID"
+//	@Success		200			{object}	ExamAnalysisResponse
+//	@Failure		400			{object}	map[string]string
+//	@Failure		404			{object}	map[string]string
+//	@Router			/exam-analyses/{analysisId} [get]
 func (handler *HTTPHandler) GetAnalysis(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
 	analysisIDRaw := httpRequest.PathValue("analysisId")
 
@@ -217,6 +255,19 @@ func (handler *HTTPHandler) GetAnalysis(httpResponseWriter http.ResponseWriter, 
 	render.JSON(httpResponseWriter, http.StatusOK, analysisRecord)
 }
 
+// DeleteAnalysis godoc
+//
+//	@Summary		Delete exam analysis
+//	@Description	Permanently deletes an exam analysis and its associated file
+//	@Tags			exam_analyzer
+//	@Accept			json
+//	@Produce		json
+//	@Param			analysisId	path	string	true	"Analysis UUID"
+//	@Success		200			{object}	DeleteAnalysisResponse
+//	@Failure		400			{object}	map[string]string
+//	@Failure		404			{object}	map[string]string
+//	@Failure		500			{object}	map[string]string
+//	@Router			/exam-analyses/{analysisId} [delete]
 func (handler *HTTPHandler) DeleteAnalysis(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
 	analysisIDRaw := httpRequest.PathValue("analysisId")
 
@@ -265,4 +316,22 @@ func (handler *HTTPHandler) DeleteAnalysis(httpResponseWriter http.ResponseWrite
 	_ = handler.repository.CreateAuditLog(httpRequest.Context(), auditRecord)
 
 	render.JSON(httpResponseWriter, http.StatusOK, map[string]string{"success": "Análise e arquivo excluídos com sucesso."})
+}
+
+type ExamAnalysisResponse struct {
+	ID               string `json:"id"`
+	UserID           string `json:"user_id"`
+	PatientFhirID    string `json:"patient_fhir_id"`
+	ExamType         string `json:"exam_type"`
+	FileName         string `json:"file_name"`
+	Status           string `json:"status"`
+	AnalysisResponse string `json:"analysis_response"`
+	ConsentGiven     bool   `json:"consent_given"`
+	Anonymized       bool   `json:"anonymized"`
+	CreatedAt        string `json:"created_at"`
+	UpdatedAt        string `json:"updated_at"`
+}
+
+type DeleteAnalysisResponse struct {
+	Success string `json:"success"`
 }

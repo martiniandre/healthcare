@@ -29,6 +29,17 @@ func (handler *HTTPHandler) RegisterRoutes(mux *http.ServeMux) {
 	mux.Handle("GET /api/studies/{studyId}", clinicalRead(http.HandlerFunc(handler.GetStudy)))
 }
 
+// ListPatientStudies godoc
+//
+//	@Summary		List imaging studies for a patient
+//	@Description	Returns all imaging studies associated with a patient
+//	@Tags			imaging
+//	@Accept			json
+//	@Produce		json
+//	@Param			patientFhirId	path	string	true	"Patient FHIR ID"
+//	@Success		200				{array}	HTTPImagingStudyResponse
+//	@Failure		500				{object}	map[string]string
+//	@Router			/patients/{patientFhirId}/studies [get]
 func (handler *HTTPHandler) ListPatientStudies(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
 	patientFhirID := httpRequest.PathValue("patientFhirId")
 
@@ -42,6 +53,21 @@ func (handler *HTTPHandler) ListPatientStudies(httpResponseWriter http.ResponseW
 	render.JSON(httpResponseWriter, http.StatusOK, NewHTTPImagingStudyResponses(studiesList))
 }
 
+// UploadPatientStudy godoc
+//
+//	@Summary		Upload DICOM study
+//	@Description	Uploads a DICOM imaging study for a patient with metadata via multipart form
+//	@Tags			imaging
+//	@Accept			mpfd
+//	@Produce		json
+//	@Param			patientFhirId	path	string	true	"Patient FHIR ID"
+//	@Param			title			formData	string	true	"Study title"
+//	@Param			modality		formData	string	true	"Modality (e.g., CT, MR, XR)"
+//	@Param			file			formData	file	true	"DICOM file"
+//	@Success		201				{object}	HTTPImagingStudyResponse
+//	@Failure		400				{object}	map[string]string
+//	@Failure		500				{object}	map[string]string
+//	@Router			/patients/{patientFhirId}/studies [post]
 func (handler *HTTPHandler) UploadPatientStudy(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
 	patientFhirID := httpRequest.PathValue("patientFhirId")
 
@@ -76,6 +102,18 @@ func (handler *HTTPHandler) UploadPatientStudy(httpResponseWriter http.ResponseW
 	render.JSON(httpResponseWriter, http.StatusCreated, NewHTTPImagingStudyResponse(createdStudy))
 }
 
+// GetStudy godoc
+//
+//	@Summary		Get imaging study details
+//	@Description	Returns details of a specific imaging study including download URL
+//	@Tags			imaging
+//	@Accept			json
+//	@Produce		json
+//	@Param			studyId	path	string	true	"Study UUID"
+//	@Success		200		{object}	HTTPImagingStudyResponse
+//	@Failure		400		{object}	map[string]string
+//	@Failure		404		{object}	map[string]string
+//	@Router			/studies/{studyId} [get]
 func (handler *HTTPHandler) GetStudy(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
 	studyIDRaw := httpRequest.PathValue("studyId")
 

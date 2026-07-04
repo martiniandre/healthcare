@@ -29,6 +29,17 @@ func (handler *HTTPHandler) RegisterRoutes(mux *http.ServeMux) {
 	mux.Handle("POST /api/patients/{patientFhirId}/conditions", clinicalWrite(http.HandlerFunc(handler.CreateCondition)))
 }
 
+// ListConditionsByPatient godoc
+//
+//	@Summary		List conditions by patient
+//	@Description	Returns all medical conditions/diagnoses for a patient
+//	@Tags			conditions
+//	@Accept			json
+//	@Produce		json
+//	@Param			patientFhirId	path	string	true	"Patient FHIR ID"
+//	@Success		200				{array}	ConditionResponse
+//	@Failure		500				{object}	map[string]string
+//	@Router			/patients/{patientFhirId}/conditions [get]
 func (handler *HTTPHandler) ListConditionsByPatient(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
 	patientFhirID := httpRequest.PathValue("patientFhirId")
 
@@ -63,6 +74,19 @@ func (handler *HTTPHandler) ListConditionsByPatient(httpResponseWriter http.Resp
 	render.JSON(httpResponseWriter, http.StatusOK, responseList)
 }
 
+// CreateCondition godoc
+//
+//	@Summary		Create a condition
+//	@Description	Creates a new medical condition/diagnosis for a patient
+//	@Tags			conditions
+//	@Accept			json
+//	@Produce		json
+//	@Param			patientFhirId	path	string	true	"Patient FHIR ID"
+//	@Param			body			body	CreateConditionRequest	true	"Condition data"
+//	@Success		201				{object}	CreateConditionResponse
+//	@Failure		400				{object}	map[string]string
+//	@Failure		500				{object}	map[string]string
+//	@Router			/patients/{patientFhirId}/conditions [post]
 func (handler *HTTPHandler) CreateCondition(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
 	patientFhirID := httpRequest.PathValue("patientFhirId")
 
@@ -99,4 +123,27 @@ func (handler *HTTPHandler) CreateCondition(httpResponseWriter http.ResponseWrit
 		"clinical_status": createdCondition.ClinicalStatus,
 		"created_at":      createdCondition.OnsetAt.Format(time.RFC3339),
 	})
+}
+
+type ConditionResponse struct {
+	FhirID         string `json:"fhir_id"`
+	PatientFhirID  string `json:"patient_fhir_id"`
+	ICD10Code      string `json:"icd10_code"`
+	CodeDisplay    string `json:"code_display"`
+	ClinicalStatus string `json:"clinical_status"`
+	CreatedAt      string `json:"created_at"`
+}
+
+type CreateConditionRequest struct {
+	ICD10Code   string `json:"icd10_code"`
+	CodeDisplay string `json:"code_display"`
+}
+
+type CreateConditionResponse struct {
+	FhirID         string `json:"fhir_id"`
+	PatientFhirID  string `json:"patient_fhir_id"`
+	ICD10Code      string `json:"icd10_code"`
+	CodeDisplay    string `json:"code_display"`
+	ClinicalStatus string `json:"clinical_status"`
+	CreatedAt      string `json:"created_at"`
 }

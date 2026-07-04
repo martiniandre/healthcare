@@ -29,6 +29,17 @@ func (handler *HTTPHandler) RegisterRoutes(mux *http.ServeMux) {
 	mux.Handle("POST /api/encounters/{encounterFhirId}/reports", clinicalWrite(http.HandlerFunc(handler.CreateReport)))
 }
 
+// ListReportsByEncounter godoc
+//
+//	@Summary		List diagnostic reports by encounter
+//	@Description	Returns all diagnostic reports for an encounter
+//	@Tags			diagnostic_reports
+//	@Accept			json
+//	@Produce		json
+//	@Param			encounterFhirId	path	string	true	"Encounter FHIR ID"
+//	@Success		200				{array}	DiagnosticReportResponse
+//	@Failure		500				{object}	map[string]string
+//	@Router			/encounters/{encounterFhirId}/reports [get]
 func (handler *HTTPHandler) ListReportsByEncounter(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
 	encounterFhirID := httpRequest.PathValue("encounterFhirId")
 
@@ -65,6 +76,19 @@ func (handler *HTTPHandler) ListReportsByEncounter(httpResponseWriter http.Respo
 	render.JSON(httpResponseWriter, http.StatusOK, responseList)
 }
 
+// CreateReport godoc
+//
+//	@Summary		Create a diagnostic report
+//	@Description	Creates a new diagnostic report for an encounter
+//	@Tags			diagnostic_reports
+//	@Accept			json
+//	@Produce		json
+//	@Param			encounterFhirId	path	string	true	"Encounter FHIR ID"
+//	@Param			body			body	CreateDiagnosticReportRequest	true	"Report data"
+//	@Success		201				{object}	CreateDiagnosticReportResponse
+//	@Failure		400				{object}	map[string]string
+//	@Failure		500				{object}	map[string]string
+//	@Router			/encounters/{encounterFhirId}/reports [post]
 func (handler *HTTPHandler) CreateReport(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
 	encounterFhirID := httpRequest.PathValue("encounterFhirId")
 
@@ -105,4 +129,30 @@ func (handler *HTTPHandler) CreateReport(httpResponseWriter http.ResponseWriter,
 		"conclusion":        createdReport.Conclusion,
 		"created_at":        createdReport.IssuedAt.Format(time.RFC3339),
 	})
+}
+
+type DiagnosticReportResponse struct {
+	FhirID          string `json:"fhir_id"`
+	EncounterFhirID string `json:"encounter_fhir_id"`
+	PatientFhirID   string `json:"patient_fhir_id"`
+	ReportDisplay   string `json:"report_display"`
+	Status          string `json:"status"`
+	Conclusion      string `json:"conclusion"`
+	CreatedAt       string `json:"created_at"`
+}
+
+type CreateDiagnosticReportRequest struct {
+	PatientFhirID string `json:"patient_fhir_id"`
+	ReportDisplay string `json:"report_display"`
+	Conclusion    string `json:"conclusion"`
+}
+
+type CreateDiagnosticReportResponse struct {
+	FhirID          string `json:"fhir_id"`
+	EncounterFhirID string `json:"encounter_fhir_id"`
+	PatientFhirID   string `json:"patient_fhir_id"`
+	ReportDisplay   string `json:"report_display"`
+	Status          string `json:"status"`
+	Conclusion      string `json:"conclusion"`
+	CreatedAt       string `json:"created_at"`
 }

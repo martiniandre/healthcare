@@ -49,8 +49,8 @@ var methodPermissions = map[string][]role.Role{
 	"/diagnostic_report.v1.DiagnosticReportService/CreateDiagnosticReport": {role.RoleDoctor},
 	"/diagnostic_report.v1.DiagnosticReportService/GetDiagnosticReports":   {role.RoleAdmin, role.RoleDoctor, role.RoleNurse},
 
-	"/clinical.v1.ImagingService/UploadDICOM":         {role.RoleAdmin, role.RoleDoctor, role.RoleNurse},
-	"/clinical.v1.ImagingService/GetImagingStudy":     {role.RoleAdmin, role.RoleDoctor, role.RoleNurse, role.RolePatient},
-	"/clinical.v1.ImagingService/ListImagingStudies":   {role.RoleAdmin, role.RoleDoctor, role.RoleNurse, role.RolePatient},
-	"/clinical.v1.ImagingService/GetDICOMDownloadURL": {role.RoleAdmin, role.RoleDoctor, role.RoleNurse, role.RolePatient},
+	"/imaging.v1.ImagingService/UploadDICOM":         {role.RoleAdmin, role.RoleDoctor, role.RoleNurse},
+	"/imaging.v1.ImagingService/GetImagingStudy":     {role.RoleAdmin, role.RoleDoctor, role.RoleNurse, role.RolePatient},
+	"/imaging.v1.ImagingService/ListImagingStudies":   {role.RoleAdmin, role.RoleDoctor, role.RoleNurse, role.RolePatient},
+	"/imaging.v1.ImagingService/GetDICOMDownloadURL": {role.RoleAdmin, role.RoleDoctor, role.RoleNurse, role.RolePatient},
 }

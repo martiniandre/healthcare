@@ -109,7 +109,7 @@ type GetDICOMDownloadURLResponse struct {
 
 func RegisterImagingServiceServer(server *grpc.Server, handler ImagingServiceServer) {
 	server.RegisterService(&grpc.ServiceDesc{
-		ServiceName: "clinical.v1.ImagingService",
+		ServiceName: "imaging.v1.ImagingService",
 		HandlerType: (*ImagingServiceServer)(nil),
 		Methods: []grpc.MethodDesc{
 			{
@@ -124,7 +124,7 @@ func RegisterImagingServiceServer(server *grpc.Server, handler ImagingServiceSer
 					}
 					info := &grpc.UnaryServerInfo{
 						Server:     srv,
-						FullMethod: "/clinical.v1.ImagingService/GetImagingStudy",
+						FullMethod: "/imaging.v1.ImagingService/GetImagingStudy",
 					}
 					handlerFunc := func(ctx context.Context, req interface{}) (interface{}, error) {
 						return srv.(ImagingServiceServer).GetImagingStudy(ctx, req.(*GetImagingStudyRequest))
@@ -144,7 +144,7 @@ func RegisterImagingServiceServer(server *grpc.Server, handler ImagingServiceSer
 					}
 					info := &grpc.UnaryServerInfo{
 						Server:     srv,
-						FullMethod: "/clinical.v1.ImagingService/ListImagingStudies",
+						FullMethod: "/imaging.v1.ImagingService/ListImagingStudies",
 					}
 					handlerFunc := func(ctx context.Context, req interface{}) (interface{}, error) {
 						return srv.(ImagingServiceServer).ListImagingStudies(ctx, req.(*ListImagingStudiesRequest))
@@ -164,7 +164,7 @@ func RegisterImagingServiceServer(server *grpc.Server, handler ImagingServiceSer
 					}
 					info := &grpc.UnaryServerInfo{
 						Server:     srv,
-						FullMethod: "/clinical.v1.ImagingService/GetDICOMDownloadURL",
+						FullMethod: "/imaging.v1.ImagingService/GetDICOMDownloadURL",
 					}
 					handlerFunc := func(ctx context.Context, req interface{}) (interface{}, error) {
 						return srv.(ImagingServiceServer).GetDICOMDownloadURL(ctx, req.(*GetDICOMDownloadURLRequest))

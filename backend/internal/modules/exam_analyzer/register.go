@@ -11,14 +11,9 @@ type Dependency struct {
 	VertexModel string
 }
 
-var (
-	WorkerInstance *Worker
-	Repo           Repository
-	Svc            Service
-)
-
-func Register(dep Dependency) {
-	Repo = NewRepository(dep.DB)
-	Svc = NewService(Repo, dep.ProjectID, dep.LocationID, dep.VertexModel)
-	WorkerInstance = NewWorker(Repo, Svc)
+func Register(dep Dependency) (Repository, Service, *Worker) {
+	repo := NewRepository(dep.DB)
+	svc := NewService(repo, dep.ProjectID, dep.LocationID, dep.VertexModel)
+	worker := NewWorker(repo, svc)
+	return repo, svc, worker
 }

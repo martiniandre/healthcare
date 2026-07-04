@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api
+  namespace: healthcare
+  labels:
+    app: api
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: api
+  template:
+    metadata:
+      labels:
+        app: api
+    spec:
+      terminationGracePeriodSeconds: 60
+      containers:
+      - name: api
+        image: ghcr.io/healthcare/api:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 50051
+          name: grpc
+          protocol: TCP
+        - containerPort: 8080
+          name: http
+          protocol: TCP
+        envFrom:
+        - configMapRef:
+            name: api-config
+        - secretRef:
+            name: api-secrets
+        resources:
+          requests:
+            cpu: "250m"
+            memory: "256Mi"
+          limits:
+            cpu: "500m"
+            memory: "512Mi"
+        livenessProbe:
+          grpc:
+            port: 50051
+            service: ""
+          initialDelaySeconds: 10
+          periodSeconds: 15
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 2
+        startupProbe:
+          grpc:
+            port: 50051
+            service: ""
+          initialDelaySeconds: 3
+          periodSeconds: 5
+          failureThreshold: 30

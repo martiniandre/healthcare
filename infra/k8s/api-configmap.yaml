@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: api-config
+  namespace: healthcare
+data:
+  APP_ENV: "production"
+  APP_PORT: "50051"
+  HTTP_PORT: "8080"
+  GCP_PROJECT_ID: "healthcare-prod"
+  GCP_LOCATION_ID: "us-central1"
+  GCP_DATASET_ID: "healthcare-dataset"
+  GCP_FHIR_STORE_ID: "fhir-store"
+  GCP_DICOM_STORE_ID: "dicom-store"
+  GCS_BUCKET_NAME: "healthcare-imaging-prod"
+  REDIS_URL: "redis://redis-service:6379"
+  OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4318"
+  OTEL_SERVICE_NAME: "healthcare-api"
+  OTEL_TRACES_SAMPLER: "parentbased_traceidratio"
+  OTEL_TRACES_SAMPLER_ARG: "0.1"

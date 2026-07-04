@@ -27,6 +27,18 @@ func (handler *HTTPHandler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/auth/me", handler.HandleMe)
 }
 
+// HandleLogin godoc
+//
+//	@Summary		Login
+//	@Description	Authenticates a user with email and password, returns JWT token via cookie
+//	@Tags			auth
+//	@Accept			json
+//	@Produce		json
+//	@Param			body	body		LoginRequest	true	"Login credentials"
+//	@Success		200		{object}	LoginResponse
+//	@Failure		400		{object}	map[string]string
+//	@Failure		401		{object}	map[string]string
+//	@Router			/auth/login [post]
 func (handler *HTTPHandler) HandleLogin(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
 	var loginRequestPayload struct {
 		Email    string `json:"email"`
@@ -74,6 +86,17 @@ func (handler *HTTPHandler) HandleLogin(httpResponseWriter http.ResponseWriter, 
 	})
 }
 
+// HandleLogout godoc
+//
+//	@Summary		Logout
+//	@Description	Clears authentication and CSRF cookies to log the user out
+//	@Tags			auth
+//	@Accept			json
+//	@Produce		json
+//	@Success		200	{object}	map[string]string
+//	@Failure		401	{object}	map[string]string
+//	@Failure		403	{object}	map[string]string
+//	@Router			/auth/logout [post]
 func (handler *HTTPHandler) HandleLogout(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
 	cookie, cookieError := httpRequest.Cookie("token")
 	if cookieError != nil {
@@ -117,6 +140,16 @@ func (handler *HTTPHandler) HandleLogout(httpResponseWriter http.ResponseWriter,
 	render.JSON(httpResponseWriter, http.StatusOK, map[string]string{"message": "Logged out successfully"})
 }
 
+// HandleMe godoc
+//
+//	@Summary		Get current user
+//	@Description	Returns the authenticated user's profile information
+//	@Tags			auth
+//	@Accept			json
+//	@Produce		json
+//	@Success		200	{object}	map[string]interface{}
+//	@Failure		401	{object}	map[string]string
+//	@Router			/auth/me [get]
 func (handler *HTTPHandler) HandleMe(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
 	cookie, cookieError := httpRequest.Cookie("token")
 	if cookieError != nil {
@@ -153,3 +186,13 @@ func (handler *HTTPHandler) HandleMe(httpResponseWriter http.ResponseWriter, htt
 	})
 }
 
+type LoginRequest struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
+type LoginResponse struct {
+	UserID string `json:"userId"`
+	Role   string `json:"role"`
+	Email  string `json:"email"`
+}

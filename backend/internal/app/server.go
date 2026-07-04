@@ -5,6 +5,7 @@ import (
 
 	"github.com/healthcare/backend/internal/app/interceptor"
 	"github.com/redis/go-redis/v9"
+	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
 )
@@ -47,6 +48,7 @@ func NewServer(redisClient *redis.Client) *Server {
 		keepaliveParams,
 		keepalivePolicy,
 		grpc.MaxConcurrentStreams(256),
+		grpc.StatsHandler(otelgrpc.NewServerHandler()),
 		chainedInterceptor,
 		chainedStreamInterceptor,
 	)

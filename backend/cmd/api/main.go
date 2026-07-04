@@ -1,3 +1,16 @@
+// @title Healthcare API
+// @version 1.0
+// @description Healthcare platform API with FHIR R4 interoperability
+// @termsOfService http://swagger.io/terms/
+// @contact.name API Support
+// @contact.email support@healthcare.com
+// @license.name MIT
+// @license.url https://opensource.org/licenses/MIT
+// @host localhost:8080
+// @BasePath /api
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
 package main
 
 import (
@@ -35,6 +48,8 @@ import (
 	"github.com/healthcare/backend/internal/shared/logger"
 	"github.com/healthcare/backend/internal/shared/migrations"
 	"github.com/healthcare/backend/internal/shared/storage"
+	sharedtelemetry "github.com/healthcare/backend/internal/shared/telemetry"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
 func main() {
@@ -46,6 +61,18 @@ func main() {
 
 	logger.Init(appConfig.AppEnv, appConfig.SentryDSN)
 	slog.Info("Starting Healthcare API", "env", appConfig.AppEnv, "port", appConfig.AppPort)
+
+	if appConfig.OTELExporterEndpoint != "" {
+		_, telemetryShutdown, telemetryError := sharedtelemetry.InitTracer(appConfig.OTELServiceName, appConfig.OTELExporterEndpoint, appConfig.AppEnv)
+		if telemetryError != nil {
+			slog.Warn("Failed to initialize OpenTelemetry tracer", "error", telemetryError)
+		} else {
+			defer telemetryShutdown()
+			slog.Info("OpenTelemetry initialized", "endpoint", appConfig.OTELExporterEndpoint)
+		}
+	} else {
+		slog.Info("OpenTelemetry exporter endpoint not set, skipping tracer initialization")
+	}
 
 	if initJWTError := auth.InitJWT(appConfig.JWTSecret); initJWTError != nil {
 		slog.Error("Failed to initialize JWT", "error", initJWTError)
@@ -97,8 +124,8 @@ func main() {
 	analyticsHTTPHandler := analytics.Register(analytics.Dependency{DB: databasePool, FHIRClient: fhirClient})
 	auditLogsService := audit_logs.Register(applicationServer.GRPCServer, audit_logs.Dependency{DB: databasePool})
 
-	exam_analyzer.Register(exam_analyzer.Dependency{DB: databasePool, ProjectID: appConfig.GCPProjectID, LocationID: appConfig.GCPLocationID, VertexModel: appConfig.GCPVertexModel})
-	go exam_analyzer.WorkerInstance.Start(mainContext)
+	examAnalyzerRepo, examAnalyzerSvc, examAnalyzerWorker := exam_analyzer.Register(exam_analyzer.Dependency{DB: databasePool, ProjectID: appConfig.GCPProjectID, LocationID: appConfig.GCPLocationID, VertexModel: appConfig.GCPVertexModel})
+	go examAnalyzerWorker.Start(mainContext)
 
 	imagingWorker := imaging.NewWorker(imaging.NewRepository(databasePool), redisClient, fhirClient)
 	go imagingWorker.Start(mainContext)
@@ -116,7 +143,7 @@ func main() {
 	imagingHTTPHandler := imaging.NewHTTPHandler(imagingService)
 	staffHTTPHandler := staff.NewHTTPHandler(staffService)
 	telemetryHTTPHandler := telemetry.NewHTTPHandler(telemetryService)
-	examAnalyzerHTTPHandler := exam_analyzer.NewHTTPHandler(exam_analyzer.Repo, exam_analyzer.Svc, exam_analyzer.WorkerInstance)
+	examAnalyzerHTTPHandler := exam_analyzer.NewHTTPHandler(examAnalyzerRepo, examAnalyzerSvc, examAnalyzerWorker)
 	auditLogsHTTPHandler := audit_logs.NewHTTPHandler(auditLogsService)
 
 	router := api.NewRouter(
@@ -150,9 +177,11 @@ func main() {
 		}
 	}()
 
+	tracedHandler := otelhttp.NewHandler(router, "http-request")
+
 	httpServer := &http.Server{
 		Addr:              ":" + appConfig.HTTPPort,
-		Handler:           router,
+		Handler:           tracedHandler,
 		ReadHeaderTimeout: 5 * time.Second,
 		ReadTimeout:       30 * time.Second,
 		WriteTimeout:      60 * time.Second,
@@ -172,7 +201,7 @@ func main() {
 	<-quitSignalChannel
 
 	slog.Info("Shutting down servers gracefully...")
-	exam_analyzer.WorkerInstance.Stop()
+	examAnalyzerWorker.Stop()
 	imagingWorker.Stop()
 	telemetrySimulator.Stop()
 	applicationServer.GRPCServer.GracefulStop()

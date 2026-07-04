@@ -29,6 +29,18 @@ func (handler *HTTPHandler) RegisterRoutes(mux *http.ServeMux) {
 	mux.Handle("POST /api/staff/employees", adminOnly(http.HandlerFunc(handler.CreateEmployee)))
 }
 
+// ListEmployees godoc
+//
+//	@Summary		List employees
+//	@Description	Returns the list of healthcare staff/employees with optional search and role filter
+//	@Tags			staff
+//	@Accept			json
+//	@Produce		json
+//	@Param			search	query		string	false	"Search by name or email"
+//	@Param			role	query		string	false	"Filter by role (admin, doctor, nurse, reception)"
+//	@Success		200		{array}		EmployeeResponse
+//	@Failure		500		{object}	map[string]string
+//	@Router			/staff/employees [get]
 func (handler *HTTPHandler) ListEmployees(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
 	search := httpRequest.URL.Query().Get("search")
 	role := httpRequest.URL.Query().Get("role")
@@ -43,6 +55,18 @@ func (handler *HTTPHandler) ListEmployees(httpResponseWriter http.ResponseWriter
 	render.JSON(httpResponseWriter, http.StatusOK, employeesList)
 }
 
+// CreateEmployee godoc
+//
+//	@Summary		Create a new employee
+//	@Description	Registers a new healthcare professional as an employee
+//	@Tags			staff
+//	@Accept			json
+//	@Produce		json
+//	@Param			body	body		CreateEmployeeRequest	true	"Employee data"
+//	@Success		201		{object}	CreateEmployeeResponse
+//	@Failure		400		{object}	map[string]string
+//	@Failure		500		{object}	map[string]string
+//	@Router			/staff/employees [post]
 func (handler *HTTPHandler) CreateEmployee(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
 	var payload struct {
 		UserID    string `json:"user_id"`
@@ -73,4 +97,24 @@ func (handler *HTTPHandler) CreateEmployee(httpResponseWriter http.ResponseWrite
 	render.JSON(httpResponseWriter, http.StatusCreated, map[string]string{
 		"employee_id": employee.ID.String(),
 	})
+}
+
+type EmployeeResponse struct {
+	ID        string `json:"id"`
+	FullName  string `json:"full_name"`
+	Email     string `json:"email"`
+	Role      string `json:"role"`
+	CRMNumber string `json:"crm_number"`
+}
+
+type CreateEmployeeRequest struct {
+	UserID    string `json:"user_id"`
+	FullName  string `json:"full_name"`
+	Email     string `json:"email"`
+	Role      string `json:"role"`
+	CRMNumber string `json:"crm_number"`
+}
+
+type CreateEmployeeResponse struct {
+	EmployeeID string `json:"employee_id"`
 }

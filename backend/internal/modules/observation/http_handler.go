@@ -30,6 +30,17 @@ func (handler *HTTPHandler) RegisterRoutes(mux *http.ServeMux) {
 	mux.Handle("POST /api/encounters/{encounterFhirId}/observations", clinicalWrite(http.HandlerFunc(handler.CreateObservation)))
 }
 
+// ListObservationsByPatient godoc
+//
+//	@Summary		List observations by patient
+//	@Description	Returns all observations/vital signs for a patient
+//	@Tags			observations
+//	@Accept			json
+//	@Produce		json
+//	@Param			patientFhirId	path	string	true	"Patient FHIR ID"
+//	@Success		200				{array}	ObservationResponse
+//	@Failure		500				{object}	map[string]string
+//	@Router			/patients/{patientFhirId}/observations [get]
 func (handler *HTTPHandler) ListObservationsByPatient(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
 	patientFhirID := httpRequest.PathValue("patientFhirId")
 
@@ -43,6 +54,17 @@ func (handler *HTTPHandler) ListObservationsByPatient(httpResponseWriter http.Re
 	render.JSON(httpResponseWriter, http.StatusOK, toObservationResponseList(observationsList))
 }
 
+// ListObservationsByEncounter godoc
+//
+//	@Summary		List observations by encounter
+//	@Description	Returns all observations/vital signs for an encounter
+//	@Tags			observations
+//	@Accept			json
+//	@Produce		json
+//	@Param			encounterFhirId	path	string	true	"Encounter FHIR ID"
+//	@Success		200				{array}	ObservationResponse
+//	@Failure		500				{object}	map[string]string
+//	@Router			/encounters/{encounterFhirId}/observations [get]
 func (handler *HTTPHandler) ListObservationsByEncounter(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
 	encounterFhirID := httpRequest.PathValue("encounterFhirId")
 
@@ -56,6 +78,19 @@ func (handler *HTTPHandler) ListObservationsByEncounter(httpResponseWriter http.
 	render.JSON(httpResponseWriter, http.StatusOK, toObservationResponseList(observationsList))
 }
 
+// CreateObservation godoc
+//
+//	@Summary		Create an observation
+//	@Description	Creates a new observation/vital sign for an encounter
+//	@Tags			observations
+//	@Accept			json
+//	@Produce		json
+//	@Param			encounterFhirId	path	string	true	"Encounter FHIR ID"
+//	@Param			body			body	CreateObservationRequest	true	"Observation data"
+//	@Success		201				{object}	CreateObservationResponse
+//	@Failure		400				{object}	map[string]string
+//	@Failure		500				{object}	map[string]string
+//	@Router			/encounters/{encounterFhirId}/observations [post]
 func (handler *HTTPHandler) CreateObservation(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
 	encounterFhirID := httpRequest.PathValue("encounterFhirId")
 
@@ -116,4 +151,34 @@ func toObservationResponseList(observationsList []*Observation) []map[string]int
 		})
 	}
 	return responseList
+}
+
+type ObservationResponse struct {
+	FhirID          string  `json:"fhir_id"`
+	EncounterFhirID string  `json:"encounter_fhir_id"`
+	PatientFhirID   string  `json:"patient_fhir_id"`
+	LoincCode       string  `json:"loinc_code"`
+	CodeDisplay     string  `json:"code_display"`
+	ValueQuantity   float64 `json:"value_quantity"`
+	ValueUnit       string  `json:"value_unit"`
+	CreatedAt       string  `json:"created_at"`
+}
+
+type CreateObservationRequest struct {
+	PatientFhirID string  `json:"patient_fhir_id"`
+	LoincCode     string  `json:"loinc_code"`
+	CodeDisplay   string  `json:"code_display"`
+	ValueQuantity float64 `json:"value_quantity"`
+	ValueUnit     string  `json:"value_unit"`
+}
+
+type CreateObservationResponse struct {
+	FhirID          string  `json:"fhir_id"`
+	EncounterFhirID string  `json:"encounter_fhir_id"`
+	PatientFhirID   string  `json:"patient_fhir_id"`
+	LoincCode       string  `json:"loinc_code"`
+	CodeDisplay     string  `json:"code_display"`
+	ValueQuantity   float64 `json:"value_quantity"`
+	ValueUnit       string  `json:"value_unit"`
+	CreatedAt       string  `json:"created_at"`
 }

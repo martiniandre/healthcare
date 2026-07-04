@@ -28,6 +28,17 @@ func (handler *HTTPHandler) RegisterRoutes(mux *http.ServeMux) {
 	mux.Handle("POST /api/patients/{patientFhirId}/encounters", medicalStaff(http.HandlerFunc(handler.CreateEncounter)))
 }
 
+// ListEncountersByPatient godoc
+//
+//	@Summary		List encounters by patient
+//	@Description	Returns all encounters/consultations for a patient
+//	@Tags			encounters
+//	@Accept			json
+//	@Produce		json
+//	@Param			patientFhirId	path	string	true	"Patient FHIR ID"
+//	@Success		200				{array}	EncounterResponse
+//	@Failure		500				{object}	map[string]string
+//	@Router			/patients/{patientFhirId}/encounters [get]
 func (handler *HTTPHandler) ListEncountersByPatient(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
 	patientFhirID := httpRequest.PathValue("patientFhirId")
 
@@ -62,6 +73,19 @@ func (handler *HTTPHandler) ListEncountersByPatient(httpResponseWriter http.Resp
 	render.JSON(httpResponseWriter, http.StatusOK, responseList)
 }
 
+// CreateEncounter godoc
+//
+//	@Summary		Create an encounter
+//	@Description	Creates a new encounter/consultation for a patient
+//	@Tags			encounters
+//	@Accept			json
+//	@Produce		json
+//	@Param			patientFhirId	path	string	true	"Patient FHIR ID"
+//	@Param			body			body	CreateEncounterRequest	true	"Encounter data"
+//	@Success		201				{object}	CreateEncounterResponse
+//	@Failure		400				{object}	map[string]string
+//	@Failure		500				{object}	map[string]string
+//	@Router			/patients/{patientFhirId}/encounters [post]
 func (handler *HTTPHandler) CreateEncounter(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
 	patientFhirID := httpRequest.PathValue("patientFhirId")
 
@@ -98,4 +122,27 @@ func (handler *HTTPHandler) CreateEncounter(httpResponseWriter http.ResponseWrit
 		"practitioner_id": createdEncounter.PractitionerID,
 		"created_at":      createdEncounter.StartedAt.Format(time.RFC3339),
 	})
+}
+
+type EncounterResponse struct {
+	FhirID         string `json:"fhir_id"`
+	PatientFhirID  string `json:"patient_fhir_id"`
+	Status         string `json:"status"`
+	ReasonDisplay  string `json:"reason_display"`
+	PractitionerID string `json:"practitioner_id,omitempty"`
+	CreatedAt      string `json:"created_at"`
+}
+
+type CreateEncounterRequest struct {
+	ReasonDisplay  string `json:"reason_display"`
+	PractitionerID string `json:"practitioner_id"`
+}
+
+type CreateEncounterResponse struct {
+	FhirID         string `json:"fhir_id"`
+	PatientFhirID  string `json:"patient_fhir_id"`
+	Status         string `json:"status"`
+	ReasonDisplay  string `json:"reason_display"`
+	PractitionerID string `json:"practitioner_id"`
+	CreatedAt      string `json:"created_at"`
 }

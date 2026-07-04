@@ -31,6 +31,21 @@ func (handler *HTTPHandler) RegisterRoutes(mux *http.ServeMux) {
 	mux.Handle("GET /api/patients/{patientFhirId}", medicalStaff(http.HandlerFunc(handler.GetPatient)))
 }
 
+// ListPatients godoc
+//
+//	@Summary		List all patients
+//	@Description	Returns a paginated list of patients with optional search/filter
+//	@Tags			patients
+//	@Accept			json
+//	@Produce		json
+//	@Param			search			query		string	false	"Search term"
+//	@Param			sortField		query		string	false	"Sort field"
+//	@Param			sortDirection	query		string	false	"Sort direction (asc/desc)"
+//	@Param			page			query		int		false	"Page number"			default(1)
+//	@Param			limit			query		int		false	"Items per page"		default(50)
+//	@Success		200				{array}		PatientListResponse
+//	@Failure		500				{object}	map[string]string
+//	@Router			/patients [get]
 func (handler *HTTPHandler) ListPatients(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
 	search := httpRequest.URL.Query().Get("search")
 	sortField := httpRequest.URL.Query().Get("sortField")
@@ -75,6 +90,19 @@ func (handler *HTTPHandler) ListPatients(httpResponseWriter http.ResponseWriter,
 	render.JSON(httpResponseWriter, http.StatusOK, responseList)
 }
 
+// CreatePatient godoc
+//
+//	@Summary		Create a new patient
+//	@Description	Creates a new patient record and FHIR resource
+//	@Tags			patients
+//	@Accept			json
+//	@Produce		json
+//	@Param			body	body		CreatePatientRequest	true	"Patient data"
+//	@Success		201		{object}	CreatePatientResponse
+//	@Failure		400		{object}	map[string]string
+//	@Failure		409		{object}	map[string]string
+//	@Failure		500		{object}	map[string]string
+//	@Router			/patients [post]
 func (handler *HTTPHandler) CreatePatient(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
 	var payload struct {
 		FullName    string `json:"full_name"`
@@ -105,6 +133,18 @@ func (handler *HTTPHandler) CreatePatient(httpResponseWriter http.ResponseWriter
 	})
 }
 
+// GetPatient godoc
+//
+//	@Summary		Get patient by FHIR ID
+//	@Description	Returns a single patient by their FHIR resource ID
+//	@Tags			patients
+//	@Accept			json
+//	@Produce		json
+//	@Param			patientFhirId	path		string	true	"Patient FHIR ID"
+//	@Success		200				{object}	map[string]interface{}
+//	@Failure		400				{object}	map[string]string
+//	@Failure		404				{object}	map[string]string
+//	@Router			/patients/{patientFhirId} [get]
 func (handler *HTTPHandler) GetPatient(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
 	patientFhirID := httpRequest.PathValue("patientFhirId")
 	if patientFhirID == "" {
@@ -127,4 +167,25 @@ func (handler *HTTPHandler) GetPatient(httpResponseWriter http.ResponseWriter, h
 		"document_id":      patient.DocumentID,
 		"phone_number":     patient.PhoneNumber,
 	})
+}
+
+type PatientListResponse struct {
+	PatientID      string `json:"patient_id"`
+	FHIRResourceID string `json:"fhir_resource_id"`
+	FullName       string `json:"full_name"`
+	BirthDate      string `json:"birth_date"`
+	DocumentID     string `json:"document_id"`
+	PhoneNumber    string `json:"phone_number"`
+}
+
+type CreatePatientRequest struct {
+	FullName    string `json:"full_name"`
+	BirthDate   string `json:"birth_date"`
+	DocumentID  string `json:"document_id"`
+	PhoneNumber string `json:"phone_number"`
+}
+
+type CreatePatientResponse struct {
+	PatientID      string `json:"patient_id"`
+	FHIRResourceID string `json:"fhir_resource_id"`
 }

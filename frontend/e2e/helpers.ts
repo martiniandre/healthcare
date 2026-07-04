@@ -39,14 +39,10 @@ export const mockAuthAPI = async (pageInstance: Page): Promise<void> => {
 
   await pageInstance.route("**/api/auth/me", async (networkRoute) => {
     await networkRoute.fulfill({
-      status: 200,
+      status: 401,
       contentType: "application/json",
       body: JSON.stringify({
-        userId: "user-medico-123",
-        role: "doctor",
-        email: "medico@clinica.com",
-        fullName: "Dr. André Silva de Araujo",
-        isActive: true,
+        error: "Não autenticado.",
       }),
     })
   })
@@ -825,6 +821,117 @@ export const mockAnalyticsAPI = async (pageInstance: Page): Promise<void> => {
       })
     })
   })
+}
+
+export const mockAuditLogsAPI = async (pageInstance: Page): Promise<void> => {
+  const currentAuditLogs = [
+    {
+      id: "log-1",
+      correlation_id: "corr-001",
+      caller_user_id: "admin@hospital.com",
+      caller_role: "ADMIN",
+      method: "PAGE_VIEW",
+      access_granted: true,
+      created_at: "2026-07-03T10:00:00Z",
+    },
+    {
+      id: "log-2",
+      correlation_id: "corr-002",
+      caller_user_id: "medico@clinica.com",
+      caller_role: "DOCTOR",
+      method: "API_REQUEST",
+      access_granted: true,
+      created_at: "2026-07-03T09:30:00Z",
+    },
+    {
+      id: "log-3",
+      correlation_id: "corr-003",
+      caller_user_id: "usuario.invalido@test.com",
+      caller_role: "UNKNOWN",
+      method: "LOGIN",
+      access_granted: false,
+      created_at: "2026-07-03T08:00:00Z",
+    },
+  ]
+
+  await pageInstance.route("**/api/audit-logs", async (networkRoute) => {
+    const httpRequest = networkRoute.request()
+    if (httpRequest.method() === "GET") {
+      await networkRoute.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ audit_logs: currentAuditLogs, total: currentAuditLogs.length }),
+      })
+    } else if (httpRequest.method() === "POST") {
+      await networkRoute.fulfill({
+        status: 201,
+        contentType: "application/json",
+        body: JSON.stringify({ success: true }),
+      })
+    }
+  })
+}
+
+export const loginAsAdmin = async (pageInstance: Page): Promise<void> => {
+  await pageInstance.route("**/api/auth/login", async (networkRoute) => {
+    const httpRequest = networkRoute.request()
+    const submittedJSON = httpRequest.postDataJSON()
+
+    if (submittedJSON.email === "admin@hospital.com" && submittedJSON.password === "admin123") {
+      await networkRoute.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          token: "mock-jwt-token-admin-789",
+          userId: "user-admin-789",
+          role: "ADMIN",
+          email: "admin@hospital.com",
+        }),
+      })
+    } else {
+      await networkRoute.fulfill({
+        status: 401,
+        contentType: "application/json",
+        body: JSON.stringify({
+          error: "Credenciais inválidas.",
+        }),
+      })
+    }
+  })
+
+  await pageInstance.route("**/api/auth/logout", async (networkRoute) => {
+    await networkRoute.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        success: true,
+      }),
+    })
+  })
+
+  await pageInstance.route("**/api/auth/me", async (networkRoute) => {
+    await networkRoute.fulfill({
+      status: 401,
+      contentType: "application/json",
+      body: JSON.stringify({
+        error: "Não autenticado.",
+      }),
+    })
+  })
+
+  await mockPatientsAPI(pageInstance)
+  await mockClinicalAPI(pageInstance)
+  await mockAnalyzerAPI(pageInstance)
+  await mockStaffAPI(pageInstance)
+  await mockTelemetryAPI(pageInstance)
+  await mockAnalyticsAPI(pageInstance)
+  await mockAuditLogsAPI(pageInstance)
+
+  await pageInstance.goto("/login")
+  await pageInstance.getByPlaceholder("nome.sobrenome@hospital.com").fill("admin@hospital.com")
+  await pageInstance.getByPlaceholder("••••••••").fill("admin123")
+  await pageInstance.getByRole("button", { name: "Entrar no Console" }).click()
+  await expect(pageInstance).toHaveURL(/\/$/)
 }
 
 export const loginAsDoctor = async (pageInstance: Page): Promise<void> => {

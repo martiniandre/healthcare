@@ -24,6 +24,16 @@ func (analyticsHTTPHandler *HTTPHandler) RegisterRoutes(httpServeMux *http.Serve
 	httpServeMux.Handle("GET /api/analytics", authorizedRoles(http.HandlerFunc(analyticsHTTPHandler.GetStats)))
 }
 
+// GetStats godoc
+//
+//	@Summary		Get analytics statistics
+//	@Description	Returns aggregated healthcare statistics including patient counts, consultation data, and exam modality distribution
+//	@Tags			analytics
+//	@Accept			json
+//	@Produce		json
+//	@Success		200	{object}	Stats
+//	@Failure		500	{object}	map[string]string
+//	@Router			/analytics [get]
 func (analyticsHTTPHandler *HTTPHandler) GetStats(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
 	analyticsData, errorInstance := analyticsHTTPHandler.analyticsService.GetStats(httpRequest.Context())
 	if errorInstance != nil {

@@ -1,0 +1,1744 @@
+basePath: /api
+definitions:
+  allergy.AllergyResponse:
+    properties:
+      allergen_code:
+        type: string
+      allergen_display:
+        type: string
+      clinical_status:
+        type: string
+      created_at:
+        type: string
+      fhir_id:
+        type: string
+      patient_fhir_id:
+        type: string
+      reaction:
+        type: string
+    type: object
+  allergy.CreateAllergyRequest:
+    properties:
+      allergen_code:
+        type: string
+      allergen_display:
+        type: string
+      reaction:
+        type: string
+    type: object
+  allergy.CreateAllergyResponse:
+    properties:
+      allergen_code:
+        type: string
+      allergen_display:
+        type: string
+      clinical_status:
+        type: string
+      created_at:
+        type: string
+      fhir_id:
+        type: string
+      patient_fhir_id:
+        type: string
+      reaction:
+        type: string
+    type: object
+  analytics.ExamModality:
+    properties:
+      color:
+        type: string
+      count:
+        type: integer
+      modality:
+        type: string
+      percentage:
+        type: number
+    type: object
+  analytics.PathologyCase:
+    properties:
+      activeCases:
+        type: integer
+      category:
+        type: string
+      code:
+        type: string
+      description:
+        type: string
+      trend:
+        type: string
+    type: object
+  analytics.Stats:
+    properties:
+      avg_service_duration_minutes:
+        type: number
+      exam_modalities:
+        items:
+          $ref: '#/definitions/analytics.ExamModality'
+        type: array
+      fhir_compliance_rate:
+        type: number
+      pathology_cases:
+        items:
+          $ref: '#/definitions/analytics.PathologyCase'
+        type: array
+      total_patients:
+        type: integer
+      weekly_consultations:
+        items:
+          $ref: '#/definitions/analytics.WeeklyConsultation'
+        type: array
+    type: object
+  analytics.WeeklyConsultation:
+    properties:
+      count:
+        type: integer
+      dayName:
+        type: string
+    type: object
+  audit_logs.AuditLog:
+    properties:
+      access_granted:
+        type: boolean
+      caller_role:
+        type: string
+      caller_user_id:
+        type: string
+      correlation_id:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      method:
+        type: string
+    type: object
+  audit_logs.AuditLogListResponse:
+    properties:
+      audit_logs: {}
+      total:
+        type: integer
+    type: object
+  audit_logs.CreateAuditLogRequest:
+    properties:
+      access_granted:
+        type: boolean
+      caller_role:
+        type: string
+      caller_user_id:
+        type: string
+      correlation_id:
+        type: string
+      method:
+        type: string
+    type: object
+  auth.LoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    type: object
+  auth.LoginResponse:
+    properties:
+      email:
+        type: string
+      role:
+        type: string
+      userId:
+        type: string
+    type: object
+  condition.ConditionResponse:
+    properties:
+      clinical_status:
+        type: string
+      code_display:
+        type: string
+      created_at:
+        type: string
+      fhir_id:
+        type: string
+      icd10_code:
+        type: string
+      patient_fhir_id:
+        type: string
+    type: object
+  condition.CreateConditionRequest:
+    properties:
+      code_display:
+        type: string
+      icd10_code:
+        type: string
+    type: object
+  condition.CreateConditionResponse:
+    properties:
+      clinical_status:
+        type: string
+      code_display:
+        type: string
+      created_at:
+        type: string
+      fhir_id:
+        type: string
+      icd10_code:
+        type: string
+      patient_fhir_id:
+        type: string
+    type: object
+  diagnostic_report.CreateDiagnosticReportRequest:
+    properties:
+      conclusion:
+        type: string
+      patient_fhir_id:
+        type: string
+      report_display:
+        type: string
+    type: object
+  diagnostic_report.CreateDiagnosticReportResponse:
+    properties:
+      conclusion:
+        type: string
+      created_at:
+        type: string
+      encounter_fhir_id:
+        type: string
+      fhir_id:
+        type: string
+      patient_fhir_id:
+        type: string
+      report_display:
+        type: string
+      status:
+        type: string
+    type: object
+  diagnostic_report.DiagnosticReportResponse:
+    properties:
+      conclusion:
+        type: string
+      created_at:
+        type: string
+      encounter_fhir_id:
+        type: string
+      fhir_id:
+        type: string
+      patient_fhir_id:
+        type: string
+      report_display:
+        type: string
+      status:
+        type: string
+    type: object
+  encounter.CreateEncounterRequest:
+    properties:
+      practitioner_id:
+        type: string
+      reason_display:
+        type: string
+    type: object
+  encounter.CreateEncounterResponse:
+    properties:
+      created_at:
+        type: string
+      fhir_id:
+        type: string
+      patient_fhir_id:
+        type: string
+      practitioner_id:
+        type: string
+      reason_display:
+        type: string
+      status:
+        type: string
+    type: object
+  encounter.EncounterResponse:
+    properties:
+      created_at:
+        type: string
+      fhir_id:
+        type: string
+      patient_fhir_id:
+        type: string
+      practitioner_id:
+        type: string
+      reason_display:
+        type: string
+      status:
+        type: string
+    type: object
+  exam_analyzer.DeleteAnalysisResponse:
+    properties:
+      success:
+        type: string
+    type: object
+  exam_analyzer.ExamAnalysisResponse:
+    properties:
+      analysis_response:
+        type: string
+      anonymized:
+        type: boolean
+      consent_given:
+        type: boolean
+      created_at:
+        type: string
+      exam_type:
+        type: string
+      file_name:
+        type: string
+      id:
+        type: string
+      patient_fhir_id:
+        type: string
+      status:
+        type: string
+      updated_at:
+        type: string
+      user_id:
+        type: string
+    type: object
+  imaging.HTTPImagingStudyResponse:
+    properties:
+      created_at:
+        type: string
+      download_url:
+        type: string
+      id:
+        type: string
+      modality:
+        type: string
+      patient_fhir_id:
+        type: string
+      status:
+        type: string
+      study_instance_uid:
+        type: string
+      title:
+        type: string
+    type: object
+  medication.CreateMedicationRequest:
+    properties:
+      dosage_instructions:
+        type: string
+      medication_code:
+        type: string
+      medication_name:
+        type: string
+      patient_fhir_id:
+        type: string
+      practitioner_fhir_id:
+        type: string
+    type: object
+  medication.CreateMedicationResponse:
+    properties:
+      created_at:
+        type: string
+      dosage_instructions:
+        type: string
+      encounter_fhir_id:
+        type: string
+      fhir_id:
+        type: string
+      medication_code:
+        type: string
+      medication_name:
+        type: string
+      patient_fhir_id:
+        type: string
+      practitioner_fhir_id:
+        type: string
+      status:
+        type: string
+    type: object
+  medication.MedicationResponse:
+    properties:
+      created_at:
+        type: string
+      dosage_instructions:
+        type: string
+      encounter_fhir_id:
+        type: string
+      fhir_id:
+        type: string
+      medication_code:
+        type: string
+      medication_name:
+        type: string
+      patient_fhir_id:
+        type: string
+      practitioner_fhir_id:
+        type: string
+      status:
+        type: string
+    type: object
+  observation.CreateObservationRequest:
+    properties:
+      code_display:
+        type: string
+      loinc_code:
+        type: string
+      patient_fhir_id:
+        type: string
+      value_quantity:
+        type: number
+      value_unit:
+        type: string
+    type: object
+  observation.CreateObservationResponse:
+    properties:
+      code_display:
+        type: string
+      created_at:
+        type: string
+      encounter_fhir_id:
+        type: string
+      fhir_id:
+        type: string
+      loinc_code:
+        type: string
+      patient_fhir_id:
+        type: string
+      value_quantity:
+        type: number
+      value_unit:
+        type: string
+    type: object
+  observation.ObservationResponse:
+    properties:
+      code_display:
+        type: string
+      created_at:
+        type: string
+      encounter_fhir_id:
+        type: string
+      fhir_id:
+        type: string
+      loinc_code:
+        type: string
+      patient_fhir_id:
+        type: string
+      value_quantity:
+        type: number
+      value_unit:
+        type: string
+    type: object
+  patients.CreatePatientRequest:
+    properties:
+      birth_date:
+        type: string
+      document_id:
+        type: string
+      full_name:
+        type: string
+      phone_number:
+        type: string
+    type: object
+  patients.CreatePatientResponse:
+    properties:
+      fhir_resource_id:
+        type: string
+      patient_id:
+        type: string
+    type: object
+  patients.PatientListResponse:
+    properties:
+      birth_date:
+        type: string
+      document_id:
+        type: string
+      fhir_resource_id:
+        type: string
+      full_name:
+        type: string
+      patient_id:
+        type: string
+      phone_number:
+        type: string
+    type: object
+  staff.CreateEmployeeRequest:
+    properties:
+      crm_number:
+        type: string
+      email:
+        type: string
+      full_name:
+        type: string
+      role:
+        type: string
+      user_id:
+        type: string
+    type: object
+  staff.CreateEmployeeResponse:
+    properties:
+      employee_id:
+        type: string
+    type: object
+  staff.EmployeeResponse:
+    properties:
+      crm_number:
+        type: string
+      email:
+        type: string
+      full_name:
+        type: string
+      id:
+        type: string
+      role:
+        type: string
+    type: object
+  telemetry.TelemetryBedResponse:
+    properties:
+      bed_label:
+        type: string
+      bpm:
+        type: integer
+      condition:
+        type: string
+      id:
+        type: string
+      room_id:
+        type: string
+      spo2:
+        type: integer
+      status:
+        type: string
+      temperature:
+        type: number
+    type: object
+  telemetry.TelemetryRoomResponse:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      status:
+        type: string
+    type: object
+  telemetry.UnlockRoomRequest:
+    properties:
+      passcode:
+        type: string
+    type: object
+  telemetry.UnlockRoomResponse:
+    properties:
+      roomName:
+        type: string
+      success:
+        type: boolean
+    type: object
+  telemetry.UpdateBedConditionRequest:
+    properties:
+      bpm:
+        type: integer
+      condition:
+        type: string
+      spo2:
+        type: integer
+      status:
+        type: string
+      temperature:
+        type: number
+    type: object
+  telemetry.UpdateBedConditionResponse:
+    properties:
+      success:
+        type: boolean
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@healthcare.com
+    name: API Support
+  description: Healthcare platform API with FHIR R4 interoperability
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  termsOfService: http://swagger.io/terms/
+  title: Healthcare API
+  version: "1.0"
+paths:
+  /analytics:
+    get:
+      consumes:
+      - application/json
+      description: Returns aggregated healthcare statistics including patient counts,
+        consultation data, and exam modality distribution
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/analytics.Stats'
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get analytics statistics
+      tags:
+      - analytics
+  /audit-logs:
+    get:
+      consumes:
+      - application/json
+      description: Returns a paginated list of audit logs (admin only)
+      parameters:
+      - default: 10
+        description: Number of items per page
+        in: query
+        name: limit
+        type: integer
+      - default: 0
+        description: Number of items to skip
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/audit_logs.AuditLogListResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List audit logs
+      tags:
+      - audit_logs
+    post:
+      consumes:
+      - application/json
+      description: Creates a new audit log entry for tracking access and actions
+      parameters:
+      - description: Audit log data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/audit_logs.CreateAuditLogRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/audit_logs.AuditLog'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create audit log entry
+      tags:
+      - audit_logs
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticates a user with email and password, returns JWT token
+        via cookie
+      parameters:
+      - description: Login credentials
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/auth.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/auth.LoginResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Login
+      tags:
+      - auth
+  /auth/logout:
+    post:
+      consumes:
+      - application/json
+      description: Clears authentication and CSRF cookies to log the user out
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Logout
+      tags:
+      - auth
+  /auth/me:
+    get:
+      consumes:
+      - application/json
+      description: Returns the authenticated user's profile information
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get current user
+      tags:
+      - auth
+  /encounters/{encounterFhirId}/medications:
+    get:
+      consumes:
+      - application/json
+      description: Returns all medication requests/prescriptions for an encounter
+      parameters:
+      - description: Encounter FHIR ID
+        in: path
+        name: encounterFhirId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/medication.MedicationResponse'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List medications by encounter
+      tags:
+      - medications
+    post:
+      consumes:
+      - application/json
+      description: Creates a new medication request/prescription for an encounter
+      parameters:
+      - description: Encounter FHIR ID
+        in: path
+        name: encounterFhirId
+        required: true
+        type: string
+      - description: Medication data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/medication.CreateMedicationRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/medication.CreateMedicationResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create a medication
+      tags:
+      - medications
+  /encounters/{encounterFhirId}/observations:
+    get:
+      consumes:
+      - application/json
+      description: Returns all observations/vital signs for an encounter
+      parameters:
+      - description: Encounter FHIR ID
+        in: path
+        name: encounterFhirId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/observation.ObservationResponse'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List observations by encounter
+      tags:
+      - observations
+    post:
+      consumes:
+      - application/json
+      description: Creates a new observation/vital sign for an encounter
+      parameters:
+      - description: Encounter FHIR ID
+        in: path
+        name: encounterFhirId
+        required: true
+        type: string
+      - description: Observation data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/observation.CreateObservationRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/observation.CreateObservationResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create an observation
+      tags:
+      - observations
+  /encounters/{encounterFhirId}/reports:
+    get:
+      consumes:
+      - application/json
+      description: Returns all diagnostic reports for an encounter
+      parameters:
+      - description: Encounter FHIR ID
+        in: path
+        name: encounterFhirId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/diagnostic_report.DiagnosticReportResponse'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List diagnostic reports by encounter
+      tags:
+      - diagnostic_reports
+    post:
+      consumes:
+      - application/json
+      description: Creates a new diagnostic report for an encounter
+      parameters:
+      - description: Encounter FHIR ID
+        in: path
+        name: encounterFhirId
+        required: true
+        type: string
+      - description: Report data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/diagnostic_report.CreateDiagnosticReportRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/diagnostic_report.CreateDiagnosticReportResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create a diagnostic report
+      tags:
+      - diagnostic_reports
+  /exam-analyses:
+    get:
+      consumes:
+      - application/json
+      description: Returns all exam analyses, optionally filtered by patient FHIR
+        ID
+      parameters:
+      - description: Filter by patient FHIR ID
+        in: query
+        name: patientFhirId
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/exam_analyzer.ExamAnalysisResponse'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List exam analyses
+      tags:
+      - exam_analyzer
+    post:
+      consumes:
+      - multipart/form-data
+      description: Uploads a medical exam file for AI analysis with consent tracking
+        and optional anonymization
+      parameters:
+      - description: Patient FHIR ID
+        in: formData
+        name: patientFhirId
+        type: string
+      - description: Patient consent (must be 'true')
+        in: formData
+        name: consent
+        required: true
+        type: string
+      - description: Anonymize file (true/false)
+        in: formData
+        name: anonymize
+        type: string
+      - description: Medical exam file
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/exam_analyzer.ExamAnalysisResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create exam analysis
+      tags:
+      - exam_analyzer
+  /exam-analyses/{analysisId}:
+    delete:
+      consumes:
+      - application/json
+      description: Permanently deletes an exam analysis and its associated file
+      parameters:
+      - description: Analysis UUID
+        in: path
+        name: analysisId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/exam_analyzer.DeleteAnalysisResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Delete exam analysis
+      tags:
+      - exam_analyzer
+    get:
+      consumes:
+      - application/json
+      description: Returns details of a specific exam analysis by ID
+      parameters:
+      - description: Analysis UUID
+        in: path
+        name: analysisId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/exam_analyzer.ExamAnalysisResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get exam analysis
+      tags:
+      - exam_analyzer
+  /patients:
+    get:
+      consumes:
+      - application/json
+      description: Returns a paginated list of patients with optional search/filter
+      parameters:
+      - description: Search term
+        in: query
+        name: search
+        type: string
+      - description: Sort field
+        in: query
+        name: sortField
+        type: string
+      - description: Sort direction (asc/desc)
+        in: query
+        name: sortDirection
+        type: string
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 50
+        description: Items per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/patients.PatientListResponse'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List all patients
+      tags:
+      - patients
+    post:
+      consumes:
+      - application/json
+      description: Creates a new patient record and FHIR resource
+      parameters:
+      - description: Patient data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/patients.CreatePatientRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/patients.CreatePatientResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: Conflict
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create a new patient
+      tags:
+      - patients
+  /patients/{patientFhirId}:
+    get:
+      consumes:
+      - application/json
+      description: Returns a single patient by their FHIR resource ID
+      parameters:
+      - description: Patient FHIR ID
+        in: path
+        name: patientFhirId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get patient by FHIR ID
+      tags:
+      - patients
+  /patients/{patientFhirId}/allergies:
+    get:
+      consumes:
+      - application/json
+      description: Returns all allergy intolerances for a patient
+      parameters:
+      - description: Patient FHIR ID
+        in: path
+        name: patientFhirId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/allergy.AllergyResponse'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List allergies by patient
+      tags:
+      - allergies
+    post:
+      consumes:
+      - application/json
+      description: Creates a new allergy intolerance record for a patient
+      parameters:
+      - description: Patient FHIR ID
+        in: path
+        name: patientFhirId
+        required: true
+        type: string
+      - description: Allergy data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/allergy.CreateAllergyRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/allergy.CreateAllergyResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create an allergy
+      tags:
+      - allergies
+  /patients/{patientFhirId}/conditions:
+    get:
+      consumes:
+      - application/json
+      description: Returns all medical conditions/diagnoses for a patient
+      parameters:
+      - description: Patient FHIR ID
+        in: path
+        name: patientFhirId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/condition.ConditionResponse'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List conditions by patient
+      tags:
+      - conditions
+    post:
+      consumes:
+      - application/json
+      description: Creates a new medical condition/diagnosis for a patient
+      parameters:
+      - description: Patient FHIR ID
+        in: path
+        name: patientFhirId
+        required: true
+        type: string
+      - description: Condition data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/condition.CreateConditionRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/condition.CreateConditionResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create a condition
+      tags:
+      - conditions
+  /patients/{patientFhirId}/encounters:
+    get:
+      consumes:
+      - application/json
+      description: Returns all encounters/consultations for a patient
+      parameters:
+      - description: Patient FHIR ID
+        in: path
+        name: patientFhirId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/encounter.EncounterResponse'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List encounters by patient
+      tags:
+      - encounters
+    post:
+      consumes:
+      - application/json
+      description: Creates a new encounter/consultation for a patient
+      parameters:
+      - description: Patient FHIR ID
+        in: path
+        name: patientFhirId
+        required: true
+        type: string
+      - description: Encounter data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/encounter.CreateEncounterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/encounter.CreateEncounterResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create an encounter
+      tags:
+      - encounters
+  /patients/{patientFhirId}/observations:
+    get:
+      consumes:
+      - application/json
+      description: Returns all observations/vital signs for a patient
+      parameters:
+      - description: Patient FHIR ID
+        in: path
+        name: patientFhirId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/observation.ObservationResponse'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List observations by patient
+      tags:
+      - observations
+  /patients/{patientFhirId}/studies:
+    get:
+      consumes:
+      - application/json
+      description: Returns all imaging studies associated with a patient
+      parameters:
+      - description: Patient FHIR ID
+        in: path
+        name: patientFhirId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/imaging.HTTPImagingStudyResponse'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List imaging studies for a patient
+      tags:
+      - imaging
+    post:
+      consumes:
+      - multipart/form-data
+      description: Uploads a DICOM imaging study for a patient with metadata via multipart
+        form
+      parameters:
+      - description: Patient FHIR ID
+        in: path
+        name: patientFhirId
+        required: true
+        type: string
+      - description: Study title
+        in: formData
+        name: title
+        required: true
+        type: string
+      - description: Modality (e.g., CT, MR, XR)
+        in: formData
+        name: modality
+        required: true
+        type: string
+      - description: DICOM file
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/imaging.HTTPImagingStudyResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Upload DICOM study
+      tags:
+      - imaging
+  /staff/employees:
+    get:
+      consumes:
+      - application/json
+      description: Returns the list of healthcare staff/employees with optional search
+        and role filter
+      parameters:
+      - description: Search by name or email
+        in: query
+        name: search
+        type: string
+      - description: Filter by role (admin, doctor, nurse, reception)
+        in: query
+        name: role
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/staff.EmployeeResponse'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List employees
+      tags:
+      - staff
+    post:
+      consumes:
+      - application/json
+      description: Registers a new healthcare professional as an employee
+      parameters:
+      - description: Employee data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/staff.CreateEmployeeRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/staff.CreateEmployeeResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create a new employee
+      tags:
+      - staff
+  /studies/{studyId}:
+    get:
+      consumes:
+      - application/json
+      description: Returns details of a specific imaging study including download
+        URL
+      parameters:
+      - description: Study UUID
+        in: path
+        name: studyId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/imaging.HTTPImagingStudyResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get imaging study details
+      tags:
+      - imaging
+  /telemetry/beds/{bedId}/condition:
+    post:
+      consumes:
+      - application/json
+      description: Updates vital signs and status for a telemetry bed
+      parameters:
+      - description: Bed UUID
+        in: path
+        name: bedId
+        required: true
+        type: string
+      - description: Bed condition data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/telemetry.UpdateBedConditionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/telemetry.UpdateBedConditionResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Update bed telemetry condition
+      tags:
+      - telemetry
+  /telemetry/rooms:
+    get:
+      consumes:
+      - application/json
+      description: Returns all monitored rooms with telemetry capabilities
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/telemetry.TelemetryRoomResponse'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List telemetry rooms
+      tags:
+      - telemetry
+  /telemetry/rooms/{roomId}/beds:
+    get:
+      consumes:
+      - application/json
+      description: Returns all telemetry beds in a specific room
+      parameters:
+      - description: Room UUID
+        in: path
+        name: roomId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/telemetry.TelemetryBedResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List beds in a room
+      tags:
+      - telemetry
+  /telemetry/rooms/{roomId}/unlock:
+    post:
+      consumes:
+      - application/json
+      description: Unlocks a room using a passcode
+      parameters:
+      - description: Room UUID
+        in: path
+        name: roomId
+        required: true
+        type: string
+      - description: Passcode
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/telemetry.UnlockRoomRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/telemetry.UnlockRoomResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Unlock a telemetry room
+      tags:
+      - telemetry
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

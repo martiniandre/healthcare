@@ -28,6 +28,17 @@ func (handler *HTTPHandler) RegisterRoutes(mux *http.ServeMux) {
 	mux.Handle("POST /api/encounters/{encounterFhirId}/medications", middleware.RequireRoles(role.RoleDoctor)(http.HandlerFunc(handler.CreateMedication)))
 }
 
+// ListMedicationsByEncounter godoc
+//
+//	@Summary		List medications by encounter
+//	@Description	Returns all medication requests/prescriptions for an encounter
+//	@Tags			medications
+//	@Accept			json
+//	@Produce		json
+//	@Param			encounterFhirId	path	string	true	"Encounter FHIR ID"
+//	@Success		200				{array}	MedicationResponse
+//	@Failure		500				{object}	map[string]string
+//	@Router			/encounters/{encounterFhirId}/medications [get]
 func (handler *HTTPHandler) ListMedicationsByEncounter(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
 	encounterFhirID := httpRequest.PathValue("encounterFhirId")
 
@@ -68,6 +79,19 @@ func (handler *HTTPHandler) ListMedicationsByEncounter(httpResponseWriter http.R
 	render.JSON(httpResponseWriter, http.StatusOK, responseList)
 }
 
+// CreateMedication godoc
+//
+//	@Summary		Create a medication
+//	@Description	Creates a new medication request/prescription for an encounter
+//	@Tags			medications
+//	@Accept			json
+//	@Produce		json
+//	@Param			encounterFhirId	path	string	true	"Encounter FHIR ID"
+//	@Param			body			body	CreateMedicationRequest	true	"Medication data"
+//	@Success		201				{object}	CreateMedicationResponse
+//	@Failure		400				{object}	map[string]string
+//	@Failure		500				{object}	map[string]string
+//	@Router			/encounters/{encounterFhirId}/medications [post]
 func (handler *HTTPHandler) CreateMedication(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
 	encounterFhirID := httpRequest.PathValue("encounterFhirId")
 
@@ -113,4 +137,36 @@ func (handler *HTTPHandler) CreateMedication(httpResponseWriter http.ResponseWri
 		"status":               createdMedication.Status,
 		"created_at":           createdMedication.IssuedAt.Format(time.RFC3339),
 	})
+}
+
+type MedicationResponse struct {
+	FhirID             string `json:"fhir_id"`
+	EncounterFhirID    string `json:"encounter_fhir_id"`
+	PatientFhirID      string `json:"patient_fhir_id"`
+	PractitionerFhirID string `json:"practitioner_fhir_id"`
+	MedicationCode     string `json:"medication_code"`
+	MedicationName     string `json:"medication_name"`
+	DosageInstructions string `json:"dosage_instructions"`
+	Status             string `json:"status"`
+	CreatedAt          string `json:"created_at"`
+}
+
+type CreateMedicationRequest struct {
+	PatientFhirID      string `json:"patient_fhir_id"`
+	PractitionerFhirID string `json:"practitioner_fhir_id"`
+	MedicationCode     string `json:"medication_code"`
+	MedicationName     string `json:"medication_name"`
+	DosageInstructions string `json:"dosage_instructions"`
+}
+
+type CreateMedicationResponse struct {
+	FhirID             string `json:"fhir_id"`
+	EncounterFhirID    string `json:"encounter_fhir_id"`
+	PatientFhirID      string `json:"patient_fhir_id"`
+	PractitionerFhirID string `json:"practitioner_fhir_id"`
+	MedicationCode     string `json:"medication_code"`
+	MedicationName     string `json:"medication_name"`
+	DosageInstructions string `json:"dosage_instructions"`
+	Status             string `json:"status"`
+	CreatedAt          string `json:"created_at"`
 }

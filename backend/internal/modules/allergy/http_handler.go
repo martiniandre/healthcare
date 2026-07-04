@@ -29,6 +29,17 @@ func (handler *HTTPHandler) RegisterRoutes(mux *http.ServeMux) {
 	mux.Handle("POST /api/patients/{patientFhirId}/allergies", clinicalWrite(http.HandlerFunc(handler.CreateAllergy)))
 }
 
+// ListAllergiesByPatient godoc
+//
+//	@Summary		List allergies by patient
+//	@Description	Returns all allergy intolerances for a patient
+//	@Tags			allergies
+//	@Accept			json
+//	@Produce		json
+//	@Param			patientFhirId	path	string	true	"Patient FHIR ID"
+//	@Success		200				{array}	AllergyResponse
+//	@Failure		500				{object}	map[string]string
+//	@Router			/patients/{patientFhirId}/allergies [get]
 func (handler *HTTPHandler) ListAllergiesByPatient(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
 	patientFhirID := httpRequest.PathValue("patientFhirId")
 
@@ -65,6 +76,19 @@ func (handler *HTTPHandler) ListAllergiesByPatient(httpResponseWriter http.Respo
 	render.JSON(httpResponseWriter, http.StatusOK, responseList)
 }
 
+// CreateAllergy godoc
+//
+//	@Summary		Create an allergy
+//	@Description	Creates a new allergy intolerance record for a patient
+//	@Tags			allergies
+//	@Accept			json
+//	@Produce		json
+//	@Param			patientFhirId	path	string	true	"Patient FHIR ID"
+//	@Param			body			body	CreateAllergyRequest	true	"Allergy data"
+//	@Success		201				{object}	CreateAllergyResponse
+//	@Failure		400				{object}	map[string]string
+//	@Failure		500				{object}	map[string]string
+//	@Router			/patients/{patientFhirId}/allergies [post]
 func (handler *HTTPHandler) CreateAllergy(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
 	patientFhirID := httpRequest.PathValue("patientFhirId")
 
@@ -104,4 +128,30 @@ func (handler *HTTPHandler) CreateAllergy(httpResponseWriter http.ResponseWriter
 		"reaction":         createdAllergy.Reaction,
 		"created_at":       createdAllergy.RecordedAt.Format(time.RFC3339),
 	})
+}
+
+type AllergyResponse struct {
+	FhirID          string `json:"fhir_id"`
+	PatientFhirID   string `json:"patient_fhir_id"`
+	AllergenCode    string `json:"allergen_code"`
+	AllergenDisplay string `json:"allergen_display"`
+	ClinicalStatus  string `json:"clinical_status"`
+	Reaction        string `json:"reaction"`
+	CreatedAt       string `json:"created_at"`
+}
+
+type CreateAllergyRequest struct {
+	AllergenCode    string `json:"allergen_code"`
+	AllergenDisplay string `json:"allergen_display"`
+	Reaction        string `json:"reaction"`
+}
+
+type CreateAllergyResponse struct {
+	FhirID          string `json:"fhir_id"`
+	PatientFhirID   string `json:"patient_fhir_id"`
+	AllergenCode    string `json:"allergen_code"`
+	AllergenDisplay string `json:"allergen_display"`
+	ClinicalStatus  string `json:"clinical_status"`
+	Reaction        string `json:"reaction"`
+	CreatedAt       string `json:"created_at"`
 }
