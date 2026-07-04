@@ -71,3 +71,88 @@ _Avoid_: Station, spot, unit, slot
 ### Auth:
 Authentication and authorization subsystem that issues JWT tokens, manages sessions, and enforces role-based access control across all API surfaces.
 _Avoid_: Security, login, identity, access control
+
+---
+
+## Architecture
+
+### Backend (Go — 16 modules)
+
+```
+backend/
+├── cmd/api/main.go          — Composition root
+├── proto/                   — 9 service proto files
+├── internal/
+│   ├── api/                 — HTTP router
+│   ├── app/                 — gRPC server + interceptors
+│   │   └── interceptor/     — Auth, RBAC, rate-limit, logging (AOP)
+│   ├── modules/
+│   │   ├── allergy/         — FHIR AllergyIntolerance CRUD
+│   │   ├── analytics/       — Aggregated metrics (was stats/)
+│   │   ├── audit_logs/      — Immutable HIPAA/LGPD records
+│   │   ├── auth/            — JWT + RBAC
+│   │   ├── condition/       — FHIR Condition CRUD
+│   │   ├── diagnostic_report/ — FHIR DiagnosticReport CRUD
+│   │   ├── encounter/       — FHIR Encounter CRUD
+│   │   ├── exam_analyzer/   — AI analysis (Vertex AI)
+│   │   ├── health/          — Healthcheck + readiness
+│   │   ├── imaging/         — DICOM + FHIR ImagingStudy
+│   │   ├── medication/      — FHIR MedicationRequest CRUD
+│   │   ├── observation/     — FHIR Observation CRUD
+│   │   ├── patients/        — FHIR Patient CRUD
+│   │   ├── staff/           — Employee management (PostgreSQL)
+│   │   └── telemetry/       — Real-time vitals monitoring
+│   └── shared/
+│       ├── apperrors/       — Standardized error types
+│       ├── cache/           — Redis client
+│       ├── config/          — Env-based config
+│       ├── ctxkeys/         — Context key constants
+│       ├── database/        — pgxpool wrapper
+│       ├── fhir/            — 8 typed FHIR resource builders
+│       ├── healthcare/      — GCP Healthcare API client
+│       ├── logger/          — Structured logging
+│       ├── migrations/      — SQL migrations
+│       ├── role/            — Shared Role type (extracted from auth)
+│       ├── storage/         — GCS client
+│       └── validator/       — CPF, dates, ICD-10
+└── migrations/              — SQL migration files
+```
+
+### Frontend (React + Vite — 8 modules)
+
+```
+frontend/src/
+├── app/                     — Router + layout
+├── modules/
+│   ├── analytics/           — Charts + metrics dashboard
+│   ├── audit_logs/          — Compliance log viewer
+│   ├── auth/                — Login, registration
+│   ├── exam_analyzer/       — AI exam upload + results
+│   ├── imaging/             — DICOM viewer + upload
+│   ├── patients/            — Patient CRUD + clinical tabs
+│   ├── staff/               — Employee CRUD
+│   └── telemetry/           — Room vitals dashboard
+└── shared/
+    ├── components/ui/       — Button, Card, Dialog, Select, etc.
+    ├── hooks/               — useAuthInit, useDebounce, usePageViewLogger
+    ├── i18n/                — pt-BR, en-US, es-ES
+    ├── services/            — Legacy API services
+    ├── store/               — Zustand auth store
+    └── utils/               — http, cn, validators
+```
+
+### Testing
+
+| Layer     | Framework | Tests | Command |
+|-----------|-----------|-------|---------|
+| Backend   | Go `testing` | 40+ service/handler tests | `go test ./internal/...` |
+| Frontend  | Vitest     | 22 unit tests (hooks, schemas, validators, Button) | `npm run test` |
+| E2E       | Playwright | Imaging + Telemetry flows | `npm run e2e` |
+
+### Key architectural decisions
+
+- **Hexagonal (Ports & Adapters)**: Every backend module has `repository.go` (port), `service.go` (business logic), `grpc_handler.go` (inbound adapter), `register.go` (DI wiring with `Dependency` struct)
+- **FHIR-first for clinical data**: 7 of 15 backend modules use GCP Healthcare API (patients, encounter, observation, condition, allergy, medication, diagnostic_report). Only auth, staff, audit_logs, imaging metadata, and analytics use PostgreSQL.
+- **AOP security**: All gRPC endpoints protected by shared interceptors (JWT auth + RBAC + rate-limit). Endpoints not in `permissions.go` are blocked by default.
+- **Single `Register(grpcServer, dep)` pattern**: Every module follows the same wiring signature, keeping `main.go` declarative.
+- **Pre-push hook**: Runs only `go vet` + `npm run lint` (fast). Heavy checks (tests, build) run in CI.
