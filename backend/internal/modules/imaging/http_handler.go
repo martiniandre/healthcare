@@ -24,9 +24,9 @@ func (handler *HTTPHandler) RegisterRoutes(mux *http.ServeMux) {
 	clinicalRead := middleware.RequireRoles(role.RoleAdmin, role.RoleDoctor, role.RoleNurse)
 	clinicalWrite := middleware.RequireRoles(role.RoleAdmin, role.RoleDoctor, role.RoleNurse)
 
-	mux.Handle("GET /api/patients/{patientFhirId}/studies", clinicalRead(http.HandlerFunc(handler.ListPatientStudies)))
-	mux.Handle("POST /api/patients/{patientFhirId}/studies", clinicalWrite(http.HandlerFunc(handler.UploadPatientStudy)))
-	mux.Handle("GET /api/studies/{studyId}", clinicalRead(http.HandlerFunc(handler.GetStudy)))
+	mux.Handle("GET /api/v1/patients/{patientFhirId}/studies", clinicalRead(http.HandlerFunc(handler.ListPatientStudies)))
+	mux.Handle("POST /api/v1/patients/{patientFhirId}/studies", clinicalWrite(http.HandlerFunc(handler.UploadPatientStudy)))
+	mux.Handle("GET /api/v1/studies/{studyId}", clinicalRead(http.HandlerFunc(handler.GetStudy)))
 }
 
 // ListPatientStudies godoc
@@ -45,7 +45,7 @@ func (handler *HTTPHandler) ListPatientStudies(httpResponseWriter http.ResponseW
 
 	studiesList, studiesErr := handler.service.ListImagingStudies(httpRequest.Context(), patientFhirID)
 	if studiesErr != nil {
-		slog.Error("failed to list imaging studies", "error", studiesErr, "patient_fhir_id", patientFhirID)
+		slog.Error("failed to list imaging studies", "error", studiesErr, "patient_fhir_id", patientFhirID, "request_id", middleware.GetRequestID(httpRequest.Context()))
 		render.Error(httpResponseWriter, http.StatusInternalServerError, "Erro ao carregar estudos de imagem do paciente.")
 		return
 	}
@@ -94,7 +94,7 @@ func (handler *HTTPHandler) UploadPatientStudy(httpResponseWriter http.ResponseW
 
 	createdStudy, createErr := handler.service.UploadDICOMStream(httpRequest.Context(), patientFhirID, title, modality, file)
 	if createErr != nil {
-		slog.Error("failed to upload DICOM study", "error", createErr, "patient_fhir_id", patientFhirID)
+		slog.Error("failed to upload DICOM study", "error", createErr, "patient_fhir_id", patientFhirID, "request_id", middleware.GetRequestID(httpRequest.Context()))
 		render.Error(httpResponseWriter, http.StatusInternalServerError, createErr.Error())
 		return
 	}
@@ -125,7 +125,7 @@ func (handler *HTTPHandler) GetStudy(httpResponseWriter http.ResponseWriter, htt
 
 	study, getStudyErr := handler.service.GetImagingStudy(httpRequest.Context(), studyUUID)
 	if getStudyErr != nil {
-		slog.Error("study not found", "error", getStudyErr, "study_id", studyIDRaw)
+		slog.Error("study not found", "error", getStudyErr, "study_id", studyIDRaw, "request_id", middleware.GetRequestID(httpRequest.Context()))
 		render.Error(httpResponseWriter, http.StatusNotFound, "Estudo não encontrado.")
 		return
 	}

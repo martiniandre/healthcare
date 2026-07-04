@@ -26,10 +26,10 @@ func (handler *HTTPHandler) RegisterRoutes(mux *http.ServeMux) {
 	clinicalStaff := middleware.RequireRoles(role.RoleAdmin, role.RoleDoctor, role.RoleNurse)
 	clinicalWrite := middleware.RequireRoles(role.RoleDoctor, role.RoleNurse)
 
-	mux.Handle("GET /api/telemetry/rooms", medicalStaff(http.HandlerFunc(handler.ListRooms)))
-	mux.Handle("POST /api/telemetry/rooms/{roomId}/unlock", clinicalStaff(http.HandlerFunc(handler.UnlockRoom)))
-	mux.Handle("GET /api/telemetry/rooms/{roomId}/beds", clinicalStaff(http.HandlerFunc(handler.ListBedsByRoom)))
-	mux.Handle("POST /api/telemetry/beds/{bedId}/condition", clinicalWrite(http.HandlerFunc(handler.UpdateBedCondition)))
+	mux.Handle("GET /api/v1/telemetry/rooms", medicalStaff(http.HandlerFunc(handler.ListRooms)))
+	mux.Handle("POST /api/v1/telemetry/rooms/{roomId}/unlock", clinicalStaff(http.HandlerFunc(handler.UnlockRoom)))
+	mux.Handle("GET /api/v1/telemetry/rooms/{roomId}/beds", clinicalStaff(http.HandlerFunc(handler.ListBedsByRoom)))
+	mux.Handle("POST /api/v1/telemetry/beds/{bedId}/condition", clinicalWrite(http.HandlerFunc(handler.UpdateBedCondition)))
 }
 
 // ListRooms godoc
@@ -45,7 +45,7 @@ func (handler *HTTPHandler) RegisterRoutes(mux *http.ServeMux) {
 func (handler *HTTPHandler) ListRooms(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
 	roomsList, roomsErr := handler.service.GetRooms(httpRequest.Context())
 	if roomsErr != nil {
-		slog.Error("failed to list rooms", "error", roomsErr)
+		slog.Error("failed to list rooms", "error", roomsErr, "request_id", middleware.GetRequestID(httpRequest.Context()))
 		render.Error(httpResponseWriter, http.StatusInternalServerError, "Erro ao listar salas.")
 		return
 	}
@@ -120,7 +120,7 @@ func (handler *HTTPHandler) ListBedsByRoom(httpResponseWriter http.ResponseWrite
 
 	bedsList, bedsErr := handler.service.GetBeds(httpRequest.Context(), roomIDParsed)
 	if bedsErr != nil {
-		slog.Error("failed to list beds", "error", bedsErr, "room_id", roomIDRaw)
+		slog.Error("failed to list beds", "error", bedsErr, "room_id", roomIDRaw, "request_id", middleware.GetRequestID(httpRequest.Context()))
 		render.Error(httpResponseWriter, http.StatusInternalServerError, "Erro ao listar leitos.")
 		return
 	}
@@ -165,7 +165,7 @@ func (handler *HTTPHandler) UpdateBedCondition(httpResponseWriter http.ResponseW
 
 	updateErr := handler.service.UpdateBedCondition(httpRequest.Context(), bedIDParsed, payload.Bpm, payload.Spo2, payload.Temperature, payload.Status, payload.Condition)
 	if updateErr != nil {
-		slog.Error("failed to update bed condition", "error", updateErr, "bed_id", bedIDRaw)
+		slog.Error("failed to update bed condition", "error", updateErr, "bed_id", bedIDRaw, "request_id", middleware.GetRequestID(httpRequest.Context()))
 		render.Error(httpResponseWriter, http.StatusInternalServerError, "Erro ao atualizar leito.")
 		return
 	}

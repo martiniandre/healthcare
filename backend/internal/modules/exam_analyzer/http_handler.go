@@ -34,10 +34,10 @@ func (handler *HTTPHandler) RegisterRoutes(mux *http.ServeMux) {
 	clinicalRead := middleware.RequireRoles(role.RoleAdmin, role.RoleDoctor, role.RoleNurse)
 	clinicalDelete := middleware.RequireRoles(role.RoleAdmin, role.RoleDoctor)
 
-	mux.Handle("GET /api/exam-analyses", clinicalRead(http.HandlerFunc(handler.ListAnalyses)))
-	mux.Handle("POST /api/exam-analyses", clinicalRead(http.HandlerFunc(handler.CreateAnalysis)))
-	mux.Handle("GET /api/exam-analyses/{analysisId}", clinicalRead(http.HandlerFunc(handler.GetAnalysis)))
-	mux.Handle("DELETE /api/exam-analyses/{analysisId}", clinicalDelete(http.HandlerFunc(handler.DeleteAnalysis)))
+	mux.Handle("GET /api/v1/exam-analyses", clinicalRead(http.HandlerFunc(handler.ListAnalyses)))
+	mux.Handle("POST /api/v1/exam-analyses", clinicalRead(http.HandlerFunc(handler.CreateAnalysis)))
+	mux.Handle("GET /api/v1/exam-analyses/{analysisId}", clinicalRead(http.HandlerFunc(handler.GetAnalysis)))
+	mux.Handle("DELETE /api/v1/exam-analyses/{analysisId}", clinicalDelete(http.HandlerFunc(handler.DeleteAnalysis)))
 }
 
 // ListAnalyses godoc
@@ -60,7 +60,7 @@ func (handler *HTTPHandler) ListAnalyses(httpResponseWriter http.ResponseWriter,
 
 	analysesList, listError := handler.repository.ListAnalyses(httpRequest.Context(), filterPatient)
 	if listError != nil {
-		slog.Error("failed to list exam analyses", "error", listError)
+		slog.Error("failed to list exam analyses", "error", listError, "request_id", middleware.GetRequestID(httpRequest.Context()))
 		render.Error(httpResponseWriter, http.StatusInternalServerError, "Erro ao listar análises de exames.")
 		return
 	}
@@ -115,7 +115,7 @@ func (handler *HTTPHandler) CreateAnalysis(httpResponseWriter http.ResponseWrite
 
 	uploadDirectory := filepath.Join("tmp", "exam_uploads")
 	if makeDirErr := os.MkdirAll(uploadDirectory, 0755); makeDirErr != nil {
-		slog.Error("failed to create upload directory", "error", makeDirErr, "path", uploadDirectory)
+		slog.Error("failed to create upload directory", "error", makeDirErr, "path", uploadDirectory, "request_id", middleware.GetRequestID(httpRequest.Context()))
 		render.Error(httpResponseWriter, http.StatusInternalServerError, "Erro ao inicializar pasta temporária de uploads.")
 		return
 	}
@@ -131,14 +131,14 @@ func (handler *HTTPHandler) CreateAnalysis(httpResponseWriter http.ResponseWrite
 	destinationPath := filepath.Join(uploadDirectory, analysisID.String()+fileExtension)
 	destinationFile, createErr := os.Create(destinationPath)
 	if createErr != nil {
-		slog.Error("failed to create destination file", "error", createErr, "path", destinationPath)
+		slog.Error("failed to create destination file", "error", createErr, "path", destinationPath, "request_id", middleware.GetRequestID(httpRequest.Context()))
 		render.Error(httpResponseWriter, http.StatusInternalServerError, "Falha ao criar arquivo no destino temporário.")
 		return
 	}
 	defer destinationFile.Close()
 
 	if _, copyErr := io.Copy(destinationFile, file); copyErr != nil {
-		slog.Error("failed to write file to disk", "error", copyErr, "path", destinationPath)
+		slog.Error("failed to write file to disk", "error", copyErr, "path", destinationPath, "request_id", middleware.GetRequestID(httpRequest.Context()))
 		render.Error(httpResponseWriter, http.StatusInternalServerError, "Falha ao gravar arquivo em disco.")
 		return
 	}
@@ -174,7 +174,7 @@ func (handler *HTTPHandler) CreateAnalysis(httpResponseWriter http.ResponseWrite
 	}
 
 	if saveErr := handler.repository.CreateAnalysis(httpRequest.Context(), newAnalysisRecord); saveErr != nil {
-		slog.Error("failed to save analysis metadata", "error", saveErr, "analysis_id", analysisID)
+		slog.Error("failed to save analysis metadata", "error", saveErr, "analysis_id", analysisID, "request_id", middleware.GetRequestID(httpRequest.Context()))
 		render.Error(httpResponseWriter, http.StatusInternalServerError, "Falha ao salvar metadados da análise.")
 		return
 	}
@@ -228,7 +228,7 @@ func (handler *HTTPHandler) GetAnalysis(httpResponseWriter http.ResponseWriter, 
 
 	analysisRecord, fetchErr := handler.repository.GetAnalysis(httpRequest.Context(), analysisID)
 	if fetchErr != nil {
-		slog.Error("analysis not found", "error", fetchErr, "analysis_id", analysisIDRaw)
+		slog.Error("analysis not found", "error", fetchErr, "analysis_id", analysisIDRaw, "request_id", middleware.GetRequestID(httpRequest.Context()))
 		render.Error(httpResponseWriter, http.StatusNotFound, "Análise de exame não encontrada.")
 		return
 	}
@@ -279,7 +279,7 @@ func (handler *HTTPHandler) DeleteAnalysis(httpResponseWriter http.ResponseWrite
 
 	analysisRecord, fetchErr := handler.repository.GetAnalysis(httpRequest.Context(), analysisID)
 	if fetchErr != nil {
-		slog.Error("analysis not found for deletion", "error", fetchErr, "analysis_id", analysisIDRaw)
+		slog.Error("analysis not found for deletion", "error", fetchErr, "analysis_id", analysisIDRaw, "request_id", middleware.GetRequestID(httpRequest.Context()))
 		render.Error(httpResponseWriter, http.StatusNotFound, "Análise de exame não encontrada para exclusão.")
 		return
 	}
@@ -291,7 +291,7 @@ func (handler *HTTPHandler) DeleteAnalysis(httpResponseWriter http.ResponseWrite
 	}
 
 	if deleteErr := handler.repository.DeleteAnalysis(httpRequest.Context(), analysisID); deleteErr != nil {
-		slog.Error("failed to delete analysis", "error", deleteErr, "analysis_id", analysisIDRaw)
+		slog.Error("failed to delete analysis", "error", deleteErr, "analysis_id", analysisIDRaw, "request_id", middleware.GetRequestID(httpRequest.Context()))
 		render.Error(httpResponseWriter, http.StatusInternalServerError, "Falha ao remover análise de exame do banco de dados.")
 		return
 	}

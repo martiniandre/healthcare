@@ -29,6 +29,7 @@ func NewServer(redisClient *redis.Client) *Server {
 	})
 
 	chainedInterceptor := grpc.ChainUnaryInterceptor(
+		interceptor.UnaryRequestIDInterceptor(),
 		interceptor.UnaryLoggingInterceptor(),
 		interceptor.UnaryTimeoutInterceptor(),
 		interceptor.UnaryRateLimitInterceptor(redisClient),

@@ -24,8 +24,8 @@ func NewHTTPHandler(service Service) *HTTPHandler {
 func (handler *HTTPHandler) RegisterRoutes(mux *http.ServeMux) {
 	clinicalRead := middleware.RequireRoles(role.RoleAdmin, role.RoleDoctor, role.RoleNurse)
 
-	mux.Handle("GET /api/encounters/{encounterFhirId}/medications", clinicalRead(http.HandlerFunc(handler.ListMedicationsByEncounter)))
-	mux.Handle("POST /api/encounters/{encounterFhirId}/medications", middleware.RequireRoles(role.RoleDoctor)(http.HandlerFunc(handler.CreateMedication)))
+	mux.Handle("GET /api/v1/encounters/{encounterFhirId}/medications", clinicalRead(http.HandlerFunc(handler.ListMedicationsByEncounter)))
+	mux.Handle("POST /api/v1/encounters/{encounterFhirId}/medications", middleware.RequireRoles(role.RoleDoctor)(http.HandlerFunc(handler.CreateMedication)))
 }
 
 // ListMedicationsByEncounter godoc
@@ -44,7 +44,7 @@ func (handler *HTTPHandler) ListMedicationsByEncounter(httpResponseWriter http.R
 
 	medicationsList, medicationsErr := handler.service.GetMedicationRequestsByEncounter(httpRequest.Context(), encounterFhirID)
 	if medicationsErr != nil {
-		slog.Error("failed to list medications", "error", medicationsErr, "encounter_fhir_id", encounterFhirID)
+		slog.Error("failed to list medications", "error", medicationsErr, "encounter_fhir_id", encounterFhirID, "request_id", middleware.GetRequestID(httpRequest.Context()))
 		render.Error(httpResponseWriter, http.StatusInternalServerError, "Erro ao carregar prescrições da consulta.")
 		return
 	}
@@ -121,7 +121,7 @@ func (handler *HTTPHandler) CreateMedication(httpResponseWriter http.ResponseWri
 
 	createdMedication, createErr := handler.service.CreateMedicationRequest(httpRequest.Context(), newMedication)
 	if createErr != nil {
-		slog.Error("failed to create medication request", "error", createErr, "encounter_fhir_id", encounterFhirID)
+		slog.Error("failed to create medication request", "error", createErr, "encounter_fhir_id", encounterFhirID, "request_id", middleware.GetRequestID(httpRequest.Context()))
 		render.Error(httpResponseWriter, http.StatusInternalServerError, "Erro ao criar prescrição.")
 		return
 	}

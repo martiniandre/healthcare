@@ -24,8 +24,8 @@ func NewHTTPHandler(service Service) *HTTPHandler {
 func (handler *HTTPHandler) RegisterRoutes(mux *http.ServeMux) {
 	medicalStaff := middleware.RequireRoles(role.RoleAdmin, role.RoleDoctor, role.RoleNurse, role.RoleReception)
 
-	mux.Handle("GET /api/patients/{patientFhirId}/encounters", medicalStaff(http.HandlerFunc(handler.ListEncountersByPatient)))
-	mux.Handle("POST /api/patients/{patientFhirId}/encounters", medicalStaff(http.HandlerFunc(handler.CreateEncounter)))
+	mux.Handle("GET /api/v1/patients/{patientFhirId}/encounters", medicalStaff(http.HandlerFunc(handler.ListEncountersByPatient)))
+	mux.Handle("POST /api/v1/patients/{patientFhirId}/encounters", medicalStaff(http.HandlerFunc(handler.CreateEncounter)))
 }
 
 // ListEncountersByPatient godoc
@@ -44,7 +44,7 @@ func (handler *HTTPHandler) ListEncountersByPatient(httpResponseWriter http.Resp
 
 	encountersList, encountersErr := handler.service.GetEncountersByPatient(httpRequest.Context(), patientFhirID)
 	if encountersErr != nil {
-		slog.Error("failed to list encounters", "error", encountersErr, "patient_fhir_id", patientFhirID)
+		slog.Error("failed to list encounters", "error", encountersErr, "patient_fhir_id", patientFhirID, "request_id", middleware.GetRequestID(httpRequest.Context()))
 		render.Error(httpResponseWriter, http.StatusInternalServerError, "Erro ao carregar consultas do paciente.")
 		return
 	}
@@ -109,7 +109,7 @@ func (handler *HTTPHandler) CreateEncounter(httpResponseWriter http.ResponseWrit
 
 	createdEncounter, createErr := handler.service.CreateEncounter(httpRequest.Context(), newEncounter)
 	if createErr != nil {
-		slog.Error("failed to create encounter", "error", createErr, "patient_fhir_id", patientFhirID)
+		slog.Error("failed to create encounter", "error", createErr, "patient_fhir_id", patientFhirID, "request_id", middleware.GetRequestID(httpRequest.Context()))
 		render.Error(httpResponseWriter, http.StatusInternalServerError, "Erro ao criar consulta.")
 		return
 	}

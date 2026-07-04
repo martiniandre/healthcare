@@ -21,13 +21,17 @@ func UnaryLoggingInterceptor() grpc.UnaryServerInterceptor {
 		info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler,
 	) (interface{}, error) {
-		correlationID := uuid.New().String()
-		ctx = context.WithValue(ctx, ctxkeys.CorrelationIDKey, correlationID)
+		requestID := extractRequestIDFromContext(ctx)
+		if requestID == "" {
+			requestID = uuid.New().String()
+			ctx = context.WithValue(ctx, ctxkeys.RequestIDKey, requestID)
+			ctx = context.WithValue(ctx, ctxkeys.CorrelationIDKey, requestID)
+		}
 
 		startTime := time.Now()
 
 		slog.Info("grpc request started",
-			"correlation_id", correlationID,
+			"request_id", requestID,
 			"method", info.FullMethod,
 		)
 
@@ -45,14 +49,14 @@ func UnaryLoggingInterceptor() grpc.UnaryServerInterceptor {
 		}
 
 		slog.Log(ctx, logLevel, "grpc request completed",
-			"correlation_id", correlationID,
+			"request_id", requestID,
 			"method", info.FullMethod,
 			"duration_ms", durationMs,
 			"grpc_code", grpcCode.String(),
 			"error", fmt.Sprintf("%v", err),
 		)
 
-		grpc.SetHeader(ctx, metadata.Pairs("x-correlation-id", correlationID))
+		grpc.SetHeader(ctx, metadata.Pairs("x-request-id", requestID))
 
 		return response, err
 	}
@@ -65,14 +69,21 @@ func StreamLoggingInterceptor() grpc.StreamServerInterceptor {
 		info *grpc.StreamServerInfo,
 		handler grpc.StreamHandler,
 	) error {
-		correlationID := uuid.New().String()
-		newContext := context.WithValue(stream.Context(), ctxkeys.CorrelationIDKey, correlationID)
+		requestID := extractRequestIDFromContext(stream.Context())
+		var newContext context.Context
+		if requestID == "" {
+			requestID = uuid.New().String()
+			newContext = context.WithValue(stream.Context(), ctxkeys.RequestIDKey, requestID)
+			newContext = context.WithValue(newContext, ctxkeys.CorrelationIDKey, requestID)
+		} else {
+			newContext = stream.Context()
+		}
 		wrappedStream := NewWrappedStream(stream, newContext)
 
 		startTime := time.Now()
 
 		slog.Info("grpc stream started",
-			"correlation_id", correlationID,
+			"request_id", requestID,
 			"method", info.FullMethod,
 		)
 
@@ -90,7 +101,7 @@ func StreamLoggingInterceptor() grpc.StreamServerInterceptor {
 		}
 
 		slog.Log(newContext, logLevel, "grpc stream completed",
-			"correlation_id", correlationID,
+			"request_id", requestID,
 			"method", info.FullMethod,
 			"duration_ms", durationMs,
 			"grpc_code", grpcCode.String(),
@@ -99,4 +110,14 @@ func StreamLoggingInterceptor() grpc.StreamServerInterceptor {
 
 		return err
 	}
+}
+
+func extractRequestIDFromContext(ctx context.Context) string {
+	if requestID, ok := ctx.Value(ctxkeys.RequestIDKey).(string); ok && requestID != "" {
+		return requestID
+	}
+	if correlationID, ok := ctx.Value(ctxkeys.CorrelationIDKey).(string); ok && correlationID != "" {
+		return correlationID
+	}
+	return ""
 }

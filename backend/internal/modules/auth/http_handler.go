@@ -22,9 +22,9 @@ func NewHTTPHandler(service Service, secureCookies bool) *HTTPHandler {
 }
 
 func (handler *HTTPHandler) RegisterRoutes(mux *http.ServeMux) {
-	mux.HandleFunc("POST /api/auth/login", handler.HandleLogin)
-	mux.HandleFunc("POST /api/auth/logout", handler.HandleLogout)
-	mux.HandleFunc("GET /api/auth/me", handler.HandleMe)
+	mux.HandleFunc("POST /api/v1/auth/login", handler.HandleLogin)
+	mux.HandleFunc("POST /api/v1/auth/logout", handler.HandleLogout)
+	mux.HandleFunc("GET /api/v1/auth/me", handler.HandleMe)
 }
 
 // HandleLogin godoc

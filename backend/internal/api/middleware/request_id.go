@@ -19,15 +19,20 @@ func RequestID(next http.Handler) http.Handler {
 
 		httpResponseWriter.Header().Set(RequestIDHeader, requestID)
 
-		enrichedContext := context.WithValue(httpRequest.Context(), ctxkeys.CorrelationIDKey, requestID)
+		enrichedContext := context.WithValue(httpRequest.Context(), ctxkeys.RequestIDKey, requestID)
+		enrichedContext = context.WithValue(enrichedContext, ctxkeys.CorrelationIDKey, requestID)
 		next.ServeHTTP(httpResponseWriter, httpRequest.WithContext(enrichedContext))
 	})
 }
 
 func GetRequestID(requestContext context.Context) string {
-	correlationID, typeAssertionOk := requestContext.Value(ctxkeys.CorrelationIDKey).(string)
-	if !typeAssertionOk {
-		return ""
+	requestID, typeAssertionOk := requestContext.Value(ctxkeys.RequestIDKey).(string)
+	if typeAssertionOk {
+		return requestID
 	}
-	return correlationID
+	correlationID, correlationOk := requestContext.Value(ctxkeys.CorrelationIDKey).(string)
+	if correlationOk {
+		return correlationID
+	}
+	return ""
 }

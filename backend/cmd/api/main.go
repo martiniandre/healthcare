@@ -145,6 +145,7 @@ func main() {
 	telemetryHTTPHandler := telemetry.NewHTTPHandler(telemetryService)
 	examAnalyzerHTTPHandler := exam_analyzer.NewHTTPHandler(examAnalyzerRepo, examAnalyzerSvc, examAnalyzerWorker)
 	auditLogsHTTPHandler := audit_logs.NewHTTPHandler(auditLogsService)
+	healthHTTPHandler := health.NewHTTPHandler(databasePool, redisClient)
 
 	router := api.NewRouter(
 		secureCookies,
@@ -162,6 +163,7 @@ func main() {
 		examAnalyzerHTTPHandler,
 		analyticsHTTPHandler,
 		auditLogsHTTPHandler,
+		healthHTTPHandler,
 	)
 
 	tcpListener, listenerError := net.Listen("tcp", ":"+appConfig.AppPort)

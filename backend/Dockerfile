@@ -1,4 +1,4 @@
-FROM golang:1.23-alpine AS builder
+FROM golang:1.25-alpine AS builder
 
 WORKDIR /app
 
@@ -9,9 +9,9 @@ RUN go mod download
 
 COPY . .
 
-RUN CGO_ENABLED=0 GOOS=linux go build -o /app/healthcare-api ./cmd/api/main.go
+RUN CGO_ENABLED=0 GOOS=linux go build -o /app/api ./cmd/api
 
-FROM alpine:latest
+FROM alpine:3.20
 
 RUN apk add --no-cache ca-certificates tzdata
 
@@ -19,10 +19,10 @@ RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 
 WORKDIR /app
 
-COPY --from=builder /app/healthcare-api /app/healthcare-api
+COPY --from=builder /app/api /app/api
 
 USER appuser
 
-EXPOSE 8080
+EXPOSE 50051 8080
 
-CMD ["/app/healthcare-api"]
+ENTRYPOINT ["/app/api"]

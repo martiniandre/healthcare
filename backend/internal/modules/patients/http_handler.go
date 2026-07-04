@@ -26,9 +26,9 @@ func (handler *HTTPHandler) RegisterRoutes(mux *http.ServeMux) {
 	medicalStaff := middleware.RequireRoles(role.RoleAdmin, role.RoleDoctor, role.RoleNurse, role.RoleReception)
 	adminOrReception := middleware.RequireRoles(role.RoleAdmin, role.RoleReception)
 
-	mux.Handle("GET /api/patients", medicalStaff(http.HandlerFunc(handler.ListPatients)))
-	mux.Handle("POST /api/patients", adminOrReception(http.HandlerFunc(handler.CreatePatient)))
-	mux.Handle("GET /api/patients/{patientFhirId}", medicalStaff(http.HandlerFunc(handler.GetPatient)))
+	mux.Handle("GET /api/v1/patients", medicalStaff(http.HandlerFunc(handler.ListPatients)))
+	mux.Handle("POST /api/v1/patients", adminOrReception(http.HandlerFunc(handler.CreatePatient)))
+	mux.Handle("GET /api/v1/patients/{patientFhirId}", medicalStaff(http.HandlerFunc(handler.GetPatient)))
 }
 
 // ListPatients godoc
@@ -118,7 +118,7 @@ func (handler *HTTPHandler) CreatePatient(httpResponseWriter http.ResponseWriter
 
 	patient, createPatientErr := handler.service.CreatePatient(httpRequest.Context(), payload.FullName, payload.BirthDate, payload.DocumentID, payload.PhoneNumber)
 	if createPatientErr != nil {
-		slog.Error("failed to create patient", "error", createPatientErr, "document_id", payload.DocumentID)
+		slog.Error("failed to create patient", "error", createPatientErr, "document_id", payload.DocumentID, "request_id", middleware.GetRequestID(httpRequest.Context()))
 		if errors.Is(createPatientErr, ErrPatientAlreadyExists) {
 			render.Error(httpResponseWriter, http.StatusConflict, "patient with this document already exists")
 			return
@@ -154,7 +154,7 @@ func (handler *HTTPHandler) GetPatient(httpResponseWriter http.ResponseWriter, h
 
 	patient, getPatientErr := handler.service.GetPatient(httpRequest.Context(), patientFhirID)
 	if getPatientErr != nil {
-		slog.Error("patient not found", "error", getPatientErr, "patient_fhir_id", patientFhirID)
+		slog.Error("patient not found", "error", getPatientErr, "patient_fhir_id", patientFhirID, "request_id", middleware.GetRequestID(httpRequest.Context()))
 		render.Error(httpResponseWriter, http.StatusNotFound, "patient not found")
 		return
 	}

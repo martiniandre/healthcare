@@ -25,8 +25,8 @@ func (handler *HTTPHandler) RegisterRoutes(mux *http.ServeMux) {
 	clinicalWrite := middleware.RequireRoles(role.RoleDoctor, role.RoleNurse)
 	clinicalRead := middleware.RequireRoles(role.RoleAdmin, role.RoleDoctor, role.RoleNurse)
 
-	mux.Handle("GET /api/patients/{patientFhirId}/allergies", clinicalRead(http.HandlerFunc(handler.ListAllergiesByPatient)))
-	mux.Handle("POST /api/patients/{patientFhirId}/allergies", clinicalWrite(http.HandlerFunc(handler.CreateAllergy)))
+	mux.Handle("GET /api/v1/patients/{patientFhirId}/allergies", clinicalRead(http.HandlerFunc(handler.ListAllergiesByPatient)))
+	mux.Handle("POST /api/v1/patients/{patientFhirId}/allergies", clinicalWrite(http.HandlerFunc(handler.CreateAllergy)))
 }
 
 // ListAllergiesByPatient godoc
@@ -45,7 +45,7 @@ func (handler *HTTPHandler) ListAllergiesByPatient(httpResponseWriter http.Respo
 
 	allergiesList, allergiesErr := handler.service.GetAllergyIntolerancesByPatient(httpRequest.Context(), patientFhirID)
 	if allergiesErr != nil {
-		slog.Error("failed to list allergies", "error", allergiesErr, "patient_fhir_id", patientFhirID)
+		slog.Error("failed to list allergies", "error", allergiesErr, "patient_fhir_id", patientFhirID, "request_id", middleware.GetRequestID(httpRequest.Context()))
 		render.Error(httpResponseWriter, http.StatusInternalServerError, "Erro ao carregar alergias do paciente.")
 		return
 	}
@@ -114,7 +114,7 @@ func (handler *HTTPHandler) CreateAllergy(httpResponseWriter http.ResponseWriter
 
 	createdAllergy, createErr := handler.service.CreateAllergyIntolerance(httpRequest.Context(), newAllergy)
 	if createErr != nil {
-		slog.Error("failed to create allergy", "error", createErr, "patient_fhir_id", patientFhirID)
+		slog.Error("failed to create allergy", "error", createErr, "patient_fhir_id", patientFhirID, "request_id", middleware.GetRequestID(httpRequest.Context()))
 		render.Error(httpResponseWriter, http.StatusInternalServerError, "Erro ao criar alergia.")
 		return
 	}

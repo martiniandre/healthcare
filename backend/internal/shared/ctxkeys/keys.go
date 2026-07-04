@@ -6,4 +6,5 @@ const (
 	UserIDKey        ContextKey = "user_id"
 	RoleKey          ContextKey = "role"
 	CorrelationIDKey ContextKey = "correlation_id"
+	RequestIDKey     ContextKey = "request_id"
 )

@@ -25,8 +25,8 @@ func (handler *HTTPHandler) RegisterRoutes(mux *http.ServeMux) {
 	medicalStaff := middleware.RequireRoles(role.RoleAdmin, role.RoleDoctor, role.RoleNurse, role.RoleReception)
 	adminOnly := middleware.RequireRoles(role.RoleAdmin)
 
-	mux.Handle("GET /api/staff/employees", medicalStaff(http.HandlerFunc(handler.ListEmployees)))
-	mux.Handle("POST /api/staff/employees", adminOnly(http.HandlerFunc(handler.CreateEmployee)))
+	mux.Handle("GET /api/v1/staff/employees", medicalStaff(http.HandlerFunc(handler.ListEmployees)))
+	mux.Handle("POST /api/v1/staff/employees", adminOnly(http.HandlerFunc(handler.CreateEmployee)))
 }
 
 // ListEmployees godoc
@@ -47,7 +47,7 @@ func (handler *HTTPHandler) ListEmployees(httpResponseWriter http.ResponseWriter
 
 	employeesList, employeesErr := handler.service.ListEmployees(httpRequest.Context(), search, role)
 	if employeesErr != nil {
-		slog.Error("failed to list employees", "error", employeesErr)
+		slog.Error("failed to list employees", "error", employeesErr, "request_id", middleware.GetRequestID(httpRequest.Context()))
 		render.Error(httpResponseWriter, http.StatusInternalServerError, "Erro ao listar corpo clínico.")
 		return
 	}
@@ -89,7 +89,7 @@ func (handler *HTTPHandler) CreateEmployee(httpResponseWriter http.ResponseWrite
 
 	employee, createErr := handler.service.CreateEmployee(httpRequest.Context(), userIDParsed, payload.FullName, payload.Email, payload.Role, payload.CRMNumber)
 	if createErr != nil {
-		slog.Error("failed to create employee", "error", createErr, "email", payload.Email)
+		slog.Error("failed to create employee", "error", createErr, "email", payload.Email, "request_id", middleware.GetRequestID(httpRequest.Context()))
 		render.Error(httpResponseWriter, http.StatusInternalServerError, "Erro ao registrar profissional.")
 		return
 	}

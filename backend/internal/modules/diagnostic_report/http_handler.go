@@ -25,8 +25,8 @@ func (handler *HTTPHandler) RegisterRoutes(mux *http.ServeMux) {
 	clinicalWrite := middleware.RequireRoles(role.RoleDoctor, role.RoleNurse)
 	clinicalRead := middleware.RequireRoles(role.RoleAdmin, role.RoleDoctor, role.RoleNurse)
 
-	mux.Handle("GET /api/encounters/{encounterFhirId}/reports", clinicalRead(http.HandlerFunc(handler.ListReportsByEncounter)))
-	mux.Handle("POST /api/encounters/{encounterFhirId}/reports", clinicalWrite(http.HandlerFunc(handler.CreateReport)))
+	mux.Handle("GET /api/v1/encounters/{encounterFhirId}/reports", clinicalRead(http.HandlerFunc(handler.ListReportsByEncounter)))
+	mux.Handle("POST /api/v1/encounters/{encounterFhirId}/reports", clinicalWrite(http.HandlerFunc(handler.CreateReport)))
 }
 
 // ListReportsByEncounter godoc
@@ -45,7 +45,7 @@ func (handler *HTTPHandler) ListReportsByEncounter(httpResponseWriter http.Respo
 
 	reportsList, reportsErr := handler.service.GetDiagnosticReportsByEncounter(httpRequest.Context(), encounterFhirID)
 	if reportsErr != nil {
-		slog.Error("failed to list reports", "error", reportsErr, "encounter_fhir_id", encounterFhirID)
+		slog.Error("failed to list reports", "error", reportsErr, "encounter_fhir_id", encounterFhirID, "request_id", middleware.GetRequestID(httpRequest.Context()))
 		render.Error(httpResponseWriter, http.StatusInternalServerError, "Erro ao carregar laudos da consulta.")
 		return
 	}
@@ -115,7 +115,7 @@ func (handler *HTTPHandler) CreateReport(httpResponseWriter http.ResponseWriter,
 
 	createdReport, createErr := handler.service.CreateDiagnosticReport(httpRequest.Context(), newReport)
 	if createErr != nil {
-		slog.Error("failed to create diagnostic report", "error", createErr, "encounter_fhir_id", encounterFhirID)
+		slog.Error("failed to create diagnostic report", "error", createErr, "encounter_fhir_id", encounterFhirID, "request_id", middleware.GetRequestID(httpRequest.Context()))
 		render.Error(httpResponseWriter, http.StatusInternalServerError, "Erro ao criar laudo.")
 		return
 	}

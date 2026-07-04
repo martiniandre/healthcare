@@ -1,7 +1,7 @@
 import { type Page, expect } from "@playwright/test"
 
 export const mockAuthAPI = async (pageInstance: Page): Promise<void> => {
-  await pageInstance.route("**/api/auth/login", async (networkRoute) => {
+  await pageInstance.route("**/api/v1/auth/login", async (networkRoute) => {
     const httpRequest = networkRoute.request()
     const submittedJSON = httpRequest.postDataJSON()
 
@@ -27,7 +27,7 @@ export const mockAuthAPI = async (pageInstance: Page): Promise<void> => {
     }
   })
 
-  await pageInstance.route("**/api/auth/logout", async (networkRoute) => {
+  await pageInstance.route("**/api/v1/auth/logout", async (networkRoute) => {
     await networkRoute.fulfill({
       status: 200,
       contentType: "application/json",
@@ -37,7 +37,7 @@ export const mockAuthAPI = async (pageInstance: Page): Promise<void> => {
     })
   })
 
-  await pageInstance.route("**/api/auth/me", async (networkRoute) => {
+  await pageInstance.route("**/api/v1/auth/me", async (networkRoute) => {
     await networkRoute.fulfill({
       status: 401,
       contentType: "application/json",
@@ -68,7 +68,7 @@ export const mockPatientsAPI = async (pageInstance: Page): Promise<void> => {
     },
   ]
 
-  await pageInstance.route("**/api/patients", async (networkRoute) => {
+  await pageInstance.route("**/api/v1/patients", async (networkRoute) => {
     const httpRequest = networkRoute.request()
     if (httpRequest.method() === "GET") {
       await networkRoute.fulfill({
@@ -100,7 +100,7 @@ export const mockPatientsAPI = async (pageInstance: Page): Promise<void> => {
     }
   })
 
-  await pageInstance.route("**/api/patients/*", async (networkRoute) => {
+  await pageInstance.route("**/api/v1/patients/*", async (networkRoute) => {
     const httpRequest = networkRoute.request()
     const requestURL = httpRequest.url()
     const urlParts = requestURL.split("/")
@@ -231,7 +231,7 @@ export const mockClinicalAPI = async (pageInstance: Page): Promise<void> => {
     },
   ]
 
-  await pageInstance.route("**/api/patients/*/encounters", async (networkRoute) => {
+  await pageInstance.route("**/api/v1/patients/*/encounters", async (networkRoute) => {
     const httpRequest = networkRoute.request()
     const requestURL = httpRequest.url()
     const urlParts = requestURL.split("/")
@@ -263,7 +263,7 @@ export const mockClinicalAPI = async (pageInstance: Page): Promise<void> => {
     }
   })
 
-  await pageInstance.route("**/api/patients/*/observations", async (networkRoute) => {
+  await pageInstance.route("**/api/v1/patients/*/observations", async (networkRoute) => {
     const httpRequest = networkRoute.request()
     const requestURL = httpRequest.url()
     const urlParts = requestURL.split("/")
@@ -279,7 +279,7 @@ export const mockClinicalAPI = async (pageInstance: Page): Promise<void> => {
     }
   })
 
-  await pageInstance.route("**/api/patients/*/conditions", async (networkRoute) => {
+  await pageInstance.route("**/api/v1/patients/*/conditions", async (networkRoute) => {
     const httpRequest = networkRoute.request()
     const requestURL = httpRequest.url()
     const urlParts = requestURL.split("/")
@@ -311,7 +311,7 @@ export const mockClinicalAPI = async (pageInstance: Page): Promise<void> => {
     }
   })
 
-  await pageInstance.route("**/api/encounters/*/observations", async (networkRoute) => {
+  await pageInstance.route("**/api/v1/encounters/*/observations", async (networkRoute) => {
     const httpRequest = networkRoute.request()
     const requestURL = httpRequest.url()
     const urlParts = requestURL.split("/")
@@ -345,7 +345,7 @@ export const mockClinicalAPI = async (pageInstance: Page): Promise<void> => {
     }
   })
 
-  await pageInstance.route("**/api/encounters/*/reports", async (networkRoute) => {
+  await pageInstance.route("**/api/v1/encounters/*/reports", async (networkRoute) => {
     const httpRequest = networkRoute.request()
     const requestURL = httpRequest.url()
     const urlParts = requestURL.split("/")
@@ -378,7 +378,7 @@ export const mockClinicalAPI = async (pageInstance: Page): Promise<void> => {
     }
   })
 
-  await pageInstance.route("**/api/encounters/*/medications", async (networkRoute) => {
+  await pageInstance.route("**/api/v1/encounters/*/medications", async (networkRoute) => {
     const httpRequest = networkRoute.request()
     const requestURL = httpRequest.url()
     const urlParts = requestURL.split("/")
@@ -411,7 +411,7 @@ export const mockClinicalAPI = async (pageInstance: Page): Promise<void> => {
     }
   })
 
-  await pageInstance.route("**/api/patients/*/studies", async (networkRoute) => {
+  await pageInstance.route("**/api/v1/patients/*/studies", async (networkRoute) => {
     const httpRequest = networkRoute.request()
     const requestURL = httpRequest.url()
     const urlParts = requestURL.split("/")
@@ -443,7 +443,7 @@ export const mockClinicalAPI = async (pageInstance: Page): Promise<void> => {
     }
   })
 
-  await pageInstance.route("**/api/studies/*", async (networkRoute) => {
+  await pageInstance.route("**/api/v1/studies/*", async (networkRoute) => {
     const httpRequest = networkRoute.request()
     const requestURL = httpRequest.url()
     const urlParts = requestURL.split("/")
@@ -509,7 +509,7 @@ export const mockAnalyzerAPI = async (pageInstance: Page): Promise<void> => {
     }
   ]
 
-  await pageInstance.route("**/api/exam-analyses", async (networkRoute) => {
+  await pageInstance.route("**/api/v1/exam-analyses", async (networkRoute) => {
     const httpRequest = networkRoute.request()
 
     if (httpRequest.method() === "GET") {
@@ -578,7 +578,7 @@ export const mockAnalyzerAPI = async (pageInstance: Page): Promise<void> => {
     }
   })
 
-  await pageInstance.route("**/api/exam-analyses/*", async (networkRoute) => {
+  await pageInstance.route("**/api/v1/exam-analyses/*", async (networkRoute) => {
     const httpRequest = networkRoute.request()
     const requestURL = httpRequest.url()
     const urlParts = requestURL.split("/")
@@ -635,7 +635,7 @@ export const mockStaffAPI = async (pageInstance: Page): Promise<void> => {
     },
   ]
 
-  await pageInstance.route("**/api/staff/employees", async (networkRoute) => {
+  await pageInstance.route("**/api/v1/staff/employees", async (networkRoute) => {
     const httpRequest = networkRoute.request()
     if (httpRequest.method() === "GET") {
       await networkRoute.fulfill({
@@ -712,7 +712,7 @@ export const mockTelemetryAPI = async (pageInstance: Page): Promise<void> => {
     ],
   }
 
-  await pageInstance.route("**/api/telemetry/rooms", async (networkRoute) => {
+  await pageInstance.route("**/api/v1/telemetry/rooms", async (networkRoute) => {
     await networkRoute.fulfill({
       status: 200,
       contentType: "application/json",
@@ -720,7 +720,7 @@ export const mockTelemetryAPI = async (pageInstance: Page): Promise<void> => {
     })
   })
 
-  await pageInstance.route("**/api/telemetry/rooms/*/unlock", async (networkRoute) => {
+  await pageInstance.route("**/api/v1/telemetry/rooms/*/unlock", async (networkRoute) => {
     const httpRequest = networkRoute.request()
     const submittedJSON = httpRequest.postDataJSON()
     const requestURL = httpRequest.url()
@@ -746,7 +746,7 @@ export const mockTelemetryAPI = async (pageInstance: Page): Promise<void> => {
     }
   })
 
-  await pageInstance.route("**/api/telemetry/rooms/*/beds", async (networkRoute) => {
+  await pageInstance.route("**/api/v1/telemetry/rooms/*/beds", async (networkRoute) => {
     const httpRequest = networkRoute.request()
     const requestURL = httpRequest.url()
     const urlParts = requestURL.split("/")
@@ -760,7 +760,7 @@ export const mockTelemetryAPI = async (pageInstance: Page): Promise<void> => {
     })
   })
 
-  await pageInstance.route("**/api/telemetry/beds/*/condition", async (networkRoute) => {
+  await pageInstance.route("**/api/v1/telemetry/beds/*/condition", async (networkRoute) => {
     const httpRequest = networkRoute.request()
     const submittedJSON = httpRequest.postDataJSON()
     const requestURL = httpRequest.url()
@@ -788,7 +788,7 @@ export const mockTelemetryAPI = async (pageInstance: Page): Promise<void> => {
 }
 
 export const mockAnalyticsAPI = async (pageInstance: Page): Promise<void> => {
-  await pageInstance.route("**/api/analytics", async (networkRoute) => {
+  await pageInstance.route("**/api/v1/analytics", async (networkRoute) => {
     await networkRoute.fulfill({
       status: 200,
       contentType: "application/json",
@@ -854,7 +854,7 @@ export const mockAuditLogsAPI = async (pageInstance: Page): Promise<void> => {
     },
   ]
 
-  await pageInstance.route("**/api/audit-logs", async (networkRoute) => {
+  await pageInstance.route("**/api/v1/audit-logs", async (networkRoute) => {
     const httpRequest = networkRoute.request()
     if (httpRequest.method() === "GET") {
       await networkRoute.fulfill({
@@ -873,7 +873,7 @@ export const mockAuditLogsAPI = async (pageInstance: Page): Promise<void> => {
 }
 
 export const loginAsAdmin = async (pageInstance: Page): Promise<void> => {
-  await pageInstance.route("**/api/auth/login", async (networkRoute) => {
+  await pageInstance.route("**/api/v1/auth/login", async (networkRoute) => {
     const httpRequest = networkRoute.request()
     const submittedJSON = httpRequest.postDataJSON()
 
@@ -899,7 +899,7 @@ export const loginAsAdmin = async (pageInstance: Page): Promise<void> => {
     }
   })
 
-  await pageInstance.route("**/api/auth/logout", async (networkRoute) => {
+  await pageInstance.route("**/api/v1/auth/logout", async (networkRoute) => {
     await networkRoute.fulfill({
       status: 200,
       contentType: "application/json",
@@ -909,7 +909,7 @@ export const loginAsAdmin = async (pageInstance: Page): Promise<void> => {
     })
   })
 
-  await pageInstance.route("**/api/auth/me", async (networkRoute) => {
+  await pageInstance.route("**/api/v1/auth/me", async (networkRoute) => {
     await networkRoute.fulfill({
       status: 401,
       contentType: "application/json",

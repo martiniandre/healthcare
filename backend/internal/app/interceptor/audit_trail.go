@@ -28,7 +28,10 @@ func UnaryAuditTrailInterceptor() grpc.UnaryServerInterceptor {
 		if isClinicalOrCriticalMethod(serverInfo.FullMethod) {
 			callerUserID := extractContextValue(contextVal, ctxkeys.UserIDKey)
 			callerRole := extractContextValue(contextVal, ctxkeys.RoleKey)
-			correlationID := extractContextValue(contextVal, ctxkeys.CorrelationIDKey)
+			correlationID := extractContextValue(contextVal, ctxkeys.RequestIDKey)
+			if correlationID == "" {
+				correlationID = extractContextValue(contextVal, ctxkeys.CorrelationIDKey)
+			}
 
 			go func() {
 				if globalAuditLogsService != nil {
@@ -104,7 +107,10 @@ func StreamAuditTrailInterceptor() grpc.StreamServerInterceptor {
 			contextVal := serverStream.Context()
 			callerUserID := extractContextValue(contextVal, ctxkeys.UserIDKey)
 			callerRole := extractContextValue(contextVal, ctxkeys.RoleKey)
-			correlationID := extractContextValue(contextVal, ctxkeys.CorrelationIDKey)
+			correlationID := extractContextValue(contextVal, ctxkeys.RequestIDKey)
+			if correlationID == "" {
+				correlationID = extractContextValue(contextVal, ctxkeys.CorrelationIDKey)
+			}
 
 			go func() {
 				if globalAuditLogsService != nil {

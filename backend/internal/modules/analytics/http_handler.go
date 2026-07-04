@@ -21,7 +21,7 @@ func NewHTTPHandler(analyticsService Service) *HTTPHandler {
 
 func (analyticsHTTPHandler *HTTPHandler) RegisterRoutes(httpServeMux *http.ServeMux) {
 	authorizedRoles := middleware.RequireRoles(role.RoleAdmin, role.RoleDoctor, role.RoleNurse)
-	httpServeMux.Handle("GET /api/analytics", authorizedRoles(http.HandlerFunc(analyticsHTTPHandler.GetStats)))
+	httpServeMux.Handle("GET /api/v1/analytics", authorizedRoles(http.HandlerFunc(analyticsHTTPHandler.GetStats)))
 }
 
 // GetStats godoc

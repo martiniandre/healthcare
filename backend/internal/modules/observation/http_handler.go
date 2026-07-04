@@ -25,9 +25,9 @@ func (handler *HTTPHandler) RegisterRoutes(mux *http.ServeMux) {
 	clinicalWrite := middleware.RequireRoles(role.RoleDoctor, role.RoleNurse)
 	clinicalRead := middleware.RequireRoles(role.RoleAdmin, role.RoleDoctor, role.RoleNurse)
 
-	mux.Handle("GET /api/patients/{patientFhirId}/observations", clinicalRead(http.HandlerFunc(handler.ListObservationsByPatient)))
-	mux.Handle("GET /api/encounters/{encounterFhirId}/observations", clinicalRead(http.HandlerFunc(handler.ListObservationsByEncounter)))
-	mux.Handle("POST /api/encounters/{encounterFhirId}/observations", clinicalWrite(http.HandlerFunc(handler.CreateObservation)))
+	mux.Handle("GET /api/v1/patients/{patientFhirId}/observations", clinicalRead(http.HandlerFunc(handler.ListObservationsByPatient)))
+	mux.Handle("GET /api/v1/encounters/{encounterFhirId}/observations", clinicalRead(http.HandlerFunc(handler.ListObservationsByEncounter)))
+	mux.Handle("POST /api/v1/encounters/{encounterFhirId}/observations", clinicalWrite(http.HandlerFunc(handler.CreateObservation)))
 }
 
 // ListObservationsByPatient godoc
@@ -46,7 +46,7 @@ func (handler *HTTPHandler) ListObservationsByPatient(httpResponseWriter http.Re
 
 	observationsList, observationsErr := handler.service.GetObservationsByPatient(httpRequest.Context(), patientFhirID)
 	if observationsErr != nil {
-		slog.Error("failed to list observations by patient", "error", observationsErr, "patient_fhir_id", patientFhirID)
+		slog.Error("failed to list observations by patient", "error", observationsErr, "patient_fhir_id", patientFhirID, "request_id", middleware.GetRequestID(httpRequest.Context()))
 		render.Error(httpResponseWriter, http.StatusInternalServerError, "Erro ao carregar observações do paciente.")
 		return
 	}
@@ -70,7 +70,7 @@ func (handler *HTTPHandler) ListObservationsByEncounter(httpResponseWriter http.
 
 	observationsList, observationsErr := handler.service.GetObservationsByEncounter(httpRequest.Context(), encounterFhirID)
 	if observationsErr != nil {
-		slog.Error("failed to list observations by encounter", "error", observationsErr, "encounter_fhir_id", encounterFhirID)
+		slog.Error("failed to list observations by encounter", "error", observationsErr, "encounter_fhir_id", encounterFhirID, "request_id", middleware.GetRequestID(httpRequest.Context()))
 		render.Error(httpResponseWriter, http.StatusInternalServerError, "Erro ao carregar observações da consulta.")
 		return
 	}
@@ -119,7 +119,7 @@ func (handler *HTTPHandler) CreateObservation(httpResponseWriter http.ResponseWr
 
 	createdObservation, createErr := handler.service.CreateObservation(httpRequest.Context(), newObservation)
 	if createErr != nil {
-		slog.Error("failed to create observation", "error", createErr, "encounter_fhir_id", encounterFhirID)
+		slog.Error("failed to create observation", "error", createErr, "encounter_fhir_id", encounterFhirID, "request_id", middleware.GetRequestID(httpRequest.Context()))
 		render.Error(httpResponseWriter, http.StatusInternalServerError, "Erro ao criar observação.")
 		return
 	}

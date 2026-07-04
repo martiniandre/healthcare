@@ -23,6 +23,7 @@ func NewRouter(secureCookies bool, registerers ...RouteRegisterer) http.Handler 
 	}
 
 	handlerPipeline := middleware.CORS(secureCookies)(httpServeMux)
+	handlerPipeline = middleware.APIPrefixRewrite(handlerPipeline)
 	handlerPipeline = middleware.Recovery(handlerPipeline)
 	handlerPipeline = middleware.RequestID(handlerPipeline)
 	handlerPipeline = middleware.Logger(handlerPipeline)

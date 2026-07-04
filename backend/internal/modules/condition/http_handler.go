@@ -25,8 +25,8 @@ func (handler *HTTPHandler) RegisterRoutes(mux *http.ServeMux) {
 	clinicalWrite := middleware.RequireRoles(role.RoleDoctor, role.RoleNurse)
 	clinicalRead := middleware.RequireRoles(role.RoleAdmin, role.RoleDoctor, role.RoleNurse)
 
-	mux.Handle("GET /api/patients/{patientFhirId}/conditions", clinicalRead(http.HandlerFunc(handler.ListConditionsByPatient)))
-	mux.Handle("POST /api/patients/{patientFhirId}/conditions", clinicalWrite(http.HandlerFunc(handler.CreateCondition)))
+	mux.Handle("GET /api/v1/patients/{patientFhirId}/conditions", clinicalRead(http.HandlerFunc(handler.ListConditionsByPatient)))
+	mux.Handle("POST /api/v1/patients/{patientFhirId}/conditions", clinicalWrite(http.HandlerFunc(handler.CreateCondition)))
 }
 
 // ListConditionsByPatient godoc
@@ -45,7 +45,7 @@ func (handler *HTTPHandler) ListConditionsByPatient(httpResponseWriter http.Resp
 
 	conditionsList, conditionsErr := handler.service.GetConditionsByPatient(httpRequest.Context(), patientFhirID)
 	if conditionsErr != nil {
-		slog.Error("failed to list conditions", "error", conditionsErr, "patient_fhir_id", patientFhirID)
+		slog.Error("failed to list conditions", "error", conditionsErr, "patient_fhir_id", patientFhirID, "request_id", middleware.GetRequestID(httpRequest.Context()))
 		render.Error(httpResponseWriter, http.StatusInternalServerError, "Erro ao carregar diagnósticos do paciente.")
 		return
 	}
@@ -110,7 +110,7 @@ func (handler *HTTPHandler) CreateCondition(httpResponseWriter http.ResponseWrit
 
 	createdCondition, createErr := handler.service.CreateCondition(httpRequest.Context(), newCondition)
 	if createErr != nil {
-		slog.Error("failed to create condition", "error", createErr, "patient_fhir_id", patientFhirID)
+		slog.Error("failed to create condition", "error", createErr, "patient_fhir_id", patientFhirID, "request_id", middleware.GetRequestID(httpRequest.Context()))
 		render.Error(httpResponseWriter, http.StatusInternalServerError, "Erro ao criar diagnóstico.")
 		return
 	}

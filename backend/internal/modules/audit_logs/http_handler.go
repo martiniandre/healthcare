@@ -26,8 +26,8 @@ func (auditLogsHTTPHandler *HTTPHandler) RegisterRoutes(mux *http.ServeMux) {
 	adminOnly := middleware.RequireRoles(role.RoleAdmin)
 	authenticated := middleware.RequireRoles(role.RoleAdmin, role.RoleDoctor, role.RoleNurse, role.RoleReception, role.RolePatient)
 
-	mux.Handle("GET /api/audit-logs", adminOnly(http.HandlerFunc(auditLogsHTTPHandler.ListAuditLogs)))
-	mux.Handle("POST /api/audit-logs", authenticated(http.HandlerFunc(auditLogsHTTPHandler.CreateAuditLog)))
+	mux.Handle("GET /api/v1/audit-logs", adminOnly(http.HandlerFunc(auditLogsHTTPHandler.ListAuditLogs)))
+	mux.Handle("POST /api/v1/audit-logs", authenticated(http.HandlerFunc(auditLogsHTTPHandler.CreateAuditLog)))
 }
 
 // ListAuditLogs godoc
@@ -62,7 +62,7 @@ func (auditLogsHTTPHandler *HTTPHandler) ListAuditLogs(httpResponseWriter http.R
 
 	logs, totalCount, listError := auditLogsHTTPHandler.service.ListAuditLogs(httpRequest.Context(), limit, offset)
 	if listError != nil {
-		slog.Error("failed to list audit logs", "error", listError)
+		slog.Error("failed to list audit logs", "error", listError, "request_id", middleware.GetRequestID(httpRequest.Context()))
 		render.Error(httpResponseWriter, http.StatusInternalServerError, "Erro ao listar logs de auditoria.")
 		return
 	}
@@ -117,7 +117,7 @@ func (auditLogsHTTPHandler *HTTPHandler) CreateAuditLog(httpResponseWriter http.
 		payload.AccessGranted,
 	)
 	if createError != nil {
-		slog.Error("failed to create audit log", "error", createError)
+		slog.Error("failed to create audit log", "error", createError, "request_id", middleware.GetRequestID(httpRequest.Context()))
 		render.Error(httpResponseWriter, http.StatusInternalServerError, "Erro ao criar log de auditoria.")
 		return
 	}
