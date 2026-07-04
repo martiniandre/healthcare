@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+package diagnostic_report.v1;
+
+option go_package = "github.com/healthcare/backend/internal/modules/diagnostic_report/pb";
+
+service DiagnosticReportService {
+  rpc CreateDiagnosticReport(CreateDiagnosticReportRequest) returns (CreateDiagnosticReportResponse);
+  rpc GetDiagnosticReports(GetDiagnosticReportsRequest) returns (GetDiagnosticReportsResponse);
+}
+
+message CreateDiagnosticReportRequest {
+  string encounter_fhir_id = 1;
+  string patient_fhir_id = 2;
+  string report_code = 3;
+  string report_display = 4;
+  string conclusion = 5;
+}
+
+message CreateDiagnosticReportResponse {
+  string diagnostic_report_fhir_id = 1;
+}
+
+message GetDiagnosticReportsRequest {
+  string encounter_fhir_id = 1;
+}
+
+message DiagnosticReport {
+  string fhir_id = 1;
+  string report_display = 2;
+  string status = 3;
+  string conclusion = 4;
+}
+
+message GetDiagnosticReportsResponse {
+  repeated DiagnosticReport diagnostic_reports = 1;
+}

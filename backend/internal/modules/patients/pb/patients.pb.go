@@ -38,7 +38,13 @@ type GetPatientResponse struct {
 	PhoneNumber    string
 }
 
-type ListPatientsRequest struct{}
+type ListPatientsRequest struct {
+	Search        string
+	SortField     string
+	SortDirection string
+	Page          int32
+	Limit         int32
+}
 
 type ListPatientsResponse struct {
 	Patients []*GetPatientResponse

@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+package observation.v1;
+
+option go_package = "github.com/healthcare/backend/internal/modules/observation/pb";
+
+service ObservationService {
+  rpc CreateObservation(CreateObservationRequest) returns (CreateObservationResponse);
+  rpc GetObservations(GetObservationsRequest) returns (GetObservationsResponse);
+}
+
+message CreateObservationRequest {
+  string encounter_fhir_id = 1;
+  string patient_fhir_id = 2;
+  string loinc_code = 3;
+  string code_display = 4;
+  double value_quantity = 5;
+  string value_unit = 6;
+}
+
+message CreateObservationResponse {
+  string observation_fhir_id = 1;
+}
+
+message GetObservationsRequest {
+  string encounter_fhir_id = 1;
+}
+
+message Observation {
+  string fhir_id = 1;
+  string loinc_code = 2;
+  string code_display = 3;
+  double value_quantity = 4;
+  string value_unit = 5;
+}
+
+message GetObservationsResponse {
+  repeated Observation observations = 1;
+}

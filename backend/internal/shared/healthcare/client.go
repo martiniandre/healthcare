@@ -215,15 +215,15 @@ func (healthcareClient *Client) doWithRetry(request *http.Request) (json.RawMess
 		if response.StatusCode == http.StatusTooManyRequests || response.StatusCode == http.StatusBadGateway ||
 			response.StatusCode == http.StatusServiceUnavailable || response.StatusCode == http.StatusGatewayTimeout {
 			if attemptIndex < maxRetryAttempts {
-				lastError = fmt.Errorf("healthcare api error %d: %s", response.StatusCode, string(responseBody))
+				lastError = fmt.Errorf("healthcare api: unexpected status %d", response.StatusCode)
 				time.Sleep(retryDelays[attemptIndex])
 				continue
 			}
-			return nil, fmt.Errorf("healthcare api error %d: %s", response.StatusCode, string(responseBody))
+			return nil, fmt.Errorf("healthcare api: unexpected status %d", response.StatusCode)
 		}
 
 		if response.StatusCode < 200 || response.StatusCode >= 300 {
-			return nil, fmt.Errorf("healthcare api error %d: %s", response.StatusCode, string(responseBody))
+			return nil, fmt.Errorf("healthcare api: unexpected status %d", response.StatusCode)
 		}
 
 		return responseBody, nil

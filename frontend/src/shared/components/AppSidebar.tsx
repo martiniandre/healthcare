@@ -8,7 +8,7 @@ const navigationItems = [
   { key: "patients", icon: Users, path: "/" },
   { key: "telemetry", icon: Activity, path: "/telemetry" },
   { key: "examAnalyzer", icon: Sparkles, path: "/exam-analyzer" },
-  { key: "stats", icon: BarChart3, path: "/stats" },
+  { key: "analytics", icon: BarChart3, path: "/analytics" },
   { key: "staffManagement", icon: Users, path: "/staff" },
   { key: "auditLogs", icon: History, path: "/audit-logs", adminOnly: true },
   { key: "settings", icon: Settings, path: "/settings", disabled: true },

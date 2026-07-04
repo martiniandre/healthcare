@@ -5,7 +5,7 @@ import patients from "./patients.json"
 import telemetry from "./telemetry.json"
 import imaging from "./imaging.json"
 import examAnalyzer from "./examAnalyzer.json"
-import stats from "./stats.json"
+import analytics from "./analytics.json"
 import staff from "./staff.json"
 import auditLogs from "./auditLogs.json"
 
@@ -17,7 +17,7 @@ const ptBRResource = {
   telemetry,
   imaging,
   examAnalyzer,
-  stats,
+  analytics,
   staff,
   auditLogs
 }

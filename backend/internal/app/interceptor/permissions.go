@@ -30,18 +30,24 @@ var methodPermissions = map[string][]role.Role{
 	"/patients.v1.PatientService/GetPatientByDocument": {role.RoleAdmin, role.RoleDoctor, role.RoleNurse, role.RoleReception},
 	"/patients.v1.PatientService/ListPatients":         {role.RoleAdmin, role.RoleDoctor, role.RoleNurse, role.RoleReception},
 
-	"/clinical.v1.ClinicalService/CreateEncounter":          {role.RoleDoctor},
-	"/clinical.v1.ClinicalService/GetEncounters":             {role.RoleAdmin, role.RoleDoctor, role.RoleNurse},
-	"/clinical.v1.ClinicalService/CreateObservation":         {role.RoleDoctor, role.RoleNurse},
-	"/clinical.v1.ClinicalService/GetObservations":           {role.RoleAdmin, role.RoleDoctor, role.RoleNurse},
-	"/clinical.v1.ClinicalService/CreateCondition":           {role.RoleDoctor},
-	"/clinical.v1.ClinicalService/GetConditions":             {role.RoleAdmin, role.RoleDoctor, role.RoleNurse},
-	"/clinical.v1.ClinicalService/CreateAllergyIntolerance":  {role.RoleDoctor, role.RoleNurse},
-	"/clinical.v1.ClinicalService/GetAllergyIntolerances":    {role.RoleAdmin, role.RoleDoctor, role.RoleNurse},
-	"/clinical.v1.ClinicalService/CreateMedicationRequest":   {role.RoleDoctor},
-	"/clinical.v1.ClinicalService/GetMedicationRequests":     {role.RoleAdmin, role.RoleDoctor, role.RoleNurse},
-	"/clinical.v1.ClinicalService/CreateDiagnosticReport":    {role.RoleDoctor},
-	"/clinical.v1.ClinicalService/GetDiagnosticReports":      {role.RoleAdmin, role.RoleDoctor, role.RoleNurse},
+	"/encounter.v1.EncounterService/CreateEncounter":        {role.RoleDoctor},
+	"/encounter.v1.EncounterService/GetEncounter":           {role.RoleAdmin, role.RoleDoctor, role.RoleNurse},
+	"/encounter.v1.EncounterService/GetEncounters":           {role.RoleAdmin, role.RoleDoctor, role.RoleNurse},
+
+	"/observation.v1.ObservationService/CreateObservation":  {role.RoleDoctor, role.RoleNurse},
+	"/observation.v1.ObservationService/GetObservations":    {role.RoleAdmin, role.RoleDoctor, role.RoleNurse},
+
+	"/condition.v1.ConditionService/CreateCondition":        {role.RoleDoctor},
+	"/condition.v1.ConditionService/GetConditions":          {role.RoleAdmin, role.RoleDoctor, role.RoleNurse},
+
+	"/allergy.v1.AllergyService/CreateAllergyIntolerance":   {role.RoleDoctor, role.RoleNurse},
+	"/allergy.v1.AllergyService/GetAllergyIntolerances":     {role.RoleAdmin, role.RoleDoctor, role.RoleNurse},
+
+	"/medication.v1.MedicationService/CreateMedicationRequest":  {role.RoleDoctor},
+	"/medication.v1.MedicationService/GetMedicationRequests":    {role.RoleAdmin, role.RoleDoctor, role.RoleNurse},
+
+	"/diagnostic_report.v1.DiagnosticReportService/CreateDiagnosticReport": {role.RoleDoctor},
+	"/diagnostic_report.v1.DiagnosticReportService/GetDiagnosticReports":   {role.RoleAdmin, role.RoleDoctor, role.RoleNurse},
 
 	"/clinical.v1.ImagingService/UploadDICOM":         {role.RoleAdmin, role.RoleDoctor, role.RoleNurse},
 	"/clinical.v1.ImagingService/GetImagingStudy":     {role.RoleAdmin, role.RoleDoctor, role.RoleNurse, role.RolePatient},

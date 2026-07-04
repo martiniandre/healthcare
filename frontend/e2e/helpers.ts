@@ -791,8 +791,8 @@ export const mockTelemetryAPI = async (pageInstance: Page): Promise<void> => {
   })
 }
 
-export const mockStatsAPI = async (pageInstance: Page): Promise<void> => {
-  await pageInstance.route("**/api/stats", async (networkRoute) => {
+export const mockAnalyticsAPI = async (pageInstance: Page): Promise<void> => {
+  await pageInstance.route("**/api/analytics", async (networkRoute) => {
     await networkRoute.fulfill({
       status: 200,
       contentType: "application/json",
@@ -809,18 +809,18 @@ export const mockStatsAPI = async (pageInstance: Page): Promise<void> => {
           { modality: "US (Ultrassom)", percentage: 10, count: 3, color: "#f59e0b" }
         ],
         consultationsWeeklyData: [
-          { dayName: "stats.days.mon", count: 8 },
-          { dayName: "stats.days.tue", count: 12 },
-          { dayName: "stats.days.wed", count: 14 },
-          { dayName: "stats.days.thu", count: 11 },
-          { dayName: "stats.days.fri", count: 15 },
-          { dayName: "stats.days.sat", count: 5 },
-          { dayName: "stats.days.sun", count: 2 }
+          { dayName: "analytics.days.mon", count: 8 },
+          { dayName: "analytics.days.tue", count: 12 },
+          { dayName: "analytics.days.wed", count: 14 },
+          { dayName: "analytics.days.thu", count: 11 },
+          { dayName: "analytics.days.fri", count: 15 },
+          { dayName: "analytics.days.sat", count: 5 },
+          { dayName: "analytics.days.sun", count: 2 }
         ],
         pathologies: [
-          { code: "J45.9", descriptionKey: "stats.pathologies.asthma", categoryKey: "stats.categories.respiratory", activeCases: 44, trend: "+5%" },
-          { code: "I10", descriptionKey: "stats.pathologies.hypertension", categoryKey: "stats.categories.cardiovascular", activeCases: 119, trend: "stable" },
-          { code: "E11.9", descriptionKey: "stats.pathologies.diabetes", categoryKey: "stats.categories.endocrine", activeCases: 85, trend: "+12%" }
+          { code: "J45.9", descriptionKey: "analytics.pathologies.asthma", categoryKey: "analytics.categories.respiratory", activeCases: 44, trend: "+5%" },
+          { code: "I10", descriptionKey: "analytics.pathologies.hypertension", categoryKey: "analytics.categories.cardiovascular", activeCases: 119, trend: "stable" },
+          { code: "E11.9", descriptionKey: "analytics.pathologies.diabetes", categoryKey: "analytics.categories.endocrine", activeCases: 85, trend: "+12%" }
         ]
       })
     })
@@ -834,7 +834,7 @@ export const loginAsDoctor = async (pageInstance: Page): Promise<void> => {
   await mockAnalyzerAPI(pageInstance)
   await mockStaffAPI(pageInstance)
   await mockTelemetryAPI(pageInstance)
-  await mockStatsAPI(pageInstance)
+  await mockAnalyticsAPI(pageInstance)
   await pageInstance.goto("/login")
   await pageInstance.getByPlaceholder("nome.sobrenome@hospital.com").fill("medico@clinica.com")
   await pageInstance.getByPlaceholder("••••••••").fill("senha123")

@@ -1,36 +1,22 @@
-import { lazy, Suspense, useEffect } from "react"
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom"
+import { lazy, Suspense } from "react"
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
 import { useAuthStore } from "../shared/store/auth_store"
 import { AppSidebar } from "../shared/components/AppSidebar"
 import { AppHeader } from "../shared/components/AppHeader"
 import { Spinner } from "../shared/components/ui/Spinner"
-import { auditLogsApi } from "../modules/audit_logs/api"
+import { usePageViewLogger } from "../shared/hooks/usePageViewLogger"
 
 const Login = lazy(() => import("../modules/auth/Login").then((module) => ({ default: module.Login })))
 const Patients = lazy(() => import("../modules/patients/Patients").then((module) => ({ default: module.Patients })))
 const PatientDetails = lazy(() => import("../modules/patients/PatientDetails").then((module) => ({ default: module.PatientDetails })))
 const Telemetry = lazy(() => import("../modules/telemetry/Telemetry").then((module) => ({ default: module.Telemetry })))
-const Stats = lazy(() => import("../modules/stats/Stats").then((module) => ({ default: module.Stats })))
+const Stats = lazy(() => import("../modules/analytics/Stats").then((module) => ({ default: module.Stats })))
 const Staff = lazy(() => import("../modules/staff/Staff").then((module) => ({ default: module.Staff })))
 const ExamAnalyzer = lazy(() => import("../modules/exam_analyzer/ExamAnalyzer").then((module) => ({ default: module.ExamAnalyzer })))
 const AuditLogs = lazy(() => import("../modules/audit_logs/AuditLogs").then((module) => ({ default: module.AuditLogs })))
 
 const PageViewLogger = () => {
-  const location = useLocation()
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
-
-  useEffect(() => {
-    if (isAuthenticated) {
-      auditLogsApi.createAuditLog({
-        method: "PAGE_VIEW",
-        correlation_id: `Viewed page: ${location.pathname}${location.search}`,
-        access_granted: true,
-      }).catch((logError) => {
-        console.error("Failed to log page view", logError)
-      })
-    }
-  }, [location.pathname, location.search, isAuthenticated])
-
+  usePageViewLogger()
   return null
 }
 
@@ -67,7 +53,7 @@ export const AppRoutes = () => {
                         <Route path="/" element={<Patients />} />
                         <Route path="/patients/:id" element={<PatientDetails />} />
                         <Route path="/telemetry" element={<Telemetry />} />
-                        <Route path="/stats" element={<Stats />} />
+                        <Route path="/analytics" element={<Stats />} />
                         <Route path="/staff" element={<Staff />} />
                         <Route path="/exam-analyzer" element={<ExamAnalyzer />} />
                         <Route

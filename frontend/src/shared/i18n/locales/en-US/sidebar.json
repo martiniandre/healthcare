@@ -6,7 +6,7 @@
   "telemetry": "ICU Telemetry",
   "pacsViewer": "PACS Viewer",
   "examAnalyzer": "Exam Analysis",
-  "stats": "Statistics",
+  "analytics": "Analytics",
   "staffManagement": "Staff Management",
   "auditLogs": "Audit Logs",
   "settings": "Settings",

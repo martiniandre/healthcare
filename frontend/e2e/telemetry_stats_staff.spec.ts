@@ -53,7 +53,7 @@ test.describe("Real-time Telemetry Dashboard Module", () => {
 test.describe("Clinical Statistics and Analytics Module", () => {
   test.beforeEach(async ({ page }) => {
     await loginAsDoctor(page)
-    await page.goto("/stats")
+    await page.goto("/analytics")
   })
 
   test("should load diagnostic statistics and key KPIs", async ({ page }) => {

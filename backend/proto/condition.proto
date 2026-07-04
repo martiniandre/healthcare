@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+package condition.v1;
+
+option go_package = "github.com/healthcare/backend/internal/modules/condition/pb";
+
+service ConditionService {
+  rpc CreateCondition(CreateConditionRequest) returns (CreateConditionResponse);
+  rpc GetConditions(GetConditionsRequest) returns (GetConditionsResponse);
+}
+
+message CreateConditionRequest {
+  string encounter_fhir_id = 1;
+  string patient_fhir_id = 2;
+  string icd10_code = 3;
+  string code_display = 4;
+  string clinical_status = 5;
+}
+
+message CreateConditionResponse {
+  string condition_fhir_id = 1;
+}
+
+message GetConditionsRequest {
+  string patient_fhir_id = 1;
+}
+
+message Condition {
+  string fhir_id = 1;
+  string icd10_code = 2;
+  string code_display = 3;
+  string clinical_status = 4;
+}
+
+message GetConditionsResponse {
+  repeated Condition conditions = 1;
+}

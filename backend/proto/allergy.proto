@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+package allergy.v1;
+
+option go_package = "github.com/healthcare/backend/internal/modules/allergy/pb";
+
+service AllergyService {
+  rpc CreateAllergyIntolerance(CreateAllergyIntoleranceRequest) returns (CreateAllergyIntoleranceResponse);
+  rpc GetAllergyIntolerances(GetAllergyIntolerancesRequest) returns (GetAllergyIntolerancesResponse);
+}
+
+message CreateAllergyIntoleranceRequest {
+  string patient_fhir_id = 1;
+  string allergen_code = 2;
+  string allergen_display = 3;
+  string clinical_status = 4;
+  string reaction = 5;
+}
+
+message CreateAllergyIntoleranceResponse {
+  string allergy_fhir_id = 1;
+}
+
+message GetAllergyIntolerancesRequest {
+  string patient_fhir_id = 1;
+}
+
+message AllergyIntolerance {
+  string fhir_id = 1;
+  string allergen_display = 2;
+  string clinical_status = 3;
+  string reaction = 4;
+}
+
+message GetAllergyIntolerancesResponse {
+  repeated AllergyIntolerance allergies = 1;
+}

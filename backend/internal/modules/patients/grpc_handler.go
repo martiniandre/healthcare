@@ -93,7 +93,16 @@ func (handler *GRPCHandler) GetPatientByDocument(ctx context.Context, req *pb.Ge
 }
 
 func (handler *GRPCHandler) ListPatients(ctx context.Context, req *pb.ListPatientsRequest) (*pb.ListPatientsResponse, error) {
-	patientsList, listError := handler.service.ListPatients(ctx, "", "", "", 1, 100)
+	page := int(req.Page)
+	if page <= 0 {
+		page = 1
+	}
+	limit := int(req.Limit)
+	if limit <= 0 {
+		limit = 50
+	}
+
+	patientsList, listError := handler.service.ListPatients(ctx, req.Search, req.SortField, req.SortDirection, page, limit)
 	if listError != nil {
 		return nil, mapPatientError(listError)
 	}

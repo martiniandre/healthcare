@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+package medication.v1;
+
+option go_package = "github.com/healthcare/backend/internal/modules/medication/pb";
+
+service MedicationService {
+  rpc CreateMedicationRequest(CreateMedicationRequestRequest) returns (CreateMedicationRequestResponse);
+  rpc GetMedicationRequests(GetMedicationRequestsRequest) returns (GetMedicationRequestsResponse);
+}
+
+message CreateMedicationRequestRequest {
+  string encounter_fhir_id = 1;
+  string patient_fhir_id = 2;
+  string practitioner_fhir_id = 3;
+  string medication_code = 4;
+  string medication_name = 5;
+  string dosage_instructions = 6;
+}
+
+message CreateMedicationRequestResponse {
+  string medication_request_fhir_id = 1;
+}
+
+message GetMedicationRequestsRequest {
+  string encounter_fhir_id = 1;
+}
+
+message MedicationRequest {
+  string fhir_id = 1;
+  string medication_name = 2;
+  string dosage_instructions = 3;
+  string status = 4;
+}
+
+message GetMedicationRequestsResponse {
+  repeated MedicationRequest medication_requests = 1;
+}

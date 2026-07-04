@@ -13,15 +13,20 @@ import (
 
 	"github.com/healthcare/backend/internal/api"
 	"github.com/healthcare/backend/internal/app"
+	"github.com/healthcare/backend/internal/modules/allergy"
+	"github.com/healthcare/backend/internal/modules/analytics"
 	"github.com/healthcare/backend/internal/modules/audit_logs"
 	"github.com/healthcare/backend/internal/modules/auth"
-	"github.com/healthcare/backend/internal/modules/clinical"
+	"github.com/healthcare/backend/internal/modules/condition"
+	"github.com/healthcare/backend/internal/modules/diagnostic_report"
+	"github.com/healthcare/backend/internal/modules/encounter"
 	"github.com/healthcare/backend/internal/modules/exam_analyzer"
 	"github.com/healthcare/backend/internal/modules/health"
 	"github.com/healthcare/backend/internal/modules/imaging"
+	"github.com/healthcare/backend/internal/modules/medication"
+	"github.com/healthcare/backend/internal/modules/observation"
 	"github.com/healthcare/backend/internal/modules/patients"
 	"github.com/healthcare/backend/internal/modules/staff"
-	"github.com/healthcare/backend/internal/modules/stats"
 	"github.com/healthcare/backend/internal/modules/telemetry"
 	"github.com/healthcare/backend/internal/shared/cache"
 	"github.com/healthcare/backend/internal/shared/config"
@@ -74,7 +79,12 @@ func main() {
 	authService := auth.Register(applicationServer.GRPCServer, auth.Dependency{DB: databasePool})
 	staffService := staff.Register(applicationServer.GRPCServer, staff.Dependency{DB: databasePool})
 	patientsService := patients.Register(applicationServer.GRPCServer, patients.Dependency{FHIRClient: fhirClient})
-	clinicalService := clinical.Register(applicationServer.GRPCServer, clinical.Dependency{FHIRClient: fhirClient})
+	encounterService := encounter.Register(applicationServer.GRPCServer, encounter.Dependency{FHIRClient: fhirClient})
+	observationService := observation.Register(applicationServer.GRPCServer, observation.Dependency{FHIRClient: fhirClient})
+	conditionService := condition.Register(applicationServer.GRPCServer, condition.Dependency{FHIRClient: fhirClient})
+	allergyService := allergy.Register(applicationServer.GRPCServer, allergy.Dependency{FHIRClient: fhirClient})
+	medicationService := medication.Register(applicationServer.GRPCServer, medication.Dependency{FHIRClient: fhirClient})
+	diagnosticReportService := diagnostic_report.Register(applicationServer.GRPCServer, diagnostic_report.Dependency{FHIRClient: fhirClient})
 	storageClient, storageClientErr := storage.NewGCSClient(mainContext)
 	if storageClientErr != nil {
 		slog.Warn("Failed to initialize GCS client, falling back to dummy", "error", storageClientErr)
@@ -84,7 +94,7 @@ func main() {
 	telemetryService := telemetry.Register(applicationServer.GRPCServer, telemetry.Dependency{DB: databasePool})
 	telemetrySimulator := telemetry.StartSimulator(mainContext, databasePool)
 	health.Register(applicationServer.GRPCServer, health.Dependency{DB: databasePool, Redis: redisClient})
-	statsHTTPHandler := stats.Register(stats.Dependency{DB: databasePool, FHIRClient: fhirClient})
+	analyticsHTTPHandler := analytics.Register(analytics.Dependency{DB: databasePool, FHIRClient: fhirClient})
 	auditLogsService := audit_logs.Register(applicationServer.GRPCServer, audit_logs.Dependency{DB: databasePool})
 
 	exam_analyzer.Register(exam_analyzer.Dependency{DB: databasePool, ProjectID: appConfig.GCPProjectID, LocationID: appConfig.GCPLocationID, VertexModel: appConfig.GCPVertexModel})
@@ -97,7 +107,12 @@ func main() {
 
 	authHTTPHandler := auth.NewHTTPHandler(authService, secureCookies)
 	patientsHTTPHandler := patients.NewHTTPHandler(patientsService)
-	clinicalHTTPHandler := clinical.NewHTTPHandler(clinicalService)
+	encounterHTTPHandler := encounter.NewHTTPHandler(encounterService)
+	observationHTTPHandler := observation.NewHTTPHandler(observationService)
+	conditionHTTPHandler := condition.NewHTTPHandler(conditionService)
+	allergyHTTPHandler := allergy.NewHTTPHandler(allergyService)
+	medicationHTTPHandler := medication.NewHTTPHandler(medicationService)
+	diagnosticReportHTTPHandler := diagnostic_report.NewHTTPHandler(diagnosticReportService)
 	imagingHTTPHandler := imaging.NewHTTPHandler(imagingService)
 	staffHTTPHandler := staff.NewHTTPHandler(staffService)
 	telemetryHTTPHandler := telemetry.NewHTTPHandler(telemetryService)
@@ -108,12 +123,17 @@ func main() {
 		secureCookies,
 		authHTTPHandler,
 		patientsHTTPHandler,
-		clinicalHTTPHandler,
+		encounterHTTPHandler,
+		observationHTTPHandler,
+		conditionHTTPHandler,
+		allergyHTTPHandler,
+		medicationHTTPHandler,
+		diagnosticReportHTTPHandler,
 		imagingHTTPHandler,
 		staffHTTPHandler,
 		telemetryHTTPHandler,
 		examAnalyzerHTTPHandler,
-		statsHTTPHandler,
+		analyticsHTTPHandler,
 		auditLogsHTTPHandler,
 	)
 

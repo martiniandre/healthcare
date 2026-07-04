@@ -1,0 +1,48 @@
+syntax = "proto3";
+
+package encounter.v1;
+
+option go_package = "github.com/healthcare/backend/internal/modules/encounter/pb";
+
+service EncounterService {
+  rpc CreateEncounter(CreateEncounterRequest) returns (CreateEncounterResponse);
+  rpc GetEncounter(GetEncounterRequest) returns (GetEncounterResponse);
+  rpc GetEncounters(GetEncountersRequest) returns (GetEncountersResponse);
+}
+
+message CreateEncounterRequest {
+  string patient_fhir_id = 1;
+  string practitioner_id = 2;
+  string reason_code = 3;
+  string reason_display = 4;
+}
+
+message CreateEncounterResponse {
+  string encounter_fhir_id = 1;
+}
+
+message GetEncounterRequest {
+  string encounter_fhir_id = 1;
+}
+
+message GetEncounterResponse {
+  string fhir_id = 1;
+  string patient_fhir_id = 2;
+  string status = 3;
+  string reason_display = 4;
+}
+
+message GetEncountersRequest {
+  string patient_fhir_id = 1;
+}
+
+message Encounter {
+  string fhir_id = 1;
+  string patient_fhir_id = 2;
+  string status = 3;
+  string reason_display = 4;
+}
+
+message GetEncountersResponse {
+  repeated Encounter encounters = 1;
+}

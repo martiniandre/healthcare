@@ -40,7 +40,13 @@ message GetPatientResponse {
   string phone_number = 6;
 }
 
-message ListPatientsRequest {}
+message ListPatientsRequest {
+  string search = 1;
+  string sort_field = 2;
+  string sort_direction = 3;
+  int32 page = 4;
+  int32 limit = 5;
+}
 
 message ListPatientsResponse {
   repeated GetPatientResponse patients = 1;
