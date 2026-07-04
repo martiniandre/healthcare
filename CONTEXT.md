@@ -72,6 +72,10 @@ _Avoid_: Station, spot, unit, slot
 Authentication and authorization subsystem that issues JWT tokens, manages sessions, and enforces role-based access control across all API surfaces.
 _Avoid_: Security, login, identity, access control
 
+### OTEL:
+OpenTelemetry tracing infrastructure exporting traces via OTLP HTTP for observability across gRPC and HTTP APIs.
+_Avoid_: Tracing, monitoring, telemetry, APM
+
 ---
 
 ## Architecture
@@ -143,11 +147,38 @@ frontend/src/
 
 ### Testing
 
-| Layer     | Framework | Tests | Command |
-|-----------|-----------|-------|---------|
-| Backend   | Go `testing` | 40+ service/handler tests | `go test ./internal/...` |
-| Frontend  | Vitest     | 22 unit tests (hooks, schemas, validators, Button) | `npm run test` |
-| E2E       | Playwright | Imaging + Telemetry flows | `npm run e2e` |
+| Layer      | Framework      | Tests                          | Command              |
+|------------|----------------|--------------------------------|----------------------|
+| Backend    | Go `testing`   | 40+ service/handler tests      | `go test ./internal/...` |
+| Frontend   | Vitest         | 22 unit tests                  | `npm run test`       |
+| E2E        | Playwright     | 10 spec files (14 flows)       | `npm run e2e`        |
+| API Docs   | swaggo         | 35 endpoints documented        | `GET /swagger/`      |
+
+### Infrastructure
+
+```
+infra/
+├── k8s/                          — Kubernetes manifests (kustomize)
+│   ├── namespace.yaml
+│   ├── api-configmap.yaml         — Env config
+│   ├── api-secret.yaml            — Secrets template
+│   ├── api-deployment.yaml        — API (2 pods, 50051/8080, probes)
+│   ├── api-service.yaml           — ClusterIP (gRPC + HTTP)
+│   ├── api-hpa.yaml               — HPA (min 1, max 5, CPU 70%)
+│   ├── frontend-deployment.yaml   — Nginx static serving
+│   ├── frontend-service.yaml      — ClusterIP (port 80)
+│   ├── ingress.yaml               — TLS, path-based routing
+│   └── kustomization.yaml
+└── terraform/
+    ├── main.tf                    — GCP provider + healthcare submodule
+    ├── variables.tf               — project_id, region, environment
+    ├── outputs.tf                 — FHIR, GCS, Postgres, Redis endpoints
+    └── healthcare/
+        ├── main.tf                — FHIR store, DICOM store, GCS bucket,
+        │                             Cloud SQL PG16, Memorystore Redis 7.2
+        ├── variables.tf
+        └── outputs.tf
+```
 
 ### Key architectural decisions
 
