@@ -18,11 +18,10 @@ func mapExamAnalyzerError(err error) error {
 
 type GRPCHandler struct {
 	service Service
-	repo    Repository
 }
 
-func NewGRPCHandler(repo Repository, service Service) *GRPCHandler {
-	return &GRPCHandler{service: service, repo: repo}
+func NewGRPCHandler(service Service) *GRPCHandler {
+	return &GRPCHandler{service: service}
 }
 
 func (handler *GRPCHandler) ListAnalyses(ctx context.Context, req *pb.ListAnalysesRequest) (*pb.ListAnalysesResponse, error) {
@@ -31,38 +30,38 @@ func (handler *GRPCHandler) ListAnalyses(ctx context.Context, req *pb.ListAnalys
 		filterPatient = &req.PatientFhirId
 	}
 
-	analyses, err := handler.repo.ListAnalyses(ctx, filterPatient)
+	analyses, err := handler.service.ListAnalyses(ctx, filterPatient)
 	if err != nil {
 		return nil, mapExamAnalyzerError(err)
 	}
 
 	items := make([]*pb.ExamAnalysisItem, 0, len(analyses))
-	for _, a := range analyses {
+	for _, analysisItem := range analyses {
 		userID := ""
-		if a.UserID != nil {
-			userID = a.UserID.String()
+		if analysisItem.UserID != nil {
+			userID = analysisItem.UserID.String()
 		}
 		patientFhirID := ""
-		if a.PatientFhirID != nil {
-			patientFhirID = *a.PatientFhirID
+		if analysisItem.PatientFhirID != nil {
+			patientFhirID = *analysisItem.PatientFhirID
 		}
 		examType := ""
-		if a.ExamType != nil {
-			examType = *a.ExamType
+		if analysisItem.ExamType != nil {
+			examType = *analysisItem.ExamType
 		}
 
 		items = append(items, &pb.ExamAnalysisItem{
-			Id:               a.ID.String(),
+			Id:               analysisItem.ID.String(),
 			UserId:           userID,
 			PatientFhirId:    patientFhirID,
 			ExamType:         examType,
-			FileName:         a.FileName,
-			Status:           a.Status,
-			AnalysisResponse: string(a.AnalysisResponse),
-			ConsentGiven:     a.ConsentGiven,
-			Anonymized:       a.Anonymized,
-			CreatedAt:        a.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
-			UpdatedAt:        a.UpdatedAt.Format("2006-01-02T15:04:05Z07:00"),
+			FileName:         analysisItem.FileName,
+			Status:           analysisItem.Status,
+			AnalysisResponse: string(analysisItem.AnalysisResponse),
+			ConsentGiven:     analysisItem.ConsentGiven,
+			Anonymized:       analysisItem.Anonymized,
+			CreatedAt:        analysisItem.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
+			UpdatedAt:        analysisItem.UpdatedAt.Format("2006-01-02T15:04:05Z07:00"),
 		})
 	}
 
@@ -75,7 +74,7 @@ func (handler *GRPCHandler) GetAnalysis(ctx context.Context, req *pb.GetAnalysis
 		return nil, apperrors.ErrBadRequest.ToGRPC()
 	}
 
-	analysis, err := handler.repo.GetAnalysis(ctx, analysisID)
+	analysis, err := handler.service.GetAnalysis(ctx, analysisID)
 	if err != nil {
 		return nil, mapExamAnalyzerError(err)
 	}
@@ -116,7 +115,7 @@ func (handler *GRPCHandler) DeleteAnalysis(ctx context.Context, req *pb.DeleteAn
 		return nil, apperrors.ErrBadRequest.ToGRPC()
 	}
 
-	err = handler.repo.DeleteAnalysis(ctx, analysisID)
+	err = handler.service.DeleteAnalysis(ctx, analysisID)
 	if err != nil {
 		return nil, mapExamAnalyzerError(err)
 	}

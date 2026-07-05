@@ -13,12 +13,16 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/google/uuid"
 	"github.com/healthcare/backend/internal/shared/apperrors"
 	"golang.org/x/oauth2/google"
 )
 
 type Service interface {
 	AnalyzeExamFile(ctx context.Context, filePath string, fileName string) (*MedicalAnalysisResponse, string, error)
+	ListAnalyses(ctx context.Context, patientFhirID *string) ([]*ExamAnalysis, error)
+	GetAnalysis(ctx context.Context, id uuid.UUID) (*ExamAnalysis, error)
+	DeleteAnalysis(ctx context.Context, id uuid.UUID) error
 }
 
 type service struct {
@@ -67,6 +71,18 @@ func (svc *service) AnalyzeExamFile(ctx context.Context, filePath string, fileNa
 
 	simulatedResponse := svc.runHeuristicSimulation(fileName, filePath)
 	return simulatedResponse, "completed", nil
+}
+
+func (svc *service) ListAnalyses(ctx context.Context, patientFhirID *string) ([]*ExamAnalysis, error) {
+	return svc.repository.ListAnalyses(ctx, patientFhirID)
+}
+
+func (svc *service) GetAnalysis(ctx context.Context, id uuid.UUID) (*ExamAnalysis, error) {
+	return svc.repository.GetAnalysis(ctx, id)
+}
+
+func (svc *service) DeleteAnalysis(ctx context.Context, id uuid.UUID) error {
+	return svc.repository.DeleteAnalysis(ctx, id)
 }
 
 func (svc *service) callVertexAI(ctx context.Context, filePath string, fileName string) (*MedicalAnalysisResponse, error) {

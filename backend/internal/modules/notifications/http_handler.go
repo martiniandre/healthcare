@@ -31,6 +31,18 @@ func (handler *HTTPHandler) RegisterRoutes(mux *http.ServeMux) {
 	mux.Handle("GET /api/v1/notifications/stream", authenticatedUser(http.HandlerFunc(handler.StreamNotifications)))
 }
 
+type notificationResponse struct {
+	ID           string `json:"id"`
+	Type         string `json:"type"`
+	Priority     string `json:"priority"`
+	Title        string `json:"title"`
+	Body         string `json:"body"`
+	ResourceType string `json:"resource_type"`
+	ResourceID   string `json:"resource_id"`
+	IsRead       bool   `json:"is_read"`
+	CreatedAt    string `json:"created_at"`
+}
+
 func (handler *HTTPHandler) ListNotifications(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
 	authenticatedContext, authPassed := middleware.ValidateHTTPAuth(httpResponseWriter, httpRequest, []role.Role{role.RoleAdmin, role.RoleDoctor, role.RoleNurse, role.RoleReception, role.RolePatient})
 	if !authPassed {
@@ -63,18 +75,6 @@ func (handler *HTTPHandler) ListNotifications(httpResponseWriter http.ResponseWr
 		slog.Error("failed to list notifications", "error", listError)
 		render.Error(httpResponseWriter, http.StatusInternalServerError, "failed to list notifications")
 		return
-	}
-
-	type notificationResponse struct {
-		ID           string `json:"id"`
-		Type         string `json:"type"`
-		Priority     string `json:"priority"`
-		Title        string `json:"title"`
-		Body         string `json:"body"`
-		ResourceType string `json:"resource_type"`
-		ResourceID   string `json:"resource_id"`
-		IsRead       bool   `json:"is_read"`
-		CreatedAt    string `json:"created_at"`
 	}
 
 	responseItems := make([]notificationResponse, 0, len(notifications))
@@ -181,19 +181,7 @@ func (handler *HTTPHandler) StreamNotifications(httpResponseWriter http.Response
 				return
 			}
 
-			type sseEvent struct {
-				ID           string `json:"id"`
-				Type         string `json:"type"`
-				Priority     string `json:"priority"`
-				Title        string `json:"title"`
-				Body         string `json:"body"`
-				ResourceType string `json:"resource_type"`
-				ResourceID   string `json:"resource_id"`
-				IsRead       bool   `json:"is_read"`
-				CreatedAt    string `json:"created_at"`
-			}
-
-			eventData, jsonError := json.Marshal(sseEvent{
+			eventData, jsonError := json.Marshal(notificationResponse{
 				ID:           notification.ID.String(),
 				Type:         string(notification.Type),
 				Priority:     string(notification.Priority),
@@ -201,7 +189,7 @@ func (handler *HTTPHandler) StreamNotifications(httpResponseWriter http.Response
 				Body:         notification.Body,
 				ResourceType: notification.ResourceType,
 				ResourceID:   notification.ResourceID,
-				IsRead:       false,
+				IsRead:       notification.IsRead,
 				CreatedAt:    notification.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
 			})
 			if jsonError != nil {

@@ -29,7 +29,7 @@ func NewWorker(repository Repository, service Service, eventBus eventbus.Bus) *W
 	}
 }
 
-func (w *Worker) Start(ctx context.Context) {
+func (worker *Worker) Start(ctx context.Context) {
 	slog.Info("Exam Analyzer Background Worker initialized")
 
 	cleanupTicker := time.NewTicker(5 * time.Minute)
@@ -39,26 +39,26 @@ func (w *Worker) Start(ctx context.Context) {
 		select {
 		case <-ctx.Done():
 			return
-		case <-w.stopSignal:
+		case <-worker.stopSignal:
 			return
-		case jobID := <-w.jobChannel:
-			w.processAnalysisJob(ctx, jobID)
+		case jobID := <-worker.jobChannel:
+			worker.processAnalysisJob(ctx, jobID)
 		case <-cleanupTicker.C:
-			w.executeAutoCleanup(ctx)
+			worker.executeAutoCleanup(ctx)
 		}
 	}
 }
 
-func (w *Worker) SubmitJob(analysisID uuid.UUID) {
-	w.jobChannel <- analysisID
+func (worker *Worker) SubmitJob(analysisID uuid.UUID) {
+	worker.jobChannel <- analysisID
 }
 
-func (w *Worker) Stop() {
-	close(w.stopSignal)
+func (worker *Worker) Stop() {
+	close(worker.stopSignal)
 }
 
-func (w *Worker) processAnalysisJob(ctx context.Context, analysisID uuid.UUID) {
-	analysisRecord, err := w.repository.GetAnalysis(ctx, analysisID)
+func (worker *Worker) processAnalysisJob(ctx context.Context, analysisID uuid.UUID) {
+	analysisRecord, err := worker.repository.GetAnalysis(ctx, analysisID)
 	if err != nil {
 		slog.Error("Failed to fetch analysis record for processing", "analysisID", analysisID, "error", err)
 		return
@@ -66,7 +66,7 @@ func (w *Worker) processAnalysisJob(ctx context.Context, analysisID uuid.UUID) {
 
 	analysisRecord.Status = "processing"
 	analysisRecord.UpdatedAt = time.Now()
-	if updateErr := w.repository.UpdateAnalysis(ctx, analysisRecord); updateErr != nil {
+	if updateErr := worker.repository.UpdateAnalysis(ctx, analysisRecord); updateErr != nil {
 		slog.Error("Failed to update status to processing", "analysisID", analysisID, "error", updateErr)
 		return
 	}
@@ -76,11 +76,11 @@ func (w *Worker) processAnalysisJob(ctx context.Context, analysisID uuid.UUID) {
 	maxRetries := 3
 
 	for attempt := 1; attempt <= maxRetries; attempt++ {
-		analysisResponse, statusResult, err = w.service.AnalyzeExamFile(ctx, analysisRecord.FilePath, analysisRecord.FileName)
+		analysisResponse, statusResult, err = worker.service.AnalyzeExamFile(ctx, analysisRecord.FilePath, analysisRecord.FileName)
 		if err == nil {
 			break
 		}
-		
+
 		slog.Warn("Error during medical exam analysis execution, retrying...", "analysisID", analysisID, "attempt", attempt, "error", err)
 		if attempt < maxRetries {
 			time.Sleep(time.Duration(attempt*2) * time.Second)
@@ -91,8 +91,8 @@ func (w *Worker) processAnalysisJob(ctx context.Context, analysisID uuid.UUID) {
 		slog.Error("Max retries reached. Medical exam analysis failed", "analysisID", analysisID, "error", err)
 		analysisRecord.Status = "failed"
 		analysisRecord.UpdatedAt = time.Now()
-		_ = w.repository.UpdateAnalysis(ctx, analysisRecord)
-		
+		_ = worker.repository.UpdateAnalysis(ctx, analysisRecord)
+
 		auditMessage := "Analysis moved to DLQ (failed state) after max retries"
 		auditRecord := &ExamAnalysisAuditLog{
 			ID:          uuid.New(),
@@ -102,7 +102,7 @@ func (w *Worker) processAnalysisJob(ctx context.Context, analysisID uuid.UUID) {
 			Details:     &auditMessage,
 			CreatedAt:   time.Now(),
 		}
-		_ = w.repository.CreateAuditLog(ctx, auditRecord)
+		_ = worker.repository.CreateAuditLog(ctx, auditRecord)
 		return
 	}
 
@@ -127,7 +127,7 @@ func (w *Worker) processAnalysisJob(ctx context.Context, analysisID uuid.UUID) {
 	}
 
 	analysisRecord.UpdatedAt = time.Now()
-	if updateErr := w.repository.UpdateAnalysis(ctx, analysisRecord); updateErr != nil {
+	if updateErr := worker.repository.UpdateAnalysis(ctx, analysisRecord); updateErr != nil {
 		slog.Error("Failed to save final analysis results to database", "analysisID", analysisID, "error", updateErr)
 		return
 	}
@@ -146,14 +146,14 @@ func (w *Worker) processAnalysisJob(ctx context.Context, analysisID uuid.UUID) {
 		Details:     &auditDetail,
 		CreatedAt:   time.Now(),
 	}
-	_ = w.repository.CreateAuditLog(ctx, auditLogRecord)
+	_ = worker.repository.CreateAuditLog(ctx, auditLogRecord)
 
-	if w.eventBus != nil && analysisRecord.Status == "completed" {
+	if worker.eventBus != nil && analysisRecord.Status == "completed" {
 		examType := ""
 		if analysisRecord.ExamType != nil {
 			examType = *analysisRecord.ExamType
 		}
-		w.eventBus.Publish(ctx, eventbus.Event{
+		worker.eventBus.Publish(ctx, eventbus.Event{
 			Name: "exam.complete",
 			Data: map[string]any{
 				"title":         "Análise de Exame Concluída",
@@ -165,8 +165,8 @@ func (w *Worker) processAnalysisJob(ctx context.Context, analysisID uuid.UUID) {
 	}
 }
 
-func (w *Worker) executeAutoCleanup(ctx context.Context) {
-	analysesList, err := w.repository.ListAnalyses(ctx, nil)
+func (worker *Worker) executeAutoCleanup(ctx context.Context) {
+	analysesList, err := worker.repository.ListAnalyses(ctx, nil)
 	if err != nil {
 		slog.Error("Auto-cleanup failed to list analyses", "error", err)
 		return
@@ -192,7 +192,7 @@ func (w *Worker) executeAutoCleanup(ctx context.Context) {
 
 			analysis.FilePath = "deleted"
 			analysis.UpdatedAt = time.Now()
-			_ = w.repository.UpdateAnalysis(ctx, analysis)
+			_ = worker.repository.UpdateAnalysis(ctx, analysis)
 
 			auditMessage := "Physical temporary file automatically removed due to retention security policy"
 			auditRecord := &ExamAnalysisAuditLog{
@@ -204,7 +204,7 @@ func (w *Worker) executeAutoCleanup(ctx context.Context) {
 				Details:     &auditMessage,
 				CreatedAt:   time.Now(),
 			}
-			_ = w.repository.CreateAuditLog(ctx, auditRecord)
+			_ = worker.repository.CreateAuditLog(ctx, auditRecord)
 		}
 	}
 }

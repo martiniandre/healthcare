@@ -9,9 +9,10 @@ import (
 )
 
 var (
-	jwtSecret     []byte
-	jwtInitOnce   sync.Once
-	jwtInitErr    error
+	jwtSecret      []byte
+	jwtInitOnce    sync.Once
+	jwtInitErr     error
+	tokenBlacklist sync.Map
 )
 
 func InitJWT(secretKey string) error {
@@ -37,6 +38,10 @@ func GenerateJWT(userID, role, email string) (string, error) {
 }
 
 func ValidateJWT(tokenString string) (jwt.MapClaims, error) {
+	if isTokenRevoked(tokenString) {
+		return nil, errors.New("token revoked")
+	}
+
 	token, validationError := jwt.Parse(tokenString, func(parsedToken *jwt.Token) (interface{}, error) {
 		if _, isMethodHMAC := parsedToken.Method.(*jwt.SigningMethodHMAC); !isMethodHMAC {
 			return nil, errors.New("unexpected signing method")
@@ -53,5 +58,41 @@ func ValidateJWT(tokenString string) (jwt.MapClaims, error) {
 		return nil, errors.New("invalid token claims")
 	}
 
+	expirationClaim, hasExp := claims["exp"].(float64)
+	if !hasExp {
+		return nil, errors.New("token missing expiration")
+	}
+	if time.Now().Unix() > int64(expirationClaim) {
+		return nil, errors.New("token expired")
+	}
+
 	return claims, nil
+}
+
+func RevokeToken(tokenString string) {
+	token, _, parseError := new(jwt.Parser).ParseUnverified(tokenString, jwt.MapClaims{})
+	if parseError != nil {
+		return
+	}
+	if claims, ok := token.Claims.(jwt.MapClaims); ok {
+		if exp, ok := claims["exp"].(float64); ok {
+			tokenBlacklist.Store(tokenString, int64(exp))
+		}
+	}
+}
+
+func isTokenRevoked(tokenString string) bool {
+	expValue, loaded := tokenBlacklist.Load(tokenString)
+	if !loaded {
+		return false
+	}
+	exp, ok := expValue.(int64)
+	if !ok {
+		return false
+	}
+	if time.Now().Unix() > exp {
+		tokenBlacklist.Delete(tokenString)
+		return false
+	}
+	return true
 }

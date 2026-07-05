@@ -110,6 +110,8 @@ func (handler *HTTPHandler) HandleLogout(httpResponseWriter http.ResponseWriter,
 		return
 	}
 
+	RevokeToken(cookie.Value)
+
 	csrfHeader := httpRequest.Header.Get("X-CSRF-Token")
 	csrfCookie, csrfCookieErr := httpRequest.Cookie("csrf_token")
 	if csrfCookieErr != nil || csrfHeader == "" || csrfHeader != csrfCookie.Value {
@@ -131,7 +133,7 @@ func (handler *HTTPHandler) HandleLogout(httpResponseWriter http.ResponseWriter,
 		Name:     "csrf_token",
 		Value:    "",
 		Path:     "/",
-		HttpOnly: false,
+		HttpOnly: true,
 		Secure:   handler.secureCookies,
 		SameSite: http.SameSiteLaxMode,
 		MaxAge:   -1,

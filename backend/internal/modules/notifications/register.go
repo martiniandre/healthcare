@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/healthcare/backend/internal/shared/eventbus"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type Dependency struct {
@@ -18,57 +18,25 @@ func Register(dep Dependency) (Service, *HTTPHandler) {
 	svc := NewService(repo)
 	httpHandler := NewHTTPHandler(svc)
 
-	dep.EventBus.Subscribe("telemetry.alert", func(ctx context.Context, event eventbus.Event) error {
-		title, _ := event.Data["title"].(string)
-		body, _ := event.Data["body"].(string)
-		actorID := parseActorID(event.Data)
-		resourceType, _ := event.Data["resource_type"].(string)
-		resourceID, _ := event.Data["resource_id"].(string)
-		_, err := svc.CreateNotificationByRole(ctx, NotificationTypeTelemetryAlert, title, body, actorID, resourceType, resourceID)
-		return err
-	})
-
-	dep.EventBus.Subscribe("exam.complete", func(ctx context.Context, event eventbus.Event) error {
-		title, _ := event.Data["title"].(string)
-		body, _ := event.Data["body"].(string)
-		actorID := parseActorID(event.Data)
-		resourceType, _ := event.Data["resource_type"].(string)
-		resourceID, _ := event.Data["resource_id"].(string)
-		_, err := svc.CreateNotificationByRole(ctx, NotificationTypeExamComplete, title, body, actorID, resourceType, resourceID)
-		return err
-	})
-
-	dep.EventBus.Subscribe("encounter.created", func(ctx context.Context, event eventbus.Event) error {
-		title, _ := event.Data["title"].(string)
-		body, _ := event.Data["body"].(string)
-		actorID := parseActorID(event.Data)
-		resourceType, _ := event.Data["resource_type"].(string)
-		resourceID, _ := event.Data["resource_id"].(string)
-		_, err := svc.CreateNotificationByRole(ctx, NotificationTypeEncounterCreate, title, body, actorID, resourceType, resourceID)
-		return err
-	})
-
-	dep.EventBus.Subscribe("patient.created", func(ctx context.Context, event eventbus.Event) error {
-		title, _ := event.Data["title"].(string)
-		body, _ := event.Data["body"].(string)
-		actorID := parseActorID(event.Data)
-		resourceType, _ := event.Data["resource_type"].(string)
-		resourceID, _ := event.Data["resource_id"].(string)
-		_, err := svc.CreateNotificationByRole(ctx, NotificationTypePatientCreate, title, body, actorID, resourceType, resourceID)
-		return err
-	})
-
-	dep.EventBus.Subscribe("system.notification", func(ctx context.Context, event eventbus.Event) error {
-		title, _ := event.Data["title"].(string)
-		body, _ := event.Data["body"].(string)
-		actorID := parseActorID(event.Data)
-		resourceType, _ := event.Data["resource_type"].(string)
-		resourceID, _ := event.Data["resource_id"].(string)
-		_, err := svc.CreateNotification(ctx, NotificationTypeSystem, title, body, actorID, resourceType, resourceID, nil)
-		return err
-	})
+	dep.EventBus.Subscribe("telemetry.alert", subscribeByRoleHandler(svc, NotificationTypeTelemetryAlert))
+	dep.EventBus.Subscribe("exam.complete", subscribeByRoleHandler(svc, NotificationTypeExamComplete))
+	dep.EventBus.Subscribe("encounter.created", subscribeByRoleHandler(svc, NotificationTypeEncounterCreate))
+	dep.EventBus.Subscribe("patient.created", subscribeByRoleHandler(svc, NotificationTypePatientCreate))
+	dep.EventBus.Subscribe("system.notification", subscribeByRoleHandler(svc, NotificationTypeSystem))
 
 	return svc, httpHandler
+}
+
+func subscribeByRoleHandler(svc Service, notificationType NotificationType) func(ctx context.Context, event eventbus.Event) error {
+	return func(ctx context.Context, event eventbus.Event) error {
+		title, _ := event.Data["title"].(string)
+		body, _ := event.Data["body"].(string)
+		actorID := parseActorID(event.Data)
+		resourceType, _ := event.Data["resource_type"].(string)
+		resourceID, _ := event.Data["resource_id"].(string)
+		_, err := svc.CreateNotificationByRole(ctx, notificationType, title, body, actorID, resourceType, resourceID)
+		return err
+	}
 }
 
 func parseActorID(data map[string]any) *uuid.UUID {

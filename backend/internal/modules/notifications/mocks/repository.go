@@ -9,13 +9,13 @@ import (
 )
 
 type MockNotificationRepository struct {
-	Notifications   []*notifications.Notification
-	Recipients      map[uuid.UUID][]uuid.UUID
-	UsersByRole     map[string][]uuid.UUID
-	UnreadCount     int32
-	CreateError     error
-	MarkReadError   error
-	GetUsersError   error
+	Notifications []*notifications.Notification
+	Recipients    map[uuid.UUID][]uuid.UUID
+	UsersByRole   map[string][]uuid.UUID
+	UnreadCount   int32
+	CreateError   error
+	MarkReadError error
+	GetUsersError error
 }
 
 func NewMockNotificationRepository() *MockNotificationRepository {
@@ -39,9 +39,8 @@ func (mockRepo *MockNotificationRepository) ListByUserID(ctx context.Context, us
 	filtered := make([]*notifications.Notification, 0)
 	for _, n := range mockRepo.Notifications {
 		recipients := mockRepo.Recipients[n.ID]
-		for _, r := range recipients {
-			if r == userID {
-				n.IsRead = true
+		for _, recipientID := range recipients {
+			if recipientID == userID {
 				filtered = append(filtered, n)
 				break
 			}
@@ -66,8 +65,8 @@ func (mockRepo *MockNotificationRepository) GetUserIDsByRole(ctx context.Context
 		return nil, mockRepo.GetUsersError
 	}
 	result := make([]uuid.UUID, 0)
-	for _, r := range roles {
-		if users, exists := mockRepo.UsersByRole[string(r)]; exists {
+	for _, roleValue := range roles {
+		if users, exists := mockRepo.UsersByRole[string(roleValue)]; exists {
 			result = append(result, users...)
 		}
 	}

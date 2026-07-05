@@ -8,7 +8,7 @@ import (
 )
 
 type MockExamAnalysisRepository struct {
-	Analyses map[uuid.UUID]*exam_analyzer.ExamAnalysis
+	Analyses  map[uuid.UUID]*exam_analyzer.ExamAnalysis
 	AuditLogs []*exam_analyzer.ExamAnalysisAuditLog
 	MockError error
 }

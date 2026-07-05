@@ -46,7 +46,7 @@ func (handler *GRPCHandler) Login(ctx context.Context, req *pb.LoginRequest) (*p
 
 	grpc.SetHeader(ctx, metadata.Pairs(
 		"set-cookie", "token="+token+"; HttpOnly; Secure; Path=/",
-		"set-cookie", "csrf_token="+csrfToken+"; Secure; Path=/; SameSite=Lax",
+		"set-cookie", "csrf_token="+csrfToken+"; HttpOnly; Secure; Path=/; SameSite=Lax",
 	))
 
 	return &pb.LoginResponse{
@@ -88,9 +88,21 @@ func (handler *GRPCHandler) Register(ctx context.Context, req *pb.RegisterReques
 }
 
 func (handler *GRPCHandler) Logout(ctx context.Context, req *pb.LogoutRequest) (*pb.LogoutResponse, error) {
+	incomingMetadata, metadataAvailable := metadata.FromIncomingContext(ctx)
+	if metadataAvailable {
+		for _, cookieHeader := range incomingMetadata.Get("cookie") {
+			for _, cookiePart := range strings.Split(cookieHeader, ";") {
+				cookiePart = strings.TrimSpace(cookiePart)
+				if strings.HasPrefix(cookiePart, "token=") {
+					RevokeToken(strings.TrimPrefix(cookiePart, "token="))
+				}
+			}
+		}
+	}
+
 	grpc.SetHeader(ctx, metadata.Pairs(
 		"set-cookie", "token=; HttpOnly; Secure; Path=/; Max-Age=0",
-		"set-cookie", "csrf_token=; Secure; Path=/; SameSite=Lax; Max-Age=0",
+		"set-cookie", "csrf_token=; HttpOnly; Secure; Path=/; SameSite=Lax; Max-Age=0",
 	))
 	return &pb.LogoutResponse{}, nil
 }

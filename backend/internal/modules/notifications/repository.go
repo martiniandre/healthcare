@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/healthcare/backend/internal/shared/role"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type Repository interface {
@@ -137,8 +137,8 @@ func (notificationRepository *repository) GetUnreadCount(ctx context.Context, us
 
 func (notificationRepository *repository) GetUserIDsByRole(ctx context.Context, roles []role.Role) ([]uuid.UUID, error) {
 	roleStrings := make([]string, 0, len(roles))
-	for _, r := range roles {
-		roleStrings = append(roleStrings, string(r))
+	for _, roleValue := range roles {
+		roleStrings = append(roleStrings, string(roleValue))
 	}
 
 	query := `SELECT id FROM users WHERE role = ANY($1) AND is_active = true`

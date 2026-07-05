@@ -1,9 +1,9 @@
 package auth
 
 import (
-	"github.com/jackc/pgx/v5/pgxpool"
 	authpb "github.com/healthcare/backend/internal/modules/auth/pb"
 	"github.com/healthcare/backend/internal/shared/eventbus"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"google.golang.org/grpc"
 )
 

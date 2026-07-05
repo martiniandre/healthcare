@@ -38,13 +38,17 @@ func (eventBus *bus) Publish(ctx context.Context, event Event) error {
 		return nil
 	}
 
+	var firstError error
 	for _, handler := range handlers {
 		if err := handler(ctx, event); err != nil {
 			slog.Error("event handler failed", "event", event.Name, "error", err)
+			if firstError == nil {
+				firstError = err
+			}
 		}
 	}
 
-	return nil
+	return firstError
 }
 
 func (eventBus *bus) Subscribe(eventName string, handler Handler) {

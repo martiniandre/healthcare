@@ -32,14 +32,14 @@ func (encounterService *service) CreateEncounter(ctx context.Context, encounter 
 
 	if encounterService.eventBus != nil {
 		encounterService.eventBus.Publish(ctx, eventbus.Event{
-		Name: "encounter.created",
-		Data: map[string]any{
-			"title":         "Novo Atendimento Criado",
-			"body":          "Atendimento para paciente " + createdEncounter.PatientFHIRID + " foi registrado.",
-			"resource_type": "encounter",
-			"resource_id":   createdEncounter.FHIRResourceID,
-		},
-	})
+			Name: "encounter.created",
+			Data: map[string]any{
+				"title":         "Novo Atendimento Criado",
+				"body":          "Atendimento para paciente " + createdEncounter.PatientFHIRID + " foi registrado.",
+				"resource_type": "encounter",
+				"resource_id":   createdEncounter.FHIRResourceID,
+			},
+		})
 	}
 
 	return createdEncounter, nil

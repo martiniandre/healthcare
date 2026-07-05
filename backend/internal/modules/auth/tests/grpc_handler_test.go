@@ -27,7 +27,7 @@ func (mockStream *mockServerTransportStream) SetHeader(metadataParam metadata.MD
 func TestGRPCHandler_Login(testingInstance *testing.T) {
 	mockService := mocks.NewMockService()
 	grpcHandler := auth.NewGRPCHandler(mockService)
-	
+
 	stream := &mockServerTransportStream{}
 	contextParam := grpc.NewContextWithServerTransportStream(context.Background(), stream)
 

@@ -7,8 +7,37 @@ import (
 	"github.com/google/uuid"
 	"github.com/healthcare/backend/internal/modules/patients"
 	"github.com/healthcare/backend/internal/modules/patients/mocks"
+	"github.com/healthcare/backend/internal/shared/eventbus"
 	"github.com/stretchr/testify/assert"
 )
+
+type mockPatientEventBus struct {
+	PublishedEvents []eventbus.Event
+}
+
+func (mockBus *mockPatientEventBus) Publish(ctx context.Context, event eventbus.Event) error {
+	mockBus.PublishedEvents = append(mockBus.PublishedEvents, event)
+	return nil
+}
+
+func (mockBus *mockPatientEventBus) Subscribe(eventName string, handler eventbus.Handler) {}
+
+func TestPatientService_CreatePatient_PublishesEvent(testingInstance *testing.T) {
+	eventBus := &mockPatientEventBus{}
+	mockRepository := mocks.NewMockPatientRepository()
+	patientService := patients.NewService(mockRepository, eventBus)
+	contextParam := context.Background()
+
+	patient, creationError := patientService.CreatePatient(contextParam, "Maria Oliveira", "1988-03-15", "777.888.999-00", "+55 21 98888-0000")
+
+	assert.NoError(testingInstance, creationError)
+	assert.NotNil(testingInstance, patient)
+	assert.Len(testingInstance, eventBus.PublishedEvents, 1)
+	assert.Equal(testingInstance, "patient.created", eventBus.PublishedEvents[0].Name)
+	assert.Equal(testingInstance, "Novo Paciente Cadastrado", eventBus.PublishedEvents[0].Data["title"])
+	assert.Equal(testingInstance, "patient", eventBus.PublishedEvents[0].Data["resource_type"])
+	assert.Contains(testingInstance, eventBus.PublishedEvents[0].Data["body"], "Maria Oliveira")
+}
 
 func TestPatientService_CreatePatient(testingInstance *testing.T) {
 	mockRepository := mocks.NewMockPatientRepository()

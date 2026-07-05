@@ -45,7 +45,7 @@ type subscriber struct {
 	channel chan *Notification
 }
 
-func (sub *subscriber) ID() string             { return sub.id }
+func (sub *subscriber) ID() string                  { return sub.id }
 func (sub *subscriber) Channel() chan *Notification { return sub.channel }
 
 type Service interface {
@@ -59,8 +59,8 @@ type Service interface {
 }
 
 type service struct {
-	repo         Repository
-	subscribers  map[string]Subscriber
+	repo          Repository
+	subscribers   map[string]Subscriber
 	subscribersMu sync.RWMutex
 }
 

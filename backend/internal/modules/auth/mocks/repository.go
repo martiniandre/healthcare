@@ -47,4 +47,3 @@ func (mockRepository *MockRepository) GetUserByID(contextParam context.Context, 
 	}
 	return nil, auth.ErrUserNotFound
 }
-
