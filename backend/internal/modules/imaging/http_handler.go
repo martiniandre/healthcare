@@ -95,7 +95,7 @@ func (handler *HTTPHandler) UploadPatientStudy(httpResponseWriter http.ResponseW
 	createdStudy, createErr := handler.service.UploadDICOMStream(httpRequest.Context(), patientFhirID, title, modality, file)
 	if createErr != nil {
 		slog.Error("failed to upload DICOM study", "error", createErr, "patient_fhir_id", patientFhirID, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.Error(httpResponseWriter, http.StatusInternalServerError, createErr.Error())
+		render.Error(httpResponseWriter, http.StatusInternalServerError, "Erro ao enviar estudo de imagem.")
 		return
 	}
 

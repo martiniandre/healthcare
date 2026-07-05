@@ -74,6 +74,7 @@
     "medications": "Prescrições",
     "allergies": "Alergias",
     "pacs": "PACS DICOM",
+    "selectEncounterTitle": "Selecionar Atendimento",
     "noActiveEncounter": "Nenhum atendimento ativo",
     "selectEncounterDesc": "Por favor, selecione ou registre um atendimento na aba \"Atendimentos\".",
     "allergiesCard": {

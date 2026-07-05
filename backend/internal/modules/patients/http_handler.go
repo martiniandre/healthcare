@@ -62,22 +62,13 @@ func (handler *HTTPHandler) ListPatients(httpResponseWriter http.ResponseWriter,
 	patientsList, listError := handler.service.ListPatients(httpRequest.Context(), search, sortField, sortDirection, page, limit)
 	if listError != nil {
 		slog.Error("failed to list patients", "error", listError, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.Error(httpResponseWriter, http.StatusInternalServerError, "failed to list patients")
+		render.Error(httpResponseWriter, http.StatusInternalServerError, "Erro ao carregar pacientes.")
 		return
 	}
 
-	type patientResponse struct {
-		PatientID      string `json:"patient_id"`
-		FHIRResourceID string `json:"fhir_resource_id"`
-		FullName       string `json:"full_name"`
-		BirthDate      string `json:"birth_date"`
-		DocumentID     string `json:"document_id"`
-		PhoneNumber    string `json:"phone_number"`
-	}
-
-	responseList := make([]patientResponse, 0, len(patientsList))
+	responseList := make([]PatientListResponse, 0, len(patientsList))
 	for _, patient := range patientsList {
-		responseList = append(responseList, patientResponse{
+		responseList = append(responseList, PatientListResponse{
 			PatientID:      patient.ID.String(),
 			FHIRResourceID: patient.FHIRResourceID,
 			FullName:       patient.FullName,
@@ -104,15 +95,15 @@ func (handler *HTTPHandler) ListPatients(httpResponseWriter http.ResponseWriter,
 //	@Failure		500		{object}	map[string]string
 //	@Router			/patients [post]
 func (handler *HTTPHandler) CreatePatient(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
-	var payload struct {
-		FullName    string `json:"full_name"`
-		BirthDate   string `json:"birth_date"`
-		DocumentID  string `json:"document_id"`
-		PhoneNumber string `json:"phone_number"`
-	}
+	var payload CreatePatientRequest
 
 	if payloadDecodeErr := json.NewDecoder(httpRequest.Body).Decode(&payload); payloadDecodeErr != nil {
-		render.Error(httpResponseWriter, http.StatusBadRequest, "invalid payload")
+		render.Error(httpResponseWriter, http.StatusBadRequest, "Payload inválido.")
+		return
+	}
+
+	if payload.FullName == "" || payload.BirthDate == "" || payload.DocumentID == "" {
+		render.Error(httpResponseWriter, http.StatusBadRequest, "Os campos nome, data de nascimento e documento são obrigatórios.")
 		return
 	}
 
@@ -120,16 +111,16 @@ func (handler *HTTPHandler) CreatePatient(httpResponseWriter http.ResponseWriter
 	if createPatientErr != nil {
 		slog.Error("failed to create patient", "error", createPatientErr, "document_id", payload.DocumentID, "request_id", middleware.GetRequestID(httpRequest.Context()))
 		if errors.Is(createPatientErr, ErrPatientAlreadyExists) {
-			render.Error(httpResponseWriter, http.StatusConflict, "patient with this document already exists")
+			render.Error(httpResponseWriter, http.StatusConflict, "Paciente com este documento já existe.")
 			return
 		}
-		render.Error(httpResponseWriter, http.StatusInternalServerError, "failed to create patient")
+		render.Error(httpResponseWriter, http.StatusInternalServerError, "Erro ao criar paciente.")
 		return
 	}
 
-	render.JSON(httpResponseWriter, http.StatusCreated, map[string]string{
-		"patient_id":       patient.ID.String(),
-		"fhir_resource_id": patient.FHIRResourceID,
+	render.JSON(httpResponseWriter, http.StatusCreated, CreatePatientResponse{
+		PatientID:      patient.ID.String(),
+		FHIRResourceID: patient.FHIRResourceID,
 	})
 }
 
@@ -148,24 +139,24 @@ func (handler *HTTPHandler) CreatePatient(httpResponseWriter http.ResponseWriter
 func (handler *HTTPHandler) GetPatient(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
 	patientFhirID := httpRequest.PathValue("patientFhirId")
 	if patientFhirID == "" {
-		render.Error(httpResponseWriter, http.StatusBadRequest, "missing patient id")
+		render.Error(httpResponseWriter, http.StatusBadRequest, "ID do paciente não informado.")
 		return
 	}
 
 	patient, getPatientErr := handler.service.GetPatient(httpRequest.Context(), patientFhirID)
 	if getPatientErr != nil {
 		slog.Error("patient not found", "error", getPatientErr, "patient_fhir_id", patientFhirID, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.Error(httpResponseWriter, http.StatusNotFound, "patient not found")
+		render.Error(httpResponseWriter, http.StatusNotFound, "Paciente não encontrado.")
 		return
 	}
 
-	render.JSON(httpResponseWriter, http.StatusOK, map[string]interface{}{
-		"patient_id":       patient.ID.String(),
-		"fhir_resource_id": patient.FHIRResourceID,
-		"full_name":        patient.FullName,
-		"birth_date":       patient.BirthDate.Format("2006-01-02"),
-		"document_id":      patient.DocumentID,
-		"phone_number":     patient.PhoneNumber,
+	render.JSON(httpResponseWriter, http.StatusOK, PatientListResponse{
+		PatientID:      patient.ID.String(),
+		FHIRResourceID: patient.FHIRResourceID,
+		FullName:       patient.FullName,
+		BirthDate:      patient.BirthDate.Format("2006-01-02"),
+		DocumentID:     patient.DocumentID,
+		PhoneNumber:    patient.PhoneNumber,
 	})
 }
 

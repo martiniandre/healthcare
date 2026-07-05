@@ -50,19 +50,9 @@ func (handler *HTTPHandler) ListReportsByEncounter(httpResponseWriter http.Respo
 		return
 	}
 
-	type reportResponse struct {
-		FhirID          string `json:"fhir_id"`
-		EncounterFhirID string `json:"encounter_fhir_id"`
-		PatientFhirID   string `json:"patient_fhir_id"`
-		ReportDisplay   string `json:"report_display"`
-		Status          string `json:"status"`
-		Conclusion      string `json:"conclusion"`
-		CreatedAt       string `json:"created_at"`
-	}
-
-	responseList := make([]reportResponse, 0, len(reportsList))
+	responseList := make([]DiagnosticReportResponse, 0, len(reportsList))
 	for _, report := range reportsList {
-		responseList = append(responseList, reportResponse{
+		responseList = append(responseList, DiagnosticReportResponse{
 			FhirID:          report.FHIRResourceID,
 			EncounterFhirID: report.EncounterFHIRID,
 			PatientFhirID:   report.PatientFHIRID,
@@ -92,14 +82,15 @@ func (handler *HTTPHandler) ListReportsByEncounter(httpResponseWriter http.Respo
 func (handler *HTTPHandler) CreateReport(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
 	encounterFhirID := httpRequest.PathValue("encounterFhirId")
 
-	var payload struct {
-		PatientFhirID string `json:"patient_fhir_id"`
-		ReportDisplay string `json:"report_display"`
-		Conclusion    string `json:"conclusion"`
-	}
+	var payload CreateDiagnosticReportRequest
 
 	if payloadDecodeErr := json.NewDecoder(httpRequest.Body).Decode(&payload); payloadDecodeErr != nil {
 		render.Error(httpResponseWriter, http.StatusBadRequest, "Payload inválido.")
+		return
+	}
+
+	if payload.PatientFhirID == "" {
+		render.Error(httpResponseWriter, http.StatusBadRequest, "O identificador do paciente é obrigatório.")
 		return
 	}
 
@@ -120,14 +111,14 @@ func (handler *HTTPHandler) CreateReport(httpResponseWriter http.ResponseWriter,
 		return
 	}
 
-	render.JSON(httpResponseWriter, http.StatusCreated, map[string]interface{}{
-		"fhir_id":           createdReport.FHIRResourceID,
-		"encounter_fhir_id": createdReport.EncounterFHIRID,
-		"patient_fhir_id":   createdReport.PatientFHIRID,
-		"report_display":    createdReport.ReportDisplay,
-		"status":            createdReport.Status,
-		"conclusion":        createdReport.Conclusion,
-		"created_at":        createdReport.IssuedAt.Format(time.RFC3339),
+	render.JSON(httpResponseWriter, http.StatusCreated, DiagnosticReportResponse{
+		FhirID:          createdReport.FHIRResourceID,
+		EncounterFhirID: createdReport.EncounterFHIRID,
+		PatientFhirID:   createdReport.PatientFHIRID,
+		ReportDisplay:   createdReport.ReportDisplay,
+		Status:          createdReport.Status,
+		Conclusion:      createdReport.Conclusion,
+		CreatedAt:       createdReport.IssuedAt.Format(time.RFC3339),
 	})
 }
 

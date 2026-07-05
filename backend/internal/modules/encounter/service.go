@@ -10,6 +10,8 @@ type Service interface {
 	CreateEncounter(ctx context.Context, encounter *Encounter) (*Encounter, error)
 	GetEncounter(ctx context.Context, fhirResourceID string) (*Encounter, error)
 	GetEncountersByPatient(ctx context.Context, patientFHIRID string) ([]*Encounter, error)
+	UpdateEncounter(ctx context.Context, fhirResourceID string, encounter *Encounter) (*Encounter, error)
+	DeleteEncounter(ctx context.Context, fhirResourceID string) error
 }
 
 type service struct {
@@ -47,6 +49,20 @@ func (encounterService *service) CreateEncounter(ctx context.Context, encounter 
 
 func (encounterService *service) GetEncounter(ctx context.Context, fhirResourceID string) (*Encounter, error) {
 	return encounterService.repo.GetEncounterByID(ctx, fhirResourceID)
+}
+
+func (encounterService *service) UpdateEncounter(ctx context.Context, fhirResourceID string, encounter *Encounter) (*Encounter, error) {
+	if encounter.PatientFHIRID == "" {
+		return nil, ErrEncounterNotFound
+	}
+	if encounter.Status == "" {
+		return nil, ErrEncounterNotFound
+	}
+	return encounterService.repo.UpdateEncounter(ctx, fhirResourceID, encounter)
+}
+
+func (encounterService *service) DeleteEncounter(ctx context.Context, fhirResourceID string) error {
+	return encounterService.repo.DeleteEncounter(ctx, fhirResourceID)
 }
 
 func (encounterService *service) GetEncountersByPatient(ctx context.Context, patientFHIRID string) ([]*Encounter, error) {

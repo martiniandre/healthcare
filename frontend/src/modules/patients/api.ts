@@ -101,8 +101,8 @@ export const patientsApi = {
   createMedication: async (medicationData: Omit<MedicationRequest, "fhir_id" | "created_at" | "status">): Promise<MedicationRequest> => {
     return http.post<MedicationRequest>(`/encounters/${medicationData.encounter_fhir_id}/medications`, {
       patient_fhir_id: medicationData.patient_fhir_id,
-      medication_display: medicationData.medication_display,
-      dosage_instruction: medicationData.dosage_instruction,
+      medication_name: medicationData.medication_name,
+      dosage_instructions: medicationData.dosage_instructions,
     })
   },
 }

@@ -15,6 +15,8 @@ import (
 type Repository interface {
 	CreateAllergyIntolerance(ctx context.Context, allergy *Allergy) (*Allergy, error)
 	GetAllergyIntolerancesByPatient(ctx context.Context, patientFHIRID string) ([]*Allergy, error)
+	UpdateAllergyIntolerance(ctx context.Context, fhirResourceID string, allergy *Allergy) (*Allergy, error)
+	DeleteAllergyIntolerance(ctx context.Context, fhirResourceID string) error
 }
 
 type repository struct {
@@ -48,6 +50,34 @@ func (allergyRepository *repository) CreateAllergyIntolerance(ctx context.Contex
 	allergy.FHIRResourceID = fhirID
 	allergy.RecordedAt = time.Now()
 	return allergy, nil
+}
+
+func (allergyRepository *repository) UpdateAllergyIntolerance(ctx context.Context, fhirResourceID string, allergy *Allergy) (*Allergy, error) {
+	fhirAllergy := fhir.NewAllergyIntoleranceResource(
+		allergy.PatientFHIRID,
+		allergy.AllergenCode,
+		allergy.AllergenDisplay,
+		allergy.ClinicalStatus,
+		allergy.Reaction,
+	)
+
+	responseBody, updateErr := allergyRepository.fhirClient.UpdateResource(ctx, "AllergyIntolerance", fhirResourceID, fhirAllergy)
+	if updateErr != nil {
+		return nil, fmt.Errorf("failed to update allergy intolerance: %w", updateErr)
+	}
+
+	var updatedResource map[string]interface{}
+	if parseErr := json.Unmarshal(responseBody, &updatedResource); parseErr != nil {
+		return nil, fmt.Errorf("failed to parse allergy update response: %w", parseErr)
+	}
+
+	fhirID, _ := updatedResource["id"].(string)
+	allergy.FHIRResourceID = fhirID
+	return allergy, nil
+}
+
+func (allergyRepository *repository) DeleteAllergyIntolerance(ctx context.Context, fhirResourceID string) error {
+	return allergyRepository.fhirClient.DeleteResource(ctx, "AllergyIntolerance/"+fhirResourceID)
 }
 
 func (allergyRepository *repository) GetAllergyIntolerancesByPatient(ctx context.Context, patientFHIRID string) ([]*Allergy, error) {

@@ -15,6 +15,8 @@ import (
 type Repository interface {
 	CreateCondition(ctx context.Context, condition *Condition) (*Condition, error)
 	GetConditionsByPatient(ctx context.Context, patientFHIRID string) ([]*Condition, error)
+	UpdateCondition(ctx context.Context, fhirResourceID string, condition *Condition) (*Condition, error)
+	DeleteCondition(ctx context.Context, fhirResourceID string) error
 }
 
 type repository struct {
@@ -48,6 +50,39 @@ func (conditionRepository *repository) CreateCondition(ctx context.Context, cond
 	fhirID, _ := createdResource["id"].(string)
 	condition.FHIRResourceID = fhirID
 	return condition, nil
+}
+
+func (conditionRepository *repository) UpdateCondition(ctx context.Context, fhirResourceID string, condition *Condition) (*Condition, error) {
+	fhirCondition := fhir.NewConditionResource(
+		condition.PatientFHIRID,
+		condition.EncounterFHIRID,
+		condition.ICD10Code,
+		condition.CodeDisplay,
+		condition.ClinicalStatus,
+		condition.OnsetAt,
+	)
+
+	responseBody, err := conditionRepository.fhirClient.UpdateResource(ctx, "Condition", fhirResourceID, fhirCondition)
+	if err != nil {
+		return nil, fmt.Errorf("failed to update condition: %w", err)
+	}
+
+	var updatedResource map[string]interface{}
+	if err := json.Unmarshal(responseBody, &updatedResource); err != nil {
+		return nil, fmt.Errorf("failed to parse condition response: %w", err)
+	}
+
+	fhirID, _ := updatedResource["id"].(string)
+	condition.FHIRResourceID = fhirID
+	return condition, nil
+}
+
+func (conditionRepository *repository) DeleteCondition(ctx context.Context, fhirResourceID string) error {
+	err := conditionRepository.fhirClient.DeleteResource(ctx, "Condition/"+fhirResourceID)
+	if err != nil {
+		return fmt.Errorf("failed to delete condition: %w", err)
+	}
+	return nil
 }
 
 func (conditionRepository *repository) GetConditionsByPatient(ctx context.Context, patientFHIRID string) ([]*Condition, error) {

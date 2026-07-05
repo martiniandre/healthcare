@@ -27,6 +27,8 @@ func (handler *HTTPHandler) RegisterRoutes(mux *http.ServeMux) {
 
 	mux.Handle("GET /api/v1/patients/{patientFhirId}/conditions", clinicalRead(http.HandlerFunc(handler.ListConditionsByPatient)))
 	mux.Handle("POST /api/v1/patients/{patientFhirId}/conditions", clinicalWrite(http.HandlerFunc(handler.CreateCondition)))
+	mux.Handle("PUT /api/v1/patients/{patientFhirId}/conditions/{conditionFhirId}", clinicalWrite(http.HandlerFunc(handler.UpdateCondition)))
+	mux.Handle("DELETE /api/v1/patients/{patientFhirId}/conditions/{conditionFhirId}", clinicalWrite(http.HandlerFunc(handler.DeleteCondition)))
 }
 
 // ListConditionsByPatient godoc
@@ -50,18 +52,9 @@ func (handler *HTTPHandler) ListConditionsByPatient(httpResponseWriter http.Resp
 		return
 	}
 
-	type conditionResponse struct {
-		FhirID         string `json:"fhir_id"`
-		PatientFhirID  string `json:"patient_fhir_id"`
-		ICD10Code      string `json:"icd10_code"`
-		CodeDisplay    string `json:"code_display"`
-		ClinicalStatus string `json:"clinical_status"`
-		CreatedAt      string `json:"created_at"`
-	}
-
-	responseList := make([]conditionResponse, 0, len(conditionsList))
+	responseList := make([]ConditionResponse, 0, len(conditionsList))
 	for _, condition := range conditionsList {
-		responseList = append(responseList, conditionResponse{
+		responseList = append(responseList, ConditionResponse{
 			FhirID:         condition.FHIRResourceID,
 			PatientFhirID:  condition.PatientFHIRID,
 			ICD10Code:      condition.ICD10Code,
@@ -90,14 +83,19 @@ func (handler *HTTPHandler) ListConditionsByPatient(httpResponseWriter http.Resp
 func (handler *HTTPHandler) CreateCondition(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
 	patientFhirID := httpRequest.PathValue("patientFhirId")
 
-	var payload struct {
-		ICD10Code    string `json:"icd10_code"`
-		CodeDisplay  string `json:"code_display"`
-		EncounterID  string `json:"encounter_id"`
-	}
+	var payload CreateConditionRequest
 
 	if payloadDecodeErr := json.NewDecoder(httpRequest.Body).Decode(&payload); payloadDecodeErr != nil {
 		render.Error(httpResponseWriter, http.StatusBadRequest, "Payload inválido.")
+		return
+	}
+
+	if payload.ICD10Code == "" {
+		render.Error(httpResponseWriter, http.StatusBadRequest, "O código CID-10 é obrigatório.")
+		return
+	}
+	if payload.CodeDisplay == "" {
+		render.Error(httpResponseWriter, http.StatusBadRequest, "A descrição do diagnóstico é obrigatória.")
 		return
 	}
 
@@ -117,14 +115,68 @@ func (handler *HTTPHandler) CreateCondition(httpResponseWriter http.ResponseWrit
 		return
 	}
 
-	render.JSON(httpResponseWriter, http.StatusCreated, map[string]interface{}{
-		"fhir_id":         createdCondition.FHIRResourceID,
-		"patient_fhir_id": createdCondition.PatientFHIRID,
-		"icd10_code":      createdCondition.ICD10Code,
-		"code_display":    createdCondition.CodeDisplay,
-		"clinical_status": createdCondition.ClinicalStatus,
-		"created_at":      createdCondition.OnsetAt.Format(time.RFC3339),
+	render.JSON(httpResponseWriter, http.StatusCreated, ConditionResponse{
+		FhirID:         createdCondition.FHIRResourceID,
+		PatientFhirID:  createdCondition.PatientFHIRID,
+		ICD10Code:      createdCondition.ICD10Code,
+		CodeDisplay:    createdCondition.CodeDisplay,
+		ClinicalStatus: createdCondition.ClinicalStatus,
+		CreatedAt:      createdCondition.OnsetAt.Format(time.RFC3339),
 	})
+}
+
+func (handler *HTTPHandler) UpdateCondition(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
+	patientFhirID := httpRequest.PathValue("patientFhirId")
+	conditionFhirID := httpRequest.PathValue("conditionFhirId")
+
+	var payload struct {
+		ICD10Code      string `json:"icd10_code"`
+		CodeDisplay    string `json:"code_display"`
+		ClinicalStatus string `json:"clinical_status"`
+		EncounterID    string `json:"encounter_id"`
+	}
+
+	if payloadDecodeErr := json.NewDecoder(httpRequest.Body).Decode(&payload); payloadDecodeErr != nil {
+		render.Error(httpResponseWriter, http.StatusBadRequest, "Payload inválido.")
+		return
+	}
+
+	updatedCondition := &Condition{
+		PatientFHIRID:   patientFhirID,
+		ICD10Code:       payload.ICD10Code,
+		CodeDisplay:     payload.CodeDisplay,
+		ClinicalStatus:  payload.ClinicalStatus,
+		EncounterFHIRID: payload.EncounterID,
+		OnsetAt:         time.Now(),
+	}
+
+	conditionResult, updateErr := handler.service.UpdateCondition(httpRequest.Context(), conditionFhirID, updatedCondition)
+	if updateErr != nil {
+		slog.Error("failed to update condition", "error", updateErr, "condition_fhir_id", conditionFhirID, "request_id", middleware.GetRequestID(httpRequest.Context()))
+		render.Error(httpResponseWriter, http.StatusInternalServerError, "Erro ao atualizar diagnóstico.")
+		return
+	}
+
+	render.JSON(httpResponseWriter, http.StatusOK, ConditionResponse{
+		FhirID:         conditionResult.FHIRResourceID,
+		PatientFhirID:  conditionResult.PatientFHIRID,
+		ICD10Code:      conditionResult.ICD10Code,
+		CodeDisplay:    conditionResult.CodeDisplay,
+		ClinicalStatus: conditionResult.ClinicalStatus,
+		CreatedAt:      conditionResult.OnsetAt.Format(time.RFC3339),
+	})
+}
+
+func (handler *HTTPHandler) DeleteCondition(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
+	conditionFhirID := httpRequest.PathValue("conditionFhirId")
+
+	if deleteErr := handler.service.DeleteCondition(httpRequest.Context(), conditionFhirID); deleteErr != nil {
+		slog.Error("failed to delete condition", "error", deleteErr, "condition_fhir_id", conditionFhirID, "request_id", middleware.GetRequestID(httpRequest.Context()))
+		render.Error(httpResponseWriter, http.StatusInternalServerError, "Erro ao remover diagnóstico.")
+		return
+	}
+
+	httpResponseWriter.WriteHeader(http.StatusNoContent)
 }
 
 type ConditionResponse struct {
@@ -139,6 +191,7 @@ type ConditionResponse struct {
 type CreateConditionRequest struct {
 	ICD10Code   string `json:"icd10_code"`
 	CodeDisplay string `json:"code_display"`
+	EncounterID string `json:"encounter_id"`
 }
 
 type CreateConditionResponse struct {

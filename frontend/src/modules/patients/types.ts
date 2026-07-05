@@ -73,8 +73,8 @@ export interface MedicationRequest {
   fhir_id: string
   encounter_fhir_id: string
   patient_fhir_id: string
-  medication_display: string
-  dosage_instruction: string
+  medication_name: string
+  dosage_instructions: string
   status: MedicationRequestStatus
   created_at: string
 }

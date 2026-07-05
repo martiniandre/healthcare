@@ -49,21 +49,9 @@ func (handler *HTTPHandler) ListMedicationsByEncounter(httpResponseWriter http.R
 		return
 	}
 
-	type medicationResponse struct {
-		FhirID             string `json:"fhir_id"`
-		EncounterFhirID    string `json:"encounter_fhir_id"`
-		PatientFhirID      string `json:"patient_fhir_id"`
-		PractitionerFhirID string `json:"practitioner_fhir_id"`
-		MedicationCode     string `json:"medication_code"`
-		MedicationName     string `json:"medication_name"`
-		DosageInstructions string `json:"dosage_instructions"`
-		Status             string `json:"status"`
-		CreatedAt          string `json:"created_at"`
-	}
-
-	responseList := make([]medicationResponse, 0, len(medicationsList))
+	responseList := make([]MedicationResponse, 0, len(medicationsList))
 	for _, medication := range medicationsList {
-		responseList = append(responseList, medicationResponse{
+		responseList = append(responseList, MedicationResponse{
 			FhirID:             medication.FHIRResourceID,
 			EncounterFhirID:    medication.EncounterFHIRID,
 			PatientFhirID:      medication.PatientFHIRID,
@@ -95,16 +83,19 @@ func (handler *HTTPHandler) ListMedicationsByEncounter(httpResponseWriter http.R
 func (handler *HTTPHandler) CreateMedication(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
 	encounterFhirID := httpRequest.PathValue("encounterFhirId")
 
-	var payload struct {
-		PatientFhirID      string `json:"patient_fhir_id"`
-		PractitionerFhirID string `json:"practitioner_fhir_id"`
-		MedicationCode     string `json:"medication_code"`
-		MedicationName     string `json:"medication_name"`
-		DosageInstructions string `json:"dosage_instructions"`
-	}
+	var payload CreateMedicationRequest
 
 	if payloadDecodeErr := json.NewDecoder(httpRequest.Body).Decode(&payload); payloadDecodeErr != nil {
 		render.Error(httpResponseWriter, http.StatusBadRequest, "Payload inválido.")
+		return
+	}
+
+	if payload.PatientFhirID == "" {
+		render.Error(httpResponseWriter, http.StatusBadRequest, "O identificador do paciente é obrigatório.")
+		return
+	}
+	if payload.MedicationName == "" {
+		render.Error(httpResponseWriter, http.StatusBadRequest, "O nome do medicamento é obrigatório.")
 		return
 	}
 
@@ -126,16 +117,16 @@ func (handler *HTTPHandler) CreateMedication(httpResponseWriter http.ResponseWri
 		return
 	}
 
-	render.JSON(httpResponseWriter, http.StatusCreated, map[string]interface{}{
-		"fhir_id":              createdMedication.FHIRResourceID,
-		"encounter_fhir_id":    createdMedication.EncounterFHIRID,
-		"patient_fhir_id":      createdMedication.PatientFHIRID,
-		"practitioner_fhir_id": createdMedication.PractitionerFHIRID,
-		"medication_code":      createdMedication.MedicationCode,
-		"medication_name":      createdMedication.MedicationName,
-		"dosage_instructions":  createdMedication.DosageInstructions,
-		"status":               createdMedication.Status,
-		"created_at":           createdMedication.IssuedAt.Format(time.RFC3339),
+	render.JSON(httpResponseWriter, http.StatusCreated, MedicationResponse{
+		FhirID:             createdMedication.FHIRResourceID,
+		EncounterFhirID:    createdMedication.EncounterFHIRID,
+		PatientFhirID:      createdMedication.PatientFHIRID,
+		PractitionerFhirID: createdMedication.PractitionerFHIRID,
+		MedicationCode:     createdMedication.MedicationCode,
+		MedicationName:     createdMedication.MedicationName,
+		DosageInstructions: createdMedication.DosageInstructions,
+		Status:             createdMedication.Status,
+		CreatedAt:          createdMedication.IssuedAt.Format(time.RFC3339),
 	})
 }
 

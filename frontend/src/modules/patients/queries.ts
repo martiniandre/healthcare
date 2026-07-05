@@ -180,8 +180,8 @@ export const useCreateMedicationMutation = () => {
     mutationFn: (payload: {
       encounter_fhir_id: string
       patient_fhir_id: string
-      medication_display: string
-      dosage_instruction: string
+      medication_name: string
+      dosage_instructions: string
     }) => patientsApi.createMedication(payload),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: patientQueryKeys.medications(variables.encounter_fhir_id) })

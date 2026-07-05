@@ -28,6 +28,8 @@ func (handler *HTTPHandler) RegisterRoutes(mux *http.ServeMux) {
 	mux.Handle("GET /api/v1/patients/{patientFhirId}/observations", clinicalRead(http.HandlerFunc(handler.ListObservationsByPatient)))
 	mux.Handle("GET /api/v1/encounters/{encounterFhirId}/observations", clinicalRead(http.HandlerFunc(handler.ListObservationsByEncounter)))
 	mux.Handle("POST /api/v1/encounters/{encounterFhirId}/observations", clinicalWrite(http.HandlerFunc(handler.CreateObservation)))
+	mux.Handle("PUT /api/v1/observations/{observationFhirId}", clinicalWrite(http.HandlerFunc(handler.UpdateObservation)))
+	mux.Handle("DELETE /api/v1/observations/{observationFhirId}", clinicalWrite(http.HandlerFunc(handler.DeleteObservation)))
 }
 
 // ListObservationsByPatient godoc
@@ -94,16 +96,19 @@ func (handler *HTTPHandler) ListObservationsByEncounter(httpResponseWriter http.
 func (handler *HTTPHandler) CreateObservation(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
 	encounterFhirID := httpRequest.PathValue("encounterFhirId")
 
-	var payload struct {
-		PatientFhirID string  `json:"patient_fhir_id"`
-		LoincCode     string  `json:"loinc_code"`
-		CodeDisplay   string  `json:"code_display"`
-		ValueQuantity float64 `json:"value_quantity"`
-		ValueUnit     string  `json:"value_unit"`
-	}
+	var payload CreateObservationRequest
 
 	if payloadDecodeErr := json.NewDecoder(httpRequest.Body).Decode(&payload); payloadDecodeErr != nil {
 		render.Error(httpResponseWriter, http.StatusBadRequest, "Payload inválido.")
+		return
+	}
+
+	if payload.PatientFhirID == "" {
+		render.Error(httpResponseWriter, http.StatusBadRequest, "O identificador do paciente é obrigatório.")
+		return
+	}
+	if payload.LoincCode == "" {
+		render.Error(httpResponseWriter, http.StatusBadRequest, "O código LOINC é obrigatório.")
 		return
 	}
 
@@ -124,30 +129,109 @@ func (handler *HTTPHandler) CreateObservation(httpResponseWriter http.ResponseWr
 		return
 	}
 
-	render.JSON(httpResponseWriter, http.StatusCreated, map[string]interface{}{
-		"fhir_id":           createdObservation.FHIRResourceID,
-		"encounter_fhir_id": createdObservation.EncounterFHIRID,
-		"patient_fhir_id":   createdObservation.PatientFHIRID,
-		"loinc_code":        createdObservation.LoincCode,
-		"code_display":      createdObservation.CodeDisplay,
-		"value_quantity":    createdObservation.ValueQuantity,
-		"value_unit":        createdObservation.ValueUnit,
-		"created_at":        createdObservation.ObservedAt.Format(time.RFC3339),
+	render.JSON(httpResponseWriter, http.StatusCreated, ObservationResponse{
+		FhirID:          createdObservation.FHIRResourceID,
+		EncounterFhirID: createdObservation.EncounterFHIRID,
+		PatientFhirID:   createdObservation.PatientFHIRID,
+		LoincCode:       createdObservation.LoincCode,
+		CodeDisplay:     createdObservation.CodeDisplay,
+		ValueQuantity:   createdObservation.ValueQuantity,
+		ValueUnit:       createdObservation.ValueUnit,
+		CreatedAt:       createdObservation.ObservedAt.Format(time.RFC3339),
 	})
 }
 
-func toObservationResponseList(observationsList []*Observation) []map[string]interface{} {
-	responseList := make([]map[string]interface{}, 0, len(observationsList))
+// UpdateObservation godoc
+//
+//	@Summary		Update an observation
+//	@Description	Updates an existing observation/vital sign
+//	@Tags			observations
+//	@Accept			json
+//	@Produce		json
+//	@Param			observationFhirId	path	string	true	"Observation FHIR ID"
+//	@Param			body				body	CreateObservationRequest	true	"Observation data"
+//	@Success		200					{array}	ObservationResponse
+//	@Failure		400					{object}	map[string]string
+//	@Failure		500					{object}	map[string]string
+//	@Router			/observations/{observationFhirId} [put]
+func (handler *HTTPHandler) UpdateObservation(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
+	observationFhirID := httpRequest.PathValue("observationFhirId")
+
+	var payload struct {
+		PatientFhirID string  `json:"patient_fhir_id"`
+		LoincCode     string  `json:"loinc_code"`
+		CodeDisplay   string  `json:"code_display"`
+		ValueQuantity float64 `json:"value_quantity"`
+		ValueUnit     string  `json:"value_unit"`
+	}
+
+	if payloadDecodeErr := json.NewDecoder(httpRequest.Body).Decode(&payload); payloadDecodeErr != nil {
+		render.Error(httpResponseWriter, http.StatusBadRequest, "Payload inválido.")
+		return
+	}
+
+	updatedObservation := &Observation{
+		PatientFHIRID:   payload.PatientFhirID,
+		LoincCode:       payload.LoincCode,
+		CodeDisplay:     payload.CodeDisplay,
+		ValueQuantity:   payload.ValueQuantity,
+		ValueUnit:       payload.ValueUnit,
+	}
+
+	resultObservation, updateErr := handler.service.UpdateObservation(httpRequest.Context(), observationFhirID, updatedObservation)
+	if updateErr != nil {
+		slog.Error("failed to update observation", "error", updateErr, "observation_fhir_id", observationFhirID, "request_id", middleware.GetRequestID(httpRequest.Context()))
+		render.Error(httpResponseWriter, http.StatusInternalServerError, "Erro ao atualizar observação.")
+		return
+	}
+
+	render.JSON(httpResponseWriter, http.StatusOK, ObservationResponse{
+		FhirID:          resultObservation.FHIRResourceID,
+		EncounterFhirID: resultObservation.EncounterFHIRID,
+		PatientFhirID:   resultObservation.PatientFHIRID,
+		LoincCode:       resultObservation.LoincCode,
+		CodeDisplay:     resultObservation.CodeDisplay,
+		ValueQuantity:   resultObservation.ValueQuantity,
+		ValueUnit:       resultObservation.ValueUnit,
+		CreatedAt:       resultObservation.ObservedAt.Format(time.RFC3339),
+	})
+}
+
+// DeleteObservation godoc
+//
+//	@Summary		Delete an observation
+//	@Description	Deletes an existing observation/vital sign
+//	@Tags			observations
+//	@Accept			json
+//	@Produce		json
+//	@Param			observationFhirId	path	string	true	"Observation FHIR ID"
+//	@Success		204					{object}	nil
+//	@Failure		500					{object}	map[string]string
+//	@Router			/observations/{observationFhirId} [delete]
+func (handler *HTTPHandler) DeleteObservation(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
+	observationFhirID := httpRequest.PathValue("observationFhirId")
+
+	if deleteErr := handler.service.DeleteObservation(httpRequest.Context(), observationFhirID); deleteErr != nil {
+		slog.Error("failed to delete observation", "error", deleteErr, "observation_fhir_id", observationFhirID, "request_id", middleware.GetRequestID(httpRequest.Context()))
+		render.Error(httpResponseWriter, http.StatusInternalServerError, "Erro ao deletar observação.")
+		return
+	}
+
+	httpResponseWriter.WriteHeader(http.StatusNoContent)
+}
+
+func toObservationResponseList(observationsList []*Observation) []ObservationResponse {
+	responseList := make([]ObservationResponse, 0, len(observationsList))
 	for _, observation := range observationsList {
-		responseList = append(responseList, map[string]interface{}{
-			"fhir_id":           observation.FHIRResourceID,
-			"encounter_fhir_id": observation.EncounterFHIRID,
-			"patient_fhir_id":   observation.PatientFHIRID,
-			"loinc_code":        observation.LoincCode,
-			"code_display":      observation.CodeDisplay,
-			"value_quantity":    observation.ValueQuantity,
-			"value_unit":        observation.ValueUnit,
-			"created_at":        observation.ObservedAt.Format(time.RFC3339),
+		responseList = append(responseList, ObservationResponse{
+			FhirID:          observation.FHIRResourceID,
+			EncounterFhirID: observation.EncounterFHIRID,
+			PatientFhirID:   observation.PatientFHIRID,
+			LoincCode:       observation.LoincCode,
+			CodeDisplay:     observation.CodeDisplay,
+			ValueQuantity:   observation.ValueQuantity,
+			ValueUnit:       observation.ValueUnit,
+			CreatedAt:       observation.ObservedAt.Format(time.RFC3339),
 		})
 	}
 	return responseList

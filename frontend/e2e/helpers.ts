@@ -397,8 +397,8 @@ export const mockClinicalAPI = async (pageInstance: Page): Promise<void> => {
         fhir_id: `med-${currentMedicationsList.length + 1}`,
         encounter_fhir_id: encounterFhirId,
         patient_fhir_id: submittedJSON.patient_fhir_id,
-        medication_display: submittedJSON.medication_display,
-        dosage_instruction: submittedJSON.dosage_instruction,
+        medication_name: submittedJSON.medication_name,
+        dosage_instructions: submittedJSON.dosage_instructions,
         status: "active",
         created_at: new Date().toISOString(),
       }

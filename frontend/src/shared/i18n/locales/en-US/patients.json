@@ -74,6 +74,7 @@
     "medications": "Prescriptions",
     "allergies": "Allergies",
     "pacs": "PACS DICOM",
+    "selectEncounterTitle": "Select an Encounter",
     "noActiveEncounter": "No active encounter",
     "selectEncounterDesc": "Please select or register an encounter in the \"Encounters\" tab.",
     "allergiesCard": {

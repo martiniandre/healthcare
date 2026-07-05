@@ -16,6 +16,8 @@ type Repository interface {
 	CreateEncounter(ctx context.Context, encounter *Encounter) (*Encounter, error)
 	GetEncounterByID(ctx context.Context, fhirResourceID string) (*Encounter, error)
 	GetEncountersByPatient(ctx context.Context, patientFHIRID string) ([]*Encounter, error)
+	UpdateEncounter(ctx context.Context, fhirResourceID string, encounter *Encounter) (*Encounter, error)
+	DeleteEncounter(ctx context.Context, fhirResourceID string) error
 }
 
 type repository struct {
@@ -99,6 +101,33 @@ func parseEncounterFromResource(resource map[string]interface{}) *Encounter {
 	}
 
 	return encounter
+}
+
+func (encounterRepository *repository) UpdateEncounter(ctx context.Context, fhirResourceID string, encounter *Encounter) (*Encounter, error) {
+	fhirEncounter := fhir.NewEncounterResource(encounter.PatientFHIRID, encounter.PractitionerID, encounter.ReasonCode, encounter.ReasonDisplay)
+	fhirEncounter.ID = fhirResourceID
+	fhirEncounter.Status = encounter.Status
+
+	responseBody, err := encounterRepository.fhirClient.UpdateResource(ctx, "Encounter", fhirResourceID, fhirEncounter)
+	if err != nil {
+		return nil, fmt.Errorf("failed to update encounter: %w", err)
+	}
+
+	var updatedResource map[string]interface{}
+	if err := json.Unmarshal(responseBody, &updatedResource); err != nil {
+		return nil, fmt.Errorf("failed to parse updated encounter: %w", err)
+	}
+
+	return parseEncounterFromResource(updatedResource), nil
+}
+
+func (encounterRepository *repository) DeleteEncounter(ctx context.Context, fhirResourceID string) error {
+	err := encounterRepository.fhirClient.DeleteResource(ctx, "Encounter/"+fhirResourceID)
+	if err != nil {
+		return fmt.Errorf("failed to delete encounter: %w", err)
+	}
+
+	return nil
 }
 
 func (encounterRepository *repository) GetEncountersByPatient(ctx context.Context, patientFHIRID string) ([]*Encounter, error) {

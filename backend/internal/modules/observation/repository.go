@@ -16,6 +16,8 @@ type Repository interface {
 	CreateObservation(ctx context.Context, observation *Observation) (*Observation, error)
 	GetObservationsByEncounter(ctx context.Context, encounterFHIRID string) ([]*Observation, error)
 	GetObservationsByPatient(ctx context.Context, patientFHIRID string) ([]*Observation, error)
+	UpdateObservation(ctx context.Context, fhirResourceID string, observation *Observation) (*Observation, error)
+	DeleteObservation(ctx context.Context, fhirResourceID string) error
 }
 
 type repository struct {
@@ -67,6 +69,35 @@ func (observationRepository *repository) GetObservationsByPatient(ctx context.Co
 		return nil, fmt.Errorf("failed to search observations: %w", err)
 	}
 	return parseObservationBundle(responseBody)
+}
+
+func (observationRepository *repository) UpdateObservation(ctx context.Context, fhirResourceID string, observation *Observation) (*Observation, error) {
+	fhirObservation := fhir.NewObservationResource(
+		observation.PatientFHIRID,
+		observation.EncounterFHIRID,
+		observation.LoincCode,
+		observation.CodeDisplay,
+		observation.ValueQuantity,
+		observation.ValueUnit,
+	)
+
+	responseBody, err := observationRepository.fhirClient.UpdateResource(ctx, "Observation", fhirResourceID, fhirObservation)
+	if err != nil {
+		return nil, fmt.Errorf("failed to update observation: %w", err)
+	}
+
+	var updatedResource map[string]interface{}
+	if err := json.Unmarshal(responseBody, &updatedResource); err != nil {
+		return nil, fmt.Errorf("failed to parse observation response: %w", err)
+	}
+
+	fhirID, _ := updatedResource["id"].(string)
+	observation.FHIRResourceID = fhirID
+	return observation, nil
+}
+
+func (observationRepository *repository) DeleteObservation(ctx context.Context, fhirResourceID string) error {
+	return observationRepository.fhirClient.DeleteResource(ctx, "Observation/"+fhirResourceID)
 }
 
 func extractBundleEntries(responseBody json.RawMessage) ([]map[string]interface{}, error) {

@@ -30,6 +30,7 @@ const ClinicalAllergies = lazy(() => import("./components/ClinicalAllergies"))
 const ClinicalMedications = lazy(() => import("./components/ClinicalMedications"))
 
 import { PACSStudies } from "./components/PACSStudies"
+import { EncounterSelectionDialog } from "./components/EncounterSelectionDialog"
 import { ExamAnalyzerModal } from "./components/modals/ExamAnalyzerModal"
 import { Can } from "../../shared/auth/AbilityContext"
 import { Card } from "../../shared/components/ui/Card"
@@ -72,6 +73,7 @@ export const PatientDetails = () => {
     setSelectedStudyId(null)
   }
   const [selectedEncounterId, setSelectedEncounterId] = useState<string | null>(null)
+  const [isEncounterSelectionOpen, setIsEncounterSelectionOpen] = useState(false)
 
   const [isExamModalOpen, setIsExamModalOpen] = useState(false)
 
@@ -251,7 +253,7 @@ export const PatientDetails = () => {
                 </div>
               </div>
               <button
-                onClick={() => setActiveTab(PatientTab.Encounters)}
+                onClick={() => setIsEncounterSelectionOpen(true)}
                 className="text-xs text-primary hover:underline font-bold shrink-0"
               >
                 {t("details.changeEncounter")}
@@ -355,6 +357,14 @@ export const PatientDetails = () => {
           </div>
         </div>
       </div>
+
+      <EncounterSelectionDialog
+        isOpen={isEncounterSelectionOpen}
+        onClose={() => setIsEncounterSelectionOpen(false)}
+        encounters={encounters}
+        selectedEncounterId={activeEncounterId}
+        onSelect={setSelectedEncounterId}
+      />
 
       <ExamAnalyzerModal
         isOpen={isExamModalOpen}

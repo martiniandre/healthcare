@@ -28,8 +28,8 @@ export default function ClinicalMedications({ patientId, encounterId }: Clinical
       await createMedicationMutation.mutateAsync({
         encounter_fhir_id: encounterId,
         patient_fhir_id: patientId,
-        medication_display: formData.medicationDisplay,
-        dosage_instruction: formData.dosageInstruction,
+        medication_name: formData.medicationDisplay,
+        dosage_instructions: formData.dosageInstruction,
       })
       setIsModalOpen(false)
       toast.success(t("toast.medicationSuccess"))
@@ -39,11 +39,11 @@ export default function ClinicalMedications({ patientId, encounterId }: Clinical
   }
 
   const columns = [
-    columnHelper.accessor("medication_display", {
+    columnHelper.accessor("medication_name", {
       header: t("details.medicationsCard.display"),
       cell: (info) => <span className="text-sm font-extrabold text-gray-900 block">{info.getValue()}</span>,
     }),
-    columnHelper.accessor("dosage_instruction", {
+    columnHelper.accessor("dosage_instructions", {
       header: t("details.medicationsCard.dosage"),
       cell: (info) => (
         <span className="text-sm font-bold text-gray-800 block whitespace-pre-line">{info.getValue()}</span>

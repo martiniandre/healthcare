@@ -11,6 +11,8 @@ type Service interface {
 	CreateObservation(ctx context.Context, observation *Observation) (*Observation, error)
 	GetObservationsByEncounter(ctx context.Context, encounterFHIRID string) ([]*Observation, error)
 	GetObservationsByPatient(ctx context.Context, patientFHIRID string) ([]*Observation, error)
+	UpdateObservation(ctx context.Context, fhirResourceID string, observation *Observation) (*Observation, error)
+	DeleteObservation(ctx context.Context, fhirResourceID string) error
 }
 
 type service struct {
@@ -40,4 +42,15 @@ func (observationService *service) GetObservationsByEncounter(ctx context.Contex
 
 func (observationService *service) GetObservationsByPatient(ctx context.Context, patientFHIRID string) ([]*Observation, error) {
 	return observationService.repo.GetObservationsByPatient(ctx, patientFHIRID)
+}
+
+func (observationService *service) UpdateObservation(ctx context.Context, fhirResourceID string, observation *Observation) (*Observation, error) {
+	if observation.PatientFHIRID == "" || observation.EncounterFHIRID == "" || observation.LoincCode == "" {
+		return nil, ErrObservationNotFound
+	}
+	return observationService.repo.UpdateObservation(ctx, fhirResourceID, observation)
+}
+
+func (observationService *service) DeleteObservation(ctx context.Context, fhirResourceID string) error {
+	return observationService.repo.DeleteObservation(ctx, fhirResourceID)
 }
