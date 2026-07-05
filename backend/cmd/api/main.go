@@ -108,7 +108,7 @@ func main() {
 
 	applicationServer := app.NewServer(redisClient)
 
-	authService := auth.Register(applicationServer.GRPCServer, auth.Dependency{DB: databasePool})
+	authService := auth.Register(applicationServer.GRPCServer, auth.Dependency{DB: databasePool, EventBus: eventBus})
 	staffService := staff.Register(applicationServer.GRPCServer, staff.Dependency{DB: databasePool})
 	patientsService := patients.Register(applicationServer.GRPCServer, patients.Dependency{FHIRClient: fhirClient, EventBus: eventBus})
 	encounterService := encounter.Register(applicationServer.GRPCServer, encounter.Dependency{FHIRClient: fhirClient, EventBus: eventBus})
@@ -131,7 +131,7 @@ func main() {
 	auditLogsService := audit_logs.Register(applicationServer.GRPCServer, audit_logs.Dependency{DB: databasePool})
 	_, notificationsHTTPHandler := notifications.Register(notifications.Dependency{DB: databasePool, EventBus: eventBus})
 
-	examAnalyzerRepo, examAnalyzerSvc, examAnalyzerWorker := exam_analyzer.Register(applicationServer.GRPCServer, exam_analyzer.Dependency{DB: databasePool, ProjectID: appConfig.GCPProjectID, LocationID: appConfig.GCPLocationID, VertexModel: appConfig.GCPVertexModel})
+	examAnalyzerRepo, examAnalyzerSvc, examAnalyzerWorker := exam_analyzer.Register(applicationServer.GRPCServer, exam_analyzer.Dependency{DB: databasePool, ProjectID: appConfig.GCPProjectID, LocationID: appConfig.GCPLocationID, VertexModel: appConfig.GCPVertexModel, EventBus: eventBus})
 	go examAnalyzerWorker.Start(mainContext)
 
 	imagingWorker := imaging.NewWorker(imaging.NewRepository(databasePool), redisClient, fhirClient)

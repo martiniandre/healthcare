@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/healthcare/backend/internal/shared/eventbus"
 )
 
 type Worker struct {
@@ -15,12 +16,14 @@ type Worker struct {
 	service    Service
 	jobChannel chan uuid.UUID
 	stopSignal chan struct{}
+	eventBus   eventbus.Bus
 }
 
-func NewWorker(repository Repository, service Service) *Worker {
+func NewWorker(repository Repository, service Service, eventBus eventbus.Bus) *Worker {
 	return &Worker{
 		repository: repository,
 		service:    service,
+		eventBus:   eventBus,
 		jobChannel: make(chan uuid.UUID, 100),
 		stopSignal: make(chan struct{}),
 	}
@@ -144,6 +147,22 @@ func (w *Worker) processAnalysisJob(ctx context.Context, analysisID uuid.UUID) {
 		CreatedAt:   time.Now(),
 	}
 	_ = w.repository.CreateAuditLog(ctx, auditLogRecord)
+
+	if w.eventBus != nil && analysisRecord.Status == "completed" {
+		examType := ""
+		if analysisRecord.ExamType != nil {
+			examType = *analysisRecord.ExamType
+		}
+		w.eventBus.Publish(ctx, eventbus.Event{
+			Name: "exam.complete",
+			Data: map[string]any{
+				"title":         "Análise de Exame Concluída",
+				"body":          "Laudo disponível para revisão: " + examType,
+				"resource_type": "exam_analysis",
+				"resource_id":   analysisID.String(),
+			},
+		})
+	}
 }
 
 func (w *Worker) executeAutoCleanup(ctx context.Context) {

@@ -12,7 +12,7 @@ import (
 
 func TestService_Register(testingInstance *testing.T) {
 	mockRepository := mocks.NewMockRepository()
-	authService := auth.NewService(mockRepository)
+	authService := auth.NewService(mockRepository, nil)
 	contextParam := context.Background()
 
 	user, err := authService.Register(contextParam, "test@example.com", "password123", "Test User", string(role.RoleAdmin))
@@ -28,7 +28,7 @@ func TestService_Register(testingInstance *testing.T) {
 
 func TestService_Login(testingInstance *testing.T) {
 	mockRepository := mocks.NewMockRepository()
-	authService := auth.NewService(mockRepository)
+	authService := auth.NewService(mockRepository, nil)
 	contextParam := context.Background()
 
 	_, errRegister := authService.Register(contextParam, "login@example.com", "securepass", "Login User", string(role.RoleDoctor))

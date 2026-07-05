@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/healthcare/backend/internal/shared/eventbus"
 	"github.com/healthcare/backend/internal/shared/role"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -24,11 +25,12 @@ type Service interface {
 }
 
 type service struct {
-	repo Repository
+	repo     Repository
+	eventBus eventbus.Bus
 }
 
-func NewService(repo Repository) Service {
-	return &service{repo: repo}
+func NewService(repo Repository, eventBus eventbus.Bus) Service {
+	return &service{repo: repo, eventBus: eventBus}
 }
 
 func (authService *service) Register(ctx context.Context, email, password, fullName, requestedRole string) (*User, error) {
@@ -87,6 +89,18 @@ func (authService *service) Login(ctx context.Context, email, password string) (
 	token, err := GenerateJWT(user.ID.String(), string(user.Role), user.Email)
 	if err != nil {
 		return nil, "", err
+	}
+
+	if authService.eventBus != nil {
+		authService.eventBus.Publish(ctx, eventbus.Event{
+			Name: "system.notification",
+			Data: map[string]any{
+				"title":       "Login Realizado",
+				"body":        "Login realizado com sucesso como " + string(user.Role),
+				"resource_id": user.ID.String(),
+				"actor_id":    user.ID.String(),
+			},
+		})
 	}
 
 	return user, token, nil
