@@ -37,18 +37,6 @@ func (mockRepo *MockStaffRepository) GetEmployeeByID(contextParam context.Contex
 	return employee, nil
 }
 
-func (mockRepo *MockStaffRepository) GetEmployeeByUserID(contextParam context.Context, userID uuid.UUID) (*staff.Employee, error) {
-	if mockRepo.Err != nil {
-		return nil, mockRepo.Err
-	}
-	for _, employee := range mockRepo.Employees {
-		if employee.UserID == userID {
-			return employee, nil
-		}
-	}
-	return nil, staff.ErrEmployeeNotFound
-}
-
 func (mockRepo *MockStaffRepository) ListEmployees(contextParam context.Context, search string, role string) ([]*staff.Employee, error) {
 	if mockRepo.Err != nil {
 		return nil, mockRepo.Err
@@ -69,5 +57,17 @@ func (mockRepo *MockStaffRepository) DeactivateEmployee(contextParam context.Con
 		return staff.ErrEmployeeNotFound
 	}
 	employee.IsActive = false
+	return nil
+}
+
+func (mockRepo *MockStaffRepository) UpdateEmployeeFHIRResourceID(contextParam context.Context, employeeID uuid.UUID, fhirResourceID string) error {
+	if mockRepo.Err != nil {
+		return mockRepo.Err
+	}
+	employee, exists := mockRepo.Employees[employeeID]
+	if !exists {
+		return staff.ErrEmployeeNotFound
+	}
+	employee.FHIRResourceID = &fhirResourceID
 	return nil
 }

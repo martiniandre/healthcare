@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
+	"strings"
+	"time"
 
 	"github.com/healthcare/backend/internal/shared/fhir"
 	"github.com/healthcare/backend/internal/shared/healthcare"
@@ -90,8 +92,51 @@ func parseConditionBundle(responseBody json.RawMessage) ([]*Condition, error) {
 	for _, resource := range entries {
 		condition := &Condition{}
 		condition.FHIRResourceID, _ = resource["id"].(string)
+		if clinicalStatus, ok := resource["clinicalStatus"].(map[string]interface{}); ok {
+			if coding, ok := clinicalStatus["coding"].([]interface{}); ok && len(coding) > 0 {
+				if firstCoding, ok := coding[0].(map[string]interface{}); ok {
+					condition.ClinicalStatus, _ = firstCoding["code"].(string)
+				}
+			}
+		}
 		if codes, ok := resource["code"].(map[string]interface{}); ok {
 			condition.CodeDisplay, _ = codes["text"].(string)
+			if coding, ok := codes["coding"].([]interface{}); ok && len(coding) > 0 {
+				if firstCoding, ok := coding[0].(map[string]interface{}); ok {
+					if code, ok := firstCoding["code"].(string); ok {
+						condition.ICD10Code = code
+					}
+					if display, ok := firstCoding["display"].(string); ok && condition.CodeDisplay == "" {
+						condition.CodeDisplay = display
+					}
+				}
+			}
+		}
+		if subject, ok := resource["subject"].(map[string]interface{}); ok {
+			if ref, ok := subject["reference"].(string); ok {
+				parts := strings.SplitN(ref, "/", 2)
+				if len(parts) == 2 {
+					condition.PatientFHIRID = parts[1]
+				}
+			}
+		}
+		if encounter, ok := resource["encounter"].(map[string]interface{}); ok {
+			if ref, ok := encounter["reference"].(string); ok {
+				parts := strings.SplitN(ref, "/", 2)
+				if len(parts) == 2 {
+					condition.EncounterFHIRID = parts[1]
+				}
+			}
+		}
+		if onsetStr, ok := resource["onsetDateTime"].(string); ok {
+			if parsedTime, parseErr := time.Parse(time.RFC3339, onsetStr); parseErr == nil {
+				condition.OnsetAt = parsedTime
+			}
+		}
+		if recordedStr, ok := resource["recordedDate"].(string); ok {
+			if parsedTime, parseErr := time.Parse(time.RFC3339, recordedStr); parseErr == nil && condition.OnsetAt.IsZero() {
+				condition.OnsetAt = parsedTime
+			}
 		}
 		conditions = append(conditions, condition)
 	}

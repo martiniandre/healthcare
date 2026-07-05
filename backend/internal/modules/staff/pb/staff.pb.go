@@ -10,7 +10,7 @@ type StaffServiceServer interface {
 }
 
 type CreateEmployeeRequest struct {
-	UserID     string
+	CreatedBy  string
 	FullName   string
 	Email      string
 	Role       string
@@ -18,7 +18,8 @@ type CreateEmployeeRequest struct {
 }
 
 type CreateEmployeeResponse struct {
-	EmployeeId string
+	EmployeeId      string
+	FhirResourceId  string
 }
 
 type GetEmployeeRequest struct {
@@ -26,12 +27,13 @@ type GetEmployeeRequest struct {
 }
 
 type GetEmployeeResponse struct {
-	EmployeeId string
-	FullName   string
-	Email      string
-	Role       string
-	CrmNumber  string
-	IsActive   bool
+	EmployeeId      string
+	FullName        string
+	Email           string
+	Role            string
+	CrmNumber       string
+	FhirResourceId  string
+	IsActive        bool
 }
 
 type ListEmployeesRequest struct{}

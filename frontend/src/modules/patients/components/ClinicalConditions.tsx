@@ -1,23 +1,20 @@
 import { useState } from "react"
 import { Activity, Plus, ShieldAlert, CheckCircle } from "lucide-react"
 import { useTranslation } from "react-i18next"
-import { Card } from "../../../shared/components/ui/Card"
+import { createColumnHelper } from "@tanstack/react-table"
+import { Can, Action, Feature } from "../../../shared/auth/AbilityContext"
 import { Button } from "../../../shared/components/ui/Button"
-import {
-  Table,
-  TableHeader,
-  TableBody,
-  TableHead,
-  TableRow,
-  TableCell,
-} from "../../../shared/components/ui/Table"
+import { ClinicalTable } from "../../../shared/components/clinical/ClinicalTable"
 import { ConditionModal } from "./modals/ConditionModal"
 import { usePatientConditionsQuery, useCreateConditionMutation } from "../queries"
 import { toast } from "../../../shared/store/toast_store"
+import type { Condition } from "../types"
 
 interface ClinicalConditionsProps {
   patientId: string
 }
+
+const columnHelper = createColumnHelper<Condition>()
 
 export default function ClinicalConditions({ patientId }: ClinicalConditionsProps) {
   const { t } = useTranslation("patients")
@@ -39,77 +36,57 @@ export default function ClinicalConditions({ patientId }: ClinicalConditionsProp
     }
   }
 
+  const columns = [
+    columnHelper.accessor("icd10_code", {
+      header: t("details.conditionsCard.code"),
+      cell: (info) => (
+        <span className="text-sm font-extrabold text-gray-900 bg-rose-50 border border-rose-100 px-2 py-1 rounded-md">
+          {info.getValue()}
+        </span>
+      ),
+    }),
+    columnHelper.accessor("code_display", {
+      header: t("details.conditionsCard.display"),
+      cell: (info) => <span className="text-sm font-bold text-gray-800 block">{info.getValue()}</span>,
+    }),
+    columnHelper.accessor("clinical_status", {
+      header: t("details.conditionsCard.status"),
+      cell: (info) => (
+        <span className="text-[9px] bg-emerald-50 border border-emerald-100 text-emerald-600 px-2 py-0.5 rounded font-bold uppercase inline-flex items-center gap-1">
+          <CheckCircle className="w-3 h-3" />
+          {info.getValue()}
+        </span>
+      ),
+    }),
+    columnHelper.accessor("created_at", {
+      header: t("details.conditionsCard.date"),
+      cell: (info) => (
+        <span className="text-xs text-gray-500 font-semibold block">
+          {new Date(info.getValue()).toLocaleString()}
+        </span>
+      ),
+    }),
+  ]
+
   return (
     <>
-      <Card className="flex flex-col gap-5 min-h-[450px]">
-        <div className="flex items-center justify-between border-b border-border pb-4">
-          <h3 className="font-extrabold text-gray-900 text-md flex items-center gap-2">
-            <Activity className="w-4 h-4 text-rose-500" />
-            {t("details.conditionsCard.title")}
-          </h3>
-          <Button onClick={() => setIsModalOpen(true)} className="px-3 py-2 text-xs">
-            <Plus className="w-3.5 h-3.5" />
-            {t("details.conditionsCard.add")}
-          </Button>
-        </div>
-
-        {conditions.length === 0 ? (
-          <div className="flex-1 flex flex-col items-center justify-center gap-2 py-16">
-            <ShieldAlert className="w-8 h-8 text-gray-300" />
-            <span className="text-xs text-muted">
-              {t("details.conditionsCard.empty")}
-            </span>
-          </div>
-        ) : (
-          <div className="overflow-x-auto w-full">
-            <Table className="w-full text-left border-collapse">
-              <TableHeader>
-                <TableRow className="border-b border-border bg-gray-50/80">
-                  <TableHead className="py-3.5 px-4 text-xs font-black text-gray-400 uppercase tracking-wider">
-                    {t("details.conditionsCard.code")}
-                  </TableHead>
-                  <TableHead className="py-3.5 px-4 text-xs font-black text-gray-400 uppercase tracking-wider">
-                    {t("details.conditionsCard.display")}
-                  </TableHead>
-                  <TableHead className="py-3.5 px-4 text-xs font-black text-gray-400 uppercase tracking-wider">
-                    {t("details.conditionsCard.status")}
-                  </TableHead>
-                  <TableHead className="py-3.5 px-4 text-xs font-black text-gray-400 uppercase tracking-wider">
-                    {t("details.conditionsCard.date")}
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {conditions.map((conditionItem) => (
-                  <TableRow key={conditionItem.fhir_id} className="border-b border-border/60 hover:bg-gray-50 transition-colors duration-300">
-                    <TableCell className="py-4 px-4 align-top">
-                      <span className="text-sm font-extrabold text-gray-900 bg-rose-50 border border-rose-100 px-2 py-1 rounded-md">
-                        {conditionItem.icd10_code}
-                      </span>
-                    </TableCell>
-                    <TableCell className="py-4 px-4 align-top">
-                      <span className="text-sm font-bold text-gray-800 block">
-                        {conditionItem.code_display}
-                      </span>
-                    </TableCell>
-                    <TableCell className="py-4 px-4 align-top">
-                      <span className="text-[9px] bg-emerald-50 border border-emerald-100 text-emerald-600 px-2 py-0.5 rounded font-bold uppercase inline-flex items-center gap-1">
-                        <CheckCircle className="w-3 h-3" />
-                        {conditionItem.clinical_status}
-                      </span>
-                    </TableCell>
-                    <TableCell className="py-4 px-4 align-top">
-                      <span className="text-xs text-gray-500 font-semibold block">
-                        {new Date(conditionItem.created_at).toLocaleString()}
-                      </span>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        )}
-      </Card>
+      <ClinicalTable
+        title={t("details.conditionsCard.title")}
+        icon={<Activity className="w-4 h-4 text-rose-500" />}
+        columns={columns}
+        data={conditions}
+        isEmpty={conditions.length === 0}
+        emptyIcon={<ShieldAlert className="w-8 h-8 text-gray-300" />}
+        emptyText={t("details.conditionsCard.empty")}
+        addButton={
+          <Can I={Action.Create} a={Feature.Condition}>
+            <Button onClick={() => setIsModalOpen(true)} className="px-3 py-2 text-xs">
+              <Plus className="w-3.5 h-3.5" />
+              {t("details.conditionsCard.add")}
+            </Button>
+          </Can>
+        }
+      />
 
       <ConditionModal
         isOpen={isModalOpen}

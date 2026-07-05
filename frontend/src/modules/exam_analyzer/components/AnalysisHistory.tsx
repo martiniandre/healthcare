@@ -1,6 +1,7 @@
 import { FileText, Trash2, Calendar, Database, Search } from "lucide-react"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
+import { Can, Action, Feature } from "../../../shared/auth/AbilityContext"
 import { ExamAnalysisStatus, type ExamAnalysis } from "../types"
 
 interface AnalysisHistoryProperties {
@@ -120,13 +121,15 @@ export const AnalysisHistory = ({
                   </div>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={handleItemDelete}
-                  className="p-1 rounded text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all opacity-0 group-hover:opacity-100 cursor-pointer shrink-0"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                </button>
+                <Can I={Action.Delete} a={Feature.ExamAnalysis}>
+                  <button
+                    type="button"
+                    onClick={handleItemDelete}
+                    className="p-1 rounded text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all opacity-0 group-hover:opacity-100 cursor-pointer shrink-0"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </Can>
               </div>
             )
           })

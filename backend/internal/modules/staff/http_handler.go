@@ -52,7 +52,33 @@ func (handler *HTTPHandler) ListEmployees(httpResponseWriter http.ResponseWriter
 		return
 	}
 
-	render.JSON(httpResponseWriter, http.StatusOK, employeesList)
+	type employeeResponse struct {
+		ID             string  `json:"id"`
+		FullName       string  `json:"full_name"`
+		Email          string  `json:"email"`
+		Role           string  `json:"role"`
+		CRMNumber      string  `json:"crm_number"`
+		FHIRResourceID *string `json:"fhir_resource_id"`
+		IsActive       bool    `json:"is_active"`
+	}
+
+	responseList := make([]employeeResponse, 0, len(employeesList))
+	for _, employee := range employeesList {
+		crmValue := ""
+		if employee.CRMNumber != nil {
+			crmValue = *employee.CRMNumber
+		}
+		responseList = append(responseList, employeeResponse{
+			ID:             employee.ID.String(),
+			FullName:       employee.FullName,
+			Email:          employee.Email,
+			Role:           string(employee.Role),
+			CRMNumber:      crmValue,
+			FHIRResourceID: employee.FHIRResourceID,
+			IsActive:       employee.IsActive,
+		})
+	}
+	render.JSON(httpResponseWriter, http.StatusOK, responseList)
 }
 
 // CreateEmployee godoc
@@ -69,11 +95,11 @@ func (handler *HTTPHandler) ListEmployees(httpResponseWriter http.ResponseWriter
 //	@Router			/staff/employees [post]
 func (handler *HTTPHandler) CreateEmployee(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
 	var payload struct {
-		UserID    string `json:"user_id"`
-		FullName  string `json:"full_name"`
-		Email     string `json:"email"`
-		Role      string `json:"role"`
-		CRMNumber string `json:"crm_number"`
+		CreatedBy  string `json:"created_by"`
+		FullName   string `json:"full_name"`
+		Email      string `json:"email"`
+		Role       string `json:"role"`
+		CRMNumber  string `json:"crm_number"`
 	}
 
 	if payloadDecodeErr := json.NewDecoder(httpRequest.Body).Decode(&payload); payloadDecodeErr != nil {
@@ -81,21 +107,26 @@ func (handler *HTTPHandler) CreateEmployee(httpResponseWriter http.ResponseWrite
 		return
 	}
 
-	userIDParsed, parseErr := uuid.Parse(payload.UserID)
+	createdByParsed, parseErr := uuid.Parse(payload.CreatedBy)
 	if parseErr != nil {
-		render.Error(httpResponseWriter, http.StatusBadRequest, "User ID inválido.")
+		render.Error(httpResponseWriter, http.StatusBadRequest, "created_by inválido.")
 		return
 	}
 
-	employee, createErr := handler.service.CreateEmployee(httpRequest.Context(), userIDParsed, payload.FullName, payload.Email, payload.Role, payload.CRMNumber)
+	employee, createErr := handler.service.CreateEmployee(httpRequest.Context(), createdByParsed, payload.FullName, payload.Email, payload.Role, payload.CRMNumber)
 	if createErr != nil {
 		slog.Error("failed to create employee", "error", createErr, "email", payload.Email, "request_id", middleware.GetRequestID(httpRequest.Context()))
 		render.Error(httpResponseWriter, http.StatusInternalServerError, "Erro ao registrar profissional.")
 		return
 	}
 
+	fhirID := ""
+	if employee.FHIRResourceID != nil {
+		fhirID = *employee.FHIRResourceID
+	}
 	render.JSON(httpResponseWriter, http.StatusCreated, map[string]string{
-		"employee_id": employee.ID.String(),
+		"employee_id":      employee.ID.String(),
+		"fhir_resource_id": fhirID,
 	})
 }
 

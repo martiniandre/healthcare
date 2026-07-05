@@ -2,10 +2,14 @@ package staff
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/healthcare/backend/internal/shared/fhir"
+	"github.com/healthcare/backend/internal/shared/healthcare"
 	"github.com/healthcare/backend/internal/shared/role"
 	"github.com/healthcare/backend/internal/shared/validator"
 )
@@ -13,21 +17,22 @@ import (
 var ErrEmployeeNotFound = errors.New("employee not found")
 
 type Service interface {
-	CreateEmployee(ctx context.Context, userID uuid.UUID, fullName, email, requestedRole, crmNumber string) (*Employee, error)
+	CreateEmployee(ctx context.Context, createdBy uuid.UUID, fullName, email, requestedRole, crmNumber string) (*Employee, error)
 	GetEmployee(ctx context.Context, employeeID uuid.UUID) (*Employee, error)
 	ListEmployees(ctx context.Context, search string, role string) ([]*Employee, error)
 	DeactivateEmployee(ctx context.Context, employeeID uuid.UUID) error
 }
 
 type service struct {
-	repo Repository
+	repo       Repository
+	fhirClient healthcare.FHIRClient
 }
 
-func NewService(repo Repository) Service {
-	return &service{repo: repo}
+func NewService(repo Repository, fhirClient healthcare.FHIRClient) Service {
+	return &service{repo: repo, fhirClient: fhirClient}
 }
 
-func (staffService *service) CreateEmployee(ctx context.Context, userID uuid.UUID, fullName, email, requestedRole, crmNumber string) (*Employee, error) {
+func (staffService *service) CreateEmployee(ctx context.Context, createdBy uuid.UUID, fullName, email, requestedRole, crmNumber string) (*Employee, error) {
 	parsedRole, roleIsValid := role.ParseRole(requestedRole)
 	if !roleIsValid {
 		return nil, role.ErrInvalidRole
@@ -45,13 +50,14 @@ func (staffService *service) CreateEmployee(ctx context.Context, userID uuid.UUI
 		crmNumberPtr = &crmNumber
 	}
 
+	parsedCreatedBy := createdBy
 	employee := &Employee{
 		ID:        uuid.New(),
-		UserID:    userID,
 		FullName:  fullName,
 		Email:     email,
 		Role:      parsedRole,
 		CRMNumber: crmNumberPtr,
+		CreatedBy: &parsedCreatedBy,
 		IsActive:  true,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
@@ -61,6 +67,28 @@ func (staffService *service) CreateEmployee(ctx context.Context, userID uuid.UUI
 	if err != nil {
 		return nil, err
 	}
+
+	if staffService.fhirClient != nil {
+		practitionerResource := fhir.NewPractitionerResource(fullName, crmNumber)
+		responseBody, fhirErr := staffService.fhirClient.CreateResource(ctx, "Practitioner", practitionerResource)
+		if fhirErr != nil {
+			return nil, fmt.Errorf("failed to create practitioner in healthcare api: %w", fhirErr)
+		}
+
+		var createdResource map[string]interface{}
+		if parseErr := json.Unmarshal(responseBody, &createdResource); parseErr != nil {
+			return nil, fmt.Errorf("failed to parse practitioner response: %w", parseErr)
+		}
+
+		fhirID, _ := createdResource["id"].(string)
+		if fhirID != "" {
+			employee.FHIRResourceID = &fhirID
+			if updateErr := staffService.repo.UpdateEmployeeFHIRResourceID(ctx, employee.ID, fhirID); updateErr != nil {
+				return nil, fmt.Errorf("failed to update employee fhir resource id: %w", updateErr)
+			}
+		}
+	}
+
 	return employee, nil
 }
 

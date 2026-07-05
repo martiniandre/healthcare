@@ -24,7 +24,7 @@ func NewHTTPHandler(service Service) *HTTPHandler {
 func (handler *HTTPHandler) RegisterRoutes(mux *http.ServeMux) {
 	medicalStaff := middleware.RequireRoles(role.RoleAdmin, role.RoleDoctor, role.RoleNurse, role.RoleReception)
 	clinicalStaff := middleware.RequireRoles(role.RoleAdmin, role.RoleDoctor, role.RoleNurse)
-	clinicalWrite := middleware.RequireRoles(role.RoleDoctor, role.RoleNurse)
+	clinicalWrite := middleware.RequireRoles(role.RoleAdmin, role.RoleDoctor, role.RoleNurse)
 
 	mux.Handle("GET /api/v1/telemetry/rooms", medicalStaff(http.HandlerFunc(handler.ListRooms)))
 	mux.Handle("POST /api/v1/telemetry/rooms/{roomId}/unlock", clinicalStaff(http.HandlerFunc(handler.UnlockRoom)))

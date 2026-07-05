@@ -1,0 +1,2 @@
+ALTER TABLE employees DROP COLUMN IF EXISTS created_by;
+ALTER TABLE employees ADD COLUMN user_id UUID REFERENCES users(id) ON DELETE CASCADE;

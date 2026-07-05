@@ -11,9 +11,9 @@ import (
 type Repository interface {
 	CreateEmployee(ctx context.Context, employee *Employee) error
 	GetEmployeeByID(ctx context.Context, employeeID uuid.UUID) (*Employee, error)
-	GetEmployeeByUserID(ctx context.Context, userID uuid.UUID) (*Employee, error)
 	ListEmployees(ctx context.Context, search string, role string) ([]*Employee, error)
 	DeactivateEmployee(ctx context.Context, employeeID uuid.UUID) error
+	UpdateEmployeeFHIRResourceID(ctx context.Context, employeeID uuid.UUID, fhirResourceID string) error
 }
 
 type repository struct {
@@ -25,39 +25,30 @@ func NewRepository(db *pgxpool.Pool) Repository {
 }
 
 func (staffRepository *repository) CreateEmployee(ctx context.Context, employee *Employee) error {
-	query := `INSERT INTO employees (id, user_id, full_name, email, role, crm_number, is_active, created_at, updated_at)
-			  VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`
+	query := `INSERT INTO employees (id, full_name, email, role, crm_number, fhir_resource_id, created_by, is_active, created_at, updated_at)
+			  VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`
 
 	_, err := staffRepository.db.Exec(ctx, query,
-		employee.ID, employee.UserID, employee.FullName, employee.Email,
-		employee.Role, employee.CRMNumber, employee.IsActive, employee.CreatedAt, employee.UpdatedAt,
+		employee.ID, employee.FullName, employee.Email,
+		employee.Role, employee.CRMNumber, employee.FHIRResourceID, employee.CreatedBy, employee.IsActive, employee.CreatedAt, employee.UpdatedAt,
 	)
 	return err
 }
 
+func (staffRepository *repository) UpdateEmployeeFHIRResourceID(ctx context.Context, employeeID uuid.UUID, fhirResourceID string) error {
+	query := `UPDATE employees SET fhir_resource_id = $1, updated_at = NOW() WHERE id = $2`
+	_, err := staffRepository.db.Exec(ctx, query, fhirResourceID, employeeID)
+	return err
+}
+
 func (staffRepository *repository) GetEmployeeByID(ctx context.Context, employeeID uuid.UUID) (*Employee, error) {
-	query := `SELECT id, user_id, full_name, email, role, crm_number, is_active, created_at, updated_at
+	query := `SELECT id, full_name, email, role, crm_number, fhir_resource_id, created_by, is_active, created_at, updated_at
 			  FROM employees WHERE id = $1`
 
 	employee := &Employee{}
 	err := staffRepository.db.QueryRow(ctx, query, employeeID).Scan(
-		&employee.ID, &employee.UserID, &employee.FullName, &employee.Email,
-		&employee.Role, &employee.CRMNumber, &employee.IsActive, &employee.CreatedAt, &employee.UpdatedAt,
-	)
-	if err != nil {
-		return nil, err
-	}
-	return employee, nil
-}
-
-func (staffRepository *repository) GetEmployeeByUserID(ctx context.Context, userID uuid.UUID) (*Employee, error) {
-	query := `SELECT id, user_id, full_name, email, role, crm_number, is_active, created_at, updated_at
-			  FROM employees WHERE user_id = $1`
-
-	employee := &Employee{}
-	err := staffRepository.db.QueryRow(ctx, query, userID).Scan(
-		&employee.ID, &employee.UserID, &employee.FullName, &employee.Email,
-		&employee.Role, &employee.CRMNumber, &employee.IsActive, &employee.CreatedAt, &employee.UpdatedAt,
+		&employee.ID, &employee.FullName, &employee.Email,
+		&employee.Role, &employee.CRMNumber, &employee.FHIRResourceID, &employee.CreatedBy, &employee.IsActive, &employee.CreatedAt, &employee.UpdatedAt,
 	)
 	if err != nil {
 		return nil, err
@@ -66,7 +57,7 @@ func (staffRepository *repository) GetEmployeeByUserID(ctx context.Context, user
 }
 
 func (staffRepository *repository) ListEmployees(ctx context.Context, search string, role string) ([]*Employee, error) {
-	query := `SELECT id, user_id, full_name, email, role, crm_number, is_active, created_at, updated_at
+	query := `SELECT id, full_name, email, role, crm_number, fhir_resource_id, created_by, is_active, created_at, updated_at
 			  FROM employees WHERE is_active = true`
 	
 	args := []interface{}{}
@@ -96,8 +87,8 @@ func (staffRepository *repository) ListEmployees(ctx context.Context, search str
 	for rows.Next() {
 		employee := &Employee{}
 		err := rows.Scan(
-			&employee.ID, &employee.UserID, &employee.FullName, &employee.Email,
-			&employee.Role, &employee.CRMNumber, &employee.IsActive, &employee.CreatedAt, &employee.UpdatedAt,
+			&employee.ID, &employee.FullName, &employee.Email,
+			&employee.Role, &employee.CRMNumber, &employee.FHIRResourceID, &employee.CreatedBy, &employee.IsActive, &employee.CreatedAt, &employee.UpdatedAt,
 		)
 		if err != nil {
 			return nil, err

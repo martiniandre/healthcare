@@ -1,24 +1,21 @@
 import { useState } from "react"
 import { FileText, Plus, FileCheck, CheckCircle } from "lucide-react"
 import { useTranslation } from "react-i18next"
-import { Card } from "../../../shared/components/ui/Card"
+import { createColumnHelper } from "@tanstack/react-table"
+import { Can, Action, Feature } from "../../../shared/auth/AbilityContext"
 import { Button } from "../../../shared/components/ui/Button"
-import {
-  Table,
-  TableHeader,
-  TableBody,
-  TableHead,
-  TableRow,
-  TableCell,
-} from "../../../shared/components/ui/Table"
+import { ClinicalTable } from "../../../shared/components/clinical/ClinicalTable"
 import { ReportModal } from "./modals/ReportModal"
 import { useDiagnosticReportsQuery, useCreateDiagnosticReportMutation } from "../queries"
 import { toast } from "../../../shared/store/toast_store"
+import type { DiagnosticReport } from "../types"
 
 interface ClinicalReportsProps {
   patientId: string
   encounterId: string
 }
+
+const columnHelper = createColumnHelper<DiagnosticReport>()
 
 export default function ClinicalReports({ patientId, encounterId }: ClinicalReportsProps) {
   const { t } = useTranslation("patients")
@@ -41,82 +38,64 @@ export default function ClinicalReports({ patientId, encounterId }: ClinicalRepo
     }
   }
 
+  const columns = [
+    columnHelper.accessor("report_display", {
+      header: t("details.reportsCard.display"),
+      cell: (info) => (
+        <div className="flex items-center gap-3">
+          <div className="bg-emerald-50 border border-emerald-100 p-2 rounded-lg text-emerald-600">
+            <FileCheck className="w-4 h-4" />
+          </div>
+          <span className="text-sm font-bold text-gray-800 block">{info.getValue()}</span>
+        </div>
+      ),
+    }),
+    columnHelper.accessor("conclusion", {
+      header: t("details.reportsCard.conclusion"),
+      cell: (info) => (
+        <p className="text-xs text-gray-600 leading-relaxed bg-gray-50 border border-border p-3 rounded-lg max-h-24 overflow-y-auto">
+          {info.getValue()}
+        </p>
+      ),
+    }),
+    columnHelper.accessor("status", {
+      header: t("details.reportsCard.status"),
+      cell: (info) => (
+        <span className="text-[9px] bg-emerald-50 border border-emerald-100 text-emerald-600 px-2 py-0.5 rounded font-bold uppercase inline-flex items-center gap-1">
+          <CheckCircle className="w-3 h-3" />
+          {info.getValue()}
+        </span>
+      ),
+    }),
+    columnHelper.accessor("created_at", {
+      header: t("details.reportsCard.date"),
+      cell: (info) => (
+        <span className="text-xs text-gray-500 font-semibold block mt-1">
+          {new Date(info.getValue()).toLocaleString()}
+        </span>
+      ),
+    }),
+  ]
+
   return (
     <>
-      <Card className="flex flex-col gap-5 min-h-[450px]">
-        <div className="flex items-center justify-between border-b border-border pb-4">
-          <h3 className="font-extrabold text-gray-900 text-md flex items-center gap-2">
-            <FileText className="w-4 h-4 text-emerald-500" />
-            {t("details.reportsCard.title")}
-          </h3>
-          <Button onClick={() => setIsModalOpen(true)} className="px-3 py-2 text-xs">
-            <Plus className="w-3.5 h-3.5" />
-            {t("details.reportsCard.add")}
-          </Button>
-        </div>
-
-        {reports.length === 0 ? (
-          <div className="flex-1 flex flex-col items-center justify-center gap-2 py-16">
-            <FileText className="w-8 h-8 text-gray-300" />
-            <span className="text-xs text-muted">
-              {t("details.reportsCard.empty")}
-            </span>
-          </div>
-        ) : (
-          <div className="overflow-x-auto w-full">
-            <Table className="w-full text-left border-collapse">
-              <TableHeader>
-                <TableRow className="border-b border-border bg-gray-50/80">
-                  <TableHead className="py-3.5 px-4 text-xs font-black text-gray-400 uppercase tracking-wider">
-                    {t("details.reportsCard.display")}
-                  </TableHead>
-                  <TableHead className="py-3.5 px-4 text-xs font-black text-gray-400 uppercase tracking-wider">
-                    {t("details.reportsCard.conclusion")}
-                  </TableHead>
-                  <TableHead className="py-3.5 px-4 text-xs font-black text-gray-400 uppercase tracking-wider">
-                    {t("details.reportsCard.status")}
-                  </TableHead>
-                  <TableHead className="py-3.5 px-4 text-xs font-black text-gray-400 uppercase tracking-wider">
-                    {t("details.reportsCard.date")}
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {reports.map((report) => (
-                  <TableRow key={report.fhir_id} className="border-b border-border/60 hover:bg-gray-50 transition-colors duration-300">
-                    <TableCell className="py-4 px-4 align-top">
-                      <div className="flex items-center gap-3">
-                        <div className="bg-emerald-50 border border-emerald-100 p-2 rounded-lg text-emerald-600">
-                          <FileCheck className="w-4 h-4" />
-                        </div>
-                        <span className="text-sm font-bold text-gray-800 block">
-                          {report.report_display}
-                        </span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="py-4 px-4 max-w-xs align-top">
-                      <p className="text-xs text-gray-600 leading-relaxed bg-gray-50 border border-border p-3 rounded-lg max-h-24 overflow-y-auto">
-                        {report.conclusion}
-                      </p>
-                    </TableCell>
-                    <TableCell className="py-4 px-4 align-top">
-                      <span className="text-[9px] bg-emerald-50 border border-emerald-100 text-emerald-600 px-2 py-0.5 rounded font-bold uppercase inline-flex items-center gap-1">
-                        <CheckCircle className="w-3 h-3" />
-                        {report.status}
-                      </span>
-                    </TableCell>
-                    <TableCell className="py-4 px-4 align-top">
-                      <span className="text-xs text-gray-500 font-semibold block mt-1">
-                        {new Date(report.created_at).toLocaleString()}
-                      </span>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        )}
-      </Card>
+      <ClinicalTable
+        title={t("details.reportsCard.title")}
+        icon={<FileText className="w-4 h-4 text-emerald-500" />}
+        columns={columns}
+        data={reports}
+        isEmpty={reports.length === 0}
+        emptyIcon={<FileText className="w-8 h-8 text-gray-300" />}
+        emptyText={t("details.reportsCard.empty")}
+        addButton={
+          <Can I={Action.Create} a={Feature.DiagnosticReport}>
+            <Button onClick={() => setIsModalOpen(true)} className="px-3 py-2 text-xs">
+              <Plus className="w-3.5 h-3.5" />
+              {t("details.reportsCard.add")}
+            </Button>
+          </Can>
+        }
+      />
 
       <ReportModal
         isOpen={isModalOpen}

@@ -8,6 +8,7 @@ export interface StaffMember {
   email: string
   status: StaffStatus
   department: string
+  fhirResourceId: string
 }
 
 export interface CreateEmployeePayload {

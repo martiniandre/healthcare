@@ -26,11 +26,18 @@ func NewGRPCHandler(service Service) *GRPCHandler {
 	return &GRPCHandler{service: service}
 }
 
+func fhirResourceIDToString(ptr *string) string {
+	if ptr == nil {
+		return ""
+	}
+	return *ptr
+}
+
 func (handler *GRPCHandler) CreateEmployee(ctx context.Context, req *pb.CreateEmployeeRequest) (*pb.CreateEmployeeResponse, error) {
 	violations := make(map[string]string)
-	userID, err := uuid.Parse(req.UserID)
+	createdBy, err := uuid.Parse(req.CreatedBy)
 	if err != nil {
-		violations["user_id"] = "invalid UUID format"
+		violations["created_by"] = "invalid UUID format"
 	}
 	if strings.TrimSpace(req.FullName) == "" {
 		violations["full_name"] = "full name is required"
@@ -45,13 +52,14 @@ func (handler *GRPCHandler) CreateEmployee(ctx context.Context, req *pb.CreateEm
 		return nil, apperrors.ErrBadRequest.WithFields(violations)
 	}
 
-	employee, err := handler.service.CreateEmployee(ctx, userID, req.FullName, req.Email, req.Role, req.CrmNumber)
+	employee, err := handler.service.CreateEmployee(ctx, createdBy, req.FullName, req.Email, req.Role, req.CrmNumber)
 	if err != nil {
 		return nil, mapStaffError(err)
 	}
 
 	return &pb.CreateEmployeeResponse{
-		EmployeeId: employee.ID.String(),
+		EmployeeId:     employee.ID.String(),
+		FhirResourceId: fhirResourceIDToString(employee.FHIRResourceID),
 	}, nil
 }
 
@@ -67,12 +75,13 @@ func (handler *GRPCHandler) GetEmployee(ctx context.Context, req *pb.GetEmployee
 	}
 
 	return &pb.GetEmployeeResponse{
-		EmployeeId: employee.ID.String(),
-		FullName:   employee.FullName,
-		Email:      employee.Email,
-		Role:       string(employee.Role),
-		CrmNumber:  getStringValue(employee.CRMNumber),
-		IsActive:   employee.IsActive,
+		EmployeeId:     employee.ID.String(),
+		FullName:       employee.FullName,
+		Email:          employee.Email,
+		Role:           string(employee.Role),
+		CrmNumber:      getStringValue(employee.CRMNumber),
+		FhirResourceId: fhirResourceIDToString(employee.FHIRResourceID),
+		IsActive:       employee.IsActive,
 	}, nil
 }
 
@@ -85,12 +94,13 @@ func (handler *GRPCHandler) ListEmployees(ctx context.Context, req *pb.ListEmplo
 	employeeResponses := make([]*pb.GetEmployeeResponse, 0, len(employees))
 	for _, employee := range employees {
 		employeeResponses = append(employeeResponses, &pb.GetEmployeeResponse{
-			EmployeeId: employee.ID.String(),
-			FullName:   employee.FullName,
-			Email:      employee.Email,
-			Role:       string(employee.Role),
-			CrmNumber:  getStringValue(employee.CRMNumber),
-			IsActive:   employee.IsActive,
+			EmployeeId:     employee.ID.String(),
+			FullName:       employee.FullName,
+			Email:          employee.Email,
+			Role:           string(employee.Role),
+			CrmNumber:      getStringValue(employee.CRMNumber),
+			FhirResourceId: fhirResourceIDToString(employee.FHIRResourceID),
+			IsActive:       employee.IsActive,
 		})
 	}
 

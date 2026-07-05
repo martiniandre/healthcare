@@ -11,6 +11,7 @@ export const basePatientSchema = z.object({
 
 export const baseEncounterSchema = z.object({
   reasonDisplay: z.string(),
+  practitionerId: z.string().optional(),
 })
 
 export const baseObservationSchema = z.object({
@@ -56,6 +57,7 @@ export const getNewPatientSchema = (translateFunction: (key: string) => string) 
 
 export const getNewEncounterSchema = (translateFunction: (key: string) => string) => z.object({
   reasonDisplay: z.string().min(3, translateFunction("validation.reasonMin")),
+  practitionerId: z.string().optional(),
 })
 
 export const getNewObservationSchema = (translateFunction: (key: string) => string) => z.object({

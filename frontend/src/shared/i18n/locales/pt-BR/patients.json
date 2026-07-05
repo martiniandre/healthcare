@@ -164,6 +164,8 @@
       "title": "Registrar Nova Consulta",
       "reason": "Motivo da Consulta",
       "reasonPlaceholder": "Ex: Consulta de rotina cardiologia, Check-up anual",
+      "practitioner": "Médico",
+      "selectPractitioner": "Selecione um médico...",
       "confirm": "Confirmar Consulta"
     },
     "medication": {

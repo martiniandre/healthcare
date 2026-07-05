@@ -109,7 +109,7 @@ func main() {
 	applicationServer := app.NewServer(redisClient)
 
 	authService := auth.Register(applicationServer.GRPCServer, auth.Dependency{DB: databasePool, EventBus: eventBus})
-	staffService := staff.Register(applicationServer.GRPCServer, staff.Dependency{DB: databasePool})
+	staffService := staff.Register(applicationServer.GRPCServer, staff.Dependency{DB: databasePool, FHIRClient: fhirClient})
 	patientsService := patients.Register(applicationServer.GRPCServer, patients.Dependency{FHIRClient: fhirClient, EventBus: eventBus})
 	encounterService := encounter.Register(applicationServer.GRPCServer, encounter.Dependency{FHIRClient: fhirClient, EventBus: eventBus})
 	observationService := observation.Register(applicationServer.GRPCServer, observation.Dependency{FHIRClient: fhirClient})

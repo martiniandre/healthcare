@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next"
+import { Can, Action, Feature } from "../../../shared/auth/AbilityContext"
 import { Button } from "../../../shared/components/ui/Button"
 import { UserPlus } from "lucide-react"
 
@@ -19,10 +20,12 @@ export const PatientsHeader = ({ onNewPatient }: PatientsHeaderProps) => {
           {t("patients.subtitle")}
         </span>
       </div>
-      <Button onClick={onNewPatient} className="py-2 px-4 self-start sm:self-auto gap-2">
-        <UserPlus className="w-4 h-4" />
-        {t("patients.newPatient")}
-      </Button>
+      <Can I={Action.Create} a={Feature.Patient}>
+        <Button onClick={onNewPatient} className="py-2 px-4 self-start sm:self-auto gap-2">
+          <UserPlus className="w-4 h-4" />
+          {t("patients.newPatient")}
+        </Button>
+      </Can>
     </div>
   )
 }

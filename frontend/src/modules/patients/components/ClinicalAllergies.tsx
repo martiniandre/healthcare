@@ -1,23 +1,20 @@
 import { useState } from "react"
 import { ShieldAlert, Plus, CheckCircle } from "lucide-react"
 import { useTranslation } from "react-i18next"
-import { Card } from "../../../shared/components/ui/Card"
+import { createColumnHelper } from "@tanstack/react-table"
+import { Can, Action, Feature } from "../../../shared/auth/AbilityContext"
 import { Button } from "../../../shared/components/ui/Button"
-import {
-  Table,
-  TableHeader,
-  TableBody,
-  TableHead,
-  TableRow,
-  TableCell,
-} from "../../../shared/components/ui/Table"
+import { ClinicalTable } from "../../../shared/components/clinical/ClinicalTable"
 import { AllergyModal } from "./modals/AllergyModal"
 import { usePatientAllergiesQuery, useCreateAllergyMutation } from "../queries"
 import { toast } from "../../../shared/store/toast_store"
+import type { AllergyIntolerance } from "../types"
 
 interface ClinicalAllergiesProps {
   patientId: string
 }
+
+const columnHelper = createColumnHelper<AllergyIntolerance>()
 
 export default function ClinicalAllergies({ patientId }: ClinicalAllergiesProps) {
   const { t } = useTranslation("patients")
@@ -40,85 +37,61 @@ export default function ClinicalAllergies({ patientId }: ClinicalAllergiesProps)
     }
   }
 
+  const columns = [
+    columnHelper.accessor("allergen_code", {
+      header: t("details.allergiesCard.code"),
+      cell: (info) => (
+        <span className="text-xs font-mono font-bold text-gray-700 bg-amber-50 border border-amber-100 px-2 py-1 rounded-md">
+          {info.getValue()}
+        </span>
+      ),
+    }),
+    columnHelper.accessor("allergen_display", {
+      header: t("details.allergiesCard.allergen"),
+      cell: (info) => <span className="text-sm font-bold text-gray-800 block">{info.getValue()}</span>,
+    }),
+    columnHelper.accessor("reaction", {
+      header: t("details.allergiesCard.reaction"),
+      cell: (info) => <span className="text-sm font-semibold text-red-600 block">{info.getValue()}</span>,
+    }),
+    columnHelper.accessor("clinical_status", {
+      header: t("details.allergiesCard.status"),
+      cell: (info) => (
+        <span className="text-[9px] bg-emerald-50 border border-emerald-100 text-emerald-600 px-2 py-0.5 rounded font-bold uppercase inline-flex items-center gap-1">
+          <CheckCircle className="w-3 h-3" />
+          {info.getValue()}
+        </span>
+      ),
+    }),
+    columnHelper.accessor("created_at", {
+      header: t("details.allergiesCard.date"),
+      cell: (info) => (
+        <span className="text-xs text-gray-500 font-semibold block">
+          {new Date(info.getValue()).toLocaleString()}
+        </span>
+      ),
+    }),
+  ]
+
   return (
     <>
-      <Card className="flex flex-col gap-5 min-h-[450px]">
-        <div className="flex items-center justify-between border-b border-border pb-4">
-          <h3 className="font-extrabold text-gray-900 text-md flex items-center gap-2">
-            <ShieldAlert className="w-4 h-4 text-amber-500 animate-pulse" />
-            {t("details.allergiesCard.title")}
-          </h3>
-          <Button onClick={() => setIsModalOpen(true)} className="px-3 py-2 text-xs">
-            <Plus className="w-3.5 h-3.5" />
-            {t("details.allergiesCard.add")}
-          </Button>
-        </div>
-
-        {allergies.length === 0 ? (
-          <div className="flex-1 flex flex-col items-center justify-center gap-2 py-16">
-            <ShieldAlert className="w-8 h-8 text-gray-300" />
-            <span className="text-xs text-muted">
-              {t("details.allergiesCard.empty")}
-            </span>
-          </div>
-        ) : (
-          <div className="overflow-x-auto w-full">
-            <Table className="w-full text-left border-collapse">
-              <TableHeader>
-                <TableRow className="border-b border-border bg-gray-50/80">
-                  <TableHead className="py-3.5 px-4 text-xs font-black text-gray-400 uppercase tracking-wider">
-                    {t("details.allergiesCard.code")}
-                  </TableHead>
-                  <TableHead className="py-3.5 px-4 text-xs font-black text-gray-400 uppercase tracking-wider">
-                    {t("details.allergiesCard.allergen")}
-                  </TableHead>
-                  <TableHead className="py-3.5 px-4 text-xs font-black text-gray-400 uppercase tracking-wider">
-                    {t("details.allergiesCard.reaction")}
-                  </TableHead>
-                  <TableHead className="py-3.5 px-4 text-xs font-black text-gray-400 uppercase tracking-wider">
-                    {t("details.allergiesCard.status")}
-                  </TableHead>
-                  <TableHead className="py-3.5 px-4 text-xs font-black text-gray-400 uppercase tracking-wider">
-                    {t("details.allergiesCard.date")}
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {allergies.map((allergyItem) => (
-                  <TableRow key={allergyItem.fhir_id} className="border-b border-border/60 hover:bg-gray-50 transition-colors duration-300">
-                    <TableCell className="py-4 px-4 align-top">
-                      <span className="text-xs font-mono font-bold text-gray-700 bg-amber-50 border border-amber-100 px-2 py-1 rounded-md">
-                        {allergyItem.allergen_code}
-                      </span>
-                    </TableCell>
-                    <TableCell className="py-4 px-4 align-top">
-                      <span className="text-sm font-bold text-gray-800 block">
-                        {allergyItem.allergen_display}
-                      </span>
-                    </TableCell>
-                    <TableCell className="py-4 px-4 align-top">
-                      <span className="text-sm font-semibold text-red-600 block">
-                        {allergyItem.reaction}
-                      </span>
-                    </TableCell>
-                    <TableCell className="py-4 px-4 align-top">
-                      <span className="text-[9px] bg-emerald-50 border border-emerald-100 text-emerald-600 px-2 py-0.5 rounded font-bold uppercase inline-flex items-center gap-1">
-                        <CheckCircle className="w-3 h-3" />
-                        {allergyItem.clinical_status}
-                      </span>
-                    </TableCell>
-                    <TableCell className="py-4 px-4 align-top">
-                      <span className="text-xs text-gray-500 font-semibold block">
-                        {new Date(allergyItem.created_at).toLocaleString()}
-                      </span>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        )}
-      </Card>
+      <ClinicalTable
+        title={t("details.allergiesCard.title")}
+        icon={<ShieldAlert className="w-4 h-4 text-amber-500 animate-pulse" />}
+        columns={columns}
+        data={allergies}
+        isEmpty={allergies.length === 0}
+        emptyIcon={<ShieldAlert className="w-8 h-8 text-gray-300" />}
+        emptyText={t("details.allergiesCard.empty")}
+        addButton={
+          <Can I={Action.Create} a={Feature.Allergy}>
+            <Button onClick={() => setIsModalOpen(true)} className="px-3 py-2 text-xs">
+              <Plus className="w-3.5 h-3.5" />
+              {t("details.allergiesCard.add")}
+            </Button>
+          </Can>
+        }
+      />
 
       <AllergyModal
         isOpen={isModalOpen}

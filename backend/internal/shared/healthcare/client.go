@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"time"
@@ -14,6 +15,7 @@ import (
 )
 
 const maxHealthcareErrorBodyBytes int64 = 64 << 10
+const maxErrorBodyInMessage int = 1024
 const defaultHTTPTimeout = 30 * time.Second
 const maxRetryAttempts = 3
 const maxPaginationPages = 10
@@ -57,6 +59,8 @@ func (healthcareClient *Client) CreateResource(ctx context.Context, resourceType
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal resource: %w", err)
 	}
+
+	slog.Debug("sending create resource request", "resource_type", resourceType, "body", string(bodyBytes))
 
 	endpoint := fmt.Sprintf("%s/%s", healthcareClient.baseURL, url.PathEscape(resourceType))
 	request, err := http.NewRequestWithContext(ctx, http.MethodPost, endpoint, bytes.NewReader(bodyBytes))
@@ -157,6 +161,8 @@ func (healthcareClient *Client) UpdateResource(ctx context.Context, resourceType
 		return nil, fmt.Errorf("failed to marshal resource: %w", err)
 	}
 
+	slog.Debug("sending update resource request", "resource_type", resourceType, "resource_id", resourceID, "body", string(bodyBytes))
+
 	endpoint := fmt.Sprintf("%s/%s/%s", healthcareClient.baseURL, url.PathEscape(resourceType), url.PathEscape(resourceID))
 	request, err := http.NewRequestWithContext(ctx, http.MethodPut, endpoint, bytes.NewReader(bodyBytes))
 	if err != nil {
@@ -187,6 +193,13 @@ func (healthcareClient *Client) DeleteResource(ctx context.Context, fhirResource
 func (healthcareClient *Client) doWithRetry(request *http.Request) (json.RawMessage, error) {
 	retryDelays := []time.Duration{100 * time.Millisecond, 300 * time.Millisecond, 900 * time.Millisecond}
 
+	truncateErrorBody := func(body []byte) string {
+		if len(body) > maxErrorBodyInMessage {
+			return string(body[:maxErrorBodyInMessage]) + "..."
+		}
+		return string(body)
+	}
+
 	var lastError error
 	for attemptIndex := 0; attemptIndex <= maxRetryAttempts; attemptIndex++ {
 		response, requestError := healthcareClient.httpClient.Do(request)
@@ -215,15 +228,15 @@ func (healthcareClient *Client) doWithRetry(request *http.Request) (json.RawMess
 		if response.StatusCode == http.StatusTooManyRequests || response.StatusCode == http.StatusBadGateway ||
 			response.StatusCode == http.StatusServiceUnavailable || response.StatusCode == http.StatusGatewayTimeout {
 			if attemptIndex < maxRetryAttempts {
-				lastError = fmt.Errorf("healthcare api: unexpected status %d", response.StatusCode)
+				lastError = fmt.Errorf("healthcare api: unexpected status %d - %s", response.StatusCode, truncateErrorBody(responseBody))
 				time.Sleep(retryDelays[attemptIndex])
 				continue
 			}
-			return nil, fmt.Errorf("healthcare api: unexpected status %d", response.StatusCode)
+			return nil, fmt.Errorf("healthcare api: unexpected status %d - %s", response.StatusCode, truncateErrorBody(responseBody))
 		}
 
 		if response.StatusCode < 200 || response.StatusCode >= 300 {
-			return nil, fmt.Errorf("healthcare api: unexpected status %d", response.StatusCode)
+			return nil, fmt.Errorf("healthcare api: unexpected status %d - %s", response.StatusCode, truncateErrorBody(responseBody))
 		}
 
 		return responseBody, nil

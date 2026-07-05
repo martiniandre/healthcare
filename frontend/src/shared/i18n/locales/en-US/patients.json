@@ -164,6 +164,8 @@
       "title": "Register New Encounter",
       "reason": "Encounter Reason",
       "reasonPlaceholder": "e.g. Routine cardiology consultation, Annual check-up",
+      "practitioner": "Doctor",
+      "selectPractitioner": "Select a doctor...",
       "confirm": "Confirm Encounter"
     },
     "medication": {

@@ -22,7 +22,7 @@ func NewHTTPHandler(service Service) *HTTPHandler {
 }
 
 func (handler *HTTPHandler) RegisterRoutes(mux *http.ServeMux) {
-	clinicalWrite := middleware.RequireRoles(role.RoleDoctor, role.RoleNurse)
+	clinicalWrite := middleware.RequireRoles(role.RoleAdmin, role.RoleDoctor, role.RoleNurse)
 	clinicalRead := middleware.RequireRoles(role.RoleAdmin, role.RoleDoctor, role.RoleNurse)
 
 	mux.Handle("GET /api/v1/patients/{patientFhirId}/conditions", clinicalRead(http.HandlerFunc(handler.ListConditionsByPatient)))
@@ -91,8 +91,9 @@ func (handler *HTTPHandler) CreateCondition(httpResponseWriter http.ResponseWrit
 	patientFhirID := httpRequest.PathValue("patientFhirId")
 
 	var payload struct {
-		ICD10Code   string `json:"icd10_code"`
-		CodeDisplay string `json:"code_display"`
+		ICD10Code    string `json:"icd10_code"`
+		CodeDisplay  string `json:"code_display"`
+		EncounterID  string `json:"encounter_id"`
 	}
 
 	if payloadDecodeErr := json.NewDecoder(httpRequest.Body).Decode(&payload); payloadDecodeErr != nil {
@@ -101,11 +102,12 @@ func (handler *HTTPHandler) CreateCondition(httpResponseWriter http.ResponseWrit
 	}
 
 	newCondition := &Condition{
-		PatientFHIRID:  patientFhirID,
-		ICD10Code:      payload.ICD10Code,
-		CodeDisplay:    payload.CodeDisplay,
-		ClinicalStatus: "active",
-		OnsetAt:        time.Now(),
+		PatientFHIRID:   patientFhirID,
+		ICD10Code:       payload.ICD10Code,
+		CodeDisplay:     payload.CodeDisplay,
+		ClinicalStatus:  "active",
+		EncounterFHIRID: payload.EncounterID,
+		OnsetAt:         time.Now(),
 	}
 
 	createdCondition, createErr := handler.service.CreateCondition(httpRequest.Context(), newCondition)

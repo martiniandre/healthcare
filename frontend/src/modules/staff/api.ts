@@ -22,20 +22,21 @@ export const staffApi = {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const response = await http.get<any[]>(`/staff/employees${queryString ? `?${queryString}` : ""}`)
     
-    return response.map(emp => ({
-      id: emp.ID,
-      fullName: emp.FullName,
-      role: mapRole(emp.Role),
-      license: emp.CRMNumber || "-",
-      email: emp.Email,
-      status: emp.IsActive ? StaffStatus.OnDuty : StaffStatus.OffDuty,
+    return response.map((emp: Record<string, unknown>) => ({
+      id: emp.id as string,
+      fullName: emp.full_name as string,
+      role: mapRole(emp.role as string),
+      license: (emp.crm_number as string) || "-",
+      email: emp.email as string,
+      status: emp.is_active ? StaffStatus.OnDuty : StaffStatus.OffDuty,
       department: "Geral",
+      fhirResourceId: (emp.fhir_resource_id as string) || "",
     }))
   },
 
   createEmployee: async (payload: CreateEmployeePayload): Promise<CreateEmployeeResponseDto> => {
     return http.post<CreateEmployeeResponseDto>("/staff/employees", {
-      user_id: payload.userId,
+      created_by: payload.userId,
       full_name: payload.fullName,
       email: payload.email,
       role: payload.role,

@@ -32,6 +32,7 @@ const ClinicalMedications = lazy(() => import("./components/ClinicalMedications"
 
 import { PACSStudies } from "./components/PACSStudies"
 import { ExamAnalyzerModal } from "./components/modals/ExamAnalyzerModal"
+import { Can, Action, Feature } from "../../shared/auth/AbilityContext"
 import { Card } from "../../shared/components/ui/Card"
 import { Button } from "../../shared/components/ui/Button"
 import { 
@@ -97,13 +98,15 @@ export const PatientDetails = () => {
     <div className="flex-1 p-4 sm:p-6 md:p-8 flex flex-col gap-4 md:gap-6 max-w-7xl mx-auto w-full">
       <div className="flex flex-col xl:flex-row xl:items-start justify-between gap-4">
         <PatientHeader patient={patient} onBack={() => navigate("/")} />
-        <Button 
-          onClick={() => setIsExamModalOpen(true)} 
-          className="gap-2 shrink-0 self-start xl:self-auto bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20 hover:border-primary/40 font-bold"
-        >
-          <Sparkles className="w-4 h-4 text-primary" />
-          Analisar Exame com IA
-        </Button>
+        <Can I={Action.Create} a={Feature.ExamAnalysis}>
+          <Button 
+            onClick={() => setIsExamModalOpen(true)} 
+            className="gap-2 shrink-0 self-start xl:self-auto bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20 hover:border-primary/40 font-bold"
+          >
+            <Sparkles className="w-4 h-4 text-primary" />
+            Analisar Exame com IA
+          </Button>
+        </Can>
       </div>
 
       <div className="flex flex-col md:flex-row gap-6 items-start mt-2">

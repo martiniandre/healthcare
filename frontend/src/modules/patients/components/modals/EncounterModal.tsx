@@ -2,6 +2,13 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useTranslation } from "react-i18next"
 import { Input } from "../../../../shared/components/ui/Input"
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "../../../../shared/components/ui/Select"
 import { Button } from "../../../../shared/components/ui/Button"
 import {
   Dialog,
@@ -10,6 +17,8 @@ import {
   DialogTitle,
 } from "../../../../shared/components/ui/Dialog"
 import { getNewEncounterSchema, type NewEncounterFormData } from "../../patient_schemas"
+import { useStaffListQuery } from "../../../staff/queries"
+import { StaffRole } from "../../../../shared/types"
 
 interface EncounterModalProps {
   isOpen: boolean
@@ -25,10 +34,12 @@ export const EncounterModal = ({
   isPending
 }: EncounterModalProps) => {
   const { t } = useTranslation("patients")
+  const { data: doctors = [] } = useStaffListQuery("", StaffRole.Doctor)
 
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm<NewEncounterFormData>({
     resolver: zodResolver(getNewEncounterSchema(t)),
@@ -57,6 +68,23 @@ export const EncounterModal = ({
               errorText={errors.reasonDisplay?.message}
               {...register("reasonDisplay")}
             />
+          </div>
+          <div className="flex flex-col gap-1">
+            <label className="text-xs font-semibold text-gray-600">
+              {t("modals.encounter.practitioner")}
+            </label>
+            <Select onValueChange={(value) => setValue("practitionerId", value)}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder={t("modals.encounter.selectPractitioner")} />
+              </SelectTrigger>
+              <SelectContent>
+                {doctors.filter((doctor) => doctor.fhirResourceId).map((doctor) => (
+                  <SelectItem key={doctor.id} value={doctor.fhirResourceId}>
+                    {doctor.fullName}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="flex gap-3 justify-end mt-4">
             <Button variantType="outline" type="button" onClick={onClose}>

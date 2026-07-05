@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
+	"strings"
 	"time"
 
 	"github.com/healthcare/backend/internal/shared/fhir"
@@ -91,8 +92,47 @@ func parseAllergyBundle(responseBody json.RawMessage) ([]*Allergy, error) {
 	for _, resource := range entries {
 		allergy := &Allergy{}
 		allergy.FHIRResourceID, _ = resource["id"].(string)
+		if clinicalStatus, ok := resource["clinicalStatus"].(map[string]interface{}); ok {
+			if coding, ok := clinicalStatus["coding"].([]interface{}); ok && len(coding) > 0 {
+				if firstCoding, ok := coding[0].(map[string]interface{}); ok {
+					allergy.ClinicalStatus, _ = firstCoding["code"].(string)
+				}
+			}
+		}
 		if codes, ok := resource["code"].(map[string]interface{}); ok {
 			allergy.AllergenDisplay, _ = codes["text"].(string)
+			if coding, ok := codes["coding"].([]interface{}); ok && len(coding) > 0 {
+				if firstCoding, ok := coding[0].(map[string]interface{}); ok {
+					if code, ok := firstCoding["code"].(string); ok {
+						allergy.AllergenCode = code
+					}
+					if display, ok := firstCoding["display"].(string); ok && allergy.AllergenDisplay == "" {
+						allergy.AllergenDisplay = display
+					}
+				}
+			}
+		}
+		if patient, ok := resource["patient"].(map[string]interface{}); ok {
+			if ref, ok := patient["reference"].(string); ok {
+				parts := strings.SplitN(ref, "/", 2)
+				if len(parts) == 2 {
+					allergy.PatientFHIRID = parts[1]
+				}
+			}
+		}
+		if recordedStr, ok := resource["recordedDate"].(string); ok {
+			if parsedTime, parseErr := time.Parse(time.RFC3339, recordedStr); parseErr == nil {
+				allergy.RecordedAt = parsedTime
+			}
+		}
+		if reactions, ok := resource["reaction"].([]interface{}); ok && len(reactions) > 0 {
+			if firstReaction, ok := reactions[0].(map[string]interface{}); ok {
+				if manifestations, ok := firstReaction["manifestation"].([]interface{}); ok && len(manifestations) > 0 {
+					if firstManifestation, ok := manifestations[0].(map[string]interface{}); ok {
+						allergy.Reaction, _ = firstManifestation["text"].(string)
+					}
+				}
+			}
 		}
 		allergies = append(allergies, allergy)
 	}

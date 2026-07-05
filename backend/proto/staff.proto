@@ -12,7 +12,7 @@ service StaffService {
 }
 
 message CreateEmployeeRequest {
-  string user_id = 1;
+  string created_by = 1;
   string full_name = 2;
   string email = 3;
   string role = 4;

@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next"
+import { Can, Action, Feature } from "../../../shared/auth/AbilityContext"
 import { Card } from "../../../shared/components/ui/Card"
 import { Button } from "../../../shared/components/ui/Button"
 import { Heart, Activity, Thermometer, AlertTriangle } from "lucide-react"
@@ -116,45 +117,47 @@ export const TelemetryBedMonitor = ({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-border pt-4 text-left">
-        <div className="flex flex-col gap-2">
-          <span className="text-xs font-bold text-gray-600 block">{t("telemetry.simulation.title")}</span>
-          <div className="flex gap-2 flex-wrap">
-            <Button 
-              variantType={activeBed.condition === CardiacCondition.Normal ? "primary" : "outline"} 
-              onClick={() => updateSelectedBedCondition(CardiacCondition.Normal)}
-              className="px-3 py-2 text-[11px] font-bold"
-            >
-              {t("telemetry.simulation.normal")}
-            </Button>
-            <Button 
-              variantType={activeBed.condition === CardiacCondition.Bradycardia ? "primary" : "outline"} 
-              onClick={() => updateSelectedBedCondition(CardiacCondition.Bradycardia)}
-              className="px-3 py-2 text-[11px] font-bold"
-            >
-              {t("telemetry.simulation.bradycardia")}
-            </Button>
+      <Can I={Action.Update} a={Feature.TelemetryBed}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-border pt-4 text-left">
+          <div className="flex flex-col gap-2">
+            <span className="text-xs font-bold text-gray-600 block">{t("telemetry.simulation.title")}</span>
+            <div className="flex gap-2 flex-wrap">
+              <Button 
+                variantType={activeBed.condition === CardiacCondition.Normal ? "primary" : "outline"} 
+                onClick={() => updateSelectedBedCondition(CardiacCondition.Normal)}
+                className="px-3 py-2 text-[11px] font-bold"
+              >
+                {t("telemetry.simulation.normal")}
+              </Button>
+              <Button 
+                variantType={activeBed.condition === CardiacCondition.Bradycardia ? "primary" : "outline"} 
+                onClick={() => updateSelectedBedCondition(CardiacCondition.Bradycardia)}
+                className="px-3 py-2 text-[11px] font-bold"
+              >
+                {t("telemetry.simulation.bradycardia")}
+              </Button>
+            </div>
+          </div>
+          <div className="flex flex-col gap-2 justify-end">
+            <div className="flex gap-2 flex-wrap">
+              <Button 
+                variantType={activeBed.condition === CardiacCondition.Tachycardia ? "primary" : "outline"} 
+                onClick={() => updateSelectedBedCondition(CardiacCondition.Tachycardia)}
+                className="px-3 py-2 text-[11px] font-bold"
+              >
+                {t("telemetry.simulation.tachycardia")}
+              </Button>
+              <Button 
+                variantType={activeBed.condition === CardiacCondition.CardiacArrest ? "danger" : "outline"} 
+                onClick={() => updateSelectedBedCondition(CardiacCondition.CardiacArrest)}
+                className="px-3 py-2 text-[11px] font-bold text-red-500 hover:text-white"
+              >
+                {t("telemetry.simulation.cardiacArrest")}
+              </Button>
+            </div>
           </div>
         </div>
-        <div className="flex flex-col gap-2 justify-end">
-          <div className="flex gap-2 flex-wrap">
-            <Button 
-              variantType={activeBed.condition === CardiacCondition.Tachycardia ? "primary" : "outline"} 
-              onClick={() => updateSelectedBedCondition(CardiacCondition.Tachycardia)}
-              className="px-3 py-2 text-[11px] font-bold"
-            >
-              {t("telemetry.simulation.tachycardia")}
-            </Button>
-            <Button 
-              variantType={activeBed.condition === CardiacCondition.CardiacArrest ? "danger" : "outline"} 
-              onClick={() => updateSelectedBedCondition(CardiacCondition.CardiacArrest)}
-              className="px-3 py-2 text-[11px] font-bold text-red-500 hover:text-white"
-            >
-              {t("telemetry.simulation.cardiacArrest")}
-            </Button>
-          </div>
-        </div>
-      </div>
+      </Can>
     </Card>
   )
 }

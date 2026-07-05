@@ -13,7 +13,7 @@ import (
 
 func TestStaffService_CreateEmployee(testingInstance *testing.T) {
 	mockRepository := mocks.NewMockStaffRepository()
-	staffService := staff.NewService(mockRepository)
+	staffService := staff.NewService(mockRepository, nil)
 	contextParam := context.Background()
 	userID := uuid.New()
 
@@ -29,7 +29,7 @@ func TestStaffService_CreateEmployee(testingInstance *testing.T) {
 
 func TestStaffService_GetEmployee(testingInstance *testing.T) {
 	mockRepository := mocks.NewMockStaffRepository()
-	staffService := staff.NewService(mockRepository)
+	staffService := staff.NewService(mockRepository, nil)
 	contextParam := context.Background()
 	userID := uuid.New()
 
@@ -46,7 +46,7 @@ func TestStaffService_GetEmployee(testingInstance *testing.T) {
 
 func TestStaffService_DeactivateEmployee(testingInstance *testing.T) {
 	mockRepository := mocks.NewMockStaffRepository()
-	staffService := staff.NewService(mockRepository)
+	staffService := staff.NewService(mockRepository, nil)
 	contextParam := context.Background()
 	userID := uuid.New()
 
@@ -61,7 +61,7 @@ func TestStaffService_DeactivateEmployee(testingInstance *testing.T) {
 
 func TestStaffService_ListEmployees(testingInstance *testing.T) {
 	mockRepository := mocks.NewMockStaffRepository()
-	staffService := staff.NewService(mockRepository)
+	staffService := staff.NewService(mockRepository, nil)
 	contextParam := context.Background()
 
 	staffService.CreateEmployee(contextParam, uuid.New(), "Dr. A", "a@clinic.com", string(role.RoleDoctor), "CRM-1")

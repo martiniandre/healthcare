@@ -1,6 +1,7 @@
 import { lazy, Suspense } from "react"
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
 import { useAuthStore } from "../shared/store/auth_store"
+import { AbilityProvider } from "../shared/auth/AbilityContext"
 import { AppSidebar } from "../shared/components/AppSidebar"
 import { AppHeader } from "../shared/components/AppHeader"
 import { Spinner } from "../shared/components/ui/Spinner"
@@ -46,29 +47,31 @@ export const AppRoutes = () => {
             path="/*"
             element={
               isAuthenticated ? (
-                <div className="min-h-screen bg-background flex">
-                  <AppSidebar />
-                  <div className="flex-1 flex flex-col min-w-0">
-                    <AppHeader />
-                    <main className="flex-1 flex flex-col">
-                      <Routes>
-                        <Route path="/" element={role === "PATIENT" ? <Navigate to="/portal" replace /> : <Patients />} />
-                        <Route path="/portal/*" element={<PortalPage />} />
-                        <Route path="/dashboard" element={<ClinicalDashboard />} />
-                        <Route path="/patients/:id" element={<PatientDetails />} />
-                        <Route path="/telemetry" element={<Telemetry />} />
-                        <Route path="/analytics" element={<Stats />} />
-                        <Route path="/staff" element={<Staff />} />
-                        <Route path="/exam-analyzer" element={<ExamAnalyzer />} />
-                        <Route
-                          path="/audit-logs"
-                          element={role === "ADMIN" ? <AuditLogs /> : <Navigate to="/" replace />}
-                        />
-                        <Route path="*" element={<Navigate to="/" replace />} />
-                      </Routes>
-                    </main>
+                <AbilityProvider role={role}>
+                  <div className="min-h-screen bg-background flex">
+                    <AppSidebar />
+                    <div className="flex-1 flex flex-col min-w-0">
+                      <AppHeader />
+                      <main className="flex-1 flex flex-col">
+                        <Routes>
+                          <Route path="/" element={role === "PATIENT" ? <Navigate to="/portal" replace /> : <Patients />} />
+                          <Route path="/portal/*" element={<PortalPage />} />
+                          <Route path="/dashboard" element={<ClinicalDashboard />} />
+                          <Route path="/patients/:id" element={<PatientDetails />} />
+                          <Route path="/telemetry" element={<Telemetry />} />
+                          <Route path="/analytics" element={<Stats />} />
+                          <Route path="/staff" element={<Staff />} />
+                          <Route path="/exam-analyzer" element={<ExamAnalyzer />} />
+                          <Route
+                            path="/audit-logs"
+                            element={role === "ADMIN" ? <AuditLogs /> : <Navigate to="/" replace />}
+                          />
+                          <Route path="*" element={<Navigate to="/" replace />} />
+                        </Routes>
+                      </main>
+                    </div>
                   </div>
-                </div>
+                </AbilityProvider>
               ) : (
                 <Navigate to="/login" replace />
               )
