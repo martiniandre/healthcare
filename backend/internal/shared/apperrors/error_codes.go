@@ -211,6 +211,11 @@ var (
 		Message:  "notification not found",
 	}
 
+	ErrNotFound = AppError{
+		GRPCCode: codes.NotFound,
+		HTTPCode: http.StatusNotFound,
+		Message:  "resource not found",
+	}
 )
 
 func ToGRPCStatus(err error) error {

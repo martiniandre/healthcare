@@ -5,9 +5,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
-	notificationspb "github.com/healthcare/backend/internal/modules/notifications/pb"
 	"github.com/healthcare/backend/internal/shared/eventbus"
-	"google.golang.org/grpc"
 )
 
 type Dependency struct {
@@ -15,11 +13,9 @@ type Dependency struct {
 	EventBus eventbus.Bus
 }
 
-func Register(grpcServer *grpc.Server, dep Dependency) (Service, *HTTPHandler) {
+func Register(dep Dependency) (Service, *HTTPHandler) {
 	repo := NewRepository(dep.DB)
 	svc := NewService(repo)
-	handler := NewGRPCHandler(svc)
-	notificationspb.RegisterNotificationServiceServer(grpcServer, handler)
 	httpHandler := NewHTTPHandler(svc)
 
 	dep.EventBus.Subscribe("telemetry.alert", func(ctx context.Context, event eventbus.Event) error {

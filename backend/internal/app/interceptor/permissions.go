@@ -19,6 +19,10 @@ var methodPermissions = map[string][]role.Role{
 	"/telemetry.v1.TelemetryService/GetBeds":           {role.RoleAdmin, role.RoleDoctor, role.RoleNurse},
 	"/telemetry.v1.TelemetryService/UpdateBedCondition": {role.RoleDoctor, role.RoleNurse},
 
+	"/exam_analyzer.v1.ExamAnalyzerService/ListAnalyses":   {role.RoleAdmin, role.RoleDoctor, role.RoleNurse},
+	"/exam_analyzer.v1.ExamAnalyzerService/GetAnalysis":    {role.RoleAdmin, role.RoleDoctor, role.RoleNurse},
+	"/exam_analyzer.v1.ExamAnalyzerService/DeleteAnalysis": {role.RoleAdmin, role.RoleDoctor},
+
 	"/staff.v1.StaffService/CreateEmployee":     {role.RoleAdmin},
 
 	"/staff.v1.StaffService/GetEmployee":        {role.RoleAdmin, role.RoleDoctor, role.RoleNurse, role.RoleReception},
@@ -54,7 +58,4 @@ var methodPermissions = map[string][]role.Role{
 	"/imaging.v1.ImagingService/ListImagingStudies":   {role.RoleAdmin, role.RoleDoctor, role.RoleNurse, role.RolePatient},
 	"/imaging.v1.ImagingService/GetDICOMDownloadURL": {role.RoleAdmin, role.RoleDoctor, role.RoleNurse, role.RolePatient},
 
-	"/notification.v1.NotificationService/ListNotifications": {role.RoleAdmin, role.RoleDoctor, role.RoleNurse, role.RoleReception, role.RolePatient},
-	"/notification.v1.NotificationService/MarkRead":         {role.RoleAdmin, role.RoleDoctor, role.RoleNurse, role.RoleReception, role.RolePatient},
-	"/notification.v1.NotificationService/GetUnreadCount":   {role.RoleAdmin, role.RoleDoctor, role.RoleNurse, role.RoleReception, role.RolePatient},
 }
