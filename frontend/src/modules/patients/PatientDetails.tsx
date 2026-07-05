@@ -4,12 +4,11 @@ import { useTranslation } from "react-i18next"
 import {
   usePatientQuery,
   useEncountersQuery,
-  usePatientConditionsQuery,
-  usePatientAllergiesQuery,
 } from "./queries"
 import { useImagingStudiesQuery } from "../imaging/queries"
 import { ImagingWorkspace } from "../imaging/ImagingWorkspace"
 import { PatientHeader } from "./components/PatientHeader"
+import { useAbility, Action, Feature } from "../../shared/auth/AbilityContext"
 
 const PatientTab = {
   Encounters: "encounters",
@@ -32,7 +31,7 @@ const ClinicalMedications = lazy(() => import("./components/ClinicalMedications"
 
 import { PACSStudies } from "./components/PACSStudies"
 import { ExamAnalyzerModal } from "./components/modals/ExamAnalyzerModal"
-import { Can, Action, Feature } from "../../shared/auth/AbilityContext"
+import { Can } from "../../shared/auth/AbilityContext"
 import { Card } from "../../shared/components/ui/Card"
 import { Button } from "../../shared/components/ui/Button"
 import { 
@@ -63,6 +62,8 @@ export const PatientDetails = () => {
   const navigate = useNavigate()
   const { t } = useTranslation("patients")
 
+  const ability = useAbility()
+
   const [searchParameters, setSearchParameters] = useSearchParams()
   const activeTab = (searchParameters.get("tab") || PatientTab.Encounters) as PatientTab
   const [selectedStudyId, setSelectedStudyId] = useState<string | null>(null)
@@ -79,9 +80,25 @@ export const PatientDetails = () => {
   
   const activeEncounterId = selectedEncounterId || (encounters.length > 0 ? encounters[encounters.length - 1].fhir_id : null)
 
-  const { data: conditions = [] } = usePatientConditionsQuery(id)
-  const { data: allergies = [] } = usePatientAllergiesQuery(id)
-  const { data: studies = [] } = useImagingStudiesQuery(id)
+  const canReadConditions = ability.can(Action.Read, Feature.Condition)
+  const canReadAllergies = ability.can(Action.Read, Feature.Allergy)
+  const canReadMedications = ability.can(Action.Read, Feature.MedicationRequest)
+  const canReadObservations = ability.can(Action.Read, Feature.Observation)
+  const canReadReports = ability.can(Action.Read, Feature.DiagnosticReport)
+  const canReadStudies = ability.can(Action.Read, Feature.ImagingStudy)
+
+  const availableTabs: Record<PatientTab, boolean> = {
+    [PatientTab.Encounters]: true,
+    [PatientTab.Vitals]: canReadObservations,
+    [PatientTab.Reports]: canReadReports,
+    [PatientTab.Conditions]: canReadConditions,
+    [PatientTab.Allergies]: canReadAllergies,
+    [PatientTab.Medications]: canReadMedications,
+    [PatientTab.Pacs]: canReadStudies,
+  }
+  const resolvedActiveTab = availableTabs[activeTab] ? activeTab : PatientTab.Encounters
+
+  const { data: studies = [] } = useImagingStudiesQuery(id, canReadStudies)
 
   const selectedEncounter = encounters.find((encounterItem) => encounterItem.fhir_id === activeEncounterId) || null
 
@@ -118,7 +135,7 @@ export const PatientDetails = () => {
             <button
               onClick={() => setActiveTab(PatientTab.Encounters)}
               className={`w-full text-left flex items-center gap-3 px-4 py-3 rounded-lg text-xs font-extrabold transition-all duration-300 ${
-                activeTab === PatientTab.Encounters
+                resolvedActiveTab === PatientTab.Encounters
                   ? "bg-primary/8 text-primary"
                   : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
               }`}
@@ -130,86 +147,92 @@ export const PatientDetails = () => {
               </span>
             </button>
 
-            <button
-              onClick={() => setActiveTab(PatientTab.Vitals)}
-              className={`w-full text-left flex items-center gap-3 px-4 py-3 rounded-lg text-xs font-extrabold transition-all duration-300 ${
-                activeTab === PatientTab.Vitals
-                  ? "bg-primary/8 text-primary"
-                  : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
-              }`}
-            >
-              <Heart className="w-4 h-4 shrink-0" />
-              {t("details.vitals")}
-            </button>
+            {canReadObservations && (
+              <button
+                onClick={() => setActiveTab(PatientTab.Vitals)}
+                className={`w-full text-left flex items-center gap-3 px-4 py-3 rounded-lg text-xs font-extrabold transition-all duration-300 ${
+                  resolvedActiveTab === PatientTab.Vitals
+                    ? "bg-primary/8 text-primary"
+                    : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
+                }`}
+              >
+                <Heart className="w-4 h-4 shrink-0" />
+                {t("details.vitals")}
+              </button>
+            )}
 
-            <button
-              onClick={() => setActiveTab(PatientTab.Reports)}
-              className={`w-full text-left flex items-center gap-3 px-4 py-3 rounded-lg text-xs font-extrabold transition-all duration-300 ${
-                activeTab === PatientTab.Reports
-                  ? "bg-primary/8 text-primary"
-                  : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
-              }`}
-            >
-              <FileText className="w-4 h-4 shrink-0" />
-              {t("details.reports")}
-            </button>
+            {canReadReports && (
+              <button
+                onClick={() => setActiveTab(PatientTab.Reports)}
+                className={`w-full text-left flex items-center gap-3 px-4 py-3 rounded-lg text-xs font-extrabold transition-all duration-300 ${
+                  resolvedActiveTab === PatientTab.Reports
+                    ? "bg-primary/8 text-primary"
+                    : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
+                }`}
+              >
+                <FileText className="w-4 h-4 shrink-0" />
+                {t("details.reports")}
+              </button>
+            )}
 
-            <button
-              onClick={() => setActiveTab(PatientTab.Conditions)}
-              className={`w-full text-left flex items-center gap-3 px-4 py-3 rounded-lg text-xs font-extrabold transition-all duration-300 ${
-                activeTab === PatientTab.Conditions
-                  ? "bg-primary/8 text-primary"
-                  : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
-              }`}
-            >
-              <Activity className="w-4 h-4 shrink-0" />
-              {t("details.conditions")}
-              <span className="ml-auto text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded font-black">
-                {conditions.length}
-              </span>
-            </button>
+            {canReadConditions && (
+              <button
+                onClick={() => setActiveTab(PatientTab.Conditions)}
+                className={`w-full text-left flex items-center gap-3 px-4 py-3 rounded-lg text-xs font-extrabold transition-all duration-300 ${
+                  resolvedActiveTab === PatientTab.Conditions
+                    ? "bg-primary/8 text-primary"
+                    : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
+                }`}
+              >
+                <Activity className="w-4 h-4 shrink-0" />
+                {t("details.conditions")}
+              </button>
+            )}
 
-            <button
-              onClick={() => setActiveTab(PatientTab.Medications)}
-              className={`w-full text-left flex items-center gap-3 px-4 py-3 rounded-lg text-xs font-extrabold transition-all duration-300 ${
-                activeTab === PatientTab.Medications
-                  ? "bg-primary/8 text-primary"
-                  : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
-              }`}
-            >
-              <Pill className="w-4 h-4 shrink-0" />
-              {t("details.medications")}
-            </button>
+            {canReadMedications && (
+              <button
+                onClick={() => setActiveTab(PatientTab.Medications)}
+                className={`w-full text-left flex items-center gap-3 px-4 py-3 rounded-lg text-xs font-extrabold transition-all duration-300 ${
+                  resolvedActiveTab === PatientTab.Medications
+                    ? "bg-primary/8 text-primary"
+                    : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
+                }`}
+              >
+                <Pill className="w-4 h-4 shrink-0" />
+                {t("details.medications")}
+              </button>
+            )}
 
-            <button
-              onClick={() => setActiveTab(PatientTab.Allergies)}
-              className={`w-full text-left flex items-center gap-3 px-4 py-3 rounded-lg text-xs font-extrabold transition-all duration-300 ${
-                activeTab === PatientTab.Allergies
-                  ? "bg-primary/8 text-primary"
-                  : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
-              }`}
-            >
-              <ShieldAlert className="w-4 h-4 shrink-0" />
-              {t("details.allergies")}
-              <span className="ml-auto text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded font-black">
-                {allergies.length}
-              </span>
-            </button>
+            {canReadAllergies && (
+              <button
+                onClick={() => setActiveTab(PatientTab.Allergies)}
+                className={`w-full text-left flex items-center gap-3 px-4 py-3 rounded-lg text-xs font-extrabold transition-all duration-300 ${
+                  resolvedActiveTab === PatientTab.Allergies
+                    ? "bg-primary/8 text-primary"
+                    : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
+                }`}
+              >
+                <ShieldAlert className="w-4 h-4 shrink-0" />
+                {t("details.allergies")}
+              </button>
+            )}
 
-            <button
-              onClick={() => setActiveTab(PatientTab.Pacs)}
-              className={`w-full text-left flex items-center gap-3 px-4 py-3 rounded-lg text-xs font-extrabold transition-all duration-300 ${
-                activeTab === PatientTab.Pacs
-                  ? "bg-primary/8 text-primary"
-                  : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
-              }`}
-            >
-              <ImageIcon className="w-4 h-4 shrink-0" />
-              {t("details.pacs")}
-              <span className="ml-auto text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded font-black">
-                {studies.length}
-              </span>
-            </button>
+            {canReadStudies && (
+              <button
+                onClick={() => setActiveTab(PatientTab.Pacs)}
+                className={`w-full text-left flex items-center gap-3 px-4 py-3 rounded-lg text-xs font-extrabold transition-all duration-300 ${
+                  resolvedActiveTab === PatientTab.Pacs
+                    ? "bg-primary/8 text-primary"
+                    : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
+                }`}
+              >
+                <ImageIcon className="w-4 h-4 shrink-0" />
+                {t("details.pacs")}
+                <span className="ml-auto text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded font-black">
+                  {studies.length}
+                </span>
+              </button>
+            )}
           </div>
         </div>
 
@@ -238,7 +261,7 @@ export const PatientDetails = () => {
 
           <div className="flex flex-col gap-6">
             <Suspense fallback={<TabFallback />}>
-              {activeTab === PatientTab.Encounters && (
+              {resolvedActiveTab === PatientTab.Encounters && (
                 <EncounterHistory
                   patientId={id}
                   selectedEncounterId={activeEncounterId}
@@ -246,7 +269,7 @@ export const PatientDetails = () => {
                 />
               )}
 
-              {activeTab === PatientTab.Vitals && (
+              {resolvedActiveTab === PatientTab.Vitals && (
                 selectedEncounter ? (
                   <VitalSigns
                     patientId={id}
@@ -265,7 +288,7 @@ export const PatientDetails = () => {
                 )
               )}
 
-              {activeTab === PatientTab.Reports && (
+              {resolvedActiveTab === PatientTab.Reports && (
                 selectedEncounter ? (
                   <ClinicalReports
                     patientId={id}
@@ -284,13 +307,13 @@ export const PatientDetails = () => {
                 )
               )}
 
-              {activeTab === PatientTab.Conditions && (
+              {resolvedActiveTab === PatientTab.Conditions && (
                 <ClinicalConditions
                   patientId={id}
                 />
               )}
 
-              {activeTab === PatientTab.Medications && (
+              {resolvedActiveTab === PatientTab.Medications && (
                 selectedEncounter ? (
                   <ClinicalMedications
                     patientId={id}
@@ -309,13 +332,13 @@ export const PatientDetails = () => {
                 )
               )}
 
-              {activeTab === PatientTab.Allergies && (
+              {resolvedActiveTab === PatientTab.Allergies && (
                 <ClinicalAllergies
                   patientId={id}
                 />
               )}
 
-              {activeTab === PatientTab.Pacs && (
+              {resolvedActiveTab === PatientTab.Pacs && (
                 selectedStudyId ? (
                   <ImagingWorkspace
                     studyId={selectedStudyId}

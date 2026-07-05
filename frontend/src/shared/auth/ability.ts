@@ -7,17 +7,18 @@ export function defineAppAbility(userRole: string | null): AppAbility {
 
   if (userRole === "ADMIN") {
     can(Action.Manage, Feature.All)
+    cannot(Action.Create, Feature.MedicationRequest)
     return build()
   }
 
   if (userRole === "DOCTOR") {
-    can([Action.Create, Action.Read, Action.Update, Action.Delete], [
+    can([Action.Create, Action.Read], [
       Feature.Condition, Feature.Allergy, Feature.Observation, Feature.Encounter,
     ])
-    can([Action.Create, Action.Read, Action.Update], [Feature.DiagnosticReport, Feature.TelemetryBed])
+    can([Action.Create, Action.Read], [Feature.DiagnosticReport, Feature.TelemetryBed])
     can([Action.Create, Action.Read], [Feature.MedicationRequest])
     can([Action.Create, Action.Read, Action.Delete], [Feature.ExamAnalysis])
-    can(Action.Read, [Feature.Patient, Feature.Staff, Feature.AuditLog, Feature.ImagingStudy])
+    can(Action.Read, [Feature.Patient, Feature.Staff, Feature.ImagingStudy])
     cannot(Action.Create, [Feature.Patient, Feature.Staff])
     return build()
   }
@@ -26,9 +27,9 @@ export function defineAppAbility(userRole: string | null): AppAbility {
     can([Action.Create, Action.Read], [
       Feature.Condition, Feature.Allergy, Feature.Observation, Feature.DiagnosticReport, Feature.TelemetryBed,
     ])
-    can([Action.Create, Action.Read, Action.Update], [Feature.Encounter])
+    can([Action.Create, Action.Read], [Feature.Encounter])
     can(Action.Read, [
-      Feature.Patient, Feature.Staff, Feature.AuditLog, Feature.ImagingStudy, Feature.MedicationRequest, Feature.ExamAnalysis,
+      Feature.Patient, Feature.Staff, Feature.ImagingStudy, Feature.MedicationRequest, Feature.ExamAnalysis,
     ])
     cannot(Action.Create, [Feature.Patient, Feature.Staff, Feature.MedicationRequest])
     cannot(Action.Delete, [Feature.ExamAnalysis])

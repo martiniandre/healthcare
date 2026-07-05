@@ -16,11 +16,11 @@ export const useImagingStudyQuery = (studyId: string) => {
   })
 }
 
-export const useImagingStudiesQuery = (patientFhirId: string) => {
+export const useImagingStudiesQuery = (patientFhirId: string, enableQuery?: boolean) => {
   return useQuery({
     queryKey: imagingQueryKeys.studies(patientFhirId),
     queryFn: () => imagingApi.getImagingStudies(patientFhirId),
-    enabled: !!patientFhirId,
+    enabled: !!patientFhirId && enableQuery !== false,
   })
 }
 
