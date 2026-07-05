@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
+	"strings"
+	"time"
 
 	"github.com/healthcare/backend/internal/shared/fhir"
 	"github.com/healthcare/backend/internal/shared/healthcare"
@@ -102,10 +104,44 @@ func parseObservationBundle(responseBody json.RawMessage) ([]*Observation, error
 		observation.FHIRResourceID, _ = resource["id"].(string)
 		if codes, ok := resource["code"].(map[string]interface{}); ok {
 			observation.CodeDisplay, _ = codes["text"].(string)
+			if coding, ok := codes["coding"].([]interface{}); ok && len(coding) > 0 {
+				if firstCoding, ok := coding[0].(map[string]interface{}); ok {
+					observation.LoincCode, _ = firstCoding["code"].(string)
+					if display, ok := firstCoding["display"].(string); ok && observation.CodeDisplay == "" {
+						observation.CodeDisplay = display
+					}
+				}
+			}
 		}
 		if valueQuantity, ok := resource["valueQuantity"].(map[string]interface{}); ok {
 			observation.ValueQuantity, _ = valueQuantity["value"].(float64)
 			observation.ValueUnit, _ = valueQuantity["unit"].(string)
+		}
+		if encounter, ok := resource["encounter"].(map[string]interface{}); ok {
+			if ref, ok := encounter["reference"].(string); ok {
+				parts := strings.SplitN(ref, "/", 2)
+				if len(parts) == 2 {
+					observation.EncounterFHIRID = parts[1]
+				}
+			}
+		}
+		if subject, ok := resource["subject"].(map[string]interface{}); ok {
+			if ref, ok := subject["reference"].(string); ok {
+				parts := strings.SplitN(ref, "/", 2)
+				if len(parts) == 2 {
+					observation.PatientFHIRID = parts[1]
+				}
+			}
+		}
+		if effectiveStr, ok := resource["effectiveDateTime"].(string); ok {
+			if parsedTime, parseErr := time.Parse(time.RFC3339, effectiveStr); parseErr == nil {
+				observation.ObservedAt = parsedTime
+			}
+		}
+		if issuedStr, ok := resource["issued"].(string); ok && observation.ObservedAt.IsZero() {
+			if parsedTime, parseErr := time.Parse(time.RFC3339, issuedStr); parseErr == nil {
+				observation.ObservedAt = parsedTime
+			}
 		}
 		observations = append(observations, observation)
 	}

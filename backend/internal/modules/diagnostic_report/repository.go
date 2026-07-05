@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
+	"strings"
 	"time"
 
 	"github.com/healthcare/backend/internal/shared/fhir"
@@ -95,6 +96,35 @@ func parseDiagnosticReportBundle(responseBody json.RawMessage) ([]*DiagnosticRep
 		report.Conclusion, _ = resource["conclusion"].(string)
 		if codes, ok := resource["code"].(map[string]interface{}); ok {
 			report.ReportDisplay, _ = codes["text"].(string)
+			if coding, ok := codes["coding"].([]interface{}); ok && len(coding) > 0 {
+				if firstCoding, ok := coding[0].(map[string]interface{}); ok {
+					report.ReportCode, _ = firstCoding["code"].(string)
+					if display, ok := firstCoding["display"].(string); ok && report.ReportDisplay == "" {
+						report.ReportDisplay = display
+					}
+				}
+			}
+		}
+		if encounter, ok := resource["encounter"].(map[string]interface{}); ok {
+			if ref, ok := encounter["reference"].(string); ok {
+				parts := strings.SplitN(ref, "/", 2)
+				if len(parts) == 2 {
+					report.EncounterFHIRID = parts[1]
+				}
+			}
+		}
+		if subject, ok := resource["subject"].(map[string]interface{}); ok {
+			if ref, ok := subject["reference"].(string); ok {
+				parts := strings.SplitN(ref, "/", 2)
+				if len(parts) == 2 {
+					report.PatientFHIRID = parts[1]
+				}
+			}
+		}
+		if issuedStr, ok := resource["issued"].(string); ok {
+			if parsedTime, parseErr := time.Parse(time.RFC3339, issuedStr); parseErr == nil {
+				report.IssuedAt = parsedTime
+			}
 		}
 		reports = append(reports, report)
 	}

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
+	"strings"
 	"time"
 
 	"github.com/healthcare/backend/internal/shared/fhir"
@@ -95,6 +96,45 @@ func parseMedicationRequestBundle(responseBody json.RawMessage) ([]*Medication, 
 		medication.Status, _ = resource["status"].(string)
 		if med, ok := resource["medicationCodeableConcept"].(map[string]interface{}); ok {
 			medication.MedicationName, _ = med["text"].(string)
+			if coding, ok := med["coding"].([]interface{}); ok && len(coding) > 0 {
+				if firstCoding, ok := coding[0].(map[string]interface{}); ok {
+					medication.MedicationCode, _ = firstCoding["code"].(string)
+					if display, ok := firstCoding["display"].(string); ok && medication.MedicationName == "" {
+						medication.MedicationName = display
+					}
+				}
+			}
+		}
+		if encounter, ok := resource["encounter"].(map[string]interface{}); ok {
+			if ref, ok := encounter["reference"].(string); ok {
+				parts := strings.SplitN(ref, "/", 2)
+				if len(parts) == 2 {
+					medication.EncounterFHIRID = parts[1]
+				}
+			}
+		}
+		if subject, ok := resource["subject"].(map[string]interface{}); ok {
+			if ref, ok := subject["reference"].(string); ok {
+				parts := strings.SplitN(ref, "/", 2)
+				if len(parts) == 2 {
+					medication.PatientFHIRID = parts[1]
+				}
+			}
+		}
+		if requester, ok := resource["requester"].(map[string]interface{}); ok {
+			if agent, ok := requester["agent"].(map[string]interface{}); ok {
+				if ref, ok := agent["reference"].(string); ok {
+					parts := strings.SplitN(ref, "/", 2)
+					if len(parts) == 2 {
+						medication.PractitionerFHIRID = parts[1]
+					}
+				}
+			}
+		}
+		if authoredStr, ok := resource["authoredOn"].(string); ok {
+			if parsedTime, parseErr := time.Parse(time.RFC3339, authoredStr); parseErr == nil {
+				medication.IssuedAt = parsedTime
+			}
 		}
 		medications = append(medications, medication)
 	}
