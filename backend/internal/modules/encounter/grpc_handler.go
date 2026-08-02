@@ -2,7 +2,6 @@ package encounter
 
 import (
 	"context"
-	"errors"
 
 	pb "github.com/healthcare/backend/internal/modules/encounter/pb"
 	"github.com/healthcare/backend/internal/shared/apperrors"
@@ -16,36 +15,17 @@ func NewGRPCHandler(service Service) *GRPCHandler {
 	return &GRPCHandler{service: service}
 }
 
-func mapEncounterError(err error) error {
-	if errors.Is(err, ErrEncounterNotFound) {
-		return apperrors.ErrEncounterNotFound.ToGRPC()
-	}
-	return apperrors.ToGRPCStatus(err)
-}
-
 func (handler *GRPCHandler) CreateEncounter(ctx context.Context, req *pb.CreateEncounterRequest) (*pb.CreateEncounterResponse, error) {
-	violations := make(map[string]string)
-	if req.PatientFhirId == "" {
-		violations["patient_fhir_id"] = "is required"
-	}
-	if req.PractitionerId == "" {
-		violations["practitioner_id"] = "is required"
-	}
-	if len(violations) > 0 {
-		return nil, apperrors.ErrBadRequest.WithFields(violations)
-	}
-
-	encounter := &Encounter{
+	input := CreateEncounterInput{
 		PatientFHIRID:  req.PatientFhirId,
 		PractitionerID: req.PractitionerId,
 		ReasonCode:     req.ReasonCode,
 		ReasonDisplay:  req.ReasonDisplay,
-		Status:         "in-progress",
 	}
 
-	createdEncounter, err := handler.service.CreateEncounter(ctx, encounter)
+	createdEncounter, err := handler.service.CreateEncounter(ctx, input)
 	if err != nil {
-		return nil, mapEncounterError(err)
+		return nil, apperrors.ToGRPCStatus(err)
 	}
 
 	return &pb.CreateEncounterResponse{EncounterFhirId: createdEncounter.FHIRResourceID}, nil
@@ -58,7 +38,7 @@ func (handler *GRPCHandler) GetEncounter(ctx context.Context, req *pb.GetEncount
 
 	encounter, err := handler.service.GetEncounter(ctx, req.EncounterFhirId)
 	if err != nil {
-		return nil, mapEncounterError(err)
+		return nil, apperrors.ToGRPCStatus(err)
 	}
 
 	return &pb.GetEncounterResponse{
@@ -76,7 +56,7 @@ func (handler *GRPCHandler) GetEncounters(ctx context.Context, req *pb.GetEncoun
 
 	encounters, err := handler.service.GetEncountersByPatient(ctx, req.PatientFhirId)
 	if err != nil {
-		return nil, mapEncounterError(err)
+		return nil, apperrors.ToGRPCStatus(err)
 	}
 
 	pbEncounters := make([]*pb.Encounter, 0, len(encounters))

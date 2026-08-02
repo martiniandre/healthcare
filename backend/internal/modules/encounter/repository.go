@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/healthcare/backend/internal/shared/apperrors"
 	"github.com/healthcare/backend/internal/shared/fhir"
 	"github.com/healthcare/backend/internal/shared/healthcare"
 )
@@ -33,6 +34,9 @@ func (encounterRepository *repository) CreateEncounter(ctx context.Context, enco
 
 	responseBody, err := encounterRepository.fhirClient.CreateResource(ctx, "Encounter", fhirEncounter)
 	if err != nil {
+		if healthcare.IsNotFound(err) {
+			return nil, fmt.Errorf("failed to create encounter: %w", apperrors.ErrEncounterNotFound)
+		}
 		return nil, fmt.Errorf("failed to create encounter: %w", err)
 	}
 
@@ -49,6 +53,9 @@ func (encounterRepository *repository) CreateEncounter(ctx context.Context, enco
 func (encounterRepository *repository) GetEncounterByID(ctx context.Context, fhirResourceID string) (*Encounter, error) {
 	responseBody, err := encounterRepository.fhirClient.GetResource(ctx, "Encounter", fhirResourceID)
 	if err != nil {
+		if healthcare.IsNotFound(err) {
+			return nil, fmt.Errorf("failed to get encounter: %w", apperrors.ErrEncounterNotFound)
+		}
 		return nil, fmt.Errorf("failed to get encounter: %w", err)
 	}
 
@@ -110,6 +117,9 @@ func (encounterRepository *repository) UpdateEncounter(ctx context.Context, fhir
 
 	responseBody, err := encounterRepository.fhirClient.UpdateResource(ctx, "Encounter", fhirResourceID, fhirEncounter)
 	if err != nil {
+		if healthcare.IsNotFound(err) {
+			return nil, fmt.Errorf("failed to update encounter: %w", apperrors.ErrEncounterNotFound)
+		}
 		return nil, fmt.Errorf("failed to update encounter: %w", err)
 	}
 
@@ -124,6 +134,9 @@ func (encounterRepository *repository) UpdateEncounter(ctx context.Context, fhir
 func (encounterRepository *repository) DeleteEncounter(ctx context.Context, fhirResourceID string) error {
 	err := encounterRepository.fhirClient.DeleteResource(ctx, "Encounter/"+fhirResourceID)
 	if err != nil {
+		if healthcare.IsNotFound(err) {
+			return fmt.Errorf("failed to delete encounter: %w", apperrors.ErrEncounterNotFound)
+		}
 		return fmt.Errorf("failed to delete encounter: %w", err)
 	}
 

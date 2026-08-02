@@ -24,9 +24,10 @@ func NewHTTPHandler(service Service) *HTTPHandler {
 func (handler *HTTPHandler) RegisterRoutes(mux *http.ServeMux) {
 	clinicalWrite := middleware.RequireRoles(role.RoleAdmin, role.RoleDoctor, role.RoleNurse)
 	clinicalRead := middleware.RequireRoles(role.RoleAdmin, role.RoleDoctor, role.RoleNurse)
+	clinicalIntakeWrite := middleware.RequireRoles(role.RoleAdmin, role.RoleDoctor, role.RoleNurse, role.RoleReception)
 
 	mux.Handle("GET /api/v1/patients/{patientFhirId}/encounters", clinicalRead(http.HandlerFunc(handler.ListEncountersByPatient)))
-	mux.Handle("POST /api/v1/patients/{patientFhirId}/encounters", clinicalWrite(http.HandlerFunc(handler.CreateEncounter)))
+	mux.Handle("POST /api/v1/patients/{patientFhirId}/encounters", clinicalIntakeWrite(http.HandlerFunc(handler.CreateEncounter)))
 	mux.Handle("GET /api/v1/encounters/{encounterFhirId}", clinicalRead(http.HandlerFunc(handler.GetEncounter)))
 	mux.Handle("PUT /api/v1/encounters/{encounterFhirId}", clinicalWrite(http.HandlerFunc(handler.UpdateEncounter)))
 	mux.Handle("DELETE /api/v1/encounters/{encounterFhirId}", clinicalWrite(http.HandlerFunc(handler.DeleteEncounter)))
@@ -49,7 +50,7 @@ func (handler *HTTPHandler) ListEncountersByPatient(httpResponseWriter http.Resp
 	encountersList, encountersErr := handler.service.GetEncountersByPatient(httpRequest.Context(), patientFhirID)
 	if encountersErr != nil {
 		slog.Error("failed to list encounters", "error", encountersErr, "patient_fhir_id", patientFhirID, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.Error(httpResponseWriter, http.StatusInternalServerError, "Erro ao carregar consultas do paciente.")
+		render.ErrorFromAppError(httpResponseWriter, encountersErr)
 		return
 	}
 
@@ -91,23 +92,17 @@ func (handler *HTTPHandler) CreateEncounter(httpResponseWriter http.ResponseWrit
 		return
 	}
 
-	if payload.ReasonDisplay == "" {
-		render.Error(httpResponseWriter, http.StatusBadRequest, "O motivo da consulta é obrigatório.")
-		return
-	}
-
-	newEncounter := &Encounter{
+	input := CreateEncounterInput{
 		PatientFHIRID:  patientFhirID,
 		PractitionerID: payload.PractitionerID,
+		ReasonCode:     payload.ReasonCode,
 		ReasonDisplay:  payload.ReasonDisplay,
-		Status:         "finished",
-		StartedAt:      time.Now(),
 	}
 
-	createdEncounter, createErr := handler.service.CreateEncounter(httpRequest.Context(), newEncounter)
+	createdEncounter, createErr := handler.service.CreateEncounter(httpRequest.Context(), input)
 	if createErr != nil {
 		slog.Error("failed to create encounter", "error", createErr, "patient_fhir_id", patientFhirID, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.Error(httpResponseWriter, http.StatusInternalServerError, "Erro ao criar consulta.")
+		render.ErrorFromAppError(httpResponseWriter, createErr)
 		return
 	}
 
@@ -127,7 +122,7 @@ func (handler *HTTPHandler) GetEncounter(httpResponseWriter http.ResponseWriter,
 	encounter, encounterErr := handler.service.GetEncounter(httpRequest.Context(), encounterFhirID)
 	if encounterErr != nil {
 		slog.Error("failed to get encounter", "error", encounterErr, "encounter_fhir_id", encounterFhirID, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.Error(httpResponseWriter, http.StatusInternalServerError, "Erro ao carregar consulta.")
+		render.ErrorFromAppError(httpResponseWriter, encounterErr)
 		return
 	}
 
@@ -145,9 +140,10 @@ func (handler *HTTPHandler) UpdateEncounter(httpResponseWriter http.ResponseWrit
 	encounterFhirID := httpRequest.PathValue("encounterFhirId")
 
 	var payload struct {
-		ReasonDisplay  string `json:"reason_display"`
-		Status         string `json:"status"`
-		PractitionerID string `json:"practitioner_id"`
+		ReasonCode     *string `json:"reason_code"`
+		ReasonDisplay  *string `json:"reason_display"`
+		Status         *string `json:"status"`
+		PractitionerID *string `json:"practitioner_id"`
 	}
 
 	if payloadDecodeErr := json.NewDecoder(httpRequest.Body).Decode(&payload); payloadDecodeErr != nil {
@@ -155,26 +151,17 @@ func (handler *HTTPHandler) UpdateEncounter(httpResponseWriter http.ResponseWrit
 		return
 	}
 
-	updatedEncounter := &Encounter{
-		PatientFHIRID:  "", // will be fetched from existing
-		PractitionerID: payload.PractitionerID,
+	input := UpdateEncounterInput{
+		ReasonCode:     payload.ReasonCode,
 		ReasonDisplay:  payload.ReasonDisplay,
 		Status:         payload.Status,
+		PractitionerID: payload.PractitionerID,
 	}
 
-	currentEncounter, getErr := handler.service.GetEncounter(httpRequest.Context(), encounterFhirID)
-	if getErr != nil {
-		slog.Error("failed to get encounter for update", "error", getErr, "encounter_fhir_id", encounterFhirID, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.Error(httpResponseWriter, http.StatusInternalServerError, "Erro ao atualizar consulta.")
-		return
-	}
-	updatedEncounter.PatientFHIRID = currentEncounter.PatientFHIRID
-	updatedEncounter.ReasonCode = currentEncounter.ReasonCode
-
-	result, updateErr := handler.service.UpdateEncounter(httpRequest.Context(), encounterFhirID, updatedEncounter)
+	result, updateErr := handler.service.UpdateEncounter(httpRequest.Context(), encounterFhirID, input)
 	if updateErr != nil {
 		slog.Error("failed to update encounter", "error", updateErr, "encounter_fhir_id", encounterFhirID, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.Error(httpResponseWriter, http.StatusInternalServerError, "Erro ao atualizar consulta.")
+		render.ErrorFromAppError(httpResponseWriter, updateErr)
 		return
 	}
 
@@ -194,7 +181,7 @@ func (handler *HTTPHandler) DeleteEncounter(httpResponseWriter http.ResponseWrit
 	deleteErr := handler.service.DeleteEncounter(httpRequest.Context(), encounterFhirID)
 	if deleteErr != nil {
 		slog.Error("failed to delete encounter", "error", deleteErr, "encounter_fhir_id", encounterFhirID, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.Error(httpResponseWriter, http.StatusInternalServerError, "Erro ao excluir consulta.")
+		render.ErrorFromAppError(httpResponseWriter, deleteErr)
 		return
 	}
 
@@ -211,6 +198,7 @@ type EncounterResponse struct {
 }
 
 type CreateEncounterRequest struct {
+	ReasonCode     string `json:"reason_code"`
 	ReasonDisplay  string `json:"reason_display"`
 	PractitionerID string `json:"practitioner_id"`
 }

@@ -1,11 +1,6 @@
 package encounter
 
-import (
-	"errors"
-	"time"
-)
-
-var ErrEncounterNotFound = errors.New("encounter not found")
+import "time"
 
 type Encounter struct {
 	FHIRResourceID string
