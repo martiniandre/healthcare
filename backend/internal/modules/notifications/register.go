@@ -22,6 +22,7 @@ func Register(dep Dependency) (Service, *HTTPHandler) {
 	dep.EventBus.Subscribe("exam.complete", subscribeByRoleHandler(svc, NotificationTypeExamComplete))
 	dep.EventBus.Subscribe("encounter.created", subscribeByRoleHandler(svc, NotificationTypeEncounterCreate))
 	dep.EventBus.Subscribe("patient.created", subscribeByRoleHandler(svc, NotificationTypePatientCreate))
+	dep.EventBus.Subscribe("report.ready", subscribeByRoleHandler(svc, NotificationTypeReportReady))
 	dep.EventBus.Subscribe("system.notification", subscribeByRoleHandler(svc, NotificationTypeSystem))
 
 	return svc, httpHandler

@@ -60,6 +60,32 @@ func TestCreateNotificationByRole(testingInstance *testing.T) {
 	assert.Equal(testingInstance, "System Update", createdNotification.Title)
 }
 
+func TestCreateNotificationByRole_RoutesReportReadyToPatients(testingInstance *testing.T) {
+	mockRepository := mocks.NewMockNotificationRepository()
+	notificationService := notifications.NewService(mockRepository)
+	contextParam := context.Background()
+
+	patientID := uuid.New()
+	mockRepository.UsersByRole["PATIENT"] = []uuid.UUID{patientID}
+
+	createdNotification, createError := notificationService.CreateNotificationByRole(
+		contextParam,
+		notifications.NotificationTypeReportReady,
+		"Laudo Disponível",
+		"O laudo está pronto para consulta.",
+		nil,
+		"diagnostic_report",
+		"report-123",
+	)
+
+	assert.NoError(testingInstance, createError)
+	assert.NotNil(testingInstance, createdNotification)
+	assert.Equal(testingInstance, notifications.PriorityHigh, createdNotification.Priority)
+	recipientIDs := mockRepository.Recipients[createdNotification.ID]
+	assert.Len(testingInstance, recipientIDs, 1)
+	assert.Equal(testingInstance, patientID, recipientIDs[0])
+}
+
 func TestCreateNotification_InvalidType(testingInstance *testing.T) {
 	mockRepository := mocks.NewMockNotificationRepository()
 	notificationService := notifications.NewService(mockRepository)

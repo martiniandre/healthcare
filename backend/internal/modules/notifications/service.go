@@ -21,6 +21,7 @@ var notificationRoleRoutes = map[NotificationType][]role.Role{
 	NotificationTypePatientCreate:   {role.RoleReception, role.RoleAdmin},
 	NotificationTypePatientUpdate:   {role.RoleReception, role.RoleDoctor},
 	NotificationTypeAuditAlert:      {role.RoleAdmin},
+	NotificationTypeReportReady:     {role.RolePatient},
 	NotificationTypeSystem:          {role.RoleAdmin, role.RoleDoctor, role.RoleNurse},
 }
 
@@ -32,6 +33,7 @@ var notificationPriorityDefaults = map[NotificationType]NotificationPriority{
 	NotificationTypePatientCreate:   PriorityLow,
 	NotificationTypePatientUpdate:   PriorityLow,
 	NotificationTypeAuditAlert:      PriorityHigh,
+	NotificationTypeReportReady:     PriorityHigh,
 	NotificationTypeSystem:          PriorityLow,
 }
 

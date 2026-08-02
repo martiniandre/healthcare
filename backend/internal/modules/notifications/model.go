@@ -16,6 +16,7 @@ const (
 	NotificationTypePatientCreate   NotificationType = "patient_created"
 	NotificationTypePatientUpdate   NotificationType = "patient_updated"
 	NotificationTypeAuditAlert      NotificationType = "audit_alert"
+	NotificationTypeReportReady     NotificationType = "report_ready"
 	NotificationTypeSystem          NotificationType = "system"
 )
 
