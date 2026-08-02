@@ -7,3 +7,10 @@ type CreateDiagnosticReportInput struct {
 	ReportDisplay   string
 	Conclusion      string
 }
+
+type UpdateDiagnosticReportInput struct {
+	ReportCode    *string
+	ReportDisplay *string
+	Conclusion    *string
+	Status        *string
+}

@@ -116,7 +116,7 @@ func main() {
 	conditionService := condition.Register(applicationServer.GRPCServer, condition.Dependency{FHIRClient: fhirClient})
 	allergyService := allergy.Register(applicationServer.GRPCServer, allergy.Dependency{FHIRClient: fhirClient})
 	medicationService := medication.Register(applicationServer.GRPCServer, medication.Dependency{FHIRClient: fhirClient})
-	diagnosticReportService := diagnostic_report.Register(applicationServer.GRPCServer, diagnostic_report.Dependency{FHIRClient: fhirClient, EventBus: eventBus})
+	diagnosticReportService := diagnostic_report.Register(applicationServer.GRPCServer, diagnostic_report.Dependency{FHIRClient: fhirClient, EventBus: eventBus, DB: databasePool})
 	storageClient, storageClientErr := storage.NewGCSClient(mainContext)
 	if storageClientErr != nil {
 		slog.Warn("Failed to initialize GCS client, falling back to dummy", "error", storageClientErr)

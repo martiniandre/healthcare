@@ -15,6 +15,8 @@ import (
 
 type Repository interface {
 	CreateDiagnosticReport(ctx context.Context, report *DiagnosticReport) (*DiagnosticReport, error)
+	GetDiagnosticReportByID(ctx context.Context, reportFHIRID string) (*DiagnosticReport, error)
+	UpdateDiagnosticReport(ctx context.Context, reportFHIRID string, report *DiagnosticReport) (*DiagnosticReport, error)
 	GetDiagnosticReportsByEncounter(ctx context.Context, encounterFHIRID string) ([]*DiagnosticReport, error)
 }
 
@@ -50,13 +52,69 @@ func (reportRepository *repository) CreateDiagnosticReport(ctx context.Context, 
 
 	fhirID, _ := createdResource["id"].(string)
 	report.FHIRResourceID = fhirID
-	if meta, hasMeta := createdResource["meta"].(map[string]interface{}); hasMeta {
-		report.Version, _ = meta["versionId"].(string)
-	}
-	if report.Version == "" {
-		report.Version = "1"
-	}
+	report.Version = extractVersionID(createdResource)
 	return report, nil
+}
+
+func (reportRepository *repository) GetDiagnosticReportByID(ctx context.Context, reportFHIRID string) (*DiagnosticReport, error) {
+	responseBody, err := reportRepository.fhirClient.GetResource(ctx, "DiagnosticReport", reportFHIRID)
+	if err != nil {
+		if healthcare.IsNotFound(err) {
+			return nil, apperrors.ErrDiagnosticReportNotFound
+		}
+		return nil, fmt.Errorf("failed to get diagnostic report: %w", err)
+	}
+
+	var resource map[string]interface{}
+	if err := json.Unmarshal(responseBody, &resource); err != nil {
+		return nil, fmt.Errorf("failed to parse diagnostic report response: %w", err)
+	}
+	return parseDiagnosticReportResource(resource), nil
+}
+
+func (reportRepository *repository) UpdateDiagnosticReport(ctx context.Context, reportFHIRID string, report *DiagnosticReport) (*DiagnosticReport, error) {
+	fhirReport := &fhir.DiagnosticReportResource{
+		ResourceType: "DiagnosticReport",
+		ID:           reportFHIRID,
+		Status:       report.Status,
+		Code: fhir.CodeableConcept{
+			Coding: []fhir.Coding{
+				{System: "http://loinc.org", Code: report.ReportCode, Display: report.ReportDisplay},
+			},
+			Text: report.ReportDisplay,
+		},
+		Subject:    fhir.Reference{Reference: "Patient/" + report.PatientFHIRID},
+		Encounter:  fhir.Reference{Reference: "Encounter/" + report.EncounterFHIRID},
+		Issued:     report.IssuedAt.Format(time.RFC3339),
+		Conclusion: report.Conclusion,
+	}
+
+	responseBody, err := reportRepository.fhirClient.UpdateResource(ctx, "DiagnosticReport", reportFHIRID, fhirReport)
+	if err != nil {
+		if healthcare.IsNotFound(err) {
+			return nil, apperrors.ErrDiagnosticReportNotFound
+		}
+		return nil, fmt.Errorf("failed to update diagnostic report: %w", err)
+	}
+
+	var updatedResource map[string]interface{}
+	if err := json.Unmarshal(responseBody, &updatedResource); err != nil {
+		return nil, fmt.Errorf("failed to parse diagnostic report response: %w", err)
+	}
+	updatedReport := parseDiagnosticReportResource(updatedResource)
+	if updatedReport.FHIRResourceID == "" {
+		updatedReport.FHIRResourceID = reportFHIRID
+	}
+	return updatedReport, nil
+}
+
+func extractVersionID(resource map[string]interface{}) string {
+	if meta, hasMeta := resource["meta"].(map[string]interface{}); hasMeta {
+		if versionID, hasVersion := meta["versionId"].(string); hasVersion && versionID != "" {
+			return versionID
+		}
+	}
+	return "1"
 }
 
 func (reportRepository *repository) GetDiagnosticReportsByEncounter(ctx context.Context, encounterFHIRID string) ([]*DiagnosticReport, error) {
@@ -102,43 +160,48 @@ func parseDiagnosticReportBundle(responseBody json.RawMessage) ([]*DiagnosticRep
 	}
 	reports := make([]*DiagnosticReport, 0, len(entries))
 	for _, resource := range entries {
-		report := &DiagnosticReport{}
-		report.FHIRResourceID, _ = resource["id"].(string)
-		report.Status, _ = resource["status"].(string)
-		report.Conclusion, _ = resource["conclusion"].(string)
-		if codes, ok := resource["code"].(map[string]interface{}); ok {
-			report.ReportDisplay, _ = codes["text"].(string)
-			if coding, ok := codes["coding"].([]interface{}); ok && len(coding) > 0 {
-				if firstCoding, ok := coding[0].(map[string]interface{}); ok {
-					report.ReportCode, _ = firstCoding["code"].(string)
-					if display, ok := firstCoding["display"].(string); ok && report.ReportDisplay == "" {
-						report.ReportDisplay = display
-					}
-				}
-			}
-		}
-		if encounter, ok := resource["encounter"].(map[string]interface{}); ok {
-			if ref, ok := encounter["reference"].(string); ok {
-				parts := strings.SplitN(ref, "/", 2)
-				if len(parts) == 2 {
-					report.EncounterFHIRID = parts[1]
-				}
-			}
-		}
-		if subject, ok := resource["subject"].(map[string]interface{}); ok {
-			if ref, ok := subject["reference"].(string); ok {
-				parts := strings.SplitN(ref, "/", 2)
-				if len(parts) == 2 {
-					report.PatientFHIRID = parts[1]
-				}
-			}
-		}
-		if issuedStr, ok := resource["issued"].(string); ok {
-			if parsedTime, parseErr := time.Parse(time.RFC3339, issuedStr); parseErr == nil {
-				report.IssuedAt = parsedTime
-			}
-		}
-		reports = append(reports, report)
+		reports = append(reports, parseDiagnosticReportResource(resource))
 	}
 	return reports, nil
+}
+
+func parseDiagnosticReportResource(resource map[string]interface{}) *DiagnosticReport {
+	report := &DiagnosticReport{}
+	report.FHIRResourceID, _ = resource["id"].(string)
+	report.Status, _ = resource["status"].(string)
+	report.Conclusion, _ = resource["conclusion"].(string)
+	if codes, ok := resource["code"].(map[string]interface{}); ok {
+		report.ReportDisplay, _ = codes["text"].(string)
+		if coding, ok := codes["coding"].([]interface{}); ok && len(coding) > 0 {
+			if firstCoding, ok := coding[0].(map[string]interface{}); ok {
+				report.ReportCode, _ = firstCoding["code"].(string)
+				if display, ok := firstCoding["display"].(string); ok && report.ReportDisplay == "" {
+					report.ReportDisplay = display
+				}
+			}
+		}
+	}
+	if encounter, ok := resource["encounter"].(map[string]interface{}); ok {
+		if ref, ok := encounter["reference"].(string); ok {
+			parts := strings.SplitN(ref, "/", 2)
+			if len(parts) == 2 {
+				report.EncounterFHIRID = parts[1]
+			}
+		}
+	}
+	if subject, ok := resource["subject"].(map[string]interface{}); ok {
+		if ref, ok := subject["reference"].(string); ok {
+			parts := strings.SplitN(ref, "/", 2)
+			if len(parts) == 2 {
+				report.PatientFHIRID = parts[1]
+			}
+		}
+	}
+	if issuedStr, ok := resource["issued"].(string); ok {
+		if parsedTime, parseErr := time.Parse(time.RFC3339, issuedStr); parseErr == nil {
+			report.IssuedAt = parsedTime
+		}
+	}
+	report.Version = extractVersionID(resource)
+	return report
 }

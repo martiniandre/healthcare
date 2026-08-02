@@ -27,6 +27,9 @@ func (handler *HTTPHandler) RegisterRoutes(mux *http.ServeMux) {
 
 	mux.Handle("GET /api/v1/encounters/{encounterFhirId}/reports", clinicalRead(http.HandlerFunc(handler.ListReportsByEncounter)))
 	mux.Handle("POST /api/v1/encounters/{encounterFhirId}/reports", clinicalWrite(http.HandlerFunc(handler.CreateReport)))
+	mux.Handle("PUT /api/v1/reports/{reportFhirId}", clinicalWrite(http.HandlerFunc(handler.UpdateReport)))
+	mux.Handle("GET /api/v1/reports/{reportFhirId}/versions", clinicalRead(http.HandlerFunc(handler.ListReportVersions)))
+	mux.Handle("GET /api/v1/reports/{reportFhirId}/versions/{version}", clinicalRead(http.HandlerFunc(handler.GetReportVersion)))
 }
 
 // ListReportsByEncounter godoc
@@ -113,6 +116,122 @@ func (handler *HTTPHandler) CreateReport(httpResponseWriter http.ResponseWriter,
 	})
 }
 
+// UpdateReport godoc
+//
+//	@Summary		Update a diagnostic report
+//	@Description	Updates an existing diagnostic report, recording a new version
+//	@Tags			diagnostic_reports
+//	@Accept			json
+//	@Produce		json
+//	@Param			reportFhirId	path	string	true	"Report FHIR ID"
+//	@Param			body			body	UpdateDiagnosticReportRequest	true	"Report fields to update"
+//	@Success		200				{object}	DiagnosticReportResponse
+//	@Failure		400				{object}	map[string]string
+//	@Failure		404				{object}	map[string]string
+//	@Failure		500				{object}	map[string]string
+//	@Router			/reports/{reportFhirId} [put]
+func (handler *HTTPHandler) UpdateReport(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
+	reportFhirID := httpRequest.PathValue("reportFhirId")
+
+	var payload UpdateDiagnosticReportRequest
+	if payloadDecodeErr := json.NewDecoder(httpRequest.Body).Decode(&payload); payloadDecodeErr != nil {
+		render.Error(httpResponseWriter, http.StatusBadRequest, "Payload inválido.")
+		return
+	}
+
+	updatedReport, updateErr := handler.service.UpdateDiagnosticReport(httpRequest.Context(), reportFhirID, UpdateDiagnosticReportInput{
+		ReportCode:    payload.ReportCode,
+		ReportDisplay: payload.ReportDisplay,
+		Conclusion:    payload.Conclusion,
+		Status:        payload.Status,
+	})
+	if updateErr != nil {
+		slog.Error("failed to update diagnostic report", "error", updateErr, "report_fhir_id", reportFhirID, "request_id", middleware.GetRequestID(httpRequest.Context()))
+		render.ErrorFromAppError(httpResponseWriter, updateErr)
+		return
+	}
+
+	render.JSON(httpResponseWriter, http.StatusOK, DiagnosticReportResponse{
+		FhirID:          updatedReport.FHIRResourceID,
+		EncounterFhirID: updatedReport.EncounterFHIRID,
+		PatientFhirID:   updatedReport.PatientFHIRID,
+		ReportDisplay:   updatedReport.ReportDisplay,
+		Status:          updatedReport.Status,
+		Conclusion:      updatedReport.Conclusion,
+		CreatedAt:       updatedReport.IssuedAt.Format(time.RFC3339),
+	})
+}
+
+// ListReportVersions godoc
+//
+//	@Summary		List diagnostic report versions
+//	@Description	Returns the version history of a diagnostic report
+//	@Tags			diagnostic_reports
+//	@Accept			json
+//	@Produce		json
+//	@Param			reportFhirId	path	string	true	"Report FHIR ID"
+//	@Success		200				{array}	DiagnosticReportVersionResponse
+//	@Failure		500				{object}	map[string]string
+//	@Router			/reports/{reportFhirId}/versions [get]
+func (handler *HTTPHandler) ListReportVersions(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
+	reportFhirID := httpRequest.PathValue("reportFhirId")
+
+	versions, listErr := handler.service.GetDiagnosticReportVersions(httpRequest.Context(), reportFhirID)
+	if listErr != nil {
+		slog.Error("failed to list report versions", "error", listErr, "report_fhir_id", reportFhirID, "request_id", middleware.GetRequestID(httpRequest.Context()))
+		render.ErrorFromAppError(httpResponseWriter, listErr)
+		return
+	}
+
+	responseList := make([]DiagnosticReportVersionResponse, 0, len(versions))
+	for _, versionEntry := range versions {
+		responseList = append(responseList, toVersionResponse(versionEntry))
+	}
+
+	render.JSON(httpResponseWriter, http.StatusOK, responseList)
+}
+
+// GetReportVersion godoc
+//
+//	@Summary		Get a specific diagnostic report version
+//	@Description	Returns a specific version snapshot of a diagnostic report
+//	@Tags			diagnostic_reports
+//	@Accept			json
+//	@Produce		json
+//	@Param			reportFhirId	path	string	true	"Report FHIR ID"
+//	@Param			version			path	string	true	"Version number"
+//	@Success		200				{object}	DiagnosticReportVersionResponse
+//	@Failure		404				{object}	map[string]string
+//	@Failure		500				{object}	map[string]string
+//	@Router			/reports/{reportFhirId}/versions/{version} [get]
+func (handler *HTTPHandler) GetReportVersion(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
+	reportFhirID := httpRequest.PathValue("reportFhirId")
+	version := httpRequest.PathValue("version")
+
+	versionEntry, getErr := handler.service.GetDiagnosticReportVersion(httpRequest.Context(), reportFhirID, version)
+	if getErr != nil {
+		slog.Error("failed to get report version", "error", getErr, "report_fhir_id", reportFhirID, "version", version, "request_id", middleware.GetRequestID(httpRequest.Context()))
+		render.ErrorFromAppError(httpResponseWriter, getErr)
+		return
+	}
+
+	render.JSON(httpResponseWriter, http.StatusOK, toVersionResponse(versionEntry))
+}
+
+func toVersionResponse(versionEntry *DiagnosticReportVersion) DiagnosticReportVersionResponse {
+	var changedBy *string
+	if versionEntry.ChangedBy != nil {
+		changedByValue := versionEntry.ChangedBy.String()
+		changedBy = &changedByValue
+	}
+	return DiagnosticReportVersionResponse{
+		Version:   versionEntry.Version,
+		Snapshot:  versionEntry.Snapshot,
+		ChangedBy: changedBy,
+		ChangedAt: versionEntry.ChangedAt.Format(time.RFC3339),
+	}
+}
+
 type DiagnosticReportResponse struct {
 	FhirID          string `json:"fhir_id"`
 	EncounterFhirID string `json:"encounter_fhir_id"`
@@ -138,4 +257,18 @@ type CreateDiagnosticReportResponse struct {
 	Status          string `json:"status"`
 	Conclusion      string `json:"conclusion"`
 	CreatedAt       string `json:"created_at"`
+}
+
+type UpdateDiagnosticReportRequest struct {
+	ReportCode    *string `json:"report_code"`
+	ReportDisplay *string `json:"report_display"`
+	Conclusion    *string `json:"conclusion"`
+	Status        *string `json:"status"`
+}
+
+type DiagnosticReportVersionResponse struct {
+	Version   string          `json:"version"`
+	Snapshot  json.RawMessage `json:"snapshot"`
+	ChangedBy *string         `json:"changed_by"`
+	ChangedAt string          `json:"changed_at"`
 }
