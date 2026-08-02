@@ -46,7 +46,7 @@ func (handler *HTTPHandler) ListReportsByEncounter(httpResponseWriter http.Respo
 	reportsList, reportsErr := handler.service.GetDiagnosticReportsByEncounter(httpRequest.Context(), encounterFhirID)
 	if reportsErr != nil {
 		slog.Error("failed to list reports", "error", reportsErr, "encounter_fhir_id", encounterFhirID, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.Error(httpResponseWriter, http.StatusInternalServerError, "Erro ao carregar laudos da consulta.")
+		render.ErrorFromAppError(httpResponseWriter, reportsErr)
 		return
 	}
 
@@ -89,25 +89,16 @@ func (handler *HTTPHandler) CreateReport(httpResponseWriter http.ResponseWriter,
 		return
 	}
 
-	if payload.PatientFhirID == "" {
-		render.Error(httpResponseWriter, http.StatusBadRequest, "O identificador do paciente é obrigatório.")
-		return
-	}
-
-	newReport := &DiagnosticReport{
+	createdReport, createErr := handler.service.CreateDiagnosticReport(httpRequest.Context(), CreateDiagnosticReportInput{
 		EncounterFHIRID: encounterFhirID,
 		PatientFHIRID:   payload.PatientFhirID,
-		ReportCode:      "24323-8",
+		ReportCode:      payload.ReportCode,
 		ReportDisplay:   payload.ReportDisplay,
-		Status:          "final",
 		Conclusion:      payload.Conclusion,
-		IssuedAt:        time.Now(),
-	}
-
-	createdReport, createErr := handler.service.CreateDiagnosticReport(httpRequest.Context(), newReport)
+	})
 	if createErr != nil {
 		slog.Error("failed to create diagnostic report", "error", createErr, "encounter_fhir_id", encounterFhirID, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.Error(httpResponseWriter, http.StatusInternalServerError, "Erro ao criar laudo.")
+		render.ErrorFromAppError(httpResponseWriter, createErr)
 		return
 	}
 
@@ -134,6 +125,7 @@ type DiagnosticReportResponse struct {
 
 type CreateDiagnosticReportRequest struct {
 	PatientFhirID string `json:"patient_fhir_id"`
+	ReportCode    string `json:"report_code"`
 	ReportDisplay string `json:"report_display"`
 	Conclusion    string `json:"conclusion"`
 }

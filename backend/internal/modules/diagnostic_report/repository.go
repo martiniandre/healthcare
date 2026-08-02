@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/healthcare/backend/internal/shared/apperrors"
 	"github.com/healthcare/backend/internal/shared/fhir"
 	"github.com/healthcare/backend/internal/shared/healthcare"
 )
@@ -36,6 +37,9 @@ func (reportRepository *repository) CreateDiagnosticReport(ctx context.Context, 
 
 	responseBody, err := reportRepository.fhirClient.CreateResource(ctx, "DiagnosticReport", fhirReport)
 	if err != nil {
+		if healthcare.IsNotFound(err) {
+			return nil, apperrors.ErrDiagnosticReportNotFound
+		}
 		return nil, fmt.Errorf("failed to create diagnostic report: %w", err)
 	}
 
@@ -46,7 +50,6 @@ func (reportRepository *repository) CreateDiagnosticReport(ctx context.Context, 
 
 	fhirID, _ := createdResource["id"].(string)
 	report.FHIRResourceID = fhirID
-	report.IssuedAt = time.Now()
 	return report, nil
 }
 
@@ -54,6 +57,9 @@ func (reportRepository *repository) GetDiagnosticReportsByEncounter(ctx context.
 	queryParams := url.Values{"encounter": []string{fmt.Sprintf("Encounter/%s", encounterFHIRID)}}.Encode()
 	responseBody, err := reportRepository.fhirClient.SearchResources(ctx, "DiagnosticReport", queryParams)
 	if err != nil {
+		if healthcare.IsNotFound(err) {
+			return nil, apperrors.ErrDiagnosticReportNotFound
+		}
 		return nil, fmt.Errorf("failed to search diagnostic reports: %w", err)
 	}
 	return parseDiagnosticReportBundle(responseBody)
