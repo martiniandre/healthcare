@@ -5,9 +5,11 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/healthcare/backend/internal/modules/audit_logs"
 	"github.com/healthcare/backend/internal/shared/apperrors"
 	"github.com/healthcare/backend/internal/shared/ctxkeys"
 	"github.com/healthcare/backend/internal/shared/eventbus"
+	"github.com/healthcare/backend/internal/shared/payloaddiff"
 	"github.com/healthcare/backend/internal/shared/validator"
 )
 
@@ -23,10 +25,11 @@ type service struct {
 	repo              Repository
 	versionRepository VersionRepository
 	eventBus          eventbus.Bus
+	auditService      audit_logs.Service
 }
 
-func NewService(repo Repository, versionRepository VersionRepository, eventBus eventbus.Bus) Service {
-	return &service{repo: repo, versionRepository: versionRepository, eventBus: eventBus}
+func NewService(repo Repository, versionRepository VersionRepository, eventBus eventbus.Bus, auditService audit_logs.Service) Service {
+	return &service{repo: repo, versionRepository: versionRepository, eventBus: eventBus, auditService: auditService}
 }
 
 func (reportService *service) CreateDiagnosticReport(ctx context.Context, input CreateDiagnosticReportInput) (*DiagnosticReport, error) {
@@ -96,6 +99,7 @@ func (reportService *service) UpdateDiagnosticReport(ctx context.Context, report
 	reportService.recordVersion(ctx, updatedReport, changedByFromContext(ctx))
 
 	reportService.publishReportReady(ctx, updatedReport)
+	reportService.recordResourceAudit(ctx, "update", currentReport, updatedReport)
 
 	return updatedReport, nil
 }
@@ -143,6 +147,30 @@ func (reportService *service) recordVersion(ctx context.Context, report *Diagnos
 	}
 }
 
+func (reportService *service) recordResourceAudit(ctx context.Context, action string, beforeReport *DiagnosticReport, afterReport *DiagnosticReport) {
+	if reportService.auditService == nil {
+		return
+	}
+	payloadChanges, diffErr := payloaddiff.Compute(beforeReport, afterReport)
+	if diffErr != nil {
+		return
+	}
+	_, auditErr := reportService.auditService.CreateResourceAuditLog(ctx, audit_logs.ResourceAuditLog{
+		CorrelationID: requestIDFromContext(ctx),
+		CallerUserID:  userIDFromContext(ctx),
+		CallerRole:    roleFromContext(ctx),
+		Method:        "UpdateDiagnosticReport",
+		AccessGranted: true,
+		ResourceType:  "diagnostic_report",
+		ResourceID:    afterReport.FHIRResourceID,
+		Action:        action,
+		PayloadDiff:   payloadChanges,
+	})
+	if auditErr != nil {
+		return
+	}
+}
+
 func (reportService *service) publishReportReady(ctx context.Context, report *DiagnosticReport) {
 	if reportService.eventBus == nil {
 		return
@@ -171,4 +199,32 @@ func changedByFromContext(ctx context.Context) *uuid.UUID {
 		return nil
 	}
 	return &parsedUserID
+}
+
+func requestIDFromContext(ctx context.Context) string {
+	requestID, exists := ctx.Value(ctxkeys.RequestIDKey).(string)
+	if exists && requestID != "" {
+		return requestID
+	}
+	correlationID, correlationExists := ctx.Value(ctxkeys.CorrelationIDKey).(string)
+	if correlationExists {
+		return correlationID
+	}
+	return ""
+}
+
+func userIDFromContext(ctx context.Context) string {
+	userIDString, exists := ctx.Value(ctxkeys.UserIDKey).(string)
+	if exists {
+		return userIDString
+	}
+	return ""
+}
+
+func roleFromContext(ctx context.Context) string {
+	roleString, exists := ctx.Value(ctxkeys.RoleKey).(string)
+	if exists {
+		return roleString
+	}
+	return ""
 }

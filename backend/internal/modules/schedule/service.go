@@ -6,9 +6,11 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/healthcare/backend/internal/modules/audit_logs"
 	"github.com/healthcare/backend/internal/shared/apperrors"
 	"github.com/healthcare/backend/internal/shared/ctxkeys"
 	"github.com/healthcare/backend/internal/shared/eventbus"
+	"github.com/healthcare/backend/internal/shared/payloaddiff"
 )
 
 type Service interface {
@@ -20,12 +22,13 @@ type Service interface {
 }
 
 type service struct {
-	repo     Repository
-	eventBus eventbus.Bus
+	repo         Repository
+	eventBus     eventbus.Bus
+	auditService audit_logs.Service
 }
 
-func NewService(repo Repository, eventBus eventbus.Bus) Service {
-	return &service{repo: repo, eventBus: eventBus}
+func NewService(repo Repository, eventBus eventbus.Bus, auditService audit_logs.Service) Service {
+	return &service{repo: repo, eventBus: eventBus, auditService: auditService}
 }
 
 func (appointmentService *service) CreateAppointment(ctx context.Context, input CreateAppointmentInput) (*Appointment, error) {
@@ -78,6 +81,7 @@ func (appointmentService *service) CreateAppointment(ctx context.Context, input 
 	}
 
 	appointmentService.publishAppointmentEvent(ctx, "appointment.created", createdAppointment)
+	appointmentService.recordAppointmentAudit(ctx, "create", nil, createdAppointment)
 
 	if input.IdempotencyKey != "" {
 		appointmentService.storeIdempotencyKey(ctx, input, createdAppointment)
@@ -105,6 +109,7 @@ func (appointmentService *service) CancelAppointment(ctx context.Context, appoin
 	}
 
 	appointmentService.publishAppointmentEvent(ctx, "appointment.cancelled", cancelledAppointment)
+	appointmentService.recordAppointmentAudit(ctx, "cancel", currentAppointment, cancelledAppointment)
 
 	return cancelledAppointment, nil
 }
@@ -161,6 +166,30 @@ func (appointmentService *service) storeIdempotencyKey(ctx context.Context, inpu
 	})
 }
 
+func (appointmentService *service) recordAppointmentAudit(ctx context.Context, action string, beforeAppointment *Appointment, afterAppointment *Appointment) {
+	if appointmentService.auditService == nil {
+		return
+	}
+	payloadChanges, diffErr := payloaddiff.Compute(beforeAppointment, afterAppointment)
+	if diffErr != nil {
+		return
+	}
+	_, auditErr := appointmentService.auditService.CreateResourceAuditLog(ctx, audit_logs.ResourceAuditLog{
+		CorrelationID: requestIDFromScheduleContext(ctx),
+		CallerUserID:  scheduleActorIDFromContext(ctx),
+		CallerRole:    scheduleRoleFromContext(ctx),
+		Method:        "Appointment" + action,
+		AccessGranted: true,
+		ResourceType:  "appointment",
+		ResourceID:    afterAppointment.ID.String(),
+		Action:        action,
+		PayloadDiff:   payloadChanges,
+	})
+	if auditErr != nil {
+		return
+	}
+}
+
 func (appointmentService *service) publishAppointmentEvent(ctx context.Context, eventName string, appointment *Appointment) {
 	if appointmentService.eventBus == nil {
 		return
@@ -186,4 +215,32 @@ func actorFromContext(ctx context.Context) *uuid.UUID {
 		return nil
 	}
 	return &parsedUserID
+}
+
+func requestIDFromScheduleContext(ctx context.Context) string {
+	requestID, exists := ctx.Value(ctxkeys.RequestIDKey).(string)
+	if exists && requestID != "" {
+		return requestID
+	}
+	correlationID, correlationExists := ctx.Value(ctxkeys.CorrelationIDKey).(string)
+	if correlationExists {
+		return correlationID
+	}
+	return ""
+}
+
+func scheduleActorIDFromContext(ctx context.Context) string {
+	userIDString, exists := ctx.Value(ctxkeys.UserIDKey).(string)
+	if exists {
+		return userIDString
+	}
+	return ""
+}
+
+func scheduleRoleFromContext(ctx context.Context) string {
+	roleString, exists := ctx.Value(ctxkeys.RoleKey).(string)
+	if exists {
+		return roleString
+	}
+	return ""
 }

@@ -9,6 +9,7 @@ import (
 
 type Service interface {
 	CreateAuditLog(contextVal context.Context, correlationID string, callerUserID string, callerRole string, method string, accessGranted bool) (*AuditLog, error)
+	CreateResourceAuditLog(contextVal context.Context, resourceAuditLog ResourceAuditLog) (*AuditLog, error)
 	ListAuditLogs(contextVal context.Context, limit int, offset int) ([]*AuditLog, int, error)
 }
 
@@ -28,6 +29,29 @@ func (auditLogsService *service) CreateAuditLog(contextVal context.Context, corr
 		CallerRole:    callerRole,
 		Method:        method,
 		AccessGranted: accessGranted,
+		CreatedAt:     time.Now(),
+	}
+
+	saveError := auditLogsService.repo.CreateAuditLog(contextVal, auditLog)
+	if saveError != nil {
+		return nil, saveError
+	}
+
+	return auditLog, nil
+}
+
+func (auditLogsService *service) CreateResourceAuditLog(contextVal context.Context, resourceAuditLog ResourceAuditLog) (*AuditLog, error) {
+	auditLog := &AuditLog{
+		ID:            uuid.New(),
+		CorrelationID: resourceAuditLog.CorrelationID,
+		CallerUserID:  resourceAuditLog.CallerUserID,
+		CallerRole:    resourceAuditLog.CallerRole,
+		Method:        resourceAuditLog.Method,
+		AccessGranted: resourceAuditLog.AccessGranted,
+		ResourceType:  resourceAuditLog.ResourceType,
+		ResourceID:    resourceAuditLog.ResourceID,
+		Action:        resourceAuditLog.Action,
+		PayloadDiff:   resourceAuditLog.PayloadDiff,
 		CreatedAt:     time.Now(),
 	}
 

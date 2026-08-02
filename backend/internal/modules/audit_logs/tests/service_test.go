@@ -80,3 +80,57 @@ func TestService_ListAuditLogs(testingInstance *testing.T) {
 	assert.Equal(testingInstance, 15, totalCountPageTwo)
 	assert.Len(testingInstance, logsPageTwo, 5)
 }
+
+func TestService_CreateResourceAuditLog_PersistsRichDetails(testingInstance *testing.T) {
+	mockRepository := mocks.NewMockAuditRepository()
+	auditService := audit_logs.NewService(mockRepository)
+	contextParam := context.Background()
+
+	auditLog, createError := auditService.CreateResourceAuditLog(contextParam, audit_logs.ResourceAuditLog{
+		CorrelationID: "correlation-123",
+		CallerUserID:  "user-456",
+		CallerRole:    "doctor",
+		Method:        "UpdateDiagnosticReport",
+		AccessGranted: true,
+		ResourceType:  "diagnostic_report",
+		ResourceID:    "report-789",
+		Action:        "update",
+		PayloadDiff: map[string]any{
+			"conclusion": map[string]any{"before": "old", "after": "new"},
+		},
+	})
+
+	assert.NoError(testingInstance, createError)
+	assert.NotNil(testingInstance, auditLog)
+	assert.Equal(testingInstance, "diagnostic_report", auditLog.ResourceType)
+	assert.Equal(testingInstance, "report-789", auditLog.ResourceID)
+	assert.Equal(testingInstance, "update", auditLog.Action)
+	assert.Equal(testingInstance, "correlation-123", auditLog.CorrelationID)
+	assert.Len(testingInstance, mockRepository.Logs, 1)
+	storedLog := mockRepository.Logs[0]
+	assert.Equal(testingInstance, "diagnostic_report", storedLog.ResourceType)
+	assert.Equal(testingInstance, map[string]any{
+		"conclusion": map[string]any{"before": "old", "after": "new"},
+	}, storedLog.PayloadDiff)
+}
+
+func TestService_CreateResourceAuditLog_RepositoryFailure(testingInstance *testing.T) {
+	mockRepository := mocks.NewMockAuditRepository()
+	mockRepository.MockError = errors.New("database insert error")
+	auditService := audit_logs.NewService(mockRepository)
+	contextParam := context.Background()
+
+	auditLog, createError := auditService.CreateResourceAuditLog(contextParam, audit_logs.ResourceAuditLog{
+		CorrelationID: "correlation-123",
+		CallerUserID:  "user-456",
+		CallerRole:    "doctor",
+		Method:        "CancelAppointment",
+		AccessGranted: true,
+		ResourceType:  "appointment",
+		ResourceID:    "appointment-001",
+		Action:        "cancel",
+	})
+
+	assert.Error(testingInstance, createError)
+	assert.Nil(testingInstance, auditLog)
+}

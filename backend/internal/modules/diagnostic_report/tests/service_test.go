@@ -32,7 +32,7 @@ func newTestDiagnosticReportService(mockRepository *mocks.MockDiagnosticReportRe
 	if mockEventBus == nil {
 		mockEventBus = &mockDiagnosticReportEventBus{}
 	}
-	return diagnostic_report.NewService(mockRepository, mockVersionRepository, mockEventBus)
+	return diagnostic_report.NewService(mockRepository, mockVersionRepository, mockEventBus, nil)
 }
 
 func TestCreateDiagnosticReport_AppliesDefaultsAndDelegatesCompleteEntity(t *testing.T) {
@@ -79,7 +79,7 @@ func TestCreateDiagnosticReport_PublishesReportReadyEvent(testingInstance *testi
 		},
 	}
 	eventBus := &mockDiagnosticReportEventBus{}
-	diagnosticReportService := diagnostic_report.NewService(mockRepository, &mocks.MockVersionRepository{}, eventBus)
+	diagnosticReportService := diagnostic_report.NewService(mockRepository, &mocks.MockVersionRepository{}, eventBus, nil)
 
 	createdReport, createErr := diagnosticReportService.CreateDiagnosticReport(context.Background(), diagnostic_report.CreateDiagnosticReportInput{
 		EncounterFHIRID: "encounter-456",
@@ -107,7 +107,7 @@ func TestCreateDiagnosticReport_PublishesNoEventWhenRepositoryFails(testingInsta
 		},
 	}
 	eventBus := &mockDiagnosticReportEventBus{}
-	diagnosticReportService := diagnostic_report.NewService(mockRepository, &mocks.MockVersionRepository{}, eventBus)
+	diagnosticReportService := diagnostic_report.NewService(mockRepository, &mocks.MockVersionRepository{}, eventBus, nil)
 
 	createdReport, createErr := diagnosticReportService.CreateDiagnosticReport(context.Background(), diagnostic_report.CreateDiagnosticReportInput{
 		EncounterFHIRID: "encounter-456",
@@ -308,7 +308,7 @@ func TestUpdateDiagnosticReport_MergesInputRecordsVersionAndPublishesEvent(testi
 			return entity, nil
 		},
 	}
-	diagnosticReportService := diagnostic_report.NewService(mockRepository, mockVersionRepository, eventBus)
+	diagnosticReportService := diagnostic_report.NewService(mockRepository, mockVersionRepository, eventBus, nil)
 
 	updatedReport, updateErr := diagnosticReportService.UpdateDiagnosticReport(context.Background(), "report-001", diagnostic_report.UpdateDiagnosticReportInput{
 		Conclusion: &conclusionUpdate,
@@ -390,3 +390,4 @@ func TestGetDiagnosticReportVersion_ReturnsSpecificVersionFromRepository(testing
 	assert.NoError(testingInstance, getErr)
 	assert.Equal(testingInstance, expectedVersion, versionEntry)
 }
+

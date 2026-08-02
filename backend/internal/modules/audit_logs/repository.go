@@ -20,10 +20,11 @@ func NewRepository(dbPool *pgxpool.Pool) Repository {
 }
 
 func (auditLogsRepository *repository) CreateAuditLog(contextVal context.Context, auditLog *AuditLog) error {
-	query := `INSERT INTO audit_logs (id, correlation_id, caller_user_id, caller_role, method, access_granted, created_at)
-			  VALUES ($1, $2, $3, $4, $5, $6, $7)`
+	query := `INSERT INTO audit_logs (id, correlation_id, caller_user_id, caller_role, method, access_granted, resource_type, resource_id, action, payload_diff, created_at)
+			  VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`
 	_, executionError := auditLogsRepository.dbPool.Exec(contextVal, query,
-		auditLog.ID, auditLog.CorrelationID, auditLog.CallerUserID, auditLog.CallerRole, auditLog.Method, auditLog.AccessGranted, auditLog.CreatedAt,
+		auditLog.ID, auditLog.CorrelationID, auditLog.CallerUserID, auditLog.CallerRole, auditLog.Method, auditLog.AccessGranted,
+		nullableString(auditLog.ResourceType), nullableString(auditLog.ResourceID), nullableString(auditLog.Action), nullableDiff(auditLog.PayloadDiff), auditLog.CreatedAt,
 	)
 	return executionError
 }
@@ -36,7 +37,7 @@ func (auditLogsRepository *repository) ListAuditLogs(contextVal context.Context,
 		return nil, 0, countError
 	}
 
-	query := `SELECT id, correlation_id, caller_user_id, caller_role, method, access_granted, created_at
+	query := `SELECT id, correlation_id, caller_user_id, caller_role, method, access_granted, resource_type, resource_id, action, payload_diff, created_at
 			  FROM audit_logs
 			  ORDER BY created_at DESC
 			  LIMIT $1 OFFSET $2`
@@ -51,7 +52,8 @@ func (auditLogsRepository *repository) ListAuditLogs(contextVal context.Context,
 	for rows.Next() {
 		auditLog := &AuditLog{}
 		scanError := rows.Scan(
-			&auditLog.ID, &auditLog.CorrelationID, &auditLog.CallerUserID, &auditLog.CallerRole, &auditLog.Method, &auditLog.AccessGranted, &auditLog.CreatedAt,
+			&auditLog.ID, &auditLog.CorrelationID, &auditLog.CallerUserID, &auditLog.CallerRole, &auditLog.Method, &auditLog.AccessGranted,
+			&auditLog.ResourceType, &auditLog.ResourceID, &auditLog.Action, &auditLog.PayloadDiff, &auditLog.CreatedAt,
 		)
 		if scanError != nil {
 			return nil, 0, scanError
@@ -60,4 +62,18 @@ func (auditLogsRepository *repository) ListAuditLogs(contextVal context.Context,
 	}
 
 	return logs, totalCount, nil
+}
+
+func nullableString(value string) *string {
+	if value == "" {
+		return nil
+	}
+	return &value
+}
+
+func nullableDiff(payloadDiff map[string]any) any {
+	if len(payloadDiff) == 0 {
+		return nil
+	}
+	return payloadDiff
 }

@@ -86,13 +86,7 @@ func (auditLogsHTTPHandler *HTTPHandler) ListAuditLogs(httpResponseWriter http.R
 //	@Failure		500		{object}	map[string]string
 //	@Router			/audit-logs [post]
 func (auditLogsHTTPHandler *HTTPHandler) CreateAuditLog(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
-	var payload struct {
-		CorrelationID string `json:"correlation_id"`
-		CallerUserID  string `json:"caller_user_id"`
-		CallerRole    string `json:"caller_role"`
-		Method        string `json:"method"`
-		AccessGranted bool   `json:"access_granted"`
-	}
+	var payload CreateAuditLogRequest
 
 	if payloadDecodeErr := json.NewDecoder(httpRequest.Body).Decode(&payload); payloadDecodeErr != nil {
 		render.Error(httpResponseWriter, http.StatusBadRequest, "Payload inválido.")
@@ -108,14 +102,33 @@ func (auditLogsHTTPHandler *HTTPHandler) CreateAuditLog(httpResponseWriter http.
 		payload.CallerRole = role
 	}
 
-	auditLog, createError := auditLogsHTTPHandler.service.CreateAuditLog(
-		httpRequest.Context(),
-		payload.CorrelationID,
-		payload.CallerUserID,
-		payload.CallerRole,
-		payload.Method,
-		payload.AccessGranted,
-	)
+	var auditLog *AuditLog
+	var createError error
+	if payload.ResourceType != "" || payload.ResourceID != "" || payload.Action != "" {
+		auditLog, createError = auditLogsHTTPHandler.service.CreateResourceAuditLog(
+			httpRequest.Context(),
+			ResourceAuditLog{
+				CorrelationID: payload.CorrelationID,
+				CallerUserID:  payload.CallerUserID,
+				CallerRole:    payload.CallerRole,
+				Method:        payload.Method,
+				AccessGranted: payload.AccessGranted,
+				ResourceType:  payload.ResourceType,
+				ResourceID:    payload.ResourceID,
+				Action:        payload.Action,
+				PayloadDiff:   payload.PayloadDiff,
+			},
+		)
+	} else {
+		auditLog, createError = auditLogsHTTPHandler.service.CreateAuditLog(
+			httpRequest.Context(),
+			payload.CorrelationID,
+			payload.CallerUserID,
+			payload.CallerRole,
+			payload.Method,
+			payload.AccessGranted,
+		)
+	}
 	if createError != nil {
 		slog.Error("failed to create audit log", "error", createError, "request_id", middleware.GetRequestID(httpRequest.Context()))
 		render.Error(httpResponseWriter, http.StatusInternalServerError, "Erro ao criar log de auditoria.")
@@ -141,9 +154,13 @@ type AuditLogListResponse struct {
 }
 
 type CreateAuditLogRequest struct {
-	CorrelationID string `json:"correlation_id"`
-	CallerUserID  string `json:"caller_user_id"`
-	CallerRole    string `json:"caller_role"`
-	Method        string `json:"method"`
-	AccessGranted bool   `json:"access_granted"`
+	CorrelationID string         `json:"correlation_id"`
+	CallerUserID  string         `json:"caller_user_id"`
+	CallerRole    string         `json:"caller_role"`
+	Method        string         `json:"method"`
+	AccessGranted bool           `json:"access_granted"`
+	ResourceType  string         `json:"resource_type"`
+	ResourceID    string         `json:"resource_id"`
+	Action        string         `json:"action"`
+	PayloadDiff   map[string]any `json:"payload_diff"`
 }

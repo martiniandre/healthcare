@@ -23,7 +23,7 @@ func mustMarshalAppointment(t *testing.T, appointment *Appointment) []byte {
 
 func TestCreateAppointment_ValidInputCreatesScheduledAppointment(t *testing.T) {
 	repositoryMock := &MockRepository{}
-	appointmentService := NewService(repositoryMock, nil)
+	appointmentService := NewService(repositoryMock, nil, nil)
 	staffID := uuid.New()
 	futureTime := time.Now().Add(48 * time.Hour).Truncate(time.Second)
 
@@ -51,7 +51,7 @@ func TestCreateAppointment_ValidInputCreatesScheduledAppointment(t *testing.T) {
 
 func TestCreateAppointment_RejectsPastStartsAt(t *testing.T) {
 	repositoryMock := &MockRepository{}
-	appointmentService := NewService(repositoryMock, nil)
+	appointmentService := NewService(repositoryMock, nil, nil)
 	pastTime := time.Now().Add(-time.Hour)
 
 	_, createErr := appointmentService.CreateAppointment(context.Background(), CreateAppointmentInput{
@@ -72,7 +72,7 @@ func TestCreateAppointment_RejectsPastStartsAt(t *testing.T) {
 
 func TestCreateAppointment_RejectsEndsBeforeStarts(t *testing.T) {
 	repositoryMock := &MockRepository{}
-	appointmentService := NewService(repositoryMock, nil)
+	appointmentService := NewService(repositoryMock, nil, nil)
 	futureTime := time.Now().Add(48 * time.Hour)
 
 	_, createErr := appointmentService.CreateAppointment(context.Background(), CreateAppointmentInput{
@@ -97,7 +97,7 @@ func TestCreateAppointment_PropagatesConflictFromRepository(t *testing.T) {
 			return nil, apperrors.ErrAppointmentConflict
 		},
 	}
-	appointmentService := NewService(repositoryMock, nil)
+	appointmentService := NewService(repositoryMock, nil, nil)
 	futureTime := time.Now().Add(48 * time.Hour)
 
 	_, createErr := appointmentService.CreateAppointment(context.Background(), CreateAppointmentInput{
@@ -133,7 +133,7 @@ func TestCreateAppointment_ReplaysCachedResponseForSameIdempotencyKey(t *testing
 			}, nil
 		},
 	}
-	appointmentService := NewService(repositoryMock, nil)
+	appointmentService := NewService(repositoryMock, nil, nil)
 
 	createdAppointment, createErr := appointmentService.CreateAppointment(context.Background(), CreateAppointmentInput{
 		PatientFHIRID:  "patient-123",
@@ -167,7 +167,7 @@ func TestCreateAppointment_RejectsIdempotencyKeyReusedWithDifferentPayload(t *te
 			}, nil
 		},
 	}
-	appointmentService := NewService(repositoryMock, nil)
+	appointmentService := NewService(repositoryMock, nil, nil)
 
 	_, createErr := appointmentService.CreateAppointment(context.Background(), CreateAppointmentInput{
 		PatientFHIRID:  "patient-123",
@@ -203,7 +203,7 @@ func TestCancelAppointment_CancelsScheduledAppointment(t *testing.T) {
 			return &cancelledAppointment, nil
 		},
 	}
-	appointmentService := NewService(repositoryMock, nil)
+	appointmentService := NewService(repositoryMock, nil, nil)
 
 	cancelledAppointment, cancelErr := appointmentService.CancelAppointment(context.Background(), existingAppointment.ID)
 	if cancelErr != nil {
@@ -228,7 +228,7 @@ func TestCancelAppointment_IsIdempotentWhenAlreadyCancelled(t *testing.T) {
 			return alreadyCancelled, nil
 		},
 	}
-	appointmentService := NewService(repositoryMock, nil)
+	appointmentService := NewService(repositoryMock, nil, nil)
 
 	cancelledAppointment, cancelErr := appointmentService.CancelAppointment(context.Background(), alreadyCancelled.ID)
 	if cancelErr != nil {
@@ -253,7 +253,7 @@ func TestCancelAppointment_RejectsFinishedAppointment(t *testing.T) {
 			return finishedAppointment, nil
 		},
 	}
-	appointmentService := NewService(repositoryMock, nil)
+	appointmentService := NewService(repositoryMock, nil, nil)
 
 	_, cancelErr := appointmentService.CancelAppointment(context.Background(), finishedAppointment.ID)
 	if cancelErr == nil {
@@ -266,7 +266,7 @@ func TestCancelAppointment_RejectsFinishedAppointment(t *testing.T) {
 
 func TestCancelAppointment_ReturnsNotFoundWhenMissing(t *testing.T) {
 	repositoryMock := &MockRepository{}
-	appointmentService := NewService(repositoryMock, nil)
+	appointmentService := NewService(repositoryMock, nil, nil)
 
 	_, cancelErr := appointmentService.CancelAppointment(context.Background(), uuid.New())
 	if cancelErr == nil {
@@ -278,7 +278,7 @@ func TestCancelAppointment_ReturnsNotFoundWhenMissing(t *testing.T) {
 }
 
 func TestListAppointmentsByPatient_RejectsEmptyFilter(t *testing.T) {
-	appointmentService := NewService(&MockRepository{}, nil)
+	appointmentService := NewService(&MockRepository{}, nil, nil)
 
 	_, listErr := appointmentService.ListAppointmentsByPatient(context.Background(), "")
 	if listErr == nil {
@@ -291,7 +291,7 @@ func TestListAppointmentsByPatient_RejectsEmptyFilter(t *testing.T) {
 }
 
 func TestListAppointmentsByStaffOnDate_RejectsNilStaff(t *testing.T) {
-	appointmentService := NewService(&MockRepository{}, nil)
+	appointmentService := NewService(&MockRepository{}, nil, nil)
 
 	_, listErr := appointmentService.ListAppointmentsByStaffOnDate(context.Background(), uuid.Nil, time.Now())
 	if listErr == nil {

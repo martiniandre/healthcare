@@ -117,7 +117,8 @@ func main() {
 	conditionService := condition.Register(applicationServer.GRPCServer, condition.Dependency{FHIRClient: fhirClient})
 	allergyService := allergy.Register(applicationServer.GRPCServer, allergy.Dependency{FHIRClient: fhirClient})
 	medicationService := medication.Register(applicationServer.GRPCServer, medication.Dependency{FHIRClient: fhirClient})
-	diagnosticReportService := diagnostic_report.Register(applicationServer.GRPCServer, diagnostic_report.Dependency{FHIRClient: fhirClient, EventBus: eventBus, DB: databasePool})
+	auditLogsService := audit_logs.Register(applicationServer.GRPCServer, audit_logs.Dependency{DB: databasePool})
+	diagnosticReportService := diagnostic_report.Register(applicationServer.GRPCServer, diagnostic_report.Dependency{FHIRClient: fhirClient, EventBus: eventBus, DB: databasePool, AuditService: auditLogsService})
 	storageClient, storageClientErr := storage.NewGCSClient(mainContext)
 	if storageClientErr != nil {
 		slog.Warn("Failed to initialize GCS client, falling back to dummy", "error", storageClientErr)
@@ -129,9 +130,8 @@ func main() {
 	health.Register(applicationServer.GRPCServer, health.Dependency{DB: databasePool, Redis: redisClient})
 	analyticsHTTPHandler := analytics.Register(analytics.Dependency{DB: databasePool, FHIRClient: fhirClient})
 	portalHTTPHandler := portal.Register(portal.Dependency{FHIRClient: fhirClient})
-	auditLogsService := audit_logs.Register(applicationServer.GRPCServer, audit_logs.Dependency{DB: databasePool})
 	_, notificationsHTTPHandler := notifications.Register(notifications.Dependency{DB: databasePool, EventBus: eventBus})
-	scheduleHTTPHandler := schedule.Register(schedule.Dependency{DB: databasePool, EventBus: eventBus})
+	scheduleHTTPHandler := schedule.Register(schedule.Dependency{DB: databasePool, EventBus: eventBus, AuditService: auditLogsService})
 
 	examAnalyzerRepo, examAnalyzerSvc, examAnalyzerWorker := exam_analyzer.Register(applicationServer.GRPCServer, exam_analyzer.Dependency{DB: databasePool, ProjectID: appConfig.GCPProjectID, LocationID: appConfig.GCPLocationID, VertexModel: appConfig.GCPVertexModel, EventBus: eventBus})
 	go examAnalyzerWorker.Start(mainContext)
