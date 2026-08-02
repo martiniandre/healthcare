@@ -50,6 +50,12 @@ func (reportRepository *repository) CreateDiagnosticReport(ctx context.Context, 
 
 	fhirID, _ := createdResource["id"].(string)
 	report.FHIRResourceID = fhirID
+	if meta, hasMeta := createdResource["meta"].(map[string]interface{}); hasMeta {
+		report.Version, _ = meta["versionId"].(string)
+	}
+	if report.Version == "" {
+		report.Version = "1"
+	}
 	return report, nil
 }
 

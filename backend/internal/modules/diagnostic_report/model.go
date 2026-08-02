@@ -11,4 +11,5 @@ type DiagnosticReport struct {
 	Status          string
 	Conclusion      string
 	IssuedAt        time.Time
+	Version         string
 }

@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/healthcare/backend/internal/shared/apperrors"
+	"github.com/healthcare/backend/internal/shared/eventbus"
 	"github.com/healthcare/backend/internal/shared/validator"
 )
 
@@ -14,11 +15,12 @@ type Service interface {
 }
 
 type service struct {
-	repo Repository
+	repo     Repository
+	eventBus eventbus.Bus
 }
 
-func NewService(repo Repository) Service {
-	return &service{repo: repo}
+func NewService(repo Repository, eventBus eventbus.Bus) Service {
+	return &service{repo: repo, eventBus: eventBus}
 }
 
 func (reportService *service) CreateDiagnosticReport(ctx context.Context, input CreateDiagnosticReportInput) (*DiagnosticReport, error) {
@@ -51,7 +53,27 @@ func (reportService *service) CreateDiagnosticReport(ctx context.Context, input 
 	if report.IssuedAt.IsZero() {
 		report.IssuedAt = time.Now()
 	}
-	return reportService.repo.CreateDiagnosticReport(ctx, report)
+	createdReport, createErr := reportService.repo.CreateDiagnosticReport(ctx, report)
+	if createErr != nil {
+		return nil, createErr
+	}
+
+	if reportService.eventBus != nil {
+		reportService.eventBus.Publish(ctx, eventbus.Event{
+			Name: "report.ready",
+			Data: map[string]any{
+				"patient_id":    createdReport.PatientFHIRID,
+				"report_id":     createdReport.FHIRResourceID,
+				"version":       createdReport.Version,
+				"title":         "Laudo Disponível",
+				"body":          "O laudo do paciente " + createdReport.PatientFHIRID + " está pronto para consulta.",
+				"resource_type": "diagnostic_report",
+				"resource_id":   createdReport.FHIRResourceID,
+			},
+		})
+	}
+
+	return createdReport, nil
 }
 
 func (reportService *service) GetDiagnosticReportsByEncounter(ctx context.Context, encounterFHIRID string) ([]*DiagnosticReport, error) {
