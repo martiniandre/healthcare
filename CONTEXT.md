@@ -17,7 +17,7 @@ An authenticated identity with a role-based access profile (Admin, Doctor, Nurse
 _Avoid_: Account, login, credential
 
 ### Encounter:
-A clinical interaction between a Patient and one or more Staff providers.
+A clinical interaction between a Patient and one or more Staff providers, created in `in-progress` status and transitioned to `finished` or `cancelled` as the visit resolves.
 _Avoid_: Appointment, visit, consultation, attendance
 
 ### Observation:
