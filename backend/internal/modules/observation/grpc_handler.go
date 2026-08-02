@@ -2,7 +2,6 @@ package observation
 
 import (
 	"context"
-	"errors"
 
 	pb "github.com/healthcare/backend/internal/modules/observation/pb"
 	"github.com/healthcare/backend/internal/shared/apperrors"
@@ -14,13 +13,6 @@ type GRPCHandler struct {
 
 func NewGRPCHandler(service Service) *GRPCHandler {
 	return &GRPCHandler{service: service}
-}
-
-func mapObservationError(err error) error {
-	if errors.Is(err, ErrObservationNotFound) {
-		return apperrors.ErrObservationNotFound.ToGRPC()
-	}
-	return apperrors.ToGRPCStatus(err)
 }
 
 func (handler *GRPCHandler) CreateObservation(ctx context.Context, req *pb.CreateObservationRequest) (*pb.CreateObservationResponse, error) {
@@ -38,7 +30,7 @@ func (handler *GRPCHandler) CreateObservation(ctx context.Context, req *pb.Creat
 		return nil, apperrors.ErrBadRequest.WithFields(violations)
 	}
 
-	observation := &Observation{
+	input := CreateObservationInput{
 		EncounterFHIRID: req.EncounterFhirId,
 		PatientFHIRID:   req.PatientFhirId,
 		LoincCode:       req.LoincCode,
@@ -47,9 +39,9 @@ func (handler *GRPCHandler) CreateObservation(ctx context.Context, req *pb.Creat
 		ValueUnit:       req.ValueUnit,
 	}
 
-	createdObservation, err := handler.service.CreateObservation(ctx, observation)
+	createdObservation, err := handler.service.CreateObservation(ctx, input)
 	if err != nil {
-		return nil, mapObservationError(err)
+		return nil, apperrors.ToGRPCStatus(err)
 	}
 
 	return &pb.CreateObservationResponse{ObservationFhirId: createdObservation.FHIRResourceID}, nil
@@ -62,7 +54,7 @@ func (handler *GRPCHandler) GetObservations(ctx context.Context, req *pb.GetObse
 
 	observations, err := handler.service.GetObservationsByEncounter(ctx, req.EncounterFhirId)
 	if err != nil {
-		return nil, mapObservationError(err)
+		return nil, apperrors.ToGRPCStatus(err)
 	}
 
 	pbObservations := make([]*pb.Observation, 0, len(observations))

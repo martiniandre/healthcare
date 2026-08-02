@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/healthcare/backend/internal/shared/apperrors"
 	"github.com/healthcare/backend/internal/shared/fhir"
 	"github.com/healthcare/backend/internal/shared/healthcare"
 )
@@ -40,6 +41,9 @@ func (observationRepository *repository) CreateObservation(ctx context.Context, 
 
 	responseBody, err := observationRepository.fhirClient.CreateResource(ctx, "Observation", fhirObservation)
 	if err != nil {
+		if healthcare.IsNotFound(err) {
+			return nil, apperrors.ErrObservationNotFound
+		}
 		return nil, fmt.Errorf("failed to create observation: %w", err)
 	}
 
@@ -57,6 +61,9 @@ func (observationRepository *repository) GetObservationsByEncounter(ctx context.
 	queryParams := url.Values{"encounter": []string{fmt.Sprintf("Encounter/%s", encounterFHIRID)}}.Encode()
 	responseBody, err := observationRepository.fhirClient.SearchResources(ctx, "Observation", queryParams)
 	if err != nil {
+		if healthcare.IsNotFound(err) {
+			return nil, apperrors.ErrObservationNotFound
+		}
 		return nil, fmt.Errorf("failed to search observations: %w", err)
 	}
 	return parseObservationBundle(responseBody)
@@ -66,6 +73,9 @@ func (observationRepository *repository) GetObservationsByPatient(ctx context.Co
 	queryParams := url.Values{"subject": []string{fmt.Sprintf("Patient/%s", patientFHIRID)}}.Encode()
 	responseBody, err := observationRepository.fhirClient.SearchResources(ctx, "Observation", queryParams)
 	if err != nil {
+		if healthcare.IsNotFound(err) {
+			return nil, apperrors.ErrObservationNotFound
+		}
 		return nil, fmt.Errorf("failed to search observations: %w", err)
 	}
 	return parseObservationBundle(responseBody)
@@ -83,6 +93,9 @@ func (observationRepository *repository) UpdateObservation(ctx context.Context, 
 
 	responseBody, err := observationRepository.fhirClient.UpdateResource(ctx, "Observation", fhirResourceID, fhirObservation)
 	if err != nil {
+		if healthcare.IsNotFound(err) {
+			return nil, apperrors.ErrObservationNotFound
+		}
 		return nil, fmt.Errorf("failed to update observation: %w", err)
 	}
 
@@ -97,7 +110,13 @@ func (observationRepository *repository) UpdateObservation(ctx context.Context, 
 }
 
 func (observationRepository *repository) DeleteObservation(ctx context.Context, fhirResourceID string) error {
-	return observationRepository.fhirClient.DeleteResource(ctx, "Observation/"+fhirResourceID)
+	if err := observationRepository.fhirClient.DeleteResource(ctx, "Observation/"+fhirResourceID); err != nil {
+		if healthcare.IsNotFound(err) {
+			return apperrors.ErrObservationNotFound
+		}
+		return fmt.Errorf("failed to delete observation: %w", err)
+	}
+	return nil
 }
 
 func extractBundleEntries(responseBody json.RawMessage) ([]map[string]interface{}, error) {
