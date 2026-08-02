@@ -211,6 +211,24 @@ var (
 		Message:  "notification not found",
 	}
 
+	ErrAppointmentNotFound = AppError{
+		GRPCCode: codes.NotFound,
+		HTTPCode: http.StatusNotFound,
+		Message:  "appointment not found",
+	}
+
+	ErrAppointmentConflict = AppError{
+		GRPCCode: codes.AlreadyExists,
+		HTTPCode: http.StatusConflict,
+		Message:  "appointment time slot conflicts with an existing appointment",
+	}
+
+	ErrAppointmentInvalidTransition = AppError{
+		GRPCCode: codes.InvalidArgument,
+		HTTPCode: http.StatusBadRequest,
+		Message:  "appointment status transition not allowed",
+	}
+
 	ErrNotFound = AppError{
 		GRPCCode: codes.NotFound,
 		HTTPCode: http.StatusNotFound,

@@ -41,6 +41,7 @@ import (
 	"github.com/healthcare/backend/internal/modules/observation"
 	"github.com/healthcare/backend/internal/modules/patients"
 	"github.com/healthcare/backend/internal/modules/portal"
+	"github.com/healthcare/backend/internal/modules/schedule"
 	"github.com/healthcare/backend/internal/modules/staff"
 	"github.com/healthcare/backend/internal/modules/telemetry"
 	"github.com/healthcare/backend/internal/shared/cache"
@@ -130,6 +131,7 @@ func main() {
 	portalHTTPHandler := portal.Register(portal.Dependency{FHIRClient: fhirClient})
 	auditLogsService := audit_logs.Register(applicationServer.GRPCServer, audit_logs.Dependency{DB: databasePool})
 	_, notificationsHTTPHandler := notifications.Register(notifications.Dependency{DB: databasePool, EventBus: eventBus})
+	scheduleHTTPHandler := schedule.Register(schedule.Dependency{DB: databasePool, EventBus: eventBus})
 
 	examAnalyzerRepo, examAnalyzerSvc, examAnalyzerWorker := exam_analyzer.Register(applicationServer.GRPCServer, exam_analyzer.Dependency{DB: databasePool, ProjectID: appConfig.GCPProjectID, LocationID: appConfig.GCPLocationID, VertexModel: appConfig.GCPVertexModel, EventBus: eventBus})
 	go examAnalyzerWorker.Start(mainContext)
@@ -172,6 +174,7 @@ func main() {
 		portalHTTPHandler,
 		auditLogsHTTPHandler,
 		notificationsHTTPHandler,
+		scheduleHTTPHandler,
 		healthHTTPHandler,
 	)
 
