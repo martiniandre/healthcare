@@ -21,6 +21,21 @@ func BadRequest(message string, fieldViolations map[string]string) error {
 	return status.Errorf(codes.InvalidArgument, "%s — %s", message, strings.Join(violations, ", "))
 }
 
+func InvalidArgument(message string, fieldViolations map[string]string) AppError {
+	appError := ErrBadRequest
+	if message != "" {
+		appError.Message = message
+	}
+	if len(fieldViolations) > 0 {
+		violations := make([]string, 0, len(fieldViolations))
+		for field, description := range fieldViolations {
+			violations = append(violations, fmt.Sprintf("%s: %s", field, description))
+		}
+		appError.Message = appError.Message + " — " + strings.Join(violations, ", ")
+	}
+	return appError
+}
+
 func NotFound(resourceType string) error {
 	return status.Errorf(codes.NotFound, "%s not found", resourceType)
 }

@@ -9,6 +9,7 @@ import (
 	"log/slog"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 
 	"golang.org/x/oauth2/google"
@@ -69,7 +70,7 @@ func (healthcareClient *Client) CreateResource(ctx context.Context, resourceType
 	}
 	request.Header.Set("Content-Type", "application/fhir+json")
 
-	return healthcareClient.doWithRetry(request)
+	return healthcareClient.doWithRetry(request, resourceType, "")
 }
 
 func (healthcareClient *Client) GetResource(ctx context.Context, resourceType, resourceID string) (json.RawMessage, error) {
@@ -80,7 +81,7 @@ func (healthcareClient *Client) GetResource(ctx context.Context, resourceType, r
 	}
 	request.Header.Set("Accept", "application/fhir+json")
 
-	return healthcareClient.doWithRetry(request)
+	return healthcareClient.doWithRetry(request, resourceType, resourceID)
 }
 
 func (healthcareClient *Client) SearchResources(ctx context.Context, resourceType, queryParams string) (json.RawMessage, error) {
@@ -91,7 +92,7 @@ func (healthcareClient *Client) SearchResources(ctx context.Context, resourceTyp
 	}
 	request.Header.Set("Accept", "application/fhir+json")
 
-	bundleResponse, bundleError := healthcareClient.doWithRetry(request)
+	bundleResponse, bundleError := healthcareClient.doWithRetry(request, resourceType, "")
 	if bundleError != nil {
 		return nil, bundleError
 	}
@@ -129,7 +130,7 @@ func (healthcareClient *Client) SearchResources(ctx context.Context, resourceTyp
 		}
 		nextRequest.Header.Set("Accept", "application/fhir+json")
 
-		nextResponse, nextError := healthcareClient.doWithRetry(nextRequest)
+		nextResponse, nextError := healthcareClient.doWithRetry(nextRequest, resourceType, "")
 		if nextError != nil {
 			return nil, nextError
 		}
@@ -170,7 +171,7 @@ func (healthcareClient *Client) UpdateResource(ctx context.Context, resourceType
 	}
 	request.Header.Set("Content-Type", "application/fhir+json")
 
-	return healthcareClient.doWithRetry(request)
+	return healthcareClient.doWithRetry(request, resourceType, resourceID)
 }
 
 func (healthcareClient *Client) DeleteResource(ctx context.Context, fhirResourcePath string) error {
@@ -181,7 +182,14 @@ func (healthcareClient *Client) DeleteResource(ctx context.Context, fhirResource
 	}
 	request.Header.Set("Accept", "application/fhir+json")
 
-	response, err := healthcareClient.doWithRetry(request)
+	resourceParts := strings.SplitN(fhirResourcePath, "/", 2)
+	resourceType := resourceParts[0]
+	resourceID := ""
+	if len(resourceParts) == 2 {
+		resourceID = resourceParts[1]
+	}
+
+	response, err := healthcareClient.doWithRetry(request, resourceType, resourceID)
 	if err != nil {
 		return err
 	}
@@ -190,7 +198,7 @@ func (healthcareClient *Client) DeleteResource(ctx context.Context, fhirResource
 	return nil
 }
 
-func (healthcareClient *Client) doWithRetry(request *http.Request) (json.RawMessage, error) {
+func (healthcareClient *Client) doWithRetry(request *http.Request, resourceType, resourceID string) (json.RawMessage, error) {
 	retryDelays := []time.Duration{100 * time.Millisecond, 300 * time.Millisecond, 900 * time.Millisecond}
 
 	truncateErrorBody := func(body []byte) string {
@@ -236,6 +244,9 @@ func (healthcareClient *Client) doWithRetry(request *http.Request) (json.RawMess
 		}
 
 		if response.StatusCode < 200 || response.StatusCode >= 300 {
+			if response.StatusCode == http.StatusNotFound {
+				return nil, &NotFoundError{ResourceType: resourceType, ResourceID: resourceID}
+			}
 			return nil, fmt.Errorf("healthcare api: unexpected status %d - %s", response.StatusCode, truncateErrorBody(responseBody))
 		}
 
