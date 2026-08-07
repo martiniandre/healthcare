@@ -7,6 +7,7 @@ import { PortalConditions } from "./PortalConditions"
 import { PortalMedications } from "./PortalMedications"
 import { PortalReports } from "./PortalReports"
 import { PortalImaging } from "./PortalImaging"
+import { PortalAppointments } from "./PortalAppointments"
 import {
   LayoutDashboard,
   History,
@@ -15,11 +16,13 @@ import {
   Pill,
   FileText,
   Image,
+  CalendarClock,
   Loader2,
 } from "lucide-react"
 
 const PortalTab = {
   Dashboard: "dashboard",
+  Appointments: "appointments",
   Encounters: "encounters",
   Observations: "observations",
   Conditions: "conditions",
@@ -32,6 +35,7 @@ type PortalTab = (typeof PortalTab)[keyof typeof PortalTab]
 
 const sidebarItems: { key: PortalTab; label: string; icon: React.ReactNode }[] = [
   { key: "dashboard", label: "Visão Geral", icon: <LayoutDashboard className="w-4 h-4 shrink-0" /> },
+  { key: "appointments", label: "Agendamentos", icon: <CalendarClock className="w-4 h-4 shrink-0" /> },
   { key: "encounters", label: "Consultas", icon: <History className="w-4 h-4 shrink-0" /> },
   { key: "observations", label: "Sinais Vitais", icon: <Heart className="w-4 h-4 shrink-0" /> },
   { key: "conditions", label: "Condições", icon: <Activity className="w-4 h-4 shrink-0" /> },
@@ -105,6 +109,7 @@ export const PortalPage = () => {
           {activeTab === PortalTab.Dashboard && (
             <PortalDashboardOverview dashboard={dashboardData} />
           )}
+          {activeTab === PortalTab.Appointments && <PortalAppointments />}
           {activeTab === PortalTab.Encounters && <PortalEncounters />}
           {activeTab === PortalTab.Observations && <PortalObservations />}
           {activeTab === PortalTab.Conditions && <PortalConditions />}

@@ -55,11 +55,18 @@ export const PortalReports = () => {
                   : "N/I"}
               </p>
             </div>
-            <span
-              className={`text-xs font-bold px-2.5 py-1 rounded-full capitalize ${statusBadgeClass(report.status)}`}
-            >
-              {report.status}
-            </span>
+            <div className="flex items-center gap-2">
+              {report.version && (
+                <span className="text-[10px] bg-blue-50 border border-blue-100 text-blue-600 px-2 py-0.5 rounded font-bold uppercase">
+                  v{report.version}
+                </span>
+              )}
+              <span
+                className={`text-xs font-bold px-2.5 py-1 rounded-full capitalize ${statusBadgeClass(report.status)}`}
+              >
+                {report.status}
+              </span>
+            </div>
           </div>
           {report.conclusion && (
             <p className="text-xs text-gray-600 bg-gray-50 rounded-lg p-3 mt-2">

@@ -53,6 +53,7 @@ export interface PortalReport {
   report_display: string
   status: string
   conclusion: string
+  version?: string
   issued_at: string
 }
 
