@@ -5,6 +5,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/healthcare/backend/internal/modules/telemetry"
+	"github.com/healthcare/backend/internal/shared/apperrors"
 )
 
 type MockTelemetryRepository struct {
@@ -40,7 +41,7 @@ func (mockRepo *MockTelemetryRepository) GetRoomByID(ctx context.Context, roomID
 
 	room, exists := mockRepo.Rooms[roomID]
 	if !exists {
-		return nil, telemetry.ErrRoomNotFound
+		return nil, apperrors.ErrRoomNotFound
 	}
 
 	return room, nil
@@ -68,7 +69,7 @@ func (mockRepo *MockTelemetryRepository) GetBedByID(ctx context.Context, bedID u
 
 	bed, exists := mockRepo.Beds[bedID]
 	if !exists {
-		return nil, telemetry.ErrBedNotFound
+		return nil, apperrors.ErrBedNotFound
 	}
 
 	return bed, nil

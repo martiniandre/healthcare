@@ -5,7 +5,6 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/google/uuid"
 	"github.com/healthcare/backend/internal/api/middleware"
 	"github.com/healthcare/backend/internal/api/render"
 	"github.com/healthcare/backend/internal/shared/role"
@@ -46,7 +45,7 @@ func (handler *HTTPHandler) ListRooms(httpResponseWriter http.ResponseWriter, ht
 	roomsList, roomsErr := handler.service.GetRooms(httpRequest.Context())
 	if roomsErr != nil {
 		slog.Error("failed to list rooms", "error", roomsErr, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.Error(httpResponseWriter, http.StatusInternalServerError, "Erro ao listar salas.")
+		render.ErrorFromAppError(httpResponseWriter, roomsErr)
 		return
 	}
 
@@ -64,36 +63,29 @@ func (handler *HTTPHandler) ListRooms(httpResponseWriter http.ResponseWriter, ht
 //	@Param			body	body	UnlockRoomRequest	true	"Passcode"
 //	@Success		200		{object}	UnlockRoomResponse
 //	@Failure		400		{object}	map[string]string
-//	@Failure		401		{object}	map[string]string
+//	@Failure		403		{object}	map[string]string
 //	@Router			/telemetry/rooms/{roomId}/unlock [post]
 func (handler *HTTPHandler) UnlockRoom(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
-	roomIDRaw := httpRequest.PathValue("roomId")
-
-	roomIDParsed, parseErr := uuid.Parse(roomIDRaw)
-	if parseErr != nil {
-		render.Error(httpResponseWriter, http.StatusBadRequest, "ID de sala inválido.")
-		return
-	}
-
-	var payload struct {
-		Passcode string `json:"passcode"`
-	}
+	var payload UnlockRoomRequest
 
 	if payloadDecodeErr := json.NewDecoder(httpRequest.Body).Decode(&payload); payloadDecodeErr != nil {
 		render.Error(httpResponseWriter, http.StatusBadRequest, "Payload inválido.")
 		return
 	}
 
-	unlockedRoom, unlockErr := handler.service.UnlockRoom(httpRequest.Context(), roomIDParsed, payload.Passcode)
+	unlockedRoom, unlockErr := handler.service.UnlockRoom(httpRequest.Context(), UnlockRoomInput{
+		RoomID:   httpRequest.PathValue("roomId"),
+		Passcode: payload.Passcode,
+	})
 	if unlockErr != nil {
-		slog.Warn("room unlock failed", "room_id", roomIDRaw, "error", unlockErr)
-		render.Error(httpResponseWriter, http.StatusUnauthorized, "Senha inválida.")
+		slog.Warn("room unlock failed", "room_id", httpRequest.PathValue("roomId"), "error", unlockErr)
+		render.ErrorFromAppError(httpResponseWriter, unlockErr)
 		return
 	}
 
-	render.JSON(httpResponseWriter, http.StatusOK, map[string]interface{}{
-		"success":  true,
-		"roomName": unlockedRoom.Name,
+	render.JSON(httpResponseWriter, http.StatusOK, UnlockRoomResponse{
+		Success:  true,
+		RoomName: unlockedRoom.Name,
 	})
 }
 
@@ -107,21 +99,16 @@ func (handler *HTTPHandler) UnlockRoom(httpResponseWriter http.ResponseWriter, h
 //	@Param			roomId	path	string	true	"Room UUID"
 //	@Success		200		{array}	TelemetryBedResponse
 //	@Failure		400		{object}	map[string]string
+//	@Failure		404		{object}	map[string]string
 //	@Failure		500		{object}	map[string]string
 //	@Router			/telemetry/rooms/{roomId}/beds [get]
 func (handler *HTTPHandler) ListBedsByRoom(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
-	roomIDRaw := httpRequest.PathValue("roomId")
-
-	roomIDParsed, parseErr := uuid.Parse(roomIDRaw)
-	if parseErr != nil {
-		render.Error(httpResponseWriter, http.StatusBadRequest, "ID de sala inválido.")
-		return
-	}
-
-	bedsList, bedsErr := handler.service.GetBeds(httpRequest.Context(), roomIDParsed)
+	bedsList, bedsErr := handler.service.GetBeds(httpRequest.Context(), GetBedsInput{
+		RoomID: httpRequest.PathValue("roomId"),
+	})
 	if bedsErr != nil {
-		slog.Error("failed to list beds", "error", bedsErr, "room_id", roomIDRaw, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.Error(httpResponseWriter, http.StatusInternalServerError, "Erro ao listar leitos.")
+		slog.Error("failed to list beds", "error", bedsErr, "room_id", httpRequest.PathValue("roomId"), "request_id", middleware.GetRequestID(httpRequest.Context()))
+		render.ErrorFromAppError(httpResponseWriter, bedsErr)
 		return
 	}
 
@@ -139,34 +126,28 @@ func (handler *HTTPHandler) ListBedsByRoom(httpResponseWriter http.ResponseWrite
 //	@Param			body	body	UpdateBedConditionRequest	true	"Bed condition data"
 //	@Success		200		{object}	UpdateBedConditionResponse
 //	@Failure		400		{object}	map[string]string
+//	@Failure		404		{object}	map[string]string
 //	@Failure		500		{object}	map[string]string
 //	@Router			/telemetry/beds/{bedId}/condition [post]
 func (handler *HTTPHandler) UpdateBedCondition(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
-	bedIDRaw := httpRequest.PathValue("bedId")
-
-	bedIDParsed, parseErr := uuid.Parse(bedIDRaw)
-	if parseErr != nil {
-		render.Error(httpResponseWriter, http.StatusBadRequest, "ID de leito inválido.")
-		return
-	}
-
-	var payload struct {
-		Bpm         int32   `json:"bpm"`
-		Spo2        int32   `json:"spo2"`
-		Temperature float64 `json:"temperature"`
-		Status      string  `json:"status"`
-		Condition   string  `json:"condition"`
-	}
+	var payload UpdateBedConditionRequest
 
 	if payloadDecodeErr := json.NewDecoder(httpRequest.Body).Decode(&payload); payloadDecodeErr != nil {
 		render.Error(httpResponseWriter, http.StatusBadRequest, "Payload inválido.")
 		return
 	}
 
-	updateErr := handler.service.UpdateBedCondition(httpRequest.Context(), bedIDParsed, payload.Bpm, payload.Spo2, payload.Temperature, payload.Status, payload.Condition)
+	updateErr := handler.service.UpdateBedCondition(httpRequest.Context(), UpdateBedConditionInput{
+		BedID:       httpRequest.PathValue("bedId"),
+		Bpm:         payload.Bpm,
+		Spo2:        payload.Spo2,
+		Temperature: payload.Temperature,
+		Status:      payload.Status,
+		Condition:   payload.Condition,
+	})
 	if updateErr != nil {
-		slog.Error("failed to update bed condition", "error", updateErr, "bed_id", bedIDRaw, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.Error(httpResponseWriter, http.StatusInternalServerError, "Erro ao atualizar leito.")
+		slog.Error("failed to update bed condition", "error", updateErr, "bed_id", httpRequest.PathValue("bedId"), "request_id", middleware.GetRequestID(httpRequest.Context()))
+		render.ErrorFromAppError(httpResponseWriter, updateErr)
 		return
 	}
 

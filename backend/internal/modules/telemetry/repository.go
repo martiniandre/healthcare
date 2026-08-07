@@ -2,8 +2,12 @@ package telemetry
 
 import (
 	"context"
+	"errors"
+	"fmt"
 
 	"github.com/google/uuid"
+	"github.com/healthcare/backend/internal/shared/apperrors"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -59,6 +63,9 @@ func (telemetryRepository *repository) GetRoomByID(ctx context.Context, roomID u
 		&room.CreatedAt, &room.UpdatedAt,
 	)
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, fmt.Errorf("failed to get telemetry room: %w", apperrors.ErrRoomNotFound)
+		}
 		return nil, err
 	}
 
@@ -103,6 +110,9 @@ func (telemetryRepository *repository) GetBedByID(ctx context.Context, bedID uui
 		&bed.Status, &bed.Condition, &bed.CreatedAt, &bed.UpdatedAt,
 	)
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, fmt.Errorf("failed to get telemetry bed: %w", apperrors.ErrBedNotFound)
+		}
 		return nil, err
 	}
 
