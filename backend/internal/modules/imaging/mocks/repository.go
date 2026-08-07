@@ -2,10 +2,10 @@ package mocks
 
 import (
 	"context"
-	"errors"
 
 	"github.com/google/uuid"
 	"github.com/healthcare/backend/internal/modules/imaging"
+	"github.com/healthcare/backend/internal/shared/apperrors"
 )
 
 type MockRepository struct {
@@ -33,7 +33,7 @@ func (mockRepository *MockRepository) GetImagingStudy(ctx context.Context, id uu
 	}
 	study, exists := mockRepository.Studies[id]
 	if !exists {
-		return nil, errors.New("imaging study not found")
+		return nil, apperrors.ErrImagingStudyNotFound
 	}
 	return study, nil
 }

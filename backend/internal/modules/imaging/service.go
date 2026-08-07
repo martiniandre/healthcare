@@ -6,9 +6,11 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/healthcare/backend/internal/shared/apperrors"
 	"github.com/healthcare/backend/internal/shared/storage"
 	"github.com/healthcare/backend/internal/shared/validator"
 	"github.com/redis/go-redis/v9"
@@ -17,10 +19,10 @@ import (
 const MaxDICOMUploadBytes int64 = 2 << 30
 
 type Service interface {
-	UploadDICOMStream(ctx context.Context, patientFhirID, title, modality string, streamReader io.Reader) (*ImagingStudy, error)
-	GetImagingStudy(ctx context.Context, studyID uuid.UUID) (*ImagingStudy, error)
+	UploadDICOMStream(ctx context.Context, input UploadDICOMInput, streamReader io.Reader) (*ImagingStudy, error)
+	GetImagingStudy(ctx context.Context, studyID string) (*ImagingStudy, error)
 	ListImagingStudies(ctx context.Context, patientFhirID string) ([]*ImagingStudy, error)
-	GetDownloadURL(ctx context.Context, studyID uuid.UUID) (string, time.Time, error)
+	GetDownloadURL(ctx context.Context, studyID string) (string, time.Time, error)
 }
 
 type service struct {
@@ -39,15 +41,9 @@ func NewService(dbRepository Repository, storageClient storage.StorageClient, re
 	}
 }
 
-func (serviceInstance *service) UploadDICOMStream(ctx context.Context, patientFhirID, title, modality string, streamReader io.Reader) (*ImagingStudy, error) {
-	if patientFhirID == "" {
-		return nil, errors.New("patient fhir id is required")
-	}
-	if title == "" {
-		return nil, errors.New("title is required")
-	}
-	if !validator.IsValidDICOMModality(modality) {
-		return nil, errors.New("invalid dicom modality")
+func (serviceInstance *service) UploadDICOMStream(ctx context.Context, input UploadDICOMInput, streamReader io.Reader) (*ImagingStudy, error) {
+	if fieldViolations := validateUploadDICOMInput(input); len(fieldViolations) > 0 {
+		return nil, apperrors.InvalidArgument("invalid dicom upload input", fieldViolations)
 	}
 
 	limitedReader := &io.LimitedReader{
@@ -62,19 +58,19 @@ func (serviceInstance *service) UploadDICOMStream(ctx context.Context, patientFh
 	}
 
 	if bytesRead < 132 {
-		return nil, fmt.Errorf("%w: preamble is too small", ErrInvalidDICOM)
+		return nil, fmt.Errorf("%w: preamble is too small", apperrors.ErrInvalidDICOM)
 	}
 
 	magicBytesSignature := string(headerBytes[128:132])
 	if magicBytesSignature != "DICM" {
-		return nil, fmt.Errorf("%w: magic bytes DICM signature missing", ErrInvalidDICOM)
+		return nil, fmt.Errorf("%w: magic bytes DICM signature missing", apperrors.ErrInvalidDICOM)
 	}
 
 	reconstructedReader := io.MultiReader(bytes.NewReader(headerBytes[:bytesRead]), limitedReader)
 	boundedReader := &uploadLimitReader{reader: reconstructedReader, remainingBytes: MaxDICOMUploadBytes}
 
 	studyID := uuid.New()
-	objectPath := fmt.Sprintf("dicom/staging/%s/%s.dcm", patientFhirID, studyID.String())
+	objectPath := fmt.Sprintf("dicom/staging/%s/%s.dcm", input.PatientFhirID, studyID.String())
 
 	gcsStagingURL, uploadError := serviceInstance.storageClient.Upload(ctx, serviceInstance.bucketName, objectPath, boundedReader)
 	if uploadError != nil {
@@ -83,9 +79,9 @@ func (serviceInstance *service) UploadDICOMStream(ctx context.Context, patientFh
 
 	study := &ImagingStudy{
 		ID:               studyID,
-		PatientFhirID:    patientFhirID,
-		Title:            title,
-		Modality:         modality,
+		PatientFhirID:    input.PatientFhirID,
+		Title:            input.Title,
+		Modality:         input.Modality,
 		GCSPath:          gcsStagingURL,
 		StudyInstanceUID: "",
 		Status:           ImagingStudyStatusPending,
@@ -115,7 +111,7 @@ type uploadLimitReader struct {
 
 func (reader *uploadLimitReader) Read(buffer []byte) (int, error) {
 	if reader.remainingBytes <= 0 {
-		return 0, ErrDICOMTooLarge
+		return 0, apperrors.ErrRateLimitExceeded
 	}
 	if int64(len(buffer)) > reader.remainingBytes {
 		buffer = buffer[:int(reader.remainingBytes)]
@@ -123,24 +119,35 @@ func (reader *uploadLimitReader) Read(buffer []byte) (int, error) {
 	bytesRead, readError := reader.reader.Read(buffer)
 	reader.remainingBytes -= int64(bytesRead)
 	if readError == nil && reader.remainingBytes == 0 {
-		return bytesRead, ErrDICOMTooLarge
+		return bytesRead, apperrors.ErrRateLimitExceeded
 	}
 	return bytesRead, readError
 }
 
-func (serviceInstance *service) GetImagingStudy(ctx context.Context, studyID uuid.UUID) (*ImagingStudy, error) {
-	return serviceInstance.dbRepository.GetImagingStudy(ctx, studyID)
+func (serviceInstance *service) GetImagingStudy(ctx context.Context, studyID string) (*ImagingStudy, error) {
+	parsedStudyID, err := uuid.Parse(studyID)
+	if err != nil {
+		return nil, apperrors.InvalidArgument("invalid get imaging study input", map[string]string{"study_id": "must be a valid UUID"})
+	}
+
+	return serviceInstance.dbRepository.GetImagingStudy(ctx, parsedStudyID)
 }
 
 func (serviceInstance *service) ListImagingStudies(ctx context.Context, patientFhirID string) ([]*ImagingStudy, error) {
-	if patientFhirID == "" {
-		return nil, errors.New("patient fhir id is required")
+	if strings.TrimSpace(patientFhirID) == "" {
+		return nil, apperrors.InvalidArgument("invalid list imaging studies input", map[string]string{"patient_fhir_id": "is required"})
 	}
+
 	return serviceInstance.dbRepository.ListImagingStudiesByPatient(ctx, patientFhirID)
 }
 
-func (serviceInstance *service) GetDownloadURL(ctx context.Context, studyID uuid.UUID) (string, time.Time, error) {
-	study, dbError := serviceInstance.dbRepository.GetImagingStudy(ctx, studyID)
+func (serviceInstance *service) GetDownloadURL(ctx context.Context, studyID string) (string, time.Time, error) {
+	parsedStudyID, err := uuid.Parse(studyID)
+	if err != nil {
+		return "", time.Time{}, apperrors.InvalidArgument("invalid download url input", map[string]string{"study_id": "must be a valid UUID"})
+	}
+
+	study, dbError := serviceInstance.dbRepository.GetImagingStudy(ctx, parsedStudyID)
 	if dbError != nil {
 		return "", time.Time{}, dbError
 	}
@@ -153,4 +160,18 @@ func (serviceInstance *service) GetDownloadURL(ctx context.Context, studyID uuid
 
 	expiresAt := time.Now().Add(expirationDuration)
 	return downloadURL, expiresAt, nil
+}
+
+func validateUploadDICOMInput(input UploadDICOMInput) map[string]string {
+	fieldViolations := make(map[string]string)
+	if strings.TrimSpace(input.PatientFhirID) == "" {
+		fieldViolations["patient_fhir_id"] = "is required"
+	}
+	if strings.TrimSpace(input.Title) == "" {
+		fieldViolations["title"] = "is required"
+	}
+	if !validator.IsValidDICOMModality(input.Modality) {
+		fieldViolations["modality"] = "invalid dicom modality"
+	}
+	return fieldViolations
 }

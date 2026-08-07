@@ -3,8 +3,10 @@ package imaging
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/google/uuid"
+	"github.com/healthcare/backend/internal/shared/apperrors"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -67,7 +69,7 @@ func (repo *repository) GetImagingStudy(ctx context.Context, id uuid.UUID) (*Ima
 	)
 	if scanError != nil {
 		if errors.Is(scanError, pgx.ErrNoRows) {
-			return nil, ErrImagingStudyNotFound
+			return nil, fmt.Errorf("failed to get imaging study: %w", apperrors.ErrImagingStudyNotFound)
 		}
 		return nil, scanError
 	}

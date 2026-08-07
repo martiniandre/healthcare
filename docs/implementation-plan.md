@@ -64,6 +64,8 @@ Commit: `refactor(fhir): consolidate FHIR read-side decoding into shared module`
 
 ## Phase 1 — Roll ADR-0004 thin adapters to remaining modules (candidate 2)
 
+**Status: DONE** (all 7 modules committed; `go test ./internal/...` green).
+
 Apply the proven pilot pattern (encounter, diagnostic_report, observation) to
 the 7 modules that still validate in both transports.
 

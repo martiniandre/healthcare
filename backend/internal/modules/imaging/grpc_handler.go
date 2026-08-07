@@ -6,7 +6,6 @@ import (
 	"io"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/healthcare/backend/internal/modules/imaging/pb"
 	"github.com/healthcare/backend/internal/shared/apperrors"
 )
@@ -22,11 +21,11 @@ func NewGRPCHandler(service Service) *GRPCHandler {
 func (handler *GRPCHandler) UploadDICOM(stream pb.ImagingService_UploadDICOMServer) error {
 	firstRequestMsg, receiveError := stream.Recv()
 	if receiveError != nil {
-		return mapImagingError(receiveError)
+		return apperrors.ToGRPCStatus(receiveError)
 	}
 
 	metadataMsg := firstRequestMsg.GetMetadata()
-	if metadataMsg == nil || metadataMsg.PatientFhirId == "" || metadataMsg.Title == "" || metadataMsg.Modality == "" {
+	if metadataMsg == nil {
 		return apperrors.ErrBadRequest.ToGRPC()
 	}
 
@@ -63,15 +62,13 @@ func (handler *GRPCHandler) UploadDICOM(stream pb.ImagingService_UploadDICOMServ
 		}
 	}()
 
-	study, uploadError := handler.service.UploadDICOMStream(
-		stream.Context(),
-		metadataMsg.PatientFhirId,
-		metadataMsg.Title,
-		metadataMsg.Modality,
-		pipeReader,
-	)
+	study, uploadError := handler.service.UploadDICOMStream(stream.Context(), UploadDICOMInput{
+		PatientFhirID: metadataMsg.PatientFhirId,
+		Title:         metadataMsg.Title,
+		Modality:      metadataMsg.Modality,
+	}, pipeReader)
 	if uploadError != nil {
-		return mapImagingError(uploadError)
+		return apperrors.ToGRPCStatus(uploadError)
 	}
 
 	response := &pb.UploadDICOMResponse{
@@ -84,14 +81,9 @@ func (handler *GRPCHandler) UploadDICOM(stream pb.ImagingService_UploadDICOMServ
 }
 
 func (handler *GRPCHandler) GetImagingStudy(ctx context.Context, req *pb.GetImagingStudyRequest) (*pb.GetImagingStudyResponse, error) {
-	studyID, parseError := uuid.Parse(req.ImagingStudyId)
-	if parseError != nil {
-		return nil, apperrors.ErrBadRequest.ToGRPC()
-	}
-
-	study, queryError := handler.service.GetImagingStudy(ctx, studyID)
+	study, queryError := handler.service.GetImagingStudy(ctx, req.ImagingStudyId)
 	if queryError != nil {
-		return nil, mapImagingError(queryError)
+		return nil, apperrors.ToGRPCStatus(queryError)
 	}
 
 	return &pb.GetImagingStudyResponse{
@@ -106,12 +98,9 @@ func (handler *GRPCHandler) GetImagingStudy(ctx context.Context, req *pb.GetImag
 }
 
 func (handler *GRPCHandler) ListImagingStudies(ctx context.Context, req *pb.ListImagingStudiesRequest) (*pb.ListImagingStudiesResponse, error) {
-	if req.PatientFhirId == "" {
-		return nil, apperrors.ErrBadRequest.WithFields(map[string]string{"patient_fhir_id": "is required"})
-	}
 	studies, queryError := handler.service.ListImagingStudies(ctx, req.PatientFhirId)
 	if queryError != nil {
-		return nil, mapImagingError(queryError)
+		return nil, apperrors.ToGRPCStatus(queryError)
 	}
 
 	studiesResponses := make([]*pb.GetImagingStudyResponse, 0, len(studies))
@@ -131,34 +120,13 @@ func (handler *GRPCHandler) ListImagingStudies(ctx context.Context, req *pb.List
 }
 
 func (handler *GRPCHandler) GetDICOMDownloadURL(ctx context.Context, req *pb.GetDICOMDownloadURLRequest) (*pb.GetDICOMDownloadURLResponse, error) {
-	studyID, parseError := uuid.Parse(req.ImagingStudyId)
-	if parseError != nil {
-		return nil, apperrors.ErrBadRequest.ToGRPC()
-	}
-
-	downloadURL, expiresAt, queryError := handler.service.GetDownloadURL(ctx, studyID)
+	downloadURL, expiresAt, queryError := handler.service.GetDownloadURL(ctx, req.ImagingStudyId)
 	if queryError != nil {
-		return nil, mapImagingError(queryError)
+		return nil, apperrors.ToGRPCStatus(queryError)
 	}
 
 	return &pb.GetDICOMDownloadURLResponse{
 		DownloadUrl: downloadURL,
 		ExpiresAt:   expiresAt.Format(time.RFC3339),
 	}, nil
-}
-
-func mapImagingError(err error) error {
-	if err == nil {
-		return nil
-	}
-	switch {
-	case errors.Is(err, ErrImagingStudyNotFound):
-		return apperrors.ErrImagingStudyNotFound.ToGRPC()
-	case errors.Is(err, ErrInvalidDICOM):
-		return apperrors.ErrInvalidDICOM.ToGRPC()
-	case errors.Is(err, ErrDICOMTooLarge):
-		return apperrors.ErrRateLimitExceeded.ToGRPC()
-	default:
-		return apperrors.ErrInternalServer.ToGRPC()
-	}
 }
