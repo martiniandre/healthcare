@@ -2,12 +2,14 @@ package medication
 
 import (
 	"encoding/json"
+	"errors"
 	"log/slog"
 	"net/http"
 	"time"
 
 	"github.com/healthcare/backend/internal/api/middleware"
 	"github.com/healthcare/backend/internal/api/render"
+	"github.com/healthcare/backend/internal/shared/apperrors"
 	"github.com/healthcare/backend/internal/shared/role"
 )
 
@@ -41,10 +43,19 @@ func (handler *HTTPHandler) RegisterRoutes(mux *http.ServeMux) {
 //	@Router			/encounters/{encounterFhirId}/medications [get]
 func (handler *HTTPHandler) ListMedicationsByEncounter(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
 	encounterFhirID := httpRequest.PathValue("encounterFhirId")
+	if encounterFhirID == "" {
+		render.Error(httpResponseWriter, http.StatusBadRequest, "O identificador do atendimento é obrigatório.")
+		return
+	}
 
 	medicationsList, medicationsErr := handler.service.GetMedicationRequestsByEncounter(httpRequest.Context(), encounterFhirID)
 	if medicationsErr != nil {
 		slog.Error("failed to list medications", "error", medicationsErr, "encounter_fhir_id", encounterFhirID, "request_id", middleware.GetRequestID(httpRequest.Context()))
+		var appErr apperrors.AppError
+		if errors.As(medicationsErr, &appErr) {
+			render.Error(httpResponseWriter, appErr.HTTPCode, appErr.Message)
+			return
+		}
 		render.Error(httpResponseWriter, http.StatusInternalServerError, "Erro ao carregar prescrições da consulta.")
 		return
 	}
@@ -82,6 +93,10 @@ func (handler *HTTPHandler) ListMedicationsByEncounter(httpResponseWriter http.R
 //	@Router			/encounters/{encounterFhirId}/medications [post]
 func (handler *HTTPHandler) CreateMedication(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
 	encounterFhirID := httpRequest.PathValue("encounterFhirId")
+	if encounterFhirID == "" {
+		render.Error(httpResponseWriter, http.StatusBadRequest, "O identificador do atendimento é obrigatório.")
+		return
+	}
 
 	var payload CreateMedicationRequest
 
@@ -92,10 +107,6 @@ func (handler *HTTPHandler) CreateMedication(httpResponseWriter http.ResponseWri
 
 	if payload.PatientFhirID == "" {
 		render.Error(httpResponseWriter, http.StatusBadRequest, "O identificador do paciente é obrigatório.")
-		return
-	}
-	if payload.MedicationName == "" {
-		render.Error(httpResponseWriter, http.StatusBadRequest, "O nome do medicamento é obrigatório.")
 		return
 	}
 
@@ -113,6 +124,11 @@ func (handler *HTTPHandler) CreateMedication(httpResponseWriter http.ResponseWri
 	createdMedication, createErr := handler.service.CreateMedicationRequest(httpRequest.Context(), newMedication)
 	if createErr != nil {
 		slog.Error("failed to create medication request", "error", createErr, "encounter_fhir_id", encounterFhirID, "request_id", middleware.GetRequestID(httpRequest.Context()))
+		var appErr apperrors.AppError
+		if errors.As(createErr, &appErr) {
+			render.Error(httpResponseWriter, appErr.HTTPCode, appErr.Message)
+			return
+		}
 		render.Error(httpResponseWriter, http.StatusInternalServerError, "Erro ao criar prescrição.")
 		return
 	}

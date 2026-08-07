@@ -2,6 +2,8 @@ package medication
 
 import (
 	"context"
+
+	"github.com/healthcare/backend/internal/shared/apperrors"
 )
 
 type Service interface {
@@ -18,8 +20,11 @@ func NewService(repo Repository) Service {
 }
 
 func (medicationService *service) CreateMedicationRequest(ctx context.Context, medication *Medication) (*Medication, error) {
-	if medication.PatientFHIRID == "" || medication.MedicationCode == "" {
-		return nil, ErrMedicationRequestNotFound
+	if medication.PatientFHIRID == "" {
+		return nil, apperrors.ErrBadRequest.WithFields(map[string]string{"patient_fhir_id": "required"})
+	}
+	if medication.MedicationName == "" && medication.MedicationCode == "" {
+		return nil, apperrors.ErrBadRequest.WithFields(map[string]string{"medication": "either name or code is required"})
 	}
 	if medication.Status == "" {
 		medication.Status = "active"

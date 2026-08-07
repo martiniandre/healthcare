@@ -2,7 +2,6 @@ package medication
 
 import (
 	"context"
-	"errors"
 
 	pb "github.com/healthcare/backend/internal/modules/medication/pb"
 	"github.com/healthcare/backend/internal/shared/apperrors"
@@ -17,9 +16,6 @@ func NewGRPCHandler(service Service) *GRPCHandler {
 }
 
 func mapMedicationError(err error) error {
-	if errors.Is(err, ErrMedicationRequestNotFound) {
-		return apperrors.ErrMedicationRequestNotFound.ToGRPC()
-	}
 	return apperrors.ToGRPCStatus(err)
 }
 

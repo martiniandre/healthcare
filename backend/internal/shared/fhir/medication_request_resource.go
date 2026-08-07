@@ -20,7 +20,7 @@ type DosageInstruction struct {
 }
 
 func NewMedicationRequestResource(patientFHIRID, encounterFHIRID, practitionerFHIRID, medicationCode, medicationName, dosageInstructions string) *MedicationRequestResource {
-	return &MedicationRequestResource{
+	resource := &MedicationRequestResource{
 		ResourceType: "MedicationRequest",
 		Status:       "active",
 		Intent:       "order",
@@ -32,10 +32,13 @@ func NewMedicationRequestResource(patientFHIRID, encounterFHIRID, practitionerFH
 		},
 		Subject:   Reference{Reference: "Patient/" + patientFHIRID},
 		Encounter: Reference{Reference: "Encounter/" + encounterFHIRID},
-		Requester: Reference{Reference: "Practitioner/" + practitionerFHIRID},
 		AuthoredOn: time.Now().Format(time.RFC3339),
 		DosageInstruction: []DosageInstruction{
 			{Text: dosageInstructions},
 		},
 	}
+	if practitionerFHIRID != "" {
+		resource.Requester = Reference{Reference: "Practitioner/" + practitionerFHIRID}
+	}
+	return resource
 }

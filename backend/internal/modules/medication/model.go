@@ -1,11 +1,8 @@
 package medication
 
 import (
-	"errors"
 	"time"
 )
-
-var ErrMedicationRequestNotFound = errors.New("medication request not found")
 
 type Medication struct {
 	FHIRResourceID     string
