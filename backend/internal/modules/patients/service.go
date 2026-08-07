@@ -2,18 +2,17 @@ package patients
 
 import (
 	"context"
-	"errors"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/healthcare/backend/internal/shared/apperrors"
 	"github.com/healthcare/backend/internal/shared/eventbus"
+	"github.com/healthcare/backend/internal/shared/validator"
 )
 
-var ErrPatientNotFound = errors.New("patient not found")
-var ErrPatientAlreadyExists = errors.New("patient with this document already exists")
-
 type Service interface {
-	CreatePatient(ctx context.Context, fullName, birthDate, documentID, phoneNumber string) (*Patient, error)
+	CreatePatient(ctx context.Context, input CreatePatientInput) (*Patient, error)
 	GetPatient(ctx context.Context, fhirResourceID string) (*Patient, error)
 	GetPatientByDocument(ctx context.Context, documentID string) (*Patient, error)
 	ListPatients(ctx context.Context, search string, sortField string, sortDirection string, page int, limit int) ([]*Patient, error)
@@ -28,26 +27,24 @@ func NewService(repo Repository, eventBus eventbus.Bus) Service {
 	return &service{repo: repo, eventBus: eventBus}
 }
 
-func (patientService *service) CreatePatient(ctx context.Context, fullName, birthDate, documentID, phoneNumber string) (*Patient, error) {
-	existingPatient, _ := patientService.repo.GetPatientByDocumentID(ctx, documentID)
-	if existingPatient != nil {
-		return nil, ErrPatientAlreadyExists
+func (patientService *service) CreatePatient(ctx context.Context, input CreatePatientInput) (*Patient, error) {
+	if fieldViolations := validatePatientFields(input); len(fieldViolations) > 0 {
+		return nil, apperrors.InvalidArgument("invalid patient input", fieldViolations)
 	}
 
-	parsedBirthDate, err := time.Parse("2006-01-02", birthDate)
-	if err != nil {
-		return nil, errors.New("invalid birth date format, expected YYYY-MM-DD")
+	existingPatient, _ := patientService.repo.GetPatientByDocumentID(ctx, input.DocumentID)
+	if existingPatient != nil {
+		return nil, apperrors.ErrPatientAlreadyExists
 	}
-	if !parsedBirthDate.Before(time.Now()) {
-		return nil, errors.New("birth date must be in the past")
-	}
+
+	parsedBirthDate, _ := time.Parse("2006-01-02", input.BirthDate)
 
 	patient := &Patient{
 		ID:          uuid.New(),
-		FullName:    fullName,
+		FullName:    input.FullName,
 		BirthDate:   parsedBirthDate,
-		DocumentID:  documentID,
-		PhoneNumber: phoneNumber,
+		DocumentID:  input.DocumentID,
+		PhoneNumber: input.PhoneNumber,
 		IsActive:    true,
 		CreatedAt:   time.Now(),
 		UpdatedAt:   time.Now(),
@@ -60,35 +57,48 @@ func (patientService *service) CreatePatient(ctx context.Context, fullName, birt
 
 	if patientService.eventBus != nil {
 		patientService.eventBus.Publish(ctx, eventbus.Event{
-		Name: "patient.created",
-		Data: map[string]any{
-			"title":         "Novo Paciente Cadastrado",
-			"body":          "Paciente " + createdPatient.FullName + " foi cadastrado no sistema.",
-			"resource_type": "patient",
-			"resource_id":   createdPatient.ID.String(),
-		},
-	})
+			Name: "patient.created",
+			Data: map[string]any{
+				"title":         "Novo Paciente Cadastrado",
+				"body":          "Paciente " + createdPatient.FullName + " foi cadastrado no sistema.",
+				"resource_type": "patient",
+				"resource_id":   createdPatient.ID.String(),
+			},
+		})
 	}
 
 	return createdPatient, nil
 }
 
 func (patientService *service) GetPatient(ctx context.Context, fhirResourceID string) (*Patient, error) {
-	patient, err := patientService.repo.GetPatientByID(ctx, fhirResourceID)
-	if err != nil {
-		return nil, ErrPatientNotFound
-	}
-	return patient, nil
+	return patientService.repo.GetPatientByID(ctx, fhirResourceID)
 }
 
 func (patientService *service) GetPatientByDocument(ctx context.Context, documentID string) (*Patient, error) {
-	patient, err := patientService.repo.GetPatientByDocumentID(ctx, documentID)
-	if err != nil {
-		return nil, ErrPatientNotFound
-	}
-	return patient, nil
+	return patientService.repo.GetPatientByDocumentID(ctx, documentID)
 }
 
 func (patientService *service) ListPatients(ctx context.Context, search string, sortField string, sortDirection string, page int, limit int) ([]*Patient, error) {
 	return patientService.repo.ListPatients(ctx, search, sortField, sortDirection, page, limit)
+}
+
+func validatePatientFields(input CreatePatientInput) map[string]string {
+	fieldViolations := make(map[string]string)
+	if strings.TrimSpace(input.FullName) == "" {
+		fieldViolations["full_name"] = "is required"
+	}
+	if strings.TrimSpace(input.BirthDate) == "" {
+		fieldViolations["birth_date"] = "is required"
+	} else if parsedBirthDate, err := time.Parse("2006-01-02", input.BirthDate); err != nil {
+		fieldViolations["birth_date"] = "invalid date format, expected YYYY-MM-DD"
+	} else if !parsedBirthDate.Before(time.Now()) {
+		fieldViolations["birth_date"] = "must be in the past"
+	}
+	if strings.TrimSpace(input.DocumentID) == "" || !validator.IsValidCPF(input.DocumentID) {
+		fieldViolations["document_id"] = "invalid CPF format"
+	}
+	if strings.TrimSpace(input.PhoneNumber) == "" || !validator.IsValidPhone(input.PhoneNumber) {
+		fieldViolations["phone_number"] = "invalid phone format"
+	}
+	return fieldViolations
 }

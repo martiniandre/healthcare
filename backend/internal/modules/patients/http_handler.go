@@ -2,7 +2,6 @@ package patients
 
 import (
 	"encoding/json"
-	"errors"
 	"log/slog"
 	"net/http"
 	"strconv"
@@ -62,7 +61,7 @@ func (handler *HTTPHandler) ListPatients(httpResponseWriter http.ResponseWriter,
 	patientsList, listError := handler.service.ListPatients(httpRequest.Context(), search, sortField, sortDirection, page, limit)
 	if listError != nil {
 		slog.Error("failed to list patients", "error", listError, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.Error(httpResponseWriter, http.StatusInternalServerError, "Erro ao carregar pacientes.")
+		render.ErrorFromAppError(httpResponseWriter, listError)
 		return
 	}
 
@@ -102,19 +101,17 @@ func (handler *HTTPHandler) CreatePatient(httpResponseWriter http.ResponseWriter
 		return
 	}
 
-	if payload.FullName == "" || payload.BirthDate == "" || payload.DocumentID == "" {
-		render.Error(httpResponseWriter, http.StatusBadRequest, "Os campos nome, data de nascimento e documento são obrigatórios.")
-		return
+	input := CreatePatientInput{
+		FullName:    payload.FullName,
+		BirthDate:   payload.BirthDate,
+		DocumentID:  payload.DocumentID,
+		PhoneNumber: payload.PhoneNumber,
 	}
 
-	patient, createPatientErr := handler.service.CreatePatient(httpRequest.Context(), payload.FullName, payload.BirthDate, payload.DocumentID, payload.PhoneNumber)
+	patient, createPatientErr := handler.service.CreatePatient(httpRequest.Context(), input)
 	if createPatientErr != nil {
 		slog.Error("failed to create patient", "error", createPatientErr, "document_id", payload.DocumentID, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		if errors.Is(createPatientErr, ErrPatientAlreadyExists) {
-			render.Error(httpResponseWriter, http.StatusConflict, "Paciente com este documento já existe.")
-			return
-		}
-		render.Error(httpResponseWriter, http.StatusInternalServerError, "Erro ao criar paciente.")
+		render.ErrorFromAppError(httpResponseWriter, createPatientErr)
 		return
 	}
 
@@ -145,8 +142,8 @@ func (handler *HTTPHandler) GetPatient(httpResponseWriter http.ResponseWriter, h
 
 	patient, getPatientErr := handler.service.GetPatient(httpRequest.Context(), patientFhirID)
 	if getPatientErr != nil {
-		slog.Error("patient not found", "error", getPatientErr, "patient_fhir_id", patientFhirID, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.Error(httpResponseWriter, http.StatusNotFound, "Paciente não encontrado.")
+		slog.Error("failed to get patient", "error", getPatientErr, "patient_fhir_id", patientFhirID, "request_id", middleware.GetRequestID(httpRequest.Context()))
+		render.ErrorFromAppError(httpResponseWriter, getPatientErr)
 		return
 	}
 

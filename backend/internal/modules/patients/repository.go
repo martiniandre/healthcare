@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/healthcare/backend/internal/shared/apperrors"
 	"github.com/healthcare/backend/internal/shared/fhir"
 	"github.com/healthcare/backend/internal/shared/healthcare"
 )
@@ -68,6 +69,9 @@ func (patientRepository *repository) CreatePatient(ctx context.Context, patient 
 func (patientRepository *repository) GetPatientByID(ctx context.Context, fhirResourceID string) (*Patient, error) {
 	responseBody, err := patientRepository.fhirClient.GetResource(ctx, "Patient", fhirResourceID)
 	if err != nil {
+		if healthcare.IsNotFound(err) {
+			return nil, fmt.Errorf("failed to get patient from healthcare api: %w", apperrors.ErrPatientNotFound)
+		}
 		return nil, fmt.Errorf("failed to get patient from healthcare api: %w", err)
 	}
 
@@ -87,7 +91,7 @@ func (patientRepository *repository) GetPatientByDocumentID(ctx context.Context,
 	}
 
 	if len(decodedResources) == 0 {
-		return nil, ErrPatientNotFound
+		return nil, fmt.Errorf("patient with document %s not found: %w", documentID, apperrors.ErrPatientNotFound)
 	}
 
 	return mapFHIRPatientToDomain(&decodedResources[0], decodedResources[0].ID)

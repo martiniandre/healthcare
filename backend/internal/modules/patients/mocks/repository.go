@@ -5,6 +5,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/healthcare/backend/internal/modules/patients"
+	"github.com/healthcare/backend/internal/shared/apperrors"
 )
 
 type MockPatientRepository struct {
@@ -38,7 +39,7 @@ func (mockRepo *MockPatientRepository) GetPatientByID(contextParam context.Conte
 	}
 	patient, exists := mockRepo.Patients[fhirResourceID]
 	if !exists {
-		return nil, patients.ErrPatientNotFound
+		return nil, apperrors.ErrPatientNotFound
 	}
 	return patient, nil
 }
@@ -49,7 +50,7 @@ func (mockRepo *MockPatientRepository) GetPatientByDocumentID(contextParam conte
 	}
 	patient, exists := mockRepo.ByDoc[documentID]
 	if !exists {
-		return nil, patients.ErrPatientNotFound
+		return nil, apperrors.ErrPatientNotFound
 	}
 	return patient, nil
 }
