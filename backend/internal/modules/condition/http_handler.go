@@ -48,7 +48,7 @@ func (handler *HTTPHandler) ListConditionsByPatient(httpResponseWriter http.Resp
 	conditionsList, conditionsErr := handler.service.GetConditionsByPatient(httpRequest.Context(), patientFhirID)
 	if conditionsErr != nil {
 		slog.Error("failed to list conditions", "error", conditionsErr, "patient_fhir_id", patientFhirID, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.Error(httpResponseWriter, http.StatusInternalServerError, "Erro ao carregar diagnósticos do paciente.")
+		render.ErrorFromAppError(httpResponseWriter, conditionsErr)
 		return
 	}
 
@@ -90,28 +90,17 @@ func (handler *HTTPHandler) CreateCondition(httpResponseWriter http.ResponseWrit
 		return
 	}
 
-	if payload.ICD10Code == "" {
-		render.Error(httpResponseWriter, http.StatusBadRequest, "O código CID-10 é obrigatório.")
-		return
-	}
-	if payload.CodeDisplay == "" {
-		render.Error(httpResponseWriter, http.StatusBadRequest, "A descrição do diagnóstico é obrigatória.")
-		return
-	}
-
-	newCondition := &Condition{
+	input := CreateConditionInput{
 		PatientFHIRID:   patientFhirID,
+		EncounterFHIRID: payload.EncounterID,
 		ICD10Code:       payload.ICD10Code,
 		CodeDisplay:     payload.CodeDisplay,
-		ClinicalStatus:  "active",
-		EncounterFHIRID: payload.EncounterID,
-		OnsetAt:         time.Now(),
 	}
 
-	createdCondition, createErr := handler.service.CreateCondition(httpRequest.Context(), newCondition)
+	createdCondition, createErr := handler.service.CreateCondition(httpRequest.Context(), input)
 	if createErr != nil {
 		slog.Error("failed to create condition", "error", createErr, "patient_fhir_id", patientFhirID, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.Error(httpResponseWriter, http.StatusInternalServerError, "Erro ao criar diagnóstico.")
+		render.ErrorFromAppError(httpResponseWriter, createErr)
 		return
 	}
 
@@ -126,14 +115,13 @@ func (handler *HTTPHandler) CreateCondition(httpResponseWriter http.ResponseWrit
 }
 
 func (handler *HTTPHandler) UpdateCondition(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
-	patientFhirID := httpRequest.PathValue("patientFhirId")
 	conditionFhirID := httpRequest.PathValue("conditionFhirId")
 
 	var payload struct {
-		ICD10Code      string `json:"icd10_code"`
-		CodeDisplay    string `json:"code_display"`
-		ClinicalStatus string `json:"clinical_status"`
-		EncounterID    string `json:"encounter_id"`
+		ICD10Code      *string `json:"icd10_code"`
+		CodeDisplay    *string `json:"code_display"`
+		ClinicalStatus *string `json:"clinical_status"`
+		EncounterID    *string `json:"encounter_id"`
 	}
 
 	if payloadDecodeErr := json.NewDecoder(httpRequest.Body).Decode(&payload); payloadDecodeErr != nil {
@@ -141,19 +129,17 @@ func (handler *HTTPHandler) UpdateCondition(httpResponseWriter http.ResponseWrit
 		return
 	}
 
-	updatedCondition := &Condition{
-		PatientFHIRID:   patientFhirID,
+	input := UpdateConditionInput{
 		ICD10Code:       payload.ICD10Code,
 		CodeDisplay:     payload.CodeDisplay,
 		ClinicalStatus:  payload.ClinicalStatus,
 		EncounterFHIRID: payload.EncounterID,
-		OnsetAt:         time.Now(),
 	}
 
-	conditionResult, updateErr := handler.service.UpdateCondition(httpRequest.Context(), conditionFhirID, updatedCondition)
+	conditionResult, updateErr := handler.service.UpdateCondition(httpRequest.Context(), conditionFhirID, input)
 	if updateErr != nil {
 		slog.Error("failed to update condition", "error", updateErr, "condition_fhir_id", conditionFhirID, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.Error(httpResponseWriter, http.StatusInternalServerError, "Erro ao atualizar diagnóstico.")
+		render.ErrorFromAppError(httpResponseWriter, updateErr)
 		return
 	}
 
@@ -172,7 +158,7 @@ func (handler *HTTPHandler) DeleteCondition(httpResponseWriter http.ResponseWrit
 
 	if deleteErr := handler.service.DeleteCondition(httpRequest.Context(), conditionFhirID); deleteErr != nil {
 		slog.Error("failed to delete condition", "error", deleteErr, "condition_fhir_id", conditionFhirID, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.Error(httpResponseWriter, http.StatusInternalServerError, "Erro ao remover diagnóstico.")
+		render.ErrorFromAppError(httpResponseWriter, deleteErr)
 		return
 	}
 

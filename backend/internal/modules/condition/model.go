@@ -1,11 +1,6 @@
 package condition
 
-import (
-	"errors"
-	"time"
-)
-
-var ErrConditionNotFound = errors.New("condition not found")
+import "time"
 
 type Condition struct {
 	FHIRResourceID  string

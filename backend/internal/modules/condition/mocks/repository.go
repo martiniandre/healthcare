@@ -8,6 +8,7 @@ import (
 
 type MockConditionRepository struct {
 	CreateConditionFn        func(ctx context.Context, entity *condition.Condition) (*condition.Condition, error)
+	GetConditionByIDFn       func(ctx context.Context, fhirResourceID string) (*condition.Condition, error)
 	GetConditionsByPatientFn func(ctx context.Context, patientFHIRID string) ([]*condition.Condition, error)
 	UpdateConditionFn        func(ctx context.Context, fhirResourceID string, entity *condition.Condition) (*condition.Condition, error)
 	DeleteConditionFn        func(ctx context.Context, fhirResourceID string) error
@@ -18,6 +19,13 @@ func (mockRepo *MockConditionRepository) CreateCondition(ctx context.Context, en
 		return mockRepo.CreateConditionFn(ctx, entity)
 	}
 	return entity, nil
+}
+
+func (mockRepo *MockConditionRepository) GetConditionByID(ctx context.Context, fhirResourceID string) (*condition.Condition, error) {
+	if mockRepo.GetConditionByIDFn != nil {
+		return mockRepo.GetConditionByIDFn(ctx, fhirResourceID)
+	}
+	return &condition.Condition{}, nil
 }
 
 func (mockRepo *MockConditionRepository) GetConditionsByPatient(ctx context.Context, patientFHIRID string) ([]*condition.Condition, error) {

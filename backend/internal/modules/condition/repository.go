@@ -6,12 +6,14 @@ import (
 	"fmt"
 	"net/url"
 
+	"github.com/healthcare/backend/internal/shared/apperrors"
 	"github.com/healthcare/backend/internal/shared/fhir"
 	"github.com/healthcare/backend/internal/shared/healthcare"
 )
 
 type Repository interface {
 	CreateCondition(ctx context.Context, condition *Condition) (*Condition, error)
+	GetConditionByID(ctx context.Context, fhirResourceID string) (*Condition, error)
 	GetConditionsByPatient(ctx context.Context, patientFHIRID string) ([]*Condition, error)
 	UpdateCondition(ctx context.Context, fhirResourceID string, condition *Condition) (*Condition, error)
 	DeleteCondition(ctx context.Context, fhirResourceID string) error
@@ -75,9 +77,28 @@ func (conditionRepository *repository) UpdateCondition(ctx context.Context, fhir
 	return condition, nil
 }
 
+func (conditionRepository *repository) GetConditionByID(ctx context.Context, fhirResourceID string) (*Condition, error) {
+	responseBody, err := conditionRepository.fhirClient.GetResource(ctx, "Condition", fhirResourceID)
+	if err != nil {
+		if healthcare.IsNotFound(err) {
+			return nil, fmt.Errorf("failed to get condition: %w", apperrors.ErrConditionNotFound)
+		}
+		return nil, fmt.Errorf("failed to get condition: %w", err)
+	}
+
+	decodedResource, err := fhir.DecodeResource[fhir.Condition](responseBody)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse condition response: %w", err)
+	}
+	return mapFHIRConditionToDomain(decodedResource), nil
+}
+
 func (conditionRepository *repository) DeleteCondition(ctx context.Context, fhirResourceID string) error {
 	err := conditionRepository.fhirClient.DeleteResource(ctx, "Condition/"+fhirResourceID)
 	if err != nil {
+		if healthcare.IsNotFound(err) {
+			return fmt.Errorf("failed to delete condition: %w", apperrors.ErrConditionNotFound)
+		}
 		return fmt.Errorf("failed to delete condition: %w", err)
 	}
 	return nil
@@ -99,27 +120,31 @@ func parseConditionBundle(responseBody json.RawMessage) ([]*Condition, error) {
 	}
 	conditions := make([]*Condition, 0, len(decodedResources))
 	for _, resource := range decodedResources {
-		condition := &Condition{}
-		condition.FHIRResourceID = resource.ID
-		clinicalStatusCode, _, _ := fhir.CodeableConceptParts(resource.ClinicalStatus)
-		condition.ClinicalStatus = clinicalStatusCode
-		code, display, text := fhir.CodeableConceptParts(resource.Code)
-		condition.CodeDisplay = text
-		condition.ICD10Code = code
-		if condition.CodeDisplay == "" {
-			condition.CodeDisplay = display
-		}
-		condition.PatientFHIRID = fhir.SplitReferenceID(resource.Subject.Reference)
-		condition.EncounterFHIRID = fhir.SplitReferenceID(resource.Encounter.Reference)
-		if parsedTime, ok := fhir.ParseRFC3339(resource.OnsetDateTime); ok {
-			condition.OnsetAt = parsedTime
-		}
-		if condition.OnsetAt.IsZero() {
-			if parsedTime, ok := fhir.ParseRFC3339(resource.RecordedDate); ok {
-				condition.OnsetAt = parsedTime
-			}
-		}
-		conditions = append(conditions, condition)
+		conditions = append(conditions, mapFHIRConditionToDomain(&resource))
 	}
 	return conditions, nil
+}
+
+func mapFHIRConditionToDomain(resource *fhir.Condition) *Condition {
+	condition := &Condition{}
+	condition.FHIRResourceID = resource.ID
+	clinicalStatusCode, _, _ := fhir.CodeableConceptParts(resource.ClinicalStatus)
+	condition.ClinicalStatus = clinicalStatusCode
+	code, display, text := fhir.CodeableConceptParts(resource.Code)
+	condition.CodeDisplay = text
+	condition.ICD10Code = code
+	if condition.CodeDisplay == "" {
+		condition.CodeDisplay = display
+	}
+	condition.PatientFHIRID = fhir.SplitReferenceID(resource.Subject.Reference)
+	condition.EncounterFHIRID = fhir.SplitReferenceID(resource.Encounter.Reference)
+	if parsedTime, ok := fhir.ParseRFC3339(resource.OnsetDateTime); ok {
+		condition.OnsetAt = parsedTime
+	}
+	if condition.OnsetAt.IsZero() {
+		if parsedTime, ok := fhir.ParseRFC3339(resource.RecordedDate); ok {
+			condition.OnsetAt = parsedTime
+		}
+	}
+	return condition
 }
