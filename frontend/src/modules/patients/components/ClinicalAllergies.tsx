@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { ShieldAlert, Plus, CheckCircle } from "lucide-react"
 import { useTranslation } from "react-i18next"
-import { createColumnHelper } from "@tanstack/react-table"
+import { createColumnHelper, type ColumnDef } from "@tanstack/react-table"
 import { Can, Action, Feature } from "../../../shared/auth/AbilityContext"
 import { Button } from "../../../shared/components/ui/Button"
 import { ClinicalTable } from "../../../shared/components/clinical/ClinicalTable"
@@ -71,7 +71,7 @@ export default function ClinicalAllergies({ patientId }: ClinicalAllergiesProps)
         </span>
       ),
     }),
-  ]
+  ] as ColumnDef<AllergyIntolerance>[]
 
   return (
     <>

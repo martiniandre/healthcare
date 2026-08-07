@@ -46,6 +46,10 @@
     "createError": "Failed to register patient.",
     "encounterSuccess": "Encounter successfully registered!",
     "encounterError": "Failed to register encounter.",
+    "encounterFinishSuccess": "Encounter finished successfully!",
+    "encounterFinishError": "Failed to finish encounter.",
+    "encounterCancelSuccess": "Encounter cancelled successfully!",
+    "encounterCancelError": "Failed to cancel encounter.",
     "observationSuccess": "Vital sign successfully registered!",
     "observationError": "Error registering vital sign.",
     "reportSuccess": "Diagnostic report created successfully!",
@@ -65,6 +69,7 @@
     "loadingDetails": "Loading clinical records...",
     "clinicalResources": "Clinical Resources",
     "focus": "Focus",
+    "openEncounter": "Open",
     "activeEncounterFocus": "Encounter in Focus",
     "changeEncounter": "Change Encounter",
     "encounters": "Encounters",
@@ -112,6 +117,8 @@
       "display": "Exam / Report",
       "conclusion": "Clinical Conclusion",
       "status": "Status",
+      "version": "Version",
+      "history": "Version History",
       "date": "Report Date"
     },
     "encountersCard": {
@@ -121,7 +128,9 @@
       "reason": "Encounter Reason",
       "status": "Status",
       "date": "Registration Date",
-      "action": "Action"
+      "action": "Action",
+      "finish": "Finish",
+      "cancel": "Cancel"
     },
     "pacsCard": {
       "title": "Imaging Studies (PACS)",
@@ -189,11 +198,25 @@
     },
     "report": {
       "title": "Register Clinical Report",
+      "examType": "Exam Type (LOINC)",
+      "examTypePlaceholder": "Select exam type...",
+      "examTypes": {
+        "completeBloodCount": "Complete Blood Count (58410-2)",
+        "glucose": "Blood Glucose (2345-7)",
+        "chestXray": "Chest X-Ray (24323-8)",
+        "totalCholesterol": "Total Cholesterol (2093-3)"
+      },
       "exam": "Exam Identification",
       "examPlaceholder": "e.g. Complete Blood Count, Chest X-Ray PA",
       "conclusion": "Report Conclusion and Diagnosis",
       "conclusionPlaceholder": "Describe clinical conclusions and observations for the exam...",
       "confirm": "Save Report"
+    },
+    "reportVersions": {
+      "title": "Report Version History",
+      "empty": "No versions recorded for this report.",
+      "versionLabel": "Version",
+      "noConclusion": "No conclusion recorded in this version."
     }
   },
   "validation": {
@@ -204,9 +227,11 @@
     "documentInvalid": "Invalid document / ID",
     "phoneFormat": "Invalid phone format. e.g. (11) 98765-4321",
     "reasonMin": "Reason must be at least 3 characters",
+    "practitionerReq": "Select the responsible doctor",
     "loincReq": "Select vital sign",
     "valueReq": "Enter a valid numeric value",
     "rangeError": "Value out of acceptable range (HR: 0-300, Temp: 30-45, BP: 0-300)",
+    "reportCodeReq": "Select the exam type",
     "reportTitleMin": "Report title must be at least 3 characters",
     "conclusionMin": "Conclusion must be at least 5 characters",
     "icdCodeMin": "ICD-10 code must be at least 3 characters",

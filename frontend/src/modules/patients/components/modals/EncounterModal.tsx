@@ -1,4 +1,4 @@
-import { useForm } from "react-hook-form"
+import { useForm, Controller } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useTranslation } from "react-i18next"
 import { Input } from "../../../../shared/components/ui/Input"
@@ -16,7 +16,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "../../../../shared/components/ui/Dialog"
-import { getNewEncounterSchema, type NewEncounterFormData } from "../../patient_schemas"
+import { getNewEncounterSchema, resolvePatientsKey, type NewEncounterFormData } from "../../patient_schemas"
 import { useStaffListQuery } from "../../../staff/queries"
 import { StaffRole } from "../../../../shared/types"
 
@@ -39,10 +39,14 @@ export const EncounterModal = ({
   const {
     register,
     handleSubmit,
-    setValue,
+    control,
     formState: { errors },
   } = useForm<NewEncounterFormData>({
-    resolver: zodResolver(getNewEncounterSchema(t)),
+    resolver: zodResolver(getNewEncounterSchema(resolvePatientsKey(t))),
+    defaultValues: {
+      reasonDisplay: "",
+      practitionerId: "",
+    },
   })
 
   if (!isOpen) {
@@ -73,18 +77,29 @@ export const EncounterModal = ({
             <label className="text-xs font-semibold text-gray-600">
               {t("modals.encounter.practitioner")}
             </label>
-            <Select onValueChange={(value) => setValue("practitionerId", value)}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder={t("modals.encounter.selectPractitioner")} />
-              </SelectTrigger>
-              <SelectContent>
-                {doctors.filter((doctor) => doctor.fhirResourceId).map((doctor) => (
-                  <SelectItem key={doctor.id} value={doctor.fhirResourceId}>
-                    {doctor.fullName}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Controller
+              control={control}
+              name="practitionerId"
+              render={({ field }) => (
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder={t("modals.encounter.selectPractitioner")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {doctors.filter((doctor) => doctor.fhirResourceId).map((doctor) => (
+                      <SelectItem key={doctor.id} value={doctor.fhirResourceId}>
+                        {doctor.fullName}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
+            {errors.practitionerId?.message && (
+              <span className="text-xs text-red-500 font-medium px-1 mt-1">
+                {errors.practitionerId.message}
+              </span>
+            )}
           </div>
           <div className="flex gap-3 justify-end mt-4">
             <Button variantType="outline" type="button" onClick={onClose}>

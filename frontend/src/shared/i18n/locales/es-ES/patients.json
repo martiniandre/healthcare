@@ -46,6 +46,10 @@
     "createError": "Error al registrar paciente.",
     "encounterSuccess": "¡Consulta registrada con éxito!",
     "encounterError": "Error al registrar consulta.",
+    "encounterFinishSuccess": "¡Consulta finalizada con éxito!",
+    "encounterFinishError": "Error al finalizar consulta.",
+    "encounterCancelSuccess": "¡Consulta cancelada con éxito!",
+    "encounterCancelError": "Error al cancelar consulta.",
     "observationSuccess": "¡Sinal vital registrado con éxito!",
     "observationError": "Error al registrar sinal vital.",
     "reportSuccess": "¡Informe clínico creado con éxito!",
@@ -65,6 +69,7 @@
     "loadingDetails": "Cargando historia clínica...",
     "clinicalResources": "Recursos Clínicos",
     "focus": "Enfocar",
+    "openEncounter": "Abrir",
     "activeEncounterFocus": "Consulta en Foco",
     "changeEncounter": "Cambiar Consulta",
     "encounters": "Consultas",
@@ -112,6 +117,8 @@
       "display": "Examen / Informe",
       "conclusion": "Conclusión Clínica",
       "status": "Estado",
+      "version": "Versión",
+      "history": "Historial de Versiones",
       "date": "Fecha del Informe"
     },
     "encountersCard": {
@@ -121,7 +128,9 @@
       "reason": "Motivo de la Consulta",
       "status": "Estado",
       "date": "Fecha del Registro",
-      "action": "Acción"
+      "action": "Acción",
+      "finish": "Finalizar",
+      "cancel": "Cancelar"
     },
     "pacsCard": {
       "title": "Estudios de Imagen (PACS)",
@@ -189,11 +198,25 @@
     },
     "report": {
       "title": "Registrar Informe Clínico",
+      "examType": "Tipo de Examen (LOINC)",
+      "examTypePlaceholder": "Seleccione el tipo de examen...",
+      "examTypes": {
+        "completeBloodCount": "Hemograma Completo (58410-2)",
+        "glucose": "Glicemia (2345-7)",
+        "chestXray": "Radiografía de Tórax (24323-8)",
+        "totalCholesterol": "Colesterol Total (2093-3)"
+      },
       "exam": "Identificación del Examen",
       "examPlaceholder": "Ej: Hemograma Completo, Radiografía de Tórax PA",
       "conclusion": "Conclusión y Diagnóstico del Informe",
       "conclusionPlaceholder": "Describa las conclusiones y observaciones clínicas del examen...",
       "confirm": "Guardar Informe"
+    },
+    "reportVersions": {
+      "title": "Historial de Versiones del Informe",
+      "empty": "No hay versiones registradas para este informe.",
+      "versionLabel": "Versión",
+      "noConclusion": "Sin conclusión registrada en esta versión."
     }
   },
   "validation": {
@@ -204,9 +227,11 @@
     "documentInvalid": "Documento / Identidad inválido",
     "phoneFormat": "Formato de teléfono inválido. Ej: (11) 98765-4321",
     "reasonMin": "El motivo debe tener al menos 3 caracteres",
+    "practitionerReq": "Seleccione el médico responsable",
     "loincReq": "Seleccione el signo vital",
     "valueReq": "Ingrese un valor numérico válido",
     "rangeError": "Valor fuera del rango aceptable (FC: 0-300, Temp: 30-45, PA: 0-300)",
+    "reportCodeReq": "Seleccione el tipo de examen",
     "reportTitleMin": "El título del informe debe tener al menos 3 caracteres",
     "conclusionMin": "La conclusión debe tener al menos 5 caracteres",
     "icdCodeMin": "El código CIE-10 debe tener al menos 3 caracteres",

@@ -1,5 +1,5 @@
+import { useNavigate } from "react-router-dom"
 import { useTranslation } from "react-i18next"
-import { CheckCircle } from "lucide-react"
 import {
   Dialog,
   DialogContent,
@@ -12,22 +12,21 @@ interface EncounterSelectionDialogProps {
   isOpen: boolean
   onClose: () => void
   encounters: Encounter[]
-  selectedEncounterId: string | null
-  onSelect: (id: string) => void
+  patientId: string
 }
 
 export function EncounterSelectionDialog({
   isOpen,
   onClose,
   encounters,
-  selectedEncounterId,
-  onSelect,
+  patientId,
 }: EncounterSelectionDialogProps) {
+  const navigate = useNavigate()
   const { t } = useTranslation("patients")
 
-  const handleSelect = (id: string) => {
-    onSelect(id)
+  const handleSelect = (encounterFhirId: string) => {
     onClose()
+    navigate(`/patients/${patientId}/encounters/${encounterFhirId}`)
   }
 
   if (!isOpen) {
@@ -48,40 +47,27 @@ export function EncounterSelectionDialog({
               {t("details.encountersCard.empty")}
             </div>
           ) : (
-            encounters.map((encounter) => {
-              const isActive = selectedEncounterId === encounter.fhir_id
-              return (
-                <button
-                  key={encounter.fhir_id}
-                  onClick={() => handleSelect(encounter.fhir_id)}
-                  className={`w-full text-left flex items-center justify-between gap-3 px-4 py-3 rounded-lg border transition-all duration-200 ${
-                    isActive
-                      ? "bg-primary/8 border-primary/40 text-primary shadow-sm"
-                      : "bg-white border-border hover:border-primary/30 hover:bg-gray-50 text-gray-700"
-                  }`}
-                >
-                  <div className="flex flex-col gap-0.5 min-w-0">
-                    <span className="text-sm font-bold truncate">
-                      {encounter.reason_display}
+            encounters.map((encounter) => (
+              <button
+                key={encounter.fhir_id}
+                onClick={() => handleSelect(encounter.fhir_id)}
+                className="w-full text-left flex items-center justify-between gap-3 px-4 py-3 rounded-lg border border-border hover:border-primary/30 hover:bg-gray-50 text-gray-700 transition-all duration-200"
+              >
+                <div className="flex flex-col gap-0.5 min-w-0">
+                  <span className="text-sm font-bold truncate">
+                    {encounter.reason_display}
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded font-bold uppercase tracking-wider">
+                      {encounter.status}
                     </span>
-                    <div className="flex items-center gap-2">
-                      <span className="text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded font-bold uppercase tracking-wider">
-                        {encounter.status}
-                      </span>
-                      <span className="text-[11px] text-gray-400 font-semibold">
-                        {new Date(encounter.created_at).toLocaleString()}
-                      </span>
-                    </div>
+                    <span className="text-[11px] text-gray-400 font-semibold">
+                      {new Date(encounter.created_at).toLocaleString()}
+                    </span>
                   </div>
-                  {isActive && (
-                    <span className="text-xs font-bold text-primary flex items-center gap-1 shrink-0">
-                      <CheckCircle className="w-4 h-4" />
-                      {t("details.focus")}
-                    </span>
-                  )}
-                </button>
-              )
-            })
+                </div>
+              </button>
+            ))
           )}
         </div>
       </DialogContent>

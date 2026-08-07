@@ -1,5 +1,5 @@
 import { http } from "../../shared/utils/http"
-import type { DiagnosticReport, Encounter, Observation, Patient, Condition, CreatePatientResponse, AllergyIntolerance, MedicationRequest } from "./types"
+import type { DiagnosticReport, DiagnosticReportVersion, Encounter, Observation, Patient, Condition, CreatePatientResponse, AllergyIntolerance, MedicationRequest } from "./types"
 
 export const patientsApi = {
   getPatients: async (search?: string, sortField?: string, sortDirection?: string, page?: number, limit?: number): Promise<Patient[]> => {
@@ -41,6 +41,12 @@ export const patientsApi = {
     })
   },
 
+  updateEncounter: async (encounterData: { encounter_fhir_id: string; status: "finished" | "cancelled" }): Promise<Encounter> => {
+    return http.put<Encounter>(`/encounters/${encounterData.encounter_fhir_id}`, {
+      status: encounterData.status,
+    })
+  },
+
   getObservations: async (encounterFhirId: string): Promise<Observation[]> => {
     return http.get<Observation[]>(`/encounters/${encounterFhirId}/observations`)
   },
@@ -74,9 +80,14 @@ export const patientsApi = {
     return http.get<DiagnosticReport[]>(`/encounters/${encounterFhirId}/reports`)
   },
 
+  getDiagnosticReportVersions: async (reportFhirId: string): Promise<DiagnosticReportVersion[]> => {
+    return http.get<DiagnosticReportVersion[]>(`/reports/${reportFhirId}/versions`)
+  },
+
   createDiagnosticReport: async (reportData: Omit<DiagnosticReport, "fhir_id" | "created_at" | "status">): Promise<DiagnosticReport> => {
     return http.post<DiagnosticReport>(`/encounters/${reportData.encounter_fhir_id}/reports`, {
       patient_fhir_id: reportData.patient_fhir_id,
+      report_code: reportData.report_code,
       report_display: reportData.report_display,
       conclusion: reportData.conclusion,
     })

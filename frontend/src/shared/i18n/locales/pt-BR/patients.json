@@ -46,6 +46,10 @@
     "createError": "Falha ao registrar paciente.",
     "encounterSuccess": "Consulta registrada com sucesso!",
     "encounterError": "Falha ao registrar consulta.",
+    "encounterFinishSuccess": "Consulta finalizada com sucesso!",
+    "encounterFinishError": "Falha ao finalizar consulta.",
+    "encounterCancelSuccess": "Consulta cancelada com sucesso!",
+    "encounterCancelError": "Falha ao cancelar consulta.",
     "observationSuccess": "Sinal vital registrado com sucesso!",
     "observationError": "Erro ao registrar sinal vital.",
     "reportSuccess": "Exame laudado com sucesso!",
@@ -65,6 +69,7 @@
     "loadingDetails": "Carregando ficha clínica...",
     "clinicalResources": "Recursos Clínicos",
     "focus": "Focar",
+    "openEncounter": "Abrir",
     "activeEncounterFocus": "Consulta em Foco",
     "changeEncounter": "Alterar Consulta",
     "encounters": "Atendimentos",
@@ -112,6 +117,8 @@
       "display": "Exame / Laudo",
       "conclusion": "Conclusão Clínica",
       "status": "Status",
+      "version": "Versão",
+      "history": "Histórico de Versões",
       "date": "Data do Laudo"
     },
     "encountersCard": {
@@ -121,7 +128,9 @@
       "reason": "Motivo da Consulta",
       "status": "Status",
       "date": "Data do Registro",
-      "action": "Ação"
+      "action": "Ação",
+      "finish": "Finalizar",
+      "cancel": "Cancelar"
     },
     "pacsCard": {
       "title": "Estudos de Imagem (PACS)",
@@ -189,11 +198,25 @@
     },
     "report": {
       "title": "Registrar Laudo Clínico",
+      "examType": "Tipo de Exame (LOINC)",
+      "examTypePlaceholder": "Selecione o tipo de exame...",
+      "examTypes": {
+        "completeBloodCount": "Hemograma Completo (58410-2)",
+        "glucose": "Glicemia (2345-7)",
+        "chestXray": "Radiografia de Tórax (24323-8)",
+        "totalCholesterol": "Colesterol Total (2093-3)"
+      },
       "exam": "Identificação do Exame",
       "examPlaceholder": "Ex: Hemograma Completo, Radiografia de Tórax PA",
       "conclusion": "Conclusão e Diagnóstico do Laudo",
       "conclusionPlaceholder": "Descreva as conclusões e observações clínicas do exame...",
       "confirm": "Salvar Laudo"
+    },
+    "reportVersions": {
+      "title": "Histórico de Versões do Laudo",
+      "empty": "Nenhuma versão registrada para este laudo.",
+      "versionLabel": "Versão",
+      "noConclusion": "Sem conclusão registrada nesta versão."
     }
   },
   "validation": {
@@ -204,9 +227,11 @@
     "documentInvalid": "CPF inválido",
     "phoneFormat": "Formato de telefone inválido. Ex: (11) 98765-4321",
     "reasonMin": "O motivo deve ter no mínimo 3 caracteres",
+    "practitionerReq": "Selecione o médico responsável",
     "loincReq": "Selecione o sinal vital",
     "valueReq": "Insira um valor numérico válido",
     "rangeError": "Valor fora do intervalo aceitável (FC: 0-300, Temp: 30-45, PA: 0-300)",
+    "reportCodeReq": "Selecione o tipo de exame",
     "reportTitleMin": "O título do laudo deve ter no mínimo 3 caracteres",
     "conclusionMin": "A conclusão deve ter no mínimo 5 caracteres",
     "icdCodeMin": "O código CID-10 deve ter no mínimo 3 caracteres",

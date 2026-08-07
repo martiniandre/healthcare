@@ -9,7 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "../../../../shared/components/ui/Dialog"
-import { getNewConditionSchema, type NewConditionFormData } from "../../patient_schemas"
+import { getNewConditionSchema, resolvePatientsKey, type NewConditionFormData } from "../../patient_schemas"
 
 interface ConditionModalProps {
   isOpen: boolean
@@ -32,7 +32,7 @@ export const ConditionModal = ({
     formState: { errors },
     reset,
   } = useForm<NewConditionFormData>({
-    resolver: zodResolver(getNewConditionSchema(t)),
+    resolver: zodResolver(getNewConditionSchema(resolvePatientsKey(t))),
   })
 
   if (!isOpen) {

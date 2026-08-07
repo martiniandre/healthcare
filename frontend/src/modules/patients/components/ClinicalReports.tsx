@@ -1,14 +1,16 @@
 import { useState } from "react"
-import { FileText, Plus, FileCheck, CheckCircle } from "lucide-react"
+import { FileText, Plus, FileCheck, CheckCircle, History } from "lucide-react"
 import { useTranslation } from "react-i18next"
-import { createColumnHelper } from "@tanstack/react-table"
+import { createColumnHelper, type ColumnDef } from "@tanstack/react-table"
 import { Can, Action, Feature } from "../../../shared/auth/AbilityContext"
 import { Button } from "../../../shared/components/ui/Button"
 import { ClinicalTable } from "../../../shared/components/clinical/ClinicalTable"
 import { ReportModal } from "./modals/ReportModal"
+import { ReportVersionsModal } from "./modals/ReportVersionsModal"
 import { useDiagnosticReportsQuery, useCreateDiagnosticReportMutation } from "../queries"
 import { toast } from "../../../shared/store/toast_store"
 import type { DiagnosticReport } from "../types"
+import type { NewReportFormData } from "../patient_schemas"
 
 interface ClinicalReportsProps {
   patientId: string
@@ -20,14 +22,16 @@ const columnHelper = createColumnHelper<DiagnosticReport>()
 export default function ClinicalReports({ patientId, encounterId }: ClinicalReportsProps) {
   const { t } = useTranslation("patients")
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [versionsReport, setVersionsReport] = useState<DiagnosticReport | null>(null)
   const { data: reports = [] } = useDiagnosticReportsQuery(encounterId)
   const createReportMutation = useCreateDiagnosticReportMutation()
 
-  const handleCreateReport = async (formData: { reportDisplay: string; conclusion: string }) => {
+  const handleCreateReport = async (formData: NewReportFormData) => {
     try {
       await createReportMutation.mutateAsync({
         encounter_fhir_id: encounterId,
         patient_fhir_id: patientId,
+        report_code: formData.reportCode,
         report_display: formData.reportDisplay,
         conclusion: formData.conclusion,
       })
@@ -75,13 +79,44 @@ export default function ClinicalReports({ patientId, encounterId }: ClinicalRepo
         </span>
       ),
     }),
-  ]
+    columnHelper.accessor("version", {
+      header: t("details.reportsCard.version"),
+      cell: (info) => {
+        const versionValue = info.getValue()
+        if (!versionValue) {
+          return (
+            <span className="text-xs text-gray-400">—</span>
+          )
+        }
+        return (
+          <span className="text-[9px] bg-blue-50 border border-blue-100 text-blue-600 px-2 py-0.5 rounded font-bold uppercase inline-flex items-center gap-1">
+            <FileCheck className="w-3 h-3" />
+            v{versionValue}
+          </span>
+        )
+      },
+    }),
+    columnHelper.display({
+      id: "history",
+      header: t("details.reportsCard.history"),
+      cell: (info) => (
+        <Button
+          variantType="outline"
+          onClick={() => setVersionsReport(info.row.original)}
+          className="px-2 py-1 text-xs"
+          title={t("details.reportsCard.history")}
+        >
+          <History className="w-3.5 h-3.5 text-blue-500" />
+        </Button>
+      ),
+    }),
+  ] as ColumnDef<DiagnosticReport>[]
 
   return (
     <>
       <ClinicalTable
         title={t("details.reportsCard.title")}
-        icon={<FileText className="w-4 h-4 text-emerald-500" />}
+        icon={<FileText className="w-4 h-4 text-blue-500" />}
         columns={columns}
         data={reports}
         isEmpty={reports.length === 0}
@@ -102,6 +137,13 @@ export default function ClinicalReports({ patientId, encounterId }: ClinicalRepo
         onClose={() => setIsModalOpen(false)}
         onSubmit={handleCreateReport}
         isPending={createReportMutation.isPending}
+      />
+
+      <ReportVersionsModal
+        isOpen={versionsReport !== null}
+        onClose={() => setVersionsReport(null)}
+        reportFhirId={versionsReport?.fhir_id ?? ""}
+        reportDisplay={versionsReport?.report_display ?? ""}
       />
     </>
   )

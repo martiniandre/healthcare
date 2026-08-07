@@ -10,7 +10,7 @@ import {
 import { MaskedInput } from "../../../shared/components/ui/MaskedInput"
 import { Button } from "../../../shared/components/ui/Button"
 import { Input } from "../../../shared/components/ui/Input"
-import { getNewPatientSchema, type NewPatientFormData } from "../patient_schemas"
+import { getNewPatientSchema, resolvePatientsKey, type NewPatientFormData } from "../patient_schemas"
 import { useCreatePatientMutation } from "../queries"
 import { toast } from "../../../shared/store/toast_store"
 import { useEffect } from "react"
@@ -30,7 +30,7 @@ export const PatientModal = ({ isOpen, onOpenChange }: PatientModalProps) => {
     reset,
     formState: { errors },
   } = useForm<NewPatientFormData>({
-    resolver: zodResolver(getNewPatientSchema(t)),
+    resolver: zodResolver(getNewPatientSchema(resolvePatientsKey(t))),
     defaultValues: {
       fullName: "",
       birthDate: "",

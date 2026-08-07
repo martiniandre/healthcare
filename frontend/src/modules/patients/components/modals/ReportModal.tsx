@@ -1,16 +1,30 @@
-import { useForm } from "react-hook-form"
+import { useForm, Controller } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useTranslation } from "react-i18next"
 import { Send } from "lucide-react"
 import { Input } from "../../../../shared/components/ui/Input"
 import { Button } from "../../../../shared/components/ui/Button"
 import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "../../../../shared/components/ui/Select"
+import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "../../../../shared/components/ui/Dialog"
-import { getNewReportSchema, type NewReportFormData } from "../../patient_schemas"
+import { getNewReportSchema, resolvePatientsKey, type NewReportFormData } from "../../patient_schemas"
+
+const reportExamTypes = [
+  { code: "58410-2", labelKey: "modals.report.examTypes.completeBloodCount" },
+  { code: "2345-7", labelKey: "modals.report.examTypes.glucose" },
+  { code: "24323-8", labelKey: "modals.report.examTypes.chestXray" },
+  { code: "2093-3", labelKey: "modals.report.examTypes.totalCholesterol" },
+]
 
 interface ReportModalProps {
   isOpen: boolean
@@ -30,9 +44,15 @@ export const ReportModal = ({
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors },
   } = useForm<NewReportFormData>({
-    resolver: zodResolver(getNewReportSchema(t)),
+    resolver: zodResolver(getNewReportSchema(resolvePatientsKey(t))),
+    defaultValues: {
+      reportCode: "",
+      reportDisplay: "",
+      conclusion: "",
+    },
   })
 
   if (!isOpen) {
@@ -48,6 +68,35 @@ export const ReportModal = ({
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4 text-left mt-4">
+            <div className="flex flex-col gap-1">
+              <label className="text-xs font-semibold text-gray-600">
+                {t("modals.report.examType")}
+              </label>
+              <Controller
+                control={control}
+                name="reportCode"
+                render={({ field }) => (
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder={t("modals.report.examTypePlaceholder")} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {reportExamTypes.map((examType) => (
+                        <SelectItem key={examType.code} value={examType.code}>
+                          {t(examType.labelKey)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+              {errors.reportCode?.message && (
+                <span className="text-xs text-red-500 font-medium px-1 mt-1">
+                  {errors.reportCode.message}
+                </span>
+              )}
+            </div>
+
             <div className="flex flex-col gap-1">
               <label className="text-xs font-semibold text-gray-600">
                 {t("modals.report.exam")}

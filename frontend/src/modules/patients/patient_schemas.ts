@@ -11,7 +11,7 @@ export const basePatientSchema = z.object({
 
 export const baseEncounterSchema = z.object({
   reasonDisplay: z.string(),
-  practitionerId: z.string().optional(),
+  practitionerId: z.string(),
 })
 
 export const baseObservationSchema = z.object({
@@ -20,6 +20,7 @@ export const baseObservationSchema = z.object({
 })
 
 export const baseReportSchema = z.object({
+  reportCode: z.string(),
   reportDisplay: z.string(),
   conclusion: z.string(),
 })
@@ -48,6 +49,11 @@ export type NewConditionFormData = z.infer<typeof baseConditionSchema>
 export type NewAllergyFormData = z.infer<typeof baseAllergySchema>
 export type NewMedicationFormData = z.infer<typeof baseMedicationSchema>
 
+export const resolvePatientsKey =
+  (translateFunction: (key: string) => string) =>
+  (key: string): string =>
+    translateFunction(`patients.${key}`)
+
 export const getNewPatientSchema = (translateFunction: (key: string) => string) => z.object({
   fullName: z.string().min(3, translateFunction("validation.fullNameMin")).max(255).trim(),
   birthDate: z.string().min(10, translateFunction("validation.birthDateReq")).refine(isPastDate, translateFunction("validation.birthDatePast")),
@@ -57,7 +63,7 @@ export const getNewPatientSchema = (translateFunction: (key: string) => string) 
 
 export const getNewEncounterSchema = (translateFunction: (key: string) => string) => z.object({
   reasonDisplay: z.string().min(3, translateFunction("validation.reasonMin")),
-  practitionerId: z.string().optional(),
+  practitionerId: z.string().min(1, translateFunction("validation.practitionerReq")),
 })
 
 export const getNewObservationSchema = (translateFunction: (key: string) => string) => z.object({
@@ -83,6 +89,7 @@ export const getNewObservationSchema = (translateFunction: (key: string) => stri
 )
 
 export const getNewReportSchema = (translateFunction: (key: string) => string) => z.object({
+  reportCode: z.string().min(1, translateFunction("validation.reportCodeReq")),
   reportDisplay: z.string().min(3, translateFunction("validation.reportTitleMin")),
   conclusion: z.string().min(5, translateFunction("validation.conclusionMin")),
 })

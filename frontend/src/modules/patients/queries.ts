@@ -8,6 +8,7 @@ export const patientQueryKeys = {
   encounters: (patientFhirId: string) => [...patientQueryKeys.all, "encounters", patientFhirId] as const,
   observations: (encounterFhirId: string) => [...patientQueryKeys.all, "observations", encounterFhirId] as const,
   reports: (encounterFhirId: string) => [...patientQueryKeys.all, "reports", encounterFhirId] as const,
+  reportVersions: (reportFhirId: string) => [...patientQueryKeys.all, "reportVersions", reportFhirId] as const,
   medications: (encounterFhirId: string) => [...patientQueryKeys.all, "medications", encounterFhirId] as const,
 }
 
@@ -61,8 +62,22 @@ export const useCreateEncounterMutation = () => {
     mutationFn: (payload: {
       patient_fhir_id: string
       reason_display: string
-      practitioner_id?: string
+      practitioner_id: string
     }) => patientsApi.createEncounter(payload),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: patientQueryKeys.encounters(variables.patient_fhir_id) })
+    },
+  })
+}
+
+export const useUpdateEncounterMutation = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (payload: {
+      encounter_fhir_id: string
+      patient_fhir_id: string
+      status: "finished" | "cancelled"
+    }) => patientsApi.updateEncounter(payload),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: patientQueryKeys.encounters(variables.patient_fhir_id) })
     },
@@ -108,12 +123,21 @@ export const useCreateDiagnosticReportMutation = () => {
     mutationFn: (payload: {
       encounter_fhir_id: string
       patient_fhir_id: string
+      report_code: string
       report_display: string
       conclusion: string
     }) => patientsApi.createDiagnosticReport(payload),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: patientQueryKeys.reports(variables.encounter_fhir_id) })
     },
+  })
+}
+
+export const useDiagnosticReportVersionsQuery = (reportFhirId: string) => {
+  return useQuery({
+    queryKey: patientQueryKeys.reportVersions(reportFhirId),
+    queryFn: () => patientsApi.getDiagnosticReportVersions(reportFhirId),
+    enabled: !!reportFhirId,
   })
 }
 
@@ -189,4 +213,4 @@ export const useCreateMedicationMutation = () => {
   })
 }
 
-export type { DiagnosticReport, Encounter, Observation, Patient, AllergyIntolerance, MedicationRequest } from "./types"
+export type { DiagnosticReport, DiagnosticReportVersion, Encounter, Observation, Patient, AllergyIntolerance, MedicationRequest } from "./types"

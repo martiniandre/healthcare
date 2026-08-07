@@ -1,45 +1,71 @@
 import { useState } from "react"
-import { History, Plus, AlertTriangle, CheckCircle } from "lucide-react"
+import { useNavigate } from "react-router-dom"
+import { History, Plus, AlertTriangle, ExternalLink, CheckCircle, XCircle } from "lucide-react"
 import { useTranslation } from "react-i18next"
-import { createColumnHelper } from "@tanstack/react-table"
+import { createColumnHelper, type ColumnDef } from "@tanstack/react-table"
 import { Can, Action, Feature } from "../../../shared/auth/AbilityContext"
 import { Button } from "../../../shared/components/ui/Button"
 import { ClinicalTable } from "../../../shared/components/clinical/ClinicalTable"
 import { EncounterModal } from "./modals/EncounterModal"
-import { useCreateEncounterMutation, useEncountersQuery } from "../queries"
+import { useCreateEncounterMutation, useEncountersQuery, useUpdateEncounterMutation } from "../queries"
 import { toast } from "../../../shared/store/toast_store"
 import type { Encounter } from "../types"
+import type { NewEncounterFormData } from "../patient_schemas"
 
 interface EncounterHistoryProps {
   patientId: string
-  selectedEncounterId: string | null
-  onSelect: (id: string) => void
 }
 
 const columnHelper = createColumnHelper<Encounter>()
 
 export default function EncounterHistory({
   patientId,
-  selectedEncounterId,
-  onSelect,
 }: EncounterHistoryProps) {
+  const navigate = useNavigate()
   const { t } = useTranslation("patients")
   const [isModalOpen, setIsModalOpen] = useState(false)
   const { data: encounters = [] } = useEncountersQuery(patientId)
   const createEncounterMutation = useCreateEncounterMutation()
+  const updateEncounterMutation = useUpdateEncounterMutation()
 
-  const handleCreateEncounter = async (formData: { reasonDisplay: string; practitionerId?: string }) => {
+  const handleCreateEncounter = async (formData: NewEncounterFormData) => {
     try {
       const newEncounter = await createEncounterMutation.mutateAsync({
         patient_fhir_id: patientId,
         reason_display: formData.reasonDisplay,
-        practitioner_id: formData.practitionerId || undefined,
+        practitioner_id: formData.practitionerId,
       })
       setIsModalOpen(false)
-      onSelect(newEncounter.fhir_id)
+      navigate(`/patients/${patientId}/encounters/${newEncounter.fhir_id}`)
       toast.success(t("toast.encounterSuccess"))
     } catch {
       toast.error(t("toast.encounterError"))
+    }
+  }
+
+  const handleFinishEncounter = async (encounter: Encounter) => {
+    try {
+      await updateEncounterMutation.mutateAsync({
+        encounter_fhir_id: encounter.fhir_id,
+        patient_fhir_id: patientId,
+        status: "finished",
+      })
+      toast.success(t("toast.encounterFinishSuccess"))
+    } catch {
+      toast.error(t("toast.encounterFinishError"))
+    }
+  }
+
+  const handleCancelEncounter = async (encounter: Encounter) => {
+    try {
+      await updateEncounterMutation.mutateAsync({
+        encounter_fhir_id: encounter.fhir_id,
+        patient_fhir_id: patientId,
+        status: "cancelled",
+      })
+      toast.success(t("toast.encounterCancelSuccess"))
+    } catch {
+      toast.error(t("toast.encounterCancelError"))
     }
   }
 
@@ -69,22 +95,43 @@ export default function EncounterHistory({
       header: t("details.encountersCard.action"),
       cell: (info) => {
         const encounter = info.row.original
-        const isActive = selectedEncounterId === encounter.fhir_id
         return (
-          <div className="text-right pr-6">
+          <div className="flex justify-end gap-1.5 pr-6">
+            {encounter.status === "in-progress" && (
+              <>
+                <Button
+                  variantType="outline"
+                  onClick={() => handleFinishEncounter(encounter)}
+                  disabled={updateEncounterMutation.isPending}
+                  className="px-2.5 py-1 text-[10px] font-bold gap-1"
+                >
+                  <CheckCircle className="w-3 h-3" />
+                  {t("details.encountersCard.finish")}
+                </Button>
+                <Button
+                  variantType="danger"
+                  onClick={() => handleCancelEncounter(encounter)}
+                  disabled={updateEncounterMutation.isPending}
+                  className="px-2.5 py-1 text-[10px] font-bold gap-1"
+                >
+                  <XCircle className="w-3 h-3" />
+                  {t("details.encountersCard.cancel")}
+                </Button>
+              </>
+            )}
             <Button
-              variantType={isActive ? "primary" : "outline"}
-              onClick={() => onSelect(encounter.fhir_id)}
+              variantType="outline"
+              onClick={() => navigate(`/patients/${patientId}/encounters/${encounter.fhir_id}`)}
               className="px-2.5 py-1 text-[10px] font-bold gap-1"
             >
-              {isActive && <CheckCircle className="w-3 h-3 text-white" />}
-              {t("details.focus")}
+              <ExternalLink className="w-3 h-3" />
+              {t("details.openEncounter")}
             </Button>
           </div>
         )
       },
     }),
-  ]
+  ] as ColumnDef<Encounter>[]
 
   return (
     <>

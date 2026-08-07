@@ -9,7 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "../../../../shared/components/ui/Dialog"
-import { getNewAllergySchema, type NewAllergyFormData } from "../../patient_schemas"
+import { getNewAllergySchema, resolvePatientsKey, type NewAllergyFormData } from "../../patient_schemas"
 
 interface AllergyModalProps {
   isOpen: boolean
@@ -32,7 +32,7 @@ export const AllergyModal = ({
     formState: { errors },
     reset,
   } = useForm<NewAllergyFormData>({
-    resolver: zodResolver(getNewAllergySchema(t)),
+    resolver: zodResolver(getNewAllergySchema(resolvePatientsKey(t))),
   })
 
   if (!isOpen) {

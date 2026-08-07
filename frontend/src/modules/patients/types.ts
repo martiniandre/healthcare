@@ -53,10 +53,30 @@ export interface DiagnosticReport {
   fhir_id: string
   encounter_fhir_id: string
   patient_fhir_id: string
+  report_code: string
   report_display: string
   status: DiagnosticReportStatus
   conclusion: string
+  version?: string
   created_at: string
+}
+
+export interface DiagnosticReportVersion {
+  version: string
+  snapshot: DiagnosticReportSnapshot
+  changed_by?: string
+  changed_at: string
+}
+
+export interface DiagnosticReportSnapshot {
+  fhir_resource_id?: string
+  encounter_fhir_id?: string
+  patient_fhir_id?: string
+  report_code?: string
+  report_display?: string
+  status?: string
+  conclusion?: string
+  issued_at?: string
 }
 
 export interface AllergyIntolerance {

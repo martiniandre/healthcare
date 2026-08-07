@@ -16,7 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../../../../shared/components/ui/Select"
-import { getNewObservationSchema, type NewObservationFormData } from "../../patient_schemas"
+import { getNewObservationSchema, resolvePatientsKey, type NewObservationFormData } from "../../patient_schemas"
 
 interface ObservationModalProps {
   isOpen: boolean
@@ -39,7 +39,7 @@ export const ObservationModal = ({
     control,
     formState: { errors },
   } = useForm<NewObservationFormData>({
-    resolver: zodResolver(getNewObservationSchema(t)),
+    resolver: zodResolver(getNewObservationSchema(resolvePatientsKey(t))),
     defaultValues: {
       loincCode: "8867-4",
     },
