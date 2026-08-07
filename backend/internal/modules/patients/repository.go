@@ -81,33 +81,16 @@ func (patientRepository *repository) GetPatientByDocumentID(ctx context.Context,
 		return nil, fmt.Errorf("failed to search patient by document in healthcare api: %w", err)
 	}
 
-	var bundle map[string]interface{}
-	if err := json.Unmarshal(responseBody, &bundle); err != nil {
+	decodedResources, err := fhir.DecodeBundle[fhir.Patient](responseBody)
+	if err != nil {
 		return nil, fmt.Errorf("failed to parse search response: %w", err)
 	}
 
-	entries, ok := bundle["entry"].([]interface{})
-	if !ok || len(entries) == 0 {
+	if len(decodedResources) == 0 {
 		return nil, ErrPatientNotFound
 	}
 
-	firstEntry, ok := entries[0].(map[string]interface{})
-	if !ok {
-		return nil, ErrPatientNotFound
-	}
-
-	resource, ok := firstEntry["resource"].(map[string]interface{})
-	if !ok {
-		return nil, ErrPatientNotFound
-	}
-
-	fhirID, _ := resource["id"].(string)
-	entryBytes, err := json.Marshal(resource)
-	if err != nil {
-		return nil, err
-	}
-
-	return parsePatientFromFHIR(entryBytes, fhirID)
+	return mapFHIRPatientToDomain(&decodedResources[0], decodedResources[0].ID)
 }
 
 func (patientRepository *repository) ListPatients(ctx context.Context, search string, sortField string, sortDirection string, page int, limit int) ([]*Patient, error) {
@@ -152,32 +135,14 @@ func (patientRepository *repository) ListPatients(ctx context.Context, search st
 		return nil, fmt.Errorf("failed to list patients from healthcare api: %w", err)
 	}
 
-	var bundle map[string]interface{}
-	if err := json.Unmarshal(responseBody, &bundle); err != nil {
+	decodedResources, err := fhir.DecodeBundle[fhir.Patient](responseBody)
+	if err != nil {
 		return nil, fmt.Errorf("failed to parse list response: %w", err)
 	}
 
-	entries, ok := bundle["entry"].([]interface{})
-	if !ok {
-		return []*Patient{}, nil
-	}
-
-	patientList := make([]*Patient, 0, len(entries))
-	for _, entry := range entries {
-		entryMap, ok := entry.(map[string]interface{})
-		if !ok {
-			continue
-		}
-		resource, ok := entryMap["resource"].(map[string]interface{})
-		if !ok {
-			continue
-		}
-		fhirID, _ := resource["id"].(string)
-		entryBytes, err := json.Marshal(resource)
-		if err != nil {
-			continue
-		}
-		patient, err := parsePatientFromFHIR(entryBytes, fhirID)
+	patientList := make([]*Patient, 0, len(decodedResources))
+	for index := range decodedResources {
+		patient, err := mapFHIRPatientToDomain(&decodedResources[index], decodedResources[index].ID)
 		if err != nil {
 			continue
 		}
@@ -188,11 +153,14 @@ func (patientRepository *repository) ListPatients(ctx context.Context, search st
 }
 
 func parsePatientFromFHIR(responseBody json.RawMessage, fhirResourceID string) (*Patient, error) {
-	var fhirResource map[string]interface{}
-	if err := json.Unmarshal(responseBody, &fhirResource); err != nil {
+	decodedResource, err := fhir.DecodeResource[fhir.Patient](responseBody)
+	if err != nil {
 		return nil, fmt.Errorf("failed to parse fhir resource: %w", err)
 	}
+	return mapFHIRPatientToDomain(decodedResource, fhirResourceID)
+}
 
+func mapFHIRPatientToDomain(decodedResource *fhir.Patient, fhirResourceID string) (*Patient, error) {
 	patientID := uuid.NewSHA1(uuid.NameSpaceDNS, []byte(fhirResourceID))
 
 	patient := &Patient{
@@ -203,51 +171,28 @@ func parsePatientFromFHIR(responseBody json.RawMessage, fhirResourceID string) (
 		UpdatedAt:      time.Now(),
 	}
 
-	if meta, hasMeta := fhirResource["meta"].(map[string]interface{}); hasMeta {
-		if lastUpdated, hasLastUpdated := meta["lastUpdated"].(string); hasLastUpdated {
-			parsedTime, parseErr := time.Parse(time.RFC3339, lastUpdated)
-			if parseErr == nil {
-				patient.UpdatedAt = parsedTime
-				patient.CreatedAt = parsedTime
-			}
+	if decodedResource.Meta != nil {
+		if parsedTime, ok := fhir.ParseRFC3339(decodedResource.Meta.LastUpdated); ok {
+			patient.UpdatedAt = parsedTime
+			patient.CreatedAt = parsedTime
 		}
 	}
 
-	if names, ok := fhirResource["name"].([]interface{}); ok && len(names) > 0 {
-		if firstNameMap, ok := names[0].(map[string]interface{}); ok {
-			if family, ok := firstNameMap["family"].(string); ok {
-				patient.FullName = family
-			}
-		}
+	if len(decodedResource.Name) > 0 {
+		patient.FullName = decodedResource.Name[0].Family
 	}
 
-	if birthDateStr, ok := fhirResource["birthDate"].(string); ok {
-		parsedBirthDate, err := time.Parse("2006-01-02", birthDateStr)
-		if err == nil {
-			patient.BirthDate = parsedBirthDate
-		}
+	if parsedBirthDate, err := time.Parse("2006-01-02", decodedResource.BirthDate); err == nil {
+		patient.BirthDate = parsedBirthDate
 	}
 
-	if identifiers, ok := fhirResource["identifier"].([]interface{}); ok {
-		for _, identifier := range identifiers {
-			if identifierMap, ok := identifier.(map[string]interface{}); ok {
-				if value, ok := identifierMap["value"].(string); ok {
-					patient.DocumentID = value
-					break
-				}
-			}
-		}
+	if len(decodedResource.Identifier) > 0 {
+		patient.DocumentID = decodedResource.Identifier[0].Value
 	}
 
-	if telecom, ok := fhirResource["telecom"].([]interface{}); ok {
-		for _, contact := range telecom {
-			if contactMap, ok := contact.(map[string]interface{}); ok {
-				if system, ok := contactMap["system"].(string); ok && system == "phone" {
-					if value, ok := contactMap["value"].(string); ok {
-						patient.PhoneNumber = value
-					}
-				}
-			}
+	for _, contact := range decodedResource.Telecom {
+		if contact.System == "phone" {
+			patient.PhoneNumber = contact.Value
 		}
 	}
 

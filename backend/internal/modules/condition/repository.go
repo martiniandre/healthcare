@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
-	"strings"
-	"time"
 
 	"github.com/healthcare/backend/internal/shared/fhir"
 	"github.com/healthcare/backend/internal/shared/healthcare"
@@ -94,82 +92,30 @@ func (conditionRepository *repository) GetConditionsByPatient(ctx context.Contex
 	return parseConditionBundle(responseBody)
 }
 
-func extractBundleEntries(responseBody json.RawMessage) ([]map[string]interface{}, error) {
-	var bundle map[string]interface{}
-	if err := json.Unmarshal(responseBody, &bundle); err != nil {
-		return nil, err
-	}
-	rawEntries, ok := bundle["entry"].([]interface{})
-	if !ok {
-		return []map[string]interface{}{}, nil
-	}
-	entries := make([]map[string]interface{}, 0, len(rawEntries))
-	for _, rawEntry := range rawEntries {
-		entryMap, ok := rawEntry.(map[string]interface{})
-		if !ok {
-			continue
-		}
-		resource, ok := entryMap["resource"].(map[string]interface{})
-		if !ok {
-			continue
-		}
-		entries = append(entries, resource)
-	}
-	return entries, nil
-}
-
 func parseConditionBundle(responseBody json.RawMessage) ([]*Condition, error) {
-	entries, err := extractBundleEntries(responseBody)
+	decodedResources, err := fhir.DecodeBundle[fhir.Condition](responseBody)
 	if err != nil {
 		return nil, err
 	}
-	conditions := make([]*Condition, 0, len(entries))
-	for _, resource := range entries {
+	conditions := make([]*Condition, 0, len(decodedResources))
+	for _, resource := range decodedResources {
 		condition := &Condition{}
-		condition.FHIRResourceID, _ = resource["id"].(string)
-		if clinicalStatus, ok := resource["clinicalStatus"].(map[string]interface{}); ok {
-			if coding, ok := clinicalStatus["coding"].([]interface{}); ok && len(coding) > 0 {
-				if firstCoding, ok := coding[0].(map[string]interface{}); ok {
-					condition.ClinicalStatus, _ = firstCoding["code"].(string)
-				}
-			}
+		condition.FHIRResourceID = resource.ID
+		clinicalStatusCode, _, _ := fhir.CodeableConceptParts(resource.ClinicalStatus)
+		condition.ClinicalStatus = clinicalStatusCode
+		code, display, text := fhir.CodeableConceptParts(resource.Code)
+		condition.CodeDisplay = text
+		condition.ICD10Code = code
+		if condition.CodeDisplay == "" {
+			condition.CodeDisplay = display
 		}
-		if codes, ok := resource["code"].(map[string]interface{}); ok {
-			condition.CodeDisplay, _ = codes["text"].(string)
-			if coding, ok := codes["coding"].([]interface{}); ok && len(coding) > 0 {
-				if firstCoding, ok := coding[0].(map[string]interface{}); ok {
-					if code, ok := firstCoding["code"].(string); ok {
-						condition.ICD10Code = code
-					}
-					if display, ok := firstCoding["display"].(string); ok && condition.CodeDisplay == "" {
-						condition.CodeDisplay = display
-					}
-				}
-			}
+		condition.PatientFHIRID = fhir.SplitReferenceID(resource.Subject.Reference)
+		condition.EncounterFHIRID = fhir.SplitReferenceID(resource.Encounter.Reference)
+		if parsedTime, ok := fhir.ParseRFC3339(resource.OnsetDateTime); ok {
+			condition.OnsetAt = parsedTime
 		}
-		if subject, ok := resource["subject"].(map[string]interface{}); ok {
-			if ref, ok := subject["reference"].(string); ok {
-				parts := strings.SplitN(ref, "/", 2)
-				if len(parts) == 2 {
-					condition.PatientFHIRID = parts[1]
-				}
-			}
-		}
-		if encounter, ok := resource["encounter"].(map[string]interface{}); ok {
-			if ref, ok := encounter["reference"].(string); ok {
-				parts := strings.SplitN(ref, "/", 2)
-				if len(parts) == 2 {
-					condition.EncounterFHIRID = parts[1]
-				}
-			}
-		}
-		if onsetStr, ok := resource["onsetDateTime"].(string); ok {
-			if parsedTime, parseErr := time.Parse(time.RFC3339, onsetStr); parseErr == nil {
-				condition.OnsetAt = parsedTime
-			}
-		}
-		if recordedStr, ok := resource["recordedDate"].(string); ok {
-			if parsedTime, parseErr := time.Parse(time.RFC3339, recordedStr); parseErr == nil && condition.OnsetAt.IsZero() {
+		if condition.OnsetAt.IsZero() {
+			if parsedTime, ok := fhir.ParseRFC3339(resource.RecordedDate); ok {
 				condition.OnsetAt = parsedTime
 			}
 		}

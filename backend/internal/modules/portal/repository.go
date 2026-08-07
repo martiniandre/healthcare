@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"net/url"
 	"strings"
-	"time"
 
+	"github.com/healthcare/backend/internal/shared/fhir"
 	"github.com/healthcare/backend/internal/shared/healthcare"
 )
 
@@ -35,8 +35,8 @@ func (portalRepository *repository) GetPatient(ctx context.Context, fhirResource
 		return nil, fmt.Errorf("failed to get patient from healthcare api: %w", err)
 	}
 
-	var resource map[string]interface{}
-	if err := json.Unmarshal(responseBody, &resource); err != nil {
+	decodedResource, err := fhir.DecodeResource[fhir.Patient](responseBody)
+	if err != nil {
 		return nil, fmt.Errorf("failed to parse patient resource: %w", err)
 	}
 
@@ -44,31 +44,19 @@ func (portalRepository *repository) GetPatient(ctx context.Context, fhirResource
 		FHIRResourceID: fhirResourceID,
 	}
 
-	if names, ok := resource["name"].([]interface{}); ok && len(names) > 0 {
-		if nameMap, ok := names[0].(map[string]interface{}); ok {
-			family, _ := nameMap["family"].(string)
-			givenRaw, _ := nameMap["given"].([]interface{})
-			given := ""
-			if len(givenRaw) > 0 {
-				given, _ = givenRaw[0].(string)
-			}
-			patientInfo.FullName = strings.TrimSpace(given + " " + family)
+	if len(decodedResource.Name) > 0 {
+		name := decodedResource.Name[0]
+		given := ""
+		if len(name.Given) > 0 {
+			given = name.Given[0]
 		}
+		patientInfo.FullName = strings.TrimSpace(given + " " + name.Family)
 	}
 
-	if birthDate, ok := resource["birthDate"].(string); ok {
-		patientInfo.BirthDate = birthDate
-	}
+	patientInfo.BirthDate = decodedResource.BirthDate
 
-	if identifiers, ok := resource["identifier"].([]interface{}); ok {
-		for _, identifier := range identifiers {
-			if identifierMap, ok := identifier.(map[string]interface{}); ok {
-				if value, ok := identifierMap["value"].(string); ok {
-					patientInfo.DocumentID = value
-					break
-				}
-			}
-		}
+	if len(decodedResource.Identifier) > 0 {
+		patientInfo.DocumentID = decodedResource.Identifier[0].Value
 	}
 
 	return patientInfo, nil
@@ -85,40 +73,29 @@ func (portalRepository *repository) GetEncountersByPatient(ctx context.Context, 
 }
 
 func parseEncounterPortalBundle(responseBody json.RawMessage) ([]PortalEncounter, error) {
-	entries, err := extractBundleEntries(responseBody)
+	decodedResources, err := fhir.DecodeBundle[fhir.Encounter](responseBody)
 	if err != nil {
 		return nil, err
 	}
 
-	result := make([]PortalEncounter, 0, len(entries))
-	for _, resource := range entries {
+	result := make([]PortalEncounter, 0, len(decodedResources))
+	for _, resource := range decodedResources {
 		encounter := PortalEncounter{}
-		encounter.FHIRResourceID, _ = resource["id"].(string)
-		encounter.Status, _ = resource["status"].(string)
+		encounter.FHIRResourceID = resource.ID
+		encounter.Status = resource.Status
 
-		if period, ok := resource["period"].(map[string]interface{}); ok {
-			if startStr, ok := period["start"].(string); ok {
-				if parsed, parseErr := time.Parse(time.RFC3339, startStr); parseErr == nil {
-					encounter.StartedAt = parsed
-				}
+		if resource.Period != nil {
+			if parsed, ok := fhir.ParseRFC3339(resource.Period.Start); ok {
+				encounter.StartedAt = parsed
 			}
-			if endStr, ok := period["end"].(string); ok {
-				if parsed, parseErr := time.Parse(time.RFC3339, endStr); parseErr == nil {
-					encounter.EndedAt = &parsed
-				}
+			if parsed, ok := fhir.ParseRFC3339(resource.Period.End); ok {
+				encounter.EndedAt = &parsed
 			}
 		}
 
-		if reasonCode, ok := resource["reasonCode"].([]interface{}); ok && len(reasonCode) > 0 {
-			if firstReason, ok := reasonCode[0].(map[string]interface{}); ok {
-				if coding, ok := firstReason["coding"].([]interface{}); ok && len(coding) > 0 {
-					if firstCoding, ok := coding[0].(map[string]interface{}); ok {
-						if display, ok := firstCoding["display"].(string); ok {
-							encounter.ReasonDisplay = display
-						}
-					}
-				}
-			}
+		if len(resource.ReasonCode) > 0 {
+			_, display, _ := fhir.CodeableConceptParts(resource.ReasonCode[0])
+			encounter.ReasonDisplay = display
 		}
 
 		result = append(result, encounter)
@@ -138,41 +115,30 @@ func (portalRepository *repository) GetObservationsByPatient(ctx context.Context
 }
 
 func parseObservationPortalBundle(responseBody json.RawMessage) ([]PortalObservation, error) {
-	entries, err := extractBundleEntries(responseBody)
+	decodedResources, err := fhir.DecodeBundle[fhir.Observation](responseBody)
 	if err != nil {
 		return nil, err
 	}
 
-	result := make([]PortalObservation, 0, len(entries))
-	for _, resource := range entries {
+	result := make([]PortalObservation, 0, len(decodedResources))
+	for _, resource := range decodedResources {
 		observation := PortalObservation{}
-		observation.FHIRResourceID, _ = resource["id"].(string)
+		observation.FHIRResourceID = resource.ID
 
-		if code, ok := resource["code"].(map[string]interface{}); ok {
-			if coding, ok := code["coding"].([]interface{}); ok && len(coding) > 0 {
-				if firstCoding, ok := coding[0].(map[string]interface{}); ok {
-					observation.LoincCode, _ = firstCoding["code"].(string)
-					observation.CodeDisplay, _ = firstCoding["display"].(string)
-				}
-			}
-			if text, ok := code["text"].(string); ok && observation.CodeDisplay == "" {
-				observation.CodeDisplay = text
-			}
+		code, display, text := fhir.CodeableConceptParts(resource.Code)
+		observation.LoincCode = code
+		observation.CodeDisplay = display
+		if observation.CodeDisplay == "" {
+			observation.CodeDisplay = text
 		}
 
-		if valueQuantity, ok := resource["valueQuantity"].(map[string]interface{}); ok {
-			if value, ok := valueQuantity["value"].(float64); ok {
-				observation.ValueQuantity = value
-			}
-			if unit, ok := valueQuantity["unit"].(string); ok {
-				observation.ValueUnit = unit
-			}
+		if resource.ValueQuantity != nil {
+			observation.ValueQuantity = resource.ValueQuantity.Value
+			observation.ValueUnit = resource.ValueQuantity.Unit
 		}
 
-		if effectiveDateTime, ok := resource["effectiveDateTime"].(string); ok {
-			if parsed, parseErr := time.Parse(time.RFC3339, effectiveDateTime); parseErr == nil {
-				observation.ObservedAt = parsed
-			}
+		if parsed, ok := fhir.ParseRFC3339(resource.EffectiveDateTime); ok {
+			observation.ObservedAt = parsed
 		}
 
 		result = append(result, observation)
@@ -192,29 +158,23 @@ func (portalRepository *repository) GetConditionsByPatient(ctx context.Context, 
 }
 
 func parseConditionPortalBundle(responseBody json.RawMessage) ([]PortalCondition, error) {
-	entries, err := extractBundleEntries(responseBody)
+	decodedResources, err := fhir.DecodeBundle[fhir.Condition](responseBody)
 	if err != nil {
 		return nil, err
 	}
 
-	result := make([]PortalCondition, 0, len(entries))
-	for _, resource := range entries {
+	result := make([]PortalCondition, 0, len(decodedResources))
+	for _, resource := range decodedResources {
 		condition := PortalCondition{}
-		condition.FHIRResourceID, _ = resource["id"].(string)
-		condition.ClinicalStatus, _ = resource["clinicalStatus"].(string)
+		condition.FHIRResourceID = resource.ID
+		clinicalStatusCode, _, _ := fhir.CodeableConceptParts(resource.ClinicalStatus)
+		condition.ClinicalStatus = clinicalStatusCode
 
-		if code, ok := resource["code"].(map[string]interface{}); ok {
-			if coding, ok := code["coding"].([]interface{}); ok && len(coding) > 0 {
-				if firstCoding, ok := coding[0].(map[string]interface{}); ok {
-					condition.ICD10Code, _ = firstCoding["code"].(string)
-					condition.CodeDisplay, _ = firstCoding["display"].(string)
-				}
-			}
-		}
+		code, display, _ := fhir.CodeableConceptParts(resource.Code)
+		condition.ICD10Code = code
+		condition.CodeDisplay = display
 
-		if onsetDateTime, ok := resource["onsetDateTime"].(string); ok {
-			condition.OnsetAt = onsetDateTime
-		}
+		condition.OnsetAt = resource.OnsetDateTime
 
 		result = append(result, condition)
 	}
@@ -233,39 +193,28 @@ func (portalRepository *repository) GetMedicationsByPatient(ctx context.Context,
 }
 
 func parseMedicationPortalBundle(responseBody json.RawMessage) ([]PortalMedication, error) {
-	entries, err := extractBundleEntries(responseBody)
+	decodedResources, err := fhir.DecodeBundle[fhir.MedicationRequest](responseBody)
 	if err != nil {
 		return nil, err
 	}
 
-	result := make([]PortalMedication, 0, len(entries))
-	for _, resource := range entries {
+	result := make([]PortalMedication, 0, len(decodedResources))
+	for _, resource := range decodedResources {
 		medication := PortalMedication{}
-		medication.FHIRResourceID, _ = resource["id"].(string)
-		medication.Status, _ = resource["status"].(string)
+		medication.FHIRResourceID = resource.ID
+		medication.Status = resource.Status
 
-		if medicationCodeable, ok := resource["medicationCodeableConcept"].(map[string]interface{}); ok {
-			if coding, ok := medicationCodeable["coding"].([]interface{}); ok && len(coding) > 0 {
-				if firstCoding, ok := coding[0].(map[string]interface{}); ok {
-					medication.MedicationName, _ = firstCoding["display"].(string)
-				}
-			}
-			if text, ok := medicationCodeable["text"].(string); ok && medication.MedicationName == "" {
-				medication.MedicationName = text
-			}
+		_, display, text := fhir.CodeableConceptParts(resource.MedicationCodeableConcept)
+		medication.MedicationName = display
+		if medication.MedicationName == "" {
+			medication.MedicationName = text
 		}
 
-		if dosageInstruction, ok := resource["dosageInstruction"].([]interface{}); ok && len(dosageInstruction) > 0 {
-			if firstDosage, ok := dosageInstruction[0].(map[string]interface{}); ok {
-				if text, ok := firstDosage["text"].(string); ok {
-					medication.DosageInstructions = text
-				}
-			}
+		if len(resource.DosageInstruction) > 0 {
+			medication.DosageInstructions = resource.DosageInstruction[0].Text
 		}
 
-		if authoredOn, ok := resource["authoredOn"].(string); ok {
-			medication.IssuedAt = authoredOn
-		}
+		medication.IssuedAt = resource.AuthoredOn
 
 		result = append(result, medication)
 	}
@@ -284,41 +233,26 @@ func (portalRepository *repository) GetReportsByPatient(ctx context.Context, pat
 }
 
 func parseReportPortalBundle(responseBody json.RawMessage) ([]PortalReport, error) {
-	entries, err := extractBundleEntries(responseBody)
+	decodedResources, err := fhir.DecodeBundle[fhir.DiagnosticReport](responseBody)
 	if err != nil {
 		return nil, err
 	}
 
-	result := make([]PortalReport, 0, len(entries))
-	for _, resource := range entries {
+	result := make([]PortalReport, 0, len(decodedResources))
+	for _, resource := range decodedResources {
 		report := PortalReport{}
-		report.FHIRResourceID, _ = resource["id"].(string)
-		report.Status, _ = resource["status"].(string)
+		report.FHIRResourceID = resource.ID
+		report.Status = resource.Status
+		report.Conclusion = resource.Conclusion
 
-		if conclusion, ok := resource["conclusion"].(string); ok {
-			report.Conclusion = conclusion
+		_, display, text := fhir.CodeableConceptParts(resource.Code)
+		report.ReportDisplay = display
+		if report.ReportDisplay == "" {
+			report.ReportDisplay = text
 		}
 
-		if code, ok := resource["code"].(map[string]interface{}); ok {
-			if coding, ok := code["coding"].([]interface{}); ok && len(coding) > 0 {
-				if firstCoding, ok := coding[0].(map[string]interface{}); ok {
-					report.ReportDisplay, _ = firstCoding["display"].(string)
-				}
-			}
-			if text, ok := code["text"].(string); ok && report.ReportDisplay == "" {
-				report.ReportDisplay = text
-			}
-		}
-
-		if issued, ok := resource["issued"].(string); ok {
-			report.IssuedAt = issued
-		}
-
-		if resourceMeta, ok := resource["meta"].(map[string]interface{}); ok {
-			if versionID, versionOk := resourceMeta["versionId"].(string); versionOk {
-				report.Version = versionID
-			}
-		}
+		report.IssuedAt = resource.Issued
+		report.Version = fhir.ResourceVersionID(resource.Meta)
 
 		result = append(result, report)
 	}
@@ -337,29 +271,23 @@ func (portalRepository *repository) GetImagingByPatient(ctx context.Context, pat
 }
 
 func parseImagingPortalBundle(responseBody json.RawMessage) ([]PortalImaging, error) {
-	entries, err := extractBundleEntries(responseBody)
+	decodedResources, err := fhir.DecodeBundle[fhir.ImagingStudy](responseBody)
 	if err != nil {
 		return nil, err
 	}
 
-	result := make([]PortalImaging, 0, len(entries))
-	for _, resource := range entries {
+	result := make([]PortalImaging, 0, len(decodedResources))
+	for _, resource := range decodedResources {
 		imaging := PortalImaging{}
-		imaging.FHIRResourceID, _ = resource["id"].(string)
-		imaging.Status, _ = resource["status"].(string)
+		imaging.FHIRResourceID = resource.ID
+		imaging.Status = resource.Status
+		imaging.CreatedAt = resource.Started
+		imaging.Title = resource.Description
 
-		if started, ok := resource["started"].(string); ok {
-			imaging.CreatedAt = started
-		}
-
-		imaging.Title, _ = resource["description"].(string)
-
-		if modality, ok := resource["modality"].([]interface{}); ok && len(modality) > 0 {
-			if firstModality, ok := modality[0].(map[string]interface{}); ok {
-				imaging.Modality, _ = firstModality["display"].(string)
-				if imaging.Modality == "" {
-					imaging.Modality, _ = firstModality["code"].(string)
-				}
+		if len(resource.Modality) > 0 {
+			imaging.Modality = resource.Modality[0].Display
+			if imaging.Modality == "" {
+				imaging.Modality = resource.Modality[0].Code
 			}
 		}
 
@@ -367,31 +295,4 @@ func parseImagingPortalBundle(responseBody json.RawMessage) ([]PortalImaging, er
 	}
 
 	return result, nil
-}
-
-func extractBundleEntries(responseBody json.RawMessage) ([]map[string]interface{}, error) {
-	var bundle map[string]interface{}
-	if err := json.Unmarshal(responseBody, &bundle); err != nil {
-		return nil, err
-	}
-
-	rawEntries, ok := bundle["entry"].([]interface{})
-	if !ok {
-		return []map[string]interface{}{}, nil
-	}
-
-	entries := make([]map[string]interface{}, 0, len(rawEntries))
-	for _, rawEntry := range rawEntries {
-		entryMap, ok := rawEntry.(map[string]interface{})
-		if !ok {
-			continue
-		}
-		resource, ok := entryMap["resource"].(map[string]interface{})
-		if !ok {
-			continue
-		}
-		entries = append(entries, resource)
-	}
-
-	return entries, nil
 }

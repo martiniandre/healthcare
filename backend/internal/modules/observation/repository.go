@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
-	"strings"
-	"time"
 
 	"github.com/healthcare/backend/internal/shared/apperrors"
 	"github.com/healthcare/backend/internal/shared/fhir"
@@ -119,77 +117,32 @@ func (observationRepository *repository) DeleteObservation(ctx context.Context, 
 	return nil
 }
 
-func extractBundleEntries(responseBody json.RawMessage) ([]map[string]interface{}, error) {
-	var bundle map[string]interface{}
-	if err := json.Unmarshal(responseBody, &bundle); err != nil {
-		return nil, err
-	}
-	rawEntries, ok := bundle["entry"].([]interface{})
-	if !ok {
-		return []map[string]interface{}{}, nil
-	}
-	entries := make([]map[string]interface{}, 0, len(rawEntries))
-	for _, rawEntry := range rawEntries {
-		entryMap, ok := rawEntry.(map[string]interface{})
-		if !ok {
-			continue
-		}
-		resource, ok := entryMap["resource"].(map[string]interface{})
-		if !ok {
-			continue
-		}
-		entries = append(entries, resource)
-	}
-	return entries, nil
-}
-
 func parseObservationBundle(responseBody json.RawMessage) ([]*Observation, error) {
-	entries, err := extractBundleEntries(responseBody)
+	decodedResources, err := fhir.DecodeBundle[fhir.Observation](responseBody)
 	if err != nil {
 		return nil, err
 	}
-	observations := make([]*Observation, 0, len(entries))
-	for _, resource := range entries {
+	observations := make([]*Observation, 0, len(decodedResources))
+	for _, resource := range decodedResources {
 		observation := &Observation{}
-		observation.FHIRResourceID, _ = resource["id"].(string)
-		if codes, ok := resource["code"].(map[string]interface{}); ok {
-			observation.CodeDisplay, _ = codes["text"].(string)
-			if coding, ok := codes["coding"].([]interface{}); ok && len(coding) > 0 {
-				if firstCoding, ok := coding[0].(map[string]interface{}); ok {
-					observation.LoincCode, _ = firstCoding["code"].(string)
-					if display, ok := firstCoding["display"].(string); ok && observation.CodeDisplay == "" {
-						observation.CodeDisplay = display
-					}
-				}
-			}
+		observation.FHIRResourceID = resource.ID
+		code, display, text := fhir.CodeableConceptParts(resource.Code)
+		observation.CodeDisplay = text
+		observation.LoincCode = code
+		if observation.CodeDisplay == "" {
+			observation.CodeDisplay = display
 		}
-		if valueQuantity, ok := resource["valueQuantity"].(map[string]interface{}); ok {
-			observation.ValueQuantity, _ = valueQuantity["value"].(float64)
-			observation.ValueUnit, _ = valueQuantity["unit"].(string)
+		if resource.ValueQuantity != nil {
+			observation.ValueQuantity = resource.ValueQuantity.Value
+			observation.ValueUnit = resource.ValueQuantity.Unit
 		}
-		if encounter, ok := resource["encounter"].(map[string]interface{}); ok {
-			if ref, ok := encounter["reference"].(string); ok {
-				parts := strings.SplitN(ref, "/", 2)
-				if len(parts) == 2 {
-					observation.EncounterFHIRID = parts[1]
-				}
-			}
+		observation.EncounterFHIRID = fhir.SplitReferenceID(resource.Encounter.Reference)
+		observation.PatientFHIRID = fhir.SplitReferenceID(resource.Subject.Reference)
+		if parsedTime, ok := fhir.ParseRFC3339(resource.EffectiveDateTime); ok {
+			observation.ObservedAt = parsedTime
 		}
-		if subject, ok := resource["subject"].(map[string]interface{}); ok {
-			if ref, ok := subject["reference"].(string); ok {
-				parts := strings.SplitN(ref, "/", 2)
-				if len(parts) == 2 {
-					observation.PatientFHIRID = parts[1]
-				}
-			}
-		}
-		if effectiveStr, ok := resource["effectiveDateTime"].(string); ok {
-			if parsedTime, parseErr := time.Parse(time.RFC3339, effectiveStr); parseErr == nil {
-				observation.ObservedAt = parsedTime
-			}
-		}
-		if issuedStr, ok := resource["issued"].(string); ok && observation.ObservedAt.IsZero() {
-			if parsedTime, parseErr := time.Parse(time.RFC3339, issuedStr); parseErr == nil {
+		if observation.ObservedAt.IsZero() {
+			if parsedTime, ok := fhir.ParseRFC3339(resource.Issued); ok {
 				observation.ObservedAt = parsedTime
 			}
 		}

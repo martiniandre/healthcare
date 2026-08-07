@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
-	"strings"
-	"time"
 
 	"github.com/healthcare/backend/internal/shared/apperrors"
 	"github.com/healthcare/backend/internal/shared/fhir"
@@ -59,54 +57,36 @@ func (encounterRepository *repository) GetEncounterByID(ctx context.Context, fhi
 		return nil, fmt.Errorf("failed to get encounter: %w", err)
 	}
 
-	var resource map[string]interface{}
-	if err := json.Unmarshal(responseBody, &resource); err != nil {
+	decodedResource, err := fhir.DecodeResource[fhir.Encounter](responseBody)
+	if err != nil {
 		return nil, fmt.Errorf("failed to parse encounter response: %w", err)
 	}
-
-	return parseEncounterFromResource(resource), nil
+	return mapFHIREncounterToDomain(decodedResource), nil
 }
 
-func parseEncounterFromResource(resource map[string]interface{}) *Encounter {
+func mapFHIREncounterToDomain(resource *fhir.Encounter) *Encounter {
 	encounter := &Encounter{}
-	encounter.FHIRResourceID, _ = resource["id"].(string)
-	encounter.Status, _ = resource["status"].(string)
-	if subject, ok := resource["subject"].(map[string]interface{}); ok {
-		encounter.PatientFHIRID, _ = subject["reference"].(string)
-	}
-	if period, ok := resource["period"].(map[string]interface{}); ok {
-		if start, ok := period["start"].(string); ok {
-			if parsedTime, parseErr := time.Parse(time.RFC3339, start); parseErr == nil {
-				encounter.StartedAt = parsedTime
-			}
+	encounter.FHIRResourceID = resource.ID
+	encounter.Status = resource.Status
+	encounter.PatientFHIRID = resource.Subject.Reference
+	if resource.Period != nil {
+		if parsedTime, ok := fhir.ParseRFC3339(resource.Period.Start); ok {
+			encounter.StartedAt = parsedTime
 		}
 	}
-	if reasonCodes, ok := resource["reasonCode"].([]interface{}); ok && len(reasonCodes) > 0 {
-		if firstReason, ok := reasonCodes[0].(map[string]interface{}); ok {
-			if text, ok := firstReason["text"].(string); ok {
-				encounter.ReasonCode = text
-				encounter.ReasonDisplay = text
-			} else if coding, ok := firstReason["coding"].([]interface{}); ok && len(coding) > 0 {
-				if firstCoding, ok := coding[0].(map[string]interface{}); ok {
-					encounter.ReasonCode, _ = firstCoding["code"].(string)
-					encounter.ReasonDisplay, _ = firstCoding["display"].(string)
-				}
-			}
+	if len(resource.ReasonCode) > 0 {
+		code, display, text := fhir.CodeableConceptParts(resource.ReasonCode[0])
+		if text != "" {
+			encounter.ReasonCode = text
+			encounter.ReasonDisplay = text
+		} else {
+			encounter.ReasonCode = code
+			encounter.ReasonDisplay = display
 		}
 	}
-	if participants, ok := resource["participant"].([]interface{}); ok && len(participants) > 0 {
-		if firstParticipant, ok := participants[0].(map[string]interface{}); ok {
-			if individual, ok := firstParticipant["individual"].(map[string]interface{}); ok {
-				if ref, ok := individual["reference"].(string); ok {
-					parts := strings.SplitN(ref, "/", 2)
-					if len(parts) == 2 {
-						encounter.PractitionerID = parts[1]
-					}
-				}
-			}
-		}
+	if len(resource.Participant) > 0 {
+		encounter.PractitionerID = fhir.SplitReferenceID(resource.Participant[0].Individual.Reference)
 	}
-
 	return encounter
 }
 
@@ -123,12 +103,11 @@ func (encounterRepository *repository) UpdateEncounter(ctx context.Context, fhir
 		return nil, fmt.Errorf("failed to update encounter: %w", err)
 	}
 
-	var updatedResource map[string]interface{}
-	if err := json.Unmarshal(responseBody, &updatedResource); err != nil {
+	decodedResource, err := fhir.DecodeResource[fhir.Encounter](responseBody)
+	if err != nil {
 		return nil, fmt.Errorf("failed to parse updated encounter: %w", err)
 	}
-
-	return parseEncounterFromResource(updatedResource), nil
+	return mapFHIREncounterToDomain(decodedResource), nil
 }
 
 func (encounterRepository *repository) DeleteEncounter(ctx context.Context, fhirResourceID string) error {
@@ -153,38 +132,14 @@ func (encounterRepository *repository) GetEncountersByPatient(ctx context.Contex
 	return parseEncounterBundle(responseBody)
 }
 
-func extractBundleEntries(responseBody json.RawMessage) ([]map[string]interface{}, error) {
-	var bundle map[string]interface{}
-	if err := json.Unmarshal(responseBody, &bundle); err != nil {
-		return nil, err
-	}
-	rawEntries, ok := bundle["entry"].([]interface{})
-	if !ok {
-		return []map[string]interface{}{}, nil
-	}
-	entries := make([]map[string]interface{}, 0, len(rawEntries))
-	for _, rawEntry := range rawEntries {
-		entryMap, ok := rawEntry.(map[string]interface{})
-		if !ok {
-			continue
-		}
-		resource, ok := entryMap["resource"].(map[string]interface{})
-		if !ok {
-			continue
-		}
-		entries = append(entries, resource)
-	}
-	return entries, nil
-}
-
 func parseEncounterBundle(responseBody json.RawMessage) ([]*Encounter, error) {
-	entries, err := extractBundleEntries(responseBody)
+	decodedResources, err := fhir.DecodeBundle[fhir.Encounter](responseBody)
 	if err != nil {
 		return nil, err
 	}
-	encounters := make([]*Encounter, 0, len(entries))
-	for _, resource := range entries {
-		encounter := parseEncounterFromResource(resource)
+	encounters := make([]*Encounter, 0, len(decodedResources))
+	for _, resource := range decodedResources {
+		encounter := mapFHIREncounterToDomain(&resource)
 		encounters = append(encounters, encounter)
 	}
 	return encounters, nil
