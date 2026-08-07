@@ -62,6 +62,7 @@ func (handler *HTTPHandler) ListReportsByEncounter(httpResponseWriter http.Respo
 			ReportDisplay:   report.ReportDisplay,
 			Status:          report.Status,
 			Conclusion:      report.Conclusion,
+			Version:         report.Version,
 			CreatedAt:       report.IssuedAt.Format(time.RFC3339),
 		})
 	}
@@ -112,6 +113,7 @@ func (handler *HTTPHandler) CreateReport(httpResponseWriter http.ResponseWriter,
 		ReportDisplay:   createdReport.ReportDisplay,
 		Status:          createdReport.Status,
 		Conclusion:      createdReport.Conclusion,
+		Version:         createdReport.Version,
 		CreatedAt:       createdReport.IssuedAt.Format(time.RFC3339),
 	})
 }
@@ -158,6 +160,7 @@ func (handler *HTTPHandler) UpdateReport(httpResponseWriter http.ResponseWriter,
 		ReportDisplay:   updatedReport.ReportDisplay,
 		Status:          updatedReport.Status,
 		Conclusion:      updatedReport.Conclusion,
+		Version:         updatedReport.Version,
 		CreatedAt:       updatedReport.IssuedAt.Format(time.RFC3339),
 	})
 }
@@ -239,6 +242,7 @@ type DiagnosticReportResponse struct {
 	ReportDisplay   string `json:"report_display"`
 	Status          string `json:"status"`
 	Conclusion      string `json:"conclusion"`
+	Version         string `json:"version"`
 	CreatedAt       string `json:"created_at"`
 }
 
@@ -256,6 +260,7 @@ type CreateDiagnosticReportResponse struct {
 	ReportDisplay   string `json:"report_display"`
 	Status          string `json:"status"`
 	Conclusion      string `json:"conclusion"`
+	Version         string `json:"version"`
 	CreatedAt       string `json:"created_at"`
 }
 
