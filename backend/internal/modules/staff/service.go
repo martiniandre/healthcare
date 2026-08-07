@@ -3,21 +3,20 @@ package staff
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/healthcare/backend/internal/shared/apperrors"
 	"github.com/healthcare/backend/internal/shared/fhir"
 	"github.com/healthcare/backend/internal/shared/healthcare"
 	"github.com/healthcare/backend/internal/shared/role"
 	"github.com/healthcare/backend/internal/shared/validator"
 )
 
-var ErrEmployeeNotFound = errors.New("employee not found")
-
 type Service interface {
-	CreateEmployee(ctx context.Context, createdBy uuid.UUID, fullName, email, requestedRole, crmNumber string) (*Employee, error)
+	CreateEmployee(ctx context.Context, input CreateEmployeeInput) (*Employee, error)
 	GetEmployee(ctx context.Context, employeeID uuid.UUID) (*Employee, error)
 	ListEmployees(ctx context.Context, search string, role string) ([]*Employee, error)
 	DeactivateEmployee(ctx context.Context, employeeID uuid.UUID) error
@@ -32,35 +31,26 @@ func NewService(repo Repository, fhirClient healthcare.FHIRClient) Service {
 	return &service{repo: repo, fhirClient: fhirClient}
 }
 
-func (staffService *service) CreateEmployee(ctx context.Context, createdBy uuid.UUID, fullName, email, requestedRole, crmNumber string) (*Employee, error) {
-	parsedRole, roleIsValid := role.ParseRole(requestedRole)
-	if !roleIsValid {
-		return nil, role.ErrInvalidRole
+func (staffService *service) CreateEmployee(ctx context.Context, input CreateEmployeeInput) (*Employee, error) {
+	if fieldViolations := validateEmployeeFields(input); len(fieldViolations) > 0 {
+		return nil, apperrors.InvalidArgument("invalid employee input", fieldViolations)
 	}
 
-	if !validator.IsValidEmail(email) {
-		return nil, errors.New("invalid email format")
-	}
-
-	var crmNumberPtr *string
-	if crmNumber != "" {
-		if !validator.IsValidCRMNumber(crmNumber) {
-			return nil, errors.New("invalid CRM format")
-		}
-		crmNumberPtr = &crmNumber
-	}
-
-	parsedCreatedBy := createdBy
+	parsedRole, _ := role.ParseRole(input.Role)
+	parsedCreatedBy, _ := uuid.Parse(input.CreatedBy)
 	employee := &Employee{
 		ID:        uuid.New(),
-		FullName:  fullName,
-		Email:     email,
+		FullName:  input.FullName,
+		Email:     input.Email,
 		Role:      parsedRole,
-		CRMNumber: crmNumberPtr,
+		CRMNumber: nil,
 		CreatedBy: &parsedCreatedBy,
 		IsActive:  true,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
+	}
+	if input.CRMNumber != "" {
+		employee.CRMNumber = &input.CRMNumber
 	}
 
 	err := staffService.repo.CreateEmployee(ctx, employee)
@@ -69,7 +59,7 @@ func (staffService *service) CreateEmployee(ctx context.Context, createdBy uuid.
 	}
 
 	if staffService.fhirClient != nil {
-		practitionerResource := fhir.NewPractitionerResource(fullName, crmNumber)
+		practitionerResource := fhir.NewPractitionerResource(input.FullName, input.CRMNumber)
 		responseBody, fhirErr := staffService.fhirClient.CreateResource(ctx, "Practitioner", practitionerResource)
 		if fhirErr != nil {
 			return nil, fmt.Errorf("failed to create practitioner in healthcare api: %w", fhirErr)
@@ -93,11 +83,7 @@ func (staffService *service) CreateEmployee(ctx context.Context, createdBy uuid.
 }
 
 func (staffService *service) GetEmployee(ctx context.Context, employeeID uuid.UUID) (*Employee, error) {
-	employee, err := staffService.repo.GetEmployeeByID(ctx, employeeID)
-	if err != nil {
-		return nil, ErrEmployeeNotFound
-	}
-	return employee, nil
+	return staffService.repo.GetEmployeeByID(ctx, employeeID)
 }
 
 func (staffService *service) ListEmployees(ctx context.Context, search string, role string) ([]*Employee, error) {
@@ -107,7 +93,29 @@ func (staffService *service) ListEmployees(ctx context.Context, search string, r
 func (staffService *service) DeactivateEmployee(ctx context.Context, employeeID uuid.UUID) error {
 	_, err := staffService.repo.GetEmployeeByID(ctx, employeeID)
 	if err != nil {
-		return ErrEmployeeNotFound
+		return err
 	}
 	return staffService.repo.DeactivateEmployee(ctx, employeeID)
+}
+
+func validateEmployeeFields(input CreateEmployeeInput) map[string]string {
+	fieldViolations := make(map[string]string)
+	if strings.TrimSpace(input.CreatedBy) == "" {
+		fieldViolations["created_by"] = "is required"
+	} else if _, err := uuid.Parse(input.CreatedBy); err != nil {
+		fieldViolations["created_by"] = "invalid UUID format"
+	}
+	if strings.TrimSpace(input.FullName) == "" {
+		fieldViolations["full_name"] = "is required"
+	}
+	if strings.TrimSpace(input.Email) == "" || !validator.IsValidEmail(input.Email) {
+		fieldViolations["email"] = "invalid email format"
+	}
+	if _, roleIsValid := role.ParseRole(input.Role); !roleIsValid {
+		fieldViolations["role"] = "invalid role"
+	}
+	if input.CRMNumber != "" && !validator.IsValidCRMNumber(input.CRMNumber) {
+		fieldViolations["crm_number"] = "invalid CRM format"
+	}
+	return fieldViolations
 }

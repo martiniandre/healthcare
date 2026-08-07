@@ -5,7 +5,6 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/google/uuid"
 	"github.com/healthcare/backend/internal/api/middleware"
 	"github.com/healthcare/backend/internal/api/render"
 	"github.com/healthcare/backend/internal/shared/role"
@@ -48,7 +47,7 @@ func (handler *HTTPHandler) ListEmployees(httpResponseWriter http.ResponseWriter
 	employeesList, employeesErr := handler.service.ListEmployees(httpRequest.Context(), search, role)
 	if employeesErr != nil {
 		slog.Error("failed to list employees", "error", employeesErr, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.Error(httpResponseWriter, http.StatusInternalServerError, "Erro ao listar corpo clínico.")
+		render.ErrorFromAppError(httpResponseWriter, employeesErr)
 		return
 	}
 
@@ -95,11 +94,11 @@ func (handler *HTTPHandler) ListEmployees(httpResponseWriter http.ResponseWriter
 //	@Router			/staff/employees [post]
 func (handler *HTTPHandler) CreateEmployee(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
 	var payload struct {
-		CreatedBy  string `json:"created_by"`
-		FullName   string `json:"full_name"`
-		Email      string `json:"email"`
-		Role       string `json:"role"`
-		CRMNumber  string `json:"crm_number"`
+		CreatedBy string `json:"created_by"`
+		FullName  string `json:"full_name"`
+		Email     string `json:"email"`
+		Role      string `json:"role"`
+		CRMNumber string `json:"crm_number"`
 	}
 
 	if payloadDecodeErr := json.NewDecoder(httpRequest.Body).Decode(&payload); payloadDecodeErr != nil {
@@ -107,16 +106,18 @@ func (handler *HTTPHandler) CreateEmployee(httpResponseWriter http.ResponseWrite
 		return
 	}
 
-	createdByParsed, parseErr := uuid.Parse(payload.CreatedBy)
-	if parseErr != nil {
-		render.Error(httpResponseWriter, http.StatusBadRequest, "created_by inválido.")
-		return
+	input := CreateEmployeeInput{
+		CreatedBy: payload.CreatedBy,
+		FullName:  payload.FullName,
+		Email:     payload.Email,
+		Role:      payload.Role,
+		CRMNumber: payload.CRMNumber,
 	}
 
-	employee, createErr := handler.service.CreateEmployee(httpRequest.Context(), createdByParsed, payload.FullName, payload.Email, payload.Role, payload.CRMNumber)
+	employee, createErr := handler.service.CreateEmployee(httpRequest.Context(), input)
 	if createErr != nil {
 		slog.Error("failed to create employee", "error", createErr, "email", payload.Email, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.Error(httpResponseWriter, http.StatusInternalServerError, "Erro ao registrar profissional.")
+		render.ErrorFromAppError(httpResponseWriter, createErr)
 		return
 	}
 

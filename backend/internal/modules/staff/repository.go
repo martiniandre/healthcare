@@ -2,9 +2,12 @@ package staff
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/google/uuid"
+	"github.com/healthcare/backend/internal/shared/apperrors"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -51,6 +54,9 @@ func (staffRepository *repository) GetEmployeeByID(ctx context.Context, employee
 		&employee.Role, &employee.CRMNumber, &employee.FHIRResourceID, &employee.CreatedBy, &employee.IsActive, &employee.CreatedAt, &employee.UpdatedAt,
 	)
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, fmt.Errorf("failed to get employee: %w", apperrors.ErrEmployeeNotFound)
+		}
 		return nil, err
 	}
 	return employee, nil
@@ -100,6 +106,12 @@ func (staffRepository *repository) ListEmployees(ctx context.Context, search str
 
 func (staffRepository *repository) DeactivateEmployee(ctx context.Context, employeeID uuid.UUID) error {
 	query := `UPDATE employees SET is_active = false, updated_at = NOW() WHERE id = $1`
-	_, err := staffRepository.db.Exec(ctx, query, employeeID)
-	return err
+	commandTag, err := staffRepository.db.Exec(ctx, query, employeeID)
+	if err != nil {
+		return err
+	}
+	if commandTag.RowsAffected() == 0 {
+		return fmt.Errorf("failed to deactivate employee: %w", apperrors.ErrEmployeeNotFound)
+	}
+	return nil
 }

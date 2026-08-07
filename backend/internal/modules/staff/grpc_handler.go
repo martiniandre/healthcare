@@ -2,21 +2,11 @@ package staff
 
 import (
 	"context"
-	"errors"
-	"strings"
 
 	"github.com/google/uuid"
 	"github.com/healthcare/backend/internal/modules/staff/pb"
 	"github.com/healthcare/backend/internal/shared/apperrors"
-	"github.com/healthcare/backend/internal/shared/validator"
 )
-
-func mapStaffError(err error) error {
-	if errors.Is(err, ErrEmployeeNotFound) {
-		return apperrors.ErrEmployeeNotFound.ToGRPC()
-	}
-	return apperrors.ToGRPCStatus(err)
-}
 
 type GRPCHandler struct {
 	service Service
@@ -26,40 +16,42 @@ func NewGRPCHandler(service Service) *GRPCHandler {
 	return &GRPCHandler{service: service}
 }
 
-func fhirResourceIDToString(ptr *string) string {
-	if ptr == nil {
+func optionalStringValue(stringValuePointer *string) string {
+	if stringValuePointer == nil {
 		return ""
 	}
-	return *ptr
+	return *stringValuePointer
+}
+
+func mapEmployeeToResponse(employee *Employee) *pb.GetEmployeeResponse {
+	return &pb.GetEmployeeResponse{
+		EmployeeId:     employee.ID.String(),
+		FullName:       employee.FullName,
+		Email:          employee.Email,
+		Role:           string(employee.Role),
+		CrmNumber:      optionalStringValue(employee.CRMNumber),
+		FhirResourceId: optionalStringValue(employee.FHIRResourceID),
+		IsActive:       employee.IsActive,
+	}
 }
 
 func (handler *GRPCHandler) CreateEmployee(ctx context.Context, req *pb.CreateEmployeeRequest) (*pb.CreateEmployeeResponse, error) {
-	violations := make(map[string]string)
-	createdBy, err := uuid.Parse(req.CreatedBy)
-	if err != nil {
-		violations["created_by"] = "invalid UUID format"
-	}
-	if strings.TrimSpace(req.FullName) == "" {
-		violations["full_name"] = "full name is required"
-	}
-	if strings.TrimSpace(req.Email) == "" || !validator.IsValidEmail(req.Email) {
-		violations["email"] = "invalid email format"
-	}
-	if strings.TrimSpace(req.Role) == "" {
-		violations["role"] = "role is required"
-	}
-	if len(violations) > 0 {
-		return nil, apperrors.ErrBadRequest.WithFields(violations)
+	input := CreateEmployeeInput{
+		CreatedBy: req.CreatedBy,
+		FullName:  req.FullName,
+		Email:     req.Email,
+		Role:      req.Role,
+		CRMNumber: req.CrmNumber,
 	}
 
-	employee, err := handler.service.CreateEmployee(ctx, createdBy, req.FullName, req.Email, req.Role, req.CrmNumber)
+	employee, err := handler.service.CreateEmployee(ctx, input)
 	if err != nil {
-		return nil, mapStaffError(err)
+		return nil, apperrors.ToGRPCStatus(err)
 	}
 
 	return &pb.CreateEmployeeResponse{
 		EmployeeId:     employee.ID.String(),
-		FhirResourceId: fhirResourceIDToString(employee.FHIRResourceID),
+		FhirResourceId: optionalStringValue(employee.FHIRResourceID),
 	}, nil
 }
 
@@ -71,37 +63,21 @@ func (handler *GRPCHandler) GetEmployee(ctx context.Context, req *pb.GetEmployee
 
 	employee, err := handler.service.GetEmployee(ctx, employeeID)
 	if err != nil {
-		return nil, mapStaffError(err)
+		return nil, apperrors.ToGRPCStatus(err)
 	}
 
-	return &pb.GetEmployeeResponse{
-		EmployeeId:     employee.ID.String(),
-		FullName:       employee.FullName,
-		Email:          employee.Email,
-		Role:           string(employee.Role),
-		CrmNumber:      getStringValue(employee.CRMNumber),
-		FhirResourceId: fhirResourceIDToString(employee.FHIRResourceID),
-		IsActive:       employee.IsActive,
-	}, nil
+	return mapEmployeeToResponse(employee), nil
 }
 
 func (handler *GRPCHandler) ListEmployees(ctx context.Context, req *pb.ListEmployeesRequest) (*pb.ListEmployeesResponse, error) {
 	employees, listError := handler.service.ListEmployees(ctx, "", "")
 	if listError != nil {
-		return nil, mapStaffError(listError)
+		return nil, apperrors.ToGRPCStatus(listError)
 	}
 
 	employeeResponses := make([]*pb.GetEmployeeResponse, 0, len(employees))
 	for _, employee := range employees {
-		employeeResponses = append(employeeResponses, &pb.GetEmployeeResponse{
-			EmployeeId:     employee.ID.String(),
-			FullName:       employee.FullName,
-			Email:          employee.Email,
-			Role:           string(employee.Role),
-			CrmNumber:      getStringValue(employee.CRMNumber),
-			FhirResourceId: fhirResourceIDToString(employee.FHIRResourceID),
-			IsActive:       employee.IsActive,
-		})
+		employeeResponses = append(employeeResponses, mapEmployeeToResponse(employee))
 	}
 
 	return &pb.ListEmployeesResponse{Employees: employeeResponses}, nil
@@ -115,15 +91,8 @@ func (handler *GRPCHandler) DeactivateEmployee(ctx context.Context, req *pb.Deac
 
 	err = handler.service.DeactivateEmployee(ctx, employeeID)
 	if err != nil {
-		return nil, mapStaffError(err)
+		return nil, apperrors.ToGRPCStatus(err)
 	}
 
 	return &pb.DeactivateEmployeeResponse{}, nil
-}
-
-func getStringValue(stringValuePointer *string) string {
-	if stringValuePointer == nil {
-		return ""
-	}
-	return *stringValuePointer
 }

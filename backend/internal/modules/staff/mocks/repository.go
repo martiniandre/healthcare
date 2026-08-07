@@ -5,6 +5,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/healthcare/backend/internal/modules/staff"
+	"github.com/healthcare/backend/internal/shared/apperrors"
 )
 
 type MockStaffRepository struct {
@@ -32,7 +33,7 @@ func (mockRepo *MockStaffRepository) GetEmployeeByID(contextParam context.Contex
 	}
 	employee, exists := mockRepo.Employees[employeeID]
 	if !exists {
-		return nil, staff.ErrEmployeeNotFound
+		return nil, apperrors.ErrEmployeeNotFound
 	}
 	return employee, nil
 }
@@ -54,7 +55,7 @@ func (mockRepo *MockStaffRepository) DeactivateEmployee(contextParam context.Con
 	}
 	employee, exists := mockRepo.Employees[employeeID]
 	if !exists {
-		return staff.ErrEmployeeNotFound
+		return apperrors.ErrEmployeeNotFound
 	}
 	employee.IsActive = false
 	return nil
@@ -66,7 +67,7 @@ func (mockRepo *MockStaffRepository) UpdateEmployeeFHIRResourceID(contextParam c
 	}
 	employee, exists := mockRepo.Employees[employeeID]
 	if !exists {
-		return staff.ErrEmployeeNotFound
+		return apperrors.ErrEmployeeNotFound
 	}
 	employee.FHIRResourceID = &fhirResourceID
 	return nil
