@@ -14,6 +14,14 @@ export const http = {
     return await api.post<TResponse>(url, body, config).then((responseData) => responseData.data)
   },
 
+  async put<TResponse, TBody = unknown>(
+    url: string,
+    body?: TBody,
+    config?: AxiosRequestConfig,
+  ): Promise<TResponse> {
+    return await api.put<TResponse>(url, body, config).then((responseData) => responseData.data)
+  },
+
   async delete<TResponse>(url: string, config?: AxiosRequestConfig): Promise<TResponse> {
     return await api.delete<TResponse>(url, config).then((responseData) => responseData.data)
   },
