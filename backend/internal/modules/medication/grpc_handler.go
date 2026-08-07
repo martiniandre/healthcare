@@ -15,26 +15,8 @@ func NewGRPCHandler(service Service) *GRPCHandler {
 	return &GRPCHandler{service: service}
 }
 
-func mapMedicationError(err error) error {
-	return apperrors.ToGRPCStatus(err)
-}
-
 func (handler *GRPCHandler) CreateMedicationRequest(ctx context.Context, req *pb.CreateMedicationRequestRequest) (*pb.CreateMedicationRequestResponse, error) {
-	violations := make(map[string]string)
-	if req.PatientFhirId == "" {
-		violations["patient_fhir_id"] = "is required"
-	}
-	if req.MedicationCode == "" {
-		violations["medication_code"] = "is required"
-	}
-	if req.EncounterFhirId == "" {
-		violations["encounter_fhir_id"] = "is required"
-	}
-	if len(violations) > 0 {
-		return nil, apperrors.ErrBadRequest.WithFields(violations)
-	}
-
-	medication := &Medication{
+	input := CreateMedicationInput{
 		EncounterFHIRID:    req.EncounterFhirId,
 		PatientFHIRID:      req.PatientFhirId,
 		PractitionerFHIRID: req.PractitionerFhirId,
@@ -43,9 +25,9 @@ func (handler *GRPCHandler) CreateMedicationRequest(ctx context.Context, req *pb
 		DosageInstructions: req.DosageInstructions,
 	}
 
-	createdMedication, err := handler.service.CreateMedicationRequest(ctx, medication)
+	createdMedication, err := handler.service.CreateMedicationRequest(ctx, input)
 	if err != nil {
-		return nil, mapMedicationError(err)
+		return nil, apperrors.ToGRPCStatus(err)
 	}
 
 	return &pb.CreateMedicationRequestResponse{MedicationRequestFhirId: createdMedication.FHIRResourceID}, nil
@@ -58,7 +40,7 @@ func (handler *GRPCHandler) GetMedicationRequests(ctx context.Context, req *pb.G
 
 	medications, err := handler.service.GetMedicationRequestsByEncounter(ctx, req.EncounterFhirId)
 	if err != nil {
-		return nil, mapMedicationError(err)
+		return nil, apperrors.ToGRPCStatus(err)
 	}
 
 	pbMedications := make([]*pb.MedicationRequest, 0, len(medications))

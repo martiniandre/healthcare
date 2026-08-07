@@ -2,14 +2,12 @@ package medication
 
 import (
 	"encoding/json"
-	"errors"
 	"log/slog"
 	"net/http"
 	"time"
 
 	"github.com/healthcare/backend/internal/api/middleware"
 	"github.com/healthcare/backend/internal/api/render"
-	"github.com/healthcare/backend/internal/shared/apperrors"
 	"github.com/healthcare/backend/internal/shared/role"
 )
 
@@ -51,12 +49,7 @@ func (handler *HTTPHandler) ListMedicationsByEncounter(httpResponseWriter http.R
 	medicationsList, medicationsErr := handler.service.GetMedicationRequestsByEncounter(httpRequest.Context(), encounterFhirID)
 	if medicationsErr != nil {
 		slog.Error("failed to list medications", "error", medicationsErr, "encounter_fhir_id", encounterFhirID, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		var appErr apperrors.AppError
-		if errors.As(medicationsErr, &appErr) {
-			render.Error(httpResponseWriter, appErr.HTTPCode, appErr.Message)
-			return
-		}
-		render.Error(httpResponseWriter, http.StatusInternalServerError, "Erro ao carregar prescrições da consulta.")
+		render.ErrorFromAppError(httpResponseWriter, medicationsErr)
 		return
 	}
 
@@ -105,31 +98,19 @@ func (handler *HTTPHandler) CreateMedication(httpResponseWriter http.ResponseWri
 		return
 	}
 
-	if payload.PatientFhirID == "" {
-		render.Error(httpResponseWriter, http.StatusBadRequest, "O identificador do paciente é obrigatório.")
-		return
-	}
-
-	newMedication := &Medication{
+	input := CreateMedicationInput{
 		EncounterFHIRID:    encounterFhirID,
 		PatientFHIRID:      payload.PatientFhirID,
 		PractitionerFHIRID: payload.PractitionerFhirID,
 		MedicationCode:     payload.MedicationCode,
 		MedicationName:     payload.MedicationName,
 		DosageInstructions: payload.DosageInstructions,
-		Status:             "active",
-		IssuedAt:           time.Now(),
 	}
 
-	createdMedication, createErr := handler.service.CreateMedicationRequest(httpRequest.Context(), newMedication)
+	createdMedication, createErr := handler.service.CreateMedicationRequest(httpRequest.Context(), input)
 	if createErr != nil {
 		slog.Error("failed to create medication request", "error", createErr, "encounter_fhir_id", encounterFhirID, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		var appErr apperrors.AppError
-		if errors.As(createErr, &appErr) {
-			render.Error(httpResponseWriter, appErr.HTTPCode, appErr.Message)
-			return
-		}
-		render.Error(httpResponseWriter, http.StatusInternalServerError, "Erro ao criar prescrição.")
+		render.ErrorFromAppError(httpResponseWriter, createErr)
 		return
 	}
 
