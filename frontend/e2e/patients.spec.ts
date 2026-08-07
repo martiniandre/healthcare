@@ -1,9 +1,9 @@
 import { test, expect } from "@playwright/test"
-import { loginAsDoctor } from "./helpers"
+import { loginAsAdmin } from "./helpers"
 
 test.describe("Patients Management Module", () => {
   test.beforeEach(async ({ page }) => {
-    await loginAsDoctor(page)
+    await loginAsAdmin(page)
   })
 
   test("should render the initial list of patients", async ({ page }) => {

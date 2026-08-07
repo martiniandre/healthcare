@@ -1,19 +1,37 @@
 import { type Page, expect } from "@playwright/test"
 
-export const mockAuthAPI = async (pageInstance: Page): Promise<void> => {
+interface MockAuthCredentials {
+  email: string
+  password: string
+}
+
+export const mockAuthAPI = async (
+  pageInstance: Page,
+  sessionRole: string = "DOCTOR",
+  sessionCredentials: MockAuthCredentials = { email: "medico@clinica.com", password: "senha123" }
+): Promise<void> => {
+  const sessionToken = `mock-jwt-token-${sessionRole.toLowerCase()}-123456`
+  const sessionUserId = `user-${sessionRole.toLowerCase()}-123`
+  const sessionFullName = sessionRole === "PATIENT" ? "Guilherme de Souza Araujo" : "Dr. AndrǸ Silva de Araujo"
+  let sessionLoggedIn = false
+
   await pageInstance.route("**/api/v1/auth/login", async (networkRoute) => {
     const httpRequest = networkRoute.request()
     const submittedJSON = httpRequest.postDataJSON()
 
-    if (submittedJSON.email === "medico@clinica.com" && submittedJSON.password === "senha123") {
+    if (
+      submittedJSON.email === sessionCredentials.email &&
+      submittedJSON.password === sessionCredentials.password
+    ) {
+      sessionLoggedIn = true
       await networkRoute.fulfill({
         status: 200,
         contentType: "application/json",
         body: JSON.stringify({
-          token: "mock-jwt-token-123456",
-          userId: "user-medico-123",
-          role: "doctor",
-          email: "medico@clinica.com",
+          token: sessionToken,
+          userId: sessionUserId,
+          role: sessionRole,
+          email: sessionCredentials.email,
         }),
       })
     } else {
@@ -28,6 +46,7 @@ export const mockAuthAPI = async (pageInstance: Page): Promise<void> => {
   })
 
   await pageInstance.route("**/api/v1/auth/logout", async (networkRoute) => {
+    sessionLoggedIn = false
     await networkRoute.fulfill({
       status: 200,
       contentType: "application/json",
@@ -38,13 +57,41 @@ export const mockAuthAPI = async (pageInstance: Page): Promise<void> => {
   })
 
   await pageInstance.route("**/api/v1/auth/me", async (networkRoute) => {
+    if (sessionLoggedIn) {
+      await networkRoute.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          token: sessionToken,
+          userId: sessionUserId,
+          role: sessionRole,
+          email: sessionCredentials.email,
+          fullName: sessionFullName,
+          isActive: true,
+        }),
+      })
+      return
+    }
     await networkRoute.fulfill({
       status: 401,
       contentType: "application/json",
       body: JSON.stringify({
-        error: "Não autenticado.",
+        error: "Nǜo autenticado.",
       }),
     })
+  })
+
+  await pageInstance.route("**/api/v1/audit-logs", async (networkRoute) => {
+    const httpRequest = networkRoute.request()
+    if (httpRequest.method() === "POST") {
+      await networkRoute.fulfill({
+        status: 201,
+        contentType: "application/json",
+        body: JSON.stringify({ success: true }),
+      })
+      return
+    }
+    await networkRoute.continue()
   })
 }
 
@@ -68,13 +115,24 @@ export const mockPatientsAPI = async (pageInstance: Page): Promise<void> => {
     },
   ]
 
-  await pageInstance.route("**/api/v1/patients", async (networkRoute) => {
+  await pageInstance.route("**/api/v1/patients*", async (networkRoute) => {
     const httpRequest = networkRoute.request()
     if (httpRequest.method() === "GET") {
+      const requestURL = new URL(httpRequest.url())
+      const searchTerm = (requestURL.searchParams.get("search") ?? "").toLowerCase()
+
+      const filteredPatients = searchTerm
+        ? currentPatientsList.filter((patient) =>
+            patient.full_name.toLowerCase().includes(searchTerm) ||
+            patient.document_id.toLowerCase().includes(searchTerm) ||
+            patient.phone_number.toLowerCase().includes(searchTerm)
+          )
+        : currentPatientsList
+
       await networkRoute.fulfill({
         status: 200,
         contentType: "application/json",
-        body: JSON.stringify(currentPatientsList),
+        body: JSON.stringify(filteredPatients),
       })
     } else if (httpRequest.method() === "POST") {
       const submittedJSON = httpRequest.postDataJSON()
@@ -249,7 +307,7 @@ export const mockClinicalAPI = async (pageInstance: Page): Promise<void> => {
       const newEncounter = {
         fhir_id: `enc-${currentEncountersList.length + 1}`,
         patient_fhir_id: patientFhirId,
-        status: "finished",
+        status: "in-progress",
         reason_display: submittedJSON.reason_display,
         practitioner_id: submittedJSON.practitioner_id,
         created_at: new Date().toISOString(),
@@ -259,6 +317,33 @@ export const mockClinicalAPI = async (pageInstance: Page): Promise<void> => {
         status: 201,
         contentType: "application/json",
         body: JSON.stringify(newEncounter),
+      })
+    }
+  })
+
+  await pageInstance.route("**/api/v1/encounters/*", async (networkRoute) => {
+    const httpRequest = networkRoute.request()
+    if (httpRequest.method() !== "PUT") {
+      await networkRoute.continue()
+      return
+    }
+    const requestURL = httpRequest.url()
+    const urlParts = requestURL.split("/")
+    const encounterFhirId = urlParts[urlParts.length - 1]
+    const submittedJSON = httpRequest.postDataJSON()
+    const matchedEncounter = currentEncountersList.find((encounter) => encounter.fhir_id === encounterFhirId)
+    if (matchedEncounter) {
+      matchedEncounter.status = submittedJSON.status
+      await networkRoute.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(matchedEncounter),
+      })
+    } else {
+      await networkRoute.fulfill({
+        status: 404,
+        contentType: "application/json",
+        body: JSON.stringify({ error: "Encounter not found." }),
       })
     }
   })
@@ -376,6 +461,49 @@ export const mockClinicalAPI = async (pageInstance: Page): Promise<void> => {
         body: JSON.stringify(newReport),
       })
     }
+  })
+
+  await pageInstance.route("**/api/v1/reports/*/versions", async (networkRoute) => {
+    const httpRequest = networkRoute.request()
+    const requestURL = httpRequest.url()
+    const urlParts = requestURL.split("/")
+    const reportFhirId = urlParts[urlParts.length - 2]
+    const reportEntry = currentReportsList.find((r) => r.fhir_id === reportFhirId)
+    if (!reportEntry) {
+      await networkRoute.fulfill({
+        status: 404,
+        contentType: "application/json",
+        body: JSON.stringify({ error: "Report not found." }),
+      })
+      return
+    }
+    const versionsForReport = [
+      {
+        version: "1",
+        snapshot: {
+          fhir_resource_id: reportEntry.fhir_id,
+          report_display: reportEntry.report_display,
+          conclusion: reportEntry.conclusion,
+        },
+        changed_by: "Dr. André Silva de Araujo",
+        changed_at: reportEntry.created_at,
+      },
+      {
+        version: "2",
+        snapshot: {
+          fhir_resource_id: reportEntry.fhir_id,
+          report_display: reportEntry.report_display,
+          conclusion: "Conclusão revisada após reavaliação clínica do traçado.",
+        },
+        changed_by: "Dr. André Silva de Araujo",
+        changed_at: new Date().toISOString(),
+      },
+    ]
+    await networkRoute.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify(versionsForReport),
+    })
   })
 
   await pageInstance.route("**/api/v1/encounters/*/medications", async (networkRoute) => {
@@ -616,44 +744,63 @@ export const mockStaffAPI = async (pageInstance: Page): Promise<void> => {
     {
       id: "emp-1",
       userId: "user-1",
-      fullName: "Dr. André Silva de Araujo",
+      full_name: "Dr. André Silva de Araujo",
       email: "andre.silva@hospital.com",
       role: "doctor",
-      crmNumber: "CRM-SP 12345",
-      status: "active",
+      crm_number: "CRM-SP 12345",
+      is_active: true,
       department: "Cardiologia",
+      fhir_resource_id: "fhir-emp-1",
     },
     {
       id: "emp-2",
       userId: "user-2",
-      fullName: "Enf. Roberta Santos Almeida",
+      full_name: "Enf. Roberta Santos Almeida",
       email: "roberta.santos@hospital.com",
       role: "nurse",
-      crmNumber: "COREN-SP 54321",
-      status: "active",
+      crm_number: "COREN-SP 54321",
+      is_active: true,
       department: "Pediatria",
+      fhir_resource_id: "fhir-emp-2",
     },
   ]
 
-  await pageInstance.route("**/api/v1/staff/employees", async (networkRoute) => {
+  await pageInstance.route("**/api/v1/staff/employees*", async (networkRoute) => {
     const httpRequest = networkRoute.request()
     if (httpRequest.method() === "GET") {
+      const requestURL = new URL(httpRequest.url())
+      const searchTerm = (requestURL.searchParams.get("search") ?? "").toLowerCase()
+      const roleFilter = requestURL.searchParams.get("role")
+
+      const filteredEmployees = currentEmployees.filter((employee) => {
+        const matchesRole =
+          !roleFilter ||
+          roleFilter === "All" ||
+          employee.role.toLowerCase() === roleFilter.toLowerCase()
+        const matchesSearch =
+          !searchTerm ||
+          employee.full_name.toLowerCase().includes(searchTerm) ||
+          employee.email.toLowerCase().includes(searchTerm)
+        return matchesRole && matchesSearch
+      })
+
       await networkRoute.fulfill({
         status: 200,
         contentType: "application/json",
-        body: JSON.stringify(currentEmployees),
+        body: JSON.stringify(filteredEmployees),
       })
     } else if (httpRequest.method() === "POST") {
       const submittedJSON = httpRequest.postDataJSON()
       const newEmployee = {
         id: `emp-${currentEmployees.length + 1}`,
-        userId: submittedJSON.user_id || `user-${currentEmployees.length + 1}`,
-        fullName: submittedJSON.full_name,
+        user_id: submittedJSON.user_id || `user-${currentEmployees.length + 1}`,
+        full_name: submittedJSON.full_name,
         email: submittedJSON.email,
         role: submittedJSON.role,
-        crmNumber: submittedJSON.crm_number || "N/A",
-        status: "active",
+        crm_number: submittedJSON.crm_number || "N/A",
+        is_active: true,
         department: "Geral",
+        fhir_resource_id: `fhir-emp-${currentEmployees.length + 1}`,
       }
       currentEmployees.push(newEmployee)
       await networkRoute.fulfill({
@@ -832,6 +979,10 @@ export const mockAuditLogsAPI = async (pageInstance: Page): Promise<void> => {
       caller_role: "ADMIN",
       method: "PAGE_VIEW",
       access_granted: true,
+      resource_type: "page",
+      resource_id: "/patients",
+      action: "page.view",
+      payload_diff: { path: { from: null, to: "/patients" } },
       created_at: "2026-07-03T10:00:00Z",
     },
     {
@@ -841,6 +992,10 @@ export const mockAuditLogsAPI = async (pageInstance: Page): Promise<void> => {
       caller_role: "DOCTOR",
       method: "API_REQUEST",
       access_granted: true,
+      resource_type: "diagnostic_report",
+      resource_id: "fhir-rep-1",
+      action: "report.updated",
+      payload_diff: { meta: { versionId: { from: "1", to: "2" } } },
       created_at: "2026-07-03T09:30:00Z",
     },
     {
@@ -854,13 +1009,34 @@ export const mockAuditLogsAPI = async (pageInstance: Page): Promise<void> => {
     },
   ]
 
-  await pageInstance.route("**/api/v1/audit-logs", async (networkRoute) => {
+  await pageInstance.route("**/api/v1/audit-logs*", async (networkRoute) => {
     const httpRequest = networkRoute.request()
     if (httpRequest.method() === "GET") {
+      const requestURL = new URL(httpRequest.url())
+      const targetStatus = requestURL.searchParams.get("status")
+      const targetEmail = requestURL.searchParams.get("email")
+      const targetAction = requestURL.searchParams.get("action")
+
+      const filteredLogs = currentAuditLogs.filter((logEntry) => {
+        if (targetStatus && targetStatus !== "All") {
+          const expectedAccess = targetStatus === "SUCCESS"
+          if (logEntry.access_granted !== expectedAccess) {
+            return false
+          }
+        }
+        if (targetEmail && !logEntry.caller_user_id.toLowerCase().includes(targetEmail.toLowerCase())) {
+          return false
+        }
+        if (targetAction && targetAction !== "All" && logEntry.method !== targetAction) {
+          return false
+        }
+        return true
+      })
+
       await networkRoute.fulfill({
         status: 200,
         contentType: "application/json",
-        body: JSON.stringify({ audit_logs: currentAuditLogs, total: currentAuditLogs.length }),
+        body: JSON.stringify({ audit_logs: filteredLogs, total: filteredLogs.length }),
       })
     } else if (httpRequest.method() === "POST") {
       await networkRoute.fulfill({
@@ -872,12 +1048,238 @@ export const mockAuditLogsAPI = async (pageInstance: Page): Promise<void> => {
   })
 }
 
+export const mockScheduleAPI = async (pageInstance: Page): Promise<void> => {
+  const currentAppointments: Record<string, unknown>[] = []
+
+  const hasTimeOverlap = (
+    firstStart: Date,
+    firstEnd: Date,
+    secondStart: Date,
+    secondEnd: Date
+  ): boolean => firstStart < secondEnd && firstEnd > secondStart
+
+  await pageInstance.route("**/api/v1/appointments*", async (networkRoute) => {
+    const httpRequest = networkRoute.request()
+    const requestURL = new URL(httpRequest.url())
+
+    if (httpRequest.method() === "GET") {
+      const targetStaffId = requestURL.searchParams.get("staff_id")
+      const targetDate = requestURL.searchParams.get("date")
+      const targetPatientId = requestURL.searchParams.get("patient_fhir_id")
+      const filtered = currentAppointments.filter((appointment) => {
+        if (targetStaffId && appointment.staff_id !== targetStaffId) {
+          return false
+        }
+        if (targetDate && !String(appointment.starts_at).startsWith(targetDate)) {
+          return false
+        }
+        if (targetPatientId && appointment.patient_fhir_id !== targetPatientId) {
+          return false
+        }
+        return true
+      })
+      await networkRoute.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(filtered),
+      })
+      return
+    }
+
+    if (httpRequest.method() === "POST") {
+      const submittedJSON = httpRequest.postDataJSON()
+      const newStart = new Date(submittedJSON.starts_at)
+      const newEnd = new Date(submittedJSON.ends_at)
+
+      const conflictingAppointment = currentAppointments.find(
+        (appointment) =>
+          appointment.staff_id === submittedJSON.staff_id &&
+          appointment.status !== "cancelled" &&
+          hasTimeOverlap(newStart, newEnd, new Date(appointment.starts_at as string), new Date(appointment.ends_at as string))
+      )
+
+      if (conflictingAppointment) {
+        await networkRoute.fulfill({
+          status: 409,
+          contentType: "application/json",
+          body: JSON.stringify({ error: "appointment time slot conflicts with an existing appointment" }),
+        })
+        return
+      }
+
+      const newAppointment = {
+        id: `appt-${currentAppointments.length + 1}`,
+        patient_fhir_id: submittedJSON.patient_fhir_id,
+        staff_id: submittedJSON.staff_id,
+        starts_at: submittedJSON.starts_at,
+        ends_at: submittedJSON.ends_at,
+        status: "scheduled",
+        reason: submittedJSON.reason,
+        version: 1,
+        created_at: new Date().toISOString(),
+      }
+      currentAppointments.push(newAppointment)
+      await networkRoute.fulfill({
+        status: 201,
+        contentType: "application/json",
+        body: JSON.stringify(newAppointment),
+      })
+    }
+  })
+
+  await pageInstance.route("**/api/v1/appointments/my", async (networkRoute) => {
+    await networkRoute.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify(currentAppointments),
+    })
+  })
+
+  await pageInstance.route("**/api/v1/appointments/*/cancel", async (networkRoute) => {
+    const httpRequest = networkRoute.request()
+    const requestURL = new URL(httpRequest.url())
+    const urlParts = requestURL.pathname.split("/")
+    const appointmentId = urlParts[urlParts.length - 2]
+
+    const matchedAppointment = currentAppointments.find((appointment) => appointment.id === appointmentId)
+    if (matchedAppointment) {
+      matchedAppointment.status = "cancelled"
+      await networkRoute.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(matchedAppointment),
+      })
+    } else {
+      await networkRoute.fulfill({
+        status: 404,
+        contentType: "application/json",
+        body: JSON.stringify({ error: "Appointment not found." }),
+      })
+    }
+  })
+}
+
+export const mockPortalAPI = async (pageInstance: Page): Promise<void> => {
+  const portalDashboardPayload = {
+    patient_info: {
+      fhir_resource_id: "fhir-pat-1",
+      full_name: "Guilherme de Souza Araujo",
+      birth_date: "1985-04-12",
+      document_id: "123.456.789-00",
+    },
+    upcoming_encounters: [
+      {
+        fhir_resource_id: "enc-2",
+        status: "finished",
+        reason_display: "Retorno Cardiológico",
+        started_at: "2026-05-15T14:30:00Z",
+        ended_at: "2026-05-15T14:45:00Z",
+      },
+    ],
+    recent_observations: [
+      {
+        fhir_resource_id: "obs-5",
+        code_display: "Pressão Arterial Sistólica",
+        loinc_code: "85354-9",
+        value_quantity: 135,
+        value_unit: "mmHg",
+        observed_at: "2026-05-15T14:35:00Z",
+      },
+    ],
+    active_conditions: [
+      {
+        fhir_resource_id: "cond-1",
+        code_display: "Hipertensão Essencial Primária",
+        icd10_code: "I10",
+        clinical_status: "active",
+        onset_at: "2026-05-15T14:40:00Z",
+      },
+    ],
+    active_medications: [],
+    recent_reports: [
+      {
+        fhir_resource_id: "rep-1",
+        report_display: "Eletrocardiograma de Repouso",
+        status: "final",
+        conclusion: "Ritmo sinusal com leve taquicardia. Recomenda-se acompanhamento ambulatorial.",
+        version: "2",
+        issued_at: "2026-05-15T14:45:00Z",
+      },
+    ],
+    recent_imaging: [
+      {
+        fhir_resource_id: "study-1",
+        title: "Tomografia Computadorizada de Tórax",
+        modality: "CT",
+        status: "completed",
+        created_at: "2026-05-16T10:00:00Z",
+      },
+    ],
+  }
+
+  await pageInstance.route("**/api/v1/portal/dashboard", async (networkRoute) => {
+    await networkRoute.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify(portalDashboardPayload),
+    })
+  })
+
+  await pageInstance.route("**/api/v1/portal/reports", async (networkRoute) => {
+    await networkRoute.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify(portalDashboardPayload.recent_reports),
+    })
+  })
+
+  await pageInstance.route("**/api/v1/portal/appointments", async (networkRoute) => {
+    await networkRoute.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify([]),
+    })
+  })
+}
+
+export const loginAsPatient = async (pageInstance: Page): Promise<void> => {
+  await mockAuthAPI(pageInstance, "PATIENT", {
+    email: "guilherme.paciente@hospital.com",
+    password: "paciente123",
+  })
+  await mockPatientsAPI(pageInstance)
+  await mockClinicalAPI(pageInstance)
+  await mockNotificationsAPI(pageInstance, [
+    {
+      id: "notif-report-ready-1",
+      type: "report_ready",
+      priority: "high",
+      title: "Laudo Pronto - Hemograma Completo",
+      body: "Seu laudo do exame Hemograma Completo está disponível.",
+      resource_type: "report",
+      resource_id: "rep-1",
+      is_read: false,
+      created_at: new Date().toISOString(),
+    },
+  ])
+  await mockPortalAPI(pageInstance)
+
+  await pageInstance.goto("/login")
+  await pageInstance.getByPlaceholder("nome.sobrenome@hospital.com").fill("guilherme.paciente@hospital.com")
+  await pageInstance.getByPlaceholder("••••••••").fill("paciente123")
+  await pageInstance.getByRole("button", { name: "Entrar no Console" }).click()
+  await expect(pageInstance).toHaveURL(/\/portal/)
+}
+
 export const loginAsAdmin = async (pageInstance: Page): Promise<void> => {
+  let adminSessionLoggedIn = false
+
   await pageInstance.route("**/api/v1/auth/login", async (networkRoute) => {
     const httpRequest = networkRoute.request()
     const submittedJSON = httpRequest.postDataJSON()
 
     if (submittedJSON.email === "admin@hospital.com" && submittedJSON.password === "admin123") {
+      adminSessionLoggedIn = true
       await networkRoute.fulfill({
         status: 200,
         contentType: "application/json",
@@ -900,6 +1302,7 @@ export const loginAsAdmin = async (pageInstance: Page): Promise<void> => {
   })
 
   await pageInstance.route("**/api/v1/auth/logout", async (networkRoute) => {
+    adminSessionLoggedIn = false
     await networkRoute.fulfill({
       status: 200,
       contentType: "application/json",
@@ -910,6 +1313,21 @@ export const loginAsAdmin = async (pageInstance: Page): Promise<void> => {
   })
 
   await pageInstance.route("**/api/v1/auth/me", async (networkRoute) => {
+    if (adminSessionLoggedIn) {
+      await networkRoute.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          token: "mock-jwt-token-admin-789",
+          userId: "user-admin-789",
+          role: "ADMIN",
+          email: "admin@hospital.com",
+          fullName: "Administrador do Sistema",
+          isActive: true,
+        }),
+      })
+      return
+    }
     await networkRoute.fulfill({
       status: 401,
       contentType: "application/json",
@@ -923,6 +1341,7 @@ export const loginAsAdmin = async (pageInstance: Page): Promise<void> => {
   await mockClinicalAPI(pageInstance)
   await mockAnalyzerAPI(pageInstance)
   await mockStaffAPI(pageInstance)
+  await mockScheduleAPI(pageInstance)
   await mockTelemetryAPI(pageInstance)
   await mockAnalyticsAPI(pageInstance)
   await mockAuditLogsAPI(pageInstance)
@@ -935,39 +1354,45 @@ export const loginAsAdmin = async (pageInstance: Page): Promise<void> => {
   await expect(pageInstance).toHaveURL(/\/$/)
 }
 
-export const mockNotificationsAPI = async (pageInstance: Page): Promise<void> => {
-  const currentNotifications: Record<string, unknown>[] = [
-    {
-      id: "notif-1",
-      type: "system",
-      priority: "low",
-      title: "Bem-vindo ao sistema",
-      body: "Seu cadastro foi realizado com sucesso.",
-      resource_type: "",
-      resource_id: "",
-      is_read: false,
-      created_at: new Date().toISOString(),
-    },
-    {
-      id: "notif-2",
-      type: "telemetry_alert",
-      priority: "critical",
-      title: "Alerta Crítico - Leito 01",
-      body: "Paciente apresenta sinais vitais instáveis.",
-      resource_type: "bed",
-      resource_id: "bed-1",
-      is_read: false,
-      created_at: new Date().toISOString(),
-    },
-  ]
+export const mockNotificationsAPI = async (
+  pageInstance: Page,
+  initialNotifications: Record<string, unknown>[] = []
+): Promise<void> => {
+  const currentNotifications: Record<string, unknown>[] = initialNotifications.length > 0
+    ? initialNotifications
+    : [
+        {
+          id: "notif-1",
+          type: "system",
+          priority: "low",
+          title: "Bem-vindo ao sistema",
+          body: "Seu cadastro foi realizado com sucesso.",
+          resource_type: "",
+          resource_id: "",
+          is_read: false,
+          created_at: new Date().toISOString(),
+        },
+        {
+          id: "notif-2",
+          type: "telemetry_alert",
+          priority: "critical",
+          title: "Alerta Crítico - Leito 01",
+          body: "Paciente apresenta sinais vitais instáveis.",
+          resource_type: "bed",
+          resource_id: "bed-1",
+          is_read: false,
+          created_at: new Date().toISOString(),
+        },
+      ]
 
-  await pageInstance.route("**/api/v1/notifications", async (networkRoute) => {
+  await pageInstance.route("**/api/v1/notifications*", async (networkRoute) => {
     const httpRequest = networkRoute.request()
     if (httpRequest.method() === "GET") {
+      const unreadOnlyNotifications = currentNotifications.filter((notification) => !notification.is_read)
       await networkRoute.fulfill({
         status: 200,
         contentType: "application/json",
-        body: JSON.stringify({ notifications: currentNotifications, total: currentNotifications.length }),
+        body: JSON.stringify({ notifications: unreadOnlyNotifications, total: unreadOnlyNotifications.length }),
       })
     }
   })
@@ -1021,6 +1446,7 @@ export const loginAsDoctor = async (pageInstance: Page): Promise<void> => {
   await mockClinicalAPI(pageInstance)
   await mockAnalyzerAPI(pageInstance)
   await mockStaffAPI(pageInstance)
+  await mockScheduleAPI(pageInstance)
   await mockTelemetryAPI(pageInstance)
   await mockAnalyticsAPI(pageInstance)
   await mockNotificationsAPI(pageInstance)

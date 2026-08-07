@@ -11,7 +11,7 @@ test.describe("In-App Notification Bell Module", () => {
     const bellButton = page.getByTitle("Notificações")
     await expect(bellButton).toBeVisible()
 
-    const unreadBadge = page.locator("text=2")
+    const unreadBadge = bellButton.locator("text=2")
     await expect(unreadBadge).toBeVisible()
   })
 

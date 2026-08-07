@@ -1,9 +1,9 @@
 import { test, expect } from "@playwright/test"
-import { loginAsDoctor } from "./helpers"
+import { loginAsAdmin } from "./helpers"
 
 test.describe("Patient Registration Validation", () => {
   test.beforeEach(async ({ page }) => {
-    await loginAsDoctor(page)
+    await loginAsAdmin(page)
   })
 
   test("should display validation errors for invalid inputs", async ({ page }) => {

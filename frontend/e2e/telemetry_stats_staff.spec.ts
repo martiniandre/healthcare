@@ -7,15 +7,15 @@ test.describe("Real-time Telemetry Dashboard Module", () => {
     await page.goto("/telemetry")
   })
 
-  test("should display telemetry rooms and default unlocked room status", async ({ page }) => {
+  test("should display telemetry rooms and default protected room status", async ({ page }) => {
     const greenRoomName = page.getByRole("heading", { name: "Sala Verde - Semi-Intensiva" })
     await expect(greenRoomName).toBeVisible()
 
     const redRoomName = page.getByRole("heading", { name: "Sala Vermelha - Choque & Emergência" })
     await expect(redRoomName).toBeVisible()
 
-    const unlockedBadge = page.locator("text=Desbloqueada").first()
-    await expect(unlockedBadge).toBeVisible()
+    const protectedBadge = page.locator("text=Protegida").first()
+    await expect(protectedBadge).toBeVisible()
   })
 
   test("should handle room unlocking workflow with passcode verification", async ({ page }) => {
@@ -114,7 +114,8 @@ test.describe("Hospital Staff Management Module", () => {
     await page.getByRole("button", { name: "Cadastrar Profissional" }).click()
 
     await page.getByPlaceholder("Ex: Dr. André Silva de Araujo").fill("Dra. Paula Albuquerque")
-    await page.locator("select").selectOption("Médico")
+    await page.getByRole("combobox").click()
+    await page.getByRole("option", { name: "NURSE" }).click()
     await page.getByPlaceholder("Ex: CRM-SP 12345").fill("CRM-SP 777777")
     await page.getByPlaceholder("Ex: nome@hospital.com").fill("paula.albuquerque@hospital.com")
     await page.getByPlaceholder("Ex: Cardiologia").fill("Neurologia")

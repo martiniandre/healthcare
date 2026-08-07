@@ -5,11 +5,11 @@ test.describe("Medical Imaging Module (PACS Console)", () => {
   test.beforeEach(async ({ page }) => {
     await loginAsDoctor(page)
     await page.goto("/patients/fhir-pat-1?tab=pacs")
-    await page.getByRole("button", { name: "Visualizar" }).click()
+    await page.getByRole("button", { name: "Abrir PACS" }).click()
   })
 
   test("should load the PACS surgical console with study details", async ({ page }) => {
-    const surgicalConsoleHeading = page.locator("text=Console Cirúrgico PACS")
+    const surgicalConsoleHeading = page.locator("text=Console Clínico PACS")
     await expect(surgicalConsoleHeading).toBeVisible()
 
     const studyTitleText = page.locator("text=Tomografia Computadorizada de Tórax")
@@ -40,11 +40,6 @@ test.describe("Medical Imaging Module (PACS Console)", () => {
   })
 
   test("should simulate DICOM file upload with progress bar", async ({ page }) => {
-    let receivedDialogAlertMessage = ""
-    page.on("dialog", async (dialogWindow) => {
-      receivedDialogAlertMessage = dialogWindow.message()
-      await dialogWindow.accept()
-    })
     const fileChooserPromise = page.waitForEvent("filechooser")
     await page.getByRole("button", { name: "Upload Novo .DCM" }).click()
     const fileChooser = await fileChooserPromise
@@ -53,9 +48,8 @@ test.describe("Medical Imaging Module (PACS Console)", () => {
       mimeType: "application/dicom",
       buffer: Buffer.from("mock_content")
     })
-    const progressBarContainer = page.locator("text=Iniciando upload e validação de assinatura DICOM...")
-    await expect(progressBarContainer).toBeVisible()
-    await page.waitForTimeout(4000)
-    expect(receivedDialogAlertMessage).toContain("DICOM carregado e processado com sucesso")
+
+    const successToast = page.getByText("DICOM carregado e processado com sucesso no barramento do PACS!")
+    await expect(successToast).toBeVisible()
   })
 })

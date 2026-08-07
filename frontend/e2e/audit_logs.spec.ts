@@ -9,21 +9,22 @@ test.describe("Audit Logs Management Module", () => {
 
   test("should display audit logs page title and table with rows", async ({ page }) => {
     await expect(page.locator("text=Registros de Auditoria")).toBeVisible()
-    await expect(page.locator("text=admin@hospital.com")).toBeVisible()
-    await expect(page.locator("text=medico@clinica.com")).toBeVisible()
-    await expect(page.locator("text=Sucesso")).toBeVisible()
-    await expect(page.locator("text=Falha")).toBeVisible()
+    const logsTable = page.getByRole("table")
+    await expect(logsTable.getByText("admin@hospital.com")).toBeVisible()
+    await expect(logsTable.getByText("medico@clinica.com")).toBeVisible()
+    await expect(logsTable.getByText("Sucesso").first()).toBeVisible()
+    await expect(logsTable.getByText("Falha")).toBeVisible()
   })
 
   test("should show audit log details when expanding a row", async ({ page }) => {
-    await page.locator("text=admin@hospital.com").click()
-    await expect(page.locator("text=corr-001")).toBeVisible()
-    await expect(page.locator("text=log-1")).toBeVisible()
+    await page.getByRole("table").getByText("admin@hospital.com").click()
+    await expect(page.getByText("corr-001")).toBeVisible()
+    await expect(page.getByText("log-1")).toBeVisible()
   })
 
   test("should filter audit logs by status dropdown", async ({ page }) => {
     const statusSelect = page.locator("select").nth(1)
     await statusSelect.selectOption("FAILURE")
-    await expect(page.locator("text=usuario.invalido@test.com")).toBeVisible()
+    await expect(page.getByRole("table").getByText("usuario.invalido@test.com")).toBeVisible()
   })
 })

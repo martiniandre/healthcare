@@ -73,7 +73,8 @@ test.describe("Staff Registration Validation", () => {
     await page.getByRole("button", { name: "Cadastrar Profissional" }).click()
 
     await page.getByPlaceholder("Ex: Dr. André Silva de Araujo").fill("Dra. Roberta Santos")
-    await page.locator("select").selectOption("Médico")
+    await page.getByRole("combobox").click()
+    await page.getByRole("option", { name: "NURSE" }).click()
     await page.getByPlaceholder("Ex: nome@hospital.com").fill("roberta@hospital.com")
     await page.getByPlaceholder("Ex: CRM-SP 12345").fill("CRM-SP 54321")
 
