@@ -9,6 +9,7 @@ import analytics from "./analytics.json"
 import staff from "./staff.json"
 import auditLogs from "./auditLogs.json"
 import notifications from "./notifications.json"
+import schedule from "./schedule.json"
 
 const enUSResource = {
   sidebar,
@@ -21,7 +22,8 @@ const enUSResource = {
   analytics,
   staff,
   auditLogs,
-  notifications
+  notifications,
+  schedule,
 }
 
 export default enUSResource

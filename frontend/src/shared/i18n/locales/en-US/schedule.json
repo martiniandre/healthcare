@@ -1,0 +1,71 @@
+{
+  "title": "Schedule",
+  "subtitle": "Manage appointment booking and time slots",
+  "newAppointment": "New Appointment",
+  "selectStaff": "Professional",
+  "selectStaffPlaceholder": "Select a professional",
+  "selectDate": "Date",
+  "dayAgenda": "Schedule for {{date}}",
+  "status": {
+    "scheduled": "Scheduled",
+    "confirmed": "Confirmed",
+    "cancelled": "Cancelled",
+    "finished": "Finished"
+  },
+  "cards": {
+    "noReason": "No reason provided",
+    "cancelAppointment": "Cancel appointment"
+  },
+  "emptyState": {
+    "selectStaff": "Select a professional and a date to view the schedule.",
+    "noAppointments": "No appointments for this professional on this date."
+  },
+  "modals": {
+    "create": {
+      "title": "New Appointment",
+      "patient": "Patient",
+      "patientSearchPlaceholder": "Search patient by name...",
+      "selectPatient": "Select the patient",
+      "staff": "Professional",
+      "selectStaff": "Select the professional",
+      "date": "Date",
+      "startTime": "Start",
+      "endTime": "End",
+      "reason": "Reason",
+      "reasonPlaceholder": "Appointment reason...",
+      "cancel": "Cancel",
+      "confirm": "Book"
+    },
+    "cancel": {
+      "title": "Cancel Appointment",
+      "description": "Are you sure you want to cancel this appointment?",
+      "back": "Back",
+      "confirm": "Confirm Cancellation"
+    }
+  },
+  "errors": {
+    "conflict": "Time slot conflict: an appointment already exists in this interval for this professional. Choose another time."
+  },
+  "toasts": {
+    "createSuccess": "Appointment created successfully!",
+    "createError": "Failed to create appointment.",
+    "cancelSuccess": "Appointment cancelled successfully!",
+    "cancelError": "Failed to cancel appointment."
+  },
+  "portal": {
+    "date": "Date",
+    "time": "Time",
+    "reason": "Reason",
+    "status": "Status",
+    "empty": "No appointments found."
+  },
+  "validation": {
+    "patientRequired": "Select a patient.",
+    "staffRequired": "Select a professional.",
+    "dateRequired": "Enter a date.",
+    "startTimeRequired": "Enter a start time.",
+    "endTimeRequired": "Enter an end time.",
+    "reasonMin": "Enter the appointment reason (at least 3 characters).",
+    "endAfterStart": "The end time must be after the start time."
+  }
+}

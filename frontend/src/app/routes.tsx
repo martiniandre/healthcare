@@ -10,12 +10,14 @@ import { usePageViewLogger } from "../shared/hooks/usePageViewLogger"
 const Login = lazy(() => import("../modules/auth/Login").then((module) => ({ default: module.Login })))
 const Patients = lazy(() => import("../modules/patients/Patients").then((module) => ({ default: module.Patients })))
 const PatientDetails = lazy(() => import("../modules/patients/PatientDetails").then((module) => ({ default: module.PatientDetails })))
+const EncounterDetail = lazy(() => import("../modules/patients/EncounterDetail").then((module) => ({ default: module.EncounterDetail })))
 const Telemetry = lazy(() => import("../modules/telemetry/Telemetry").then((module) => ({ default: module.Telemetry })))
 const Stats = lazy(() => import("../modules/analytics/Stats").then((module) => ({ default: module.Stats })))
 const Staff = lazy(() => import("../modules/staff/Staff").then((module) => ({ default: module.Staff })))
 const ExamAnalyzer = lazy(() => import("../modules/exam_analyzer/ExamAnalyzer").then((module) => ({ default: module.ExamAnalyzer })))
 const AuditLogs = lazy(() => import("../modules/audit_logs/AuditLogs").then((module) => ({ default: module.AuditLogs })))
 const PortalPage = lazy(() => import("../modules/portal/PortalPage").then((module) => ({ default: module.PortalPage })))
+const Schedule = lazy(() => import("../modules/schedule/Schedule").then((module) => ({ default: module.Schedule })))
 const ClinicalDashboard = lazy(() => import("../modules/analytics/ClinicalDashboard").then((module) => ({ default: module.ClinicalDashboard })))
 
 const PageViewLogger = () => {
@@ -58,9 +60,14 @@ export const AppRoutes = () => {
                           <Route path="/portal/*" element={<PortalPage />} />
                           <Route path="/dashboard" element={<ClinicalDashboard />} />
                           <Route path="/patients/:id" element={<PatientDetails />} />
+                          <Route path="/patients/:id/encounters/:encounterId" element={<EncounterDetail />} />
                           <Route path="/telemetry" element={<Telemetry />} />
                           <Route path="/analytics" element={<Stats />} />
                           <Route path="/staff" element={<Staff />} />
+                          <Route
+                            path="/schedule"
+                            element={role === "PATIENT" ? <Navigate to="/portal" replace /> : <Schedule />}
+                          />
                           <Route path="/exam-analyzer" element={<ExamAnalyzer />} />
                           <Route
                             path="/audit-logs"

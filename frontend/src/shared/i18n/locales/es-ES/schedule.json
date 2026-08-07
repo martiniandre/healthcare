@@ -1,0 +1,71 @@
+{
+  "title": "Agenda",
+  "subtitle": "Gestión de citas y horarios",
+  "newAppointment": "Nueva Cita",
+  "selectStaff": "Profesional",
+  "selectStaffPlaceholder": "Seleccione un profesional",
+  "selectDate": "Fecha",
+  "dayAgenda": "Agenda de {{date}}",
+  "status": {
+    "scheduled": "Programada",
+    "confirmed": "Confirmada",
+    "cancelled": "Cancelada",
+    "finished": "Finalizada"
+  },
+  "cards": {
+    "noReason": "Sin motivo informado",
+    "cancelAppointment": "Cancelar cita"
+  },
+  "emptyState": {
+    "selectStaff": "Seleccione un profesional y una fecha para ver la agenda.",
+    "noAppointments": "No hay citas para este profesional en esta fecha."
+  },
+  "modals": {
+    "create": {
+      "title": "Nueva Cita",
+      "patient": "Paciente",
+      "patientSearchPlaceholder": "Buscar paciente por nombre...",
+      "selectPatient": "Seleccione el paciente",
+      "staff": "Profesional",
+      "selectStaff": "Seleccione el profesional",
+      "date": "Fecha",
+      "startTime": "Inicio",
+      "endTime": "Fin",
+      "reason": "Motivo",
+      "reasonPlaceholder": "Motivo de la consulta...",
+      "cancel": "Cancelar",
+      "confirm": "Agendar"
+    },
+    "cancel": {
+      "title": "Cancelar Cita",
+      "description": "¿Está seguro de que desea cancelar esta cita?",
+      "back": "Volver",
+      "confirm": "Confirmar Cancelación"
+    }
+  },
+  "errors": {
+    "conflict": "Conflicto de horario: ya existe una cita en este intervalo para este profesional. Elija otro horario."
+  },
+  "toasts": {
+    "createSuccess": "¡Cita creada con éxito!",
+    "createError": "Error al crear la cita.",
+    "cancelSuccess": "¡Cita cancelada con éxito!",
+    "cancelError": "Error al cancelar la cita."
+  },
+  "portal": {
+    "date": "Fecha",
+    "time": "Horario",
+    "reason": "Motivo",
+    "status": "Estado",
+    "empty": "No se encontraron citas."
+  },
+  "validation": {
+    "patientRequired": "Seleccione un paciente.",
+    "staffRequired": "Seleccione un profesional.",
+    "dateRequired": "Ingrese la fecha.",
+    "startTimeRequired": "Ingrese la hora de inicio.",
+    "endTimeRequired": "Ingrese la hora de fin.",
+    "reasonMin": "Ingrese el motivo de la consulta (mínimo 3 caracteres).",
+    "endAfterStart": "La hora de fin debe ser posterior al inicio."
+  }
+}

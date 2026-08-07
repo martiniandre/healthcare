@@ -2,12 +2,13 @@ import { useNavigate, useLocation } from "react-router-dom"
 import { useTranslation } from "react-i18next"
 import { useAuthStore } from "../store/auth_store"
 import { useLayoutStore } from "../store/layout_store"
-import { Activity, Users, BarChart3, Settings, LogOut, X, Sparkles, History, UserRound, LayoutDashboard } from "lucide-react"
+import { Activity, Users, BarChart3, Settings, LogOut, X, Sparkles, History, UserRound, LayoutDashboard, CalendarClock } from "lucide-react"
 
 const navigationItems = [
   { key: "patients", icon: Users, path: "/", staffOnly: true },
   { key: "dashboard", icon: LayoutDashboard, path: "/dashboard", staffOnly: true },
   { key: "portal", icon: UserRound, path: "/portal", patientOnly: true },
+  { key: "schedule", icon: CalendarClock, path: "/schedule", staffOnly: true },
   { key: "telemetry", icon: Activity, path: "/telemetry", staffOnly: true },
   { key: "examAnalyzer", icon: Sparkles, path: "/exam-analyzer", staffOnly: true },
   { key: "analytics", icon: BarChart3, path: "/analytics", staffOnly: true },

@@ -1,0 +1,71 @@
+{
+  "title": "Agenda",
+  "subtitle": "Gestão de agendamentos de consultas e horários",
+  "newAppointment": "Novo Agendamento",
+  "selectStaff": "Profissional",
+  "selectStaffPlaceholder": "Selecione um profissional",
+  "selectDate": "Data",
+  "dayAgenda": "Agenda de {{date}}",
+  "status": {
+    "scheduled": "Agendado",
+    "confirmed": "Confirmado",
+    "cancelled": "Cancelado",
+    "finished": "Finalizado"
+  },
+  "cards": {
+    "noReason": "Sem motivo informado",
+    "cancelAppointment": "Cancelar agendamento"
+  },
+  "emptyState": {
+    "selectStaff": "Selecione um profissional e uma data para visualizar a agenda.",
+    "noAppointments": "Nenhum agendamento para este profissional nesta data."
+  },
+  "modals": {
+    "create": {
+      "title": "Novo Agendamento",
+      "patient": "Paciente",
+      "patientSearchPlaceholder": "Buscar paciente pelo nome...",
+      "selectPatient": "Selecione o paciente",
+      "staff": "Profissional",
+      "selectStaff": "Selecione o profissional",
+      "date": "Data",
+      "startTime": "Início",
+      "endTime": "Fim",
+      "reason": "Motivo",
+      "reasonPlaceholder": "Motivo da consulta...",
+      "cancel": "Cancelar",
+      "confirm": "Agendar"
+    },
+    "cancel": {
+      "title": "Cancelar Agendamento",
+      "description": "Tem certeza que deseja cancelar este agendamento?",
+      "back": "Voltar",
+      "confirm": "Confirmar Cancelamento"
+    }
+  },
+  "errors": {
+    "conflict": "Conflito de horário: já existe um agendamento neste intervalo para este profissional. Escolha outro horário."
+  },
+  "toasts": {
+    "createSuccess": "Agendamento criado com sucesso!",
+    "createError": "Falha ao criar agendamento.",
+    "cancelSuccess": "Agendamento cancelado com sucesso!",
+    "cancelError": "Falha ao cancelar agendamento."
+  },
+  "portal": {
+    "date": "Data",
+    "time": "Horário",
+    "reason": "Motivo",
+    "status": "Status",
+    "empty": "Nenhum agendamento encontrado."
+  },
+  "validation": {
+    "patientRequired": "Selecione um paciente.",
+    "staffRequired": "Selecione um profissional.",
+    "dateRequired": "Informe a data.",
+    "startTimeRequired": "Informe o horário de início.",
+    "endTimeRequired": "Informe o horário de término.",
+    "reasonMin": "Informe o motivo da consulta (mínimo 3 caracteres).",
+    "endAfterStart": "O horário de término deve ser após o início."
+  }
+}
