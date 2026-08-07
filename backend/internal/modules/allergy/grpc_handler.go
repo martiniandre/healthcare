@@ -2,7 +2,6 @@ package allergy
 
 import (
 	"context"
-	"errors"
 
 	pb "github.com/healthcare/backend/internal/modules/allergy/pb"
 	"github.com/healthcare/backend/internal/shared/apperrors"
@@ -16,26 +15,8 @@ func NewGRPCHandler(service Service) *GRPCHandler {
 	return &GRPCHandler{service: service}
 }
 
-func mapAllergyError(err error) error {
-	if errors.Is(err, ErrAllergyNotFound) {
-		return apperrors.ErrAllergyIntoleranceNotFound.ToGRPC()
-	}
-	return apperrors.ToGRPCStatus(err)
-}
-
 func (handler *GRPCHandler) CreateAllergyIntolerance(ctx context.Context, req *pb.CreateAllergyIntoleranceRequest) (*pb.CreateAllergyIntoleranceResponse, error) {
-	violations := make(map[string]string)
-	if req.PatientFhirId == "" {
-		violations["patient_fhir_id"] = "is required"
-	}
-	if req.AllergenCode == "" {
-		violations["allergen_code"] = "is required"
-	}
-	if len(violations) > 0 {
-		return nil, apperrors.ErrBadRequest.WithFields(violations)
-	}
-
-	allergy := &Allergy{
+	input := CreateAllergyInput{
 		PatientFHIRID:   req.PatientFhirId,
 		AllergenCode:    req.AllergenCode,
 		AllergenDisplay: req.AllergenDisplay,
@@ -43,9 +24,9 @@ func (handler *GRPCHandler) CreateAllergyIntolerance(ctx context.Context, req *p
 		Reaction:        req.Reaction,
 	}
 
-	createdAllergy, err := handler.service.CreateAllergyIntolerance(ctx, allergy)
+	createdAllergy, err := handler.service.CreateAllergyIntolerance(ctx, input)
 	if err != nil {
-		return nil, mapAllergyError(err)
+		return nil, apperrors.ToGRPCStatus(err)
 	}
 
 	return &pb.CreateAllergyIntoleranceResponse{AllergyFhirId: createdAllergy.FHIRResourceID}, nil
@@ -58,7 +39,7 @@ func (handler *GRPCHandler) GetAllergyIntolerances(ctx context.Context, req *pb.
 
 	allergies, err := handler.service.GetAllergyIntolerancesByPatient(ctx, req.PatientFhirId)
 	if err != nil {
-		return nil, mapAllergyError(err)
+		return nil, apperrors.ToGRPCStatus(err)
 	}
 
 	pbAllergies := make([]*pb.AllergyIntolerance, 0, len(allergies))

@@ -1,11 +1,6 @@
 package allergy
 
-import (
-	"errors"
-	"time"
-)
-
-var ErrAllergyNotFound = errors.New("allergy intolerance not found")
+import "time"
 
 type Allergy struct {
 	FHIRResourceID  string

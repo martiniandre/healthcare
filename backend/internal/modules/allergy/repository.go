@@ -7,12 +7,14 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/healthcare/backend/internal/shared/apperrors"
 	"github.com/healthcare/backend/internal/shared/fhir"
 	"github.com/healthcare/backend/internal/shared/healthcare"
 )
 
 type Repository interface {
 	CreateAllergyIntolerance(ctx context.Context, allergy *Allergy) (*Allergy, error)
+	GetAllergyIntoleranceByID(ctx context.Context, fhirResourceID string) (*Allergy, error)
 	GetAllergyIntolerancesByPatient(ctx context.Context, patientFHIRID string) ([]*Allergy, error)
 	UpdateAllergyIntolerance(ctx context.Context, fhirResourceID string, allergy *Allergy) (*Allergy, error)
 	DeleteAllergyIntolerance(ctx context.Context, fhirResourceID string) error
@@ -79,6 +81,22 @@ func (allergyRepository *repository) DeleteAllergyIntolerance(ctx context.Contex
 	return allergyRepository.fhirClient.DeleteResource(ctx, "AllergyIntolerance/"+fhirResourceID)
 }
 
+func (allergyRepository *repository) GetAllergyIntoleranceByID(ctx context.Context, fhirResourceID string) (*Allergy, error) {
+	responseBody, err := allergyRepository.fhirClient.GetResource(ctx, "AllergyIntolerance", fhirResourceID)
+	if err != nil {
+		if healthcare.IsNotFound(err) {
+			return nil, fmt.Errorf("failed to get allergy intolerance: %w", apperrors.ErrAllergyIntoleranceNotFound)
+		}
+		return nil, fmt.Errorf("failed to get allergy intolerance: %w", err)
+	}
+
+	decodedResource, err := fhir.DecodeResource[fhir.AllergyIntolerance](responseBody)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse allergy intolerance response: %w", err)
+	}
+	return mapFHIRAllergyToDomain(decodedResource), nil
+}
+
 func (allergyRepository *repository) GetAllergyIntolerancesByPatient(ctx context.Context, patientFHIRID string) ([]*Allergy, error) {
 	queryParams := url.Values{"patient": []string{fmt.Sprintf("Patient/%s", patientFHIRID)}}.Encode()
 	responseBody, err := allergyRepository.fhirClient.SearchResources(ctx, "AllergyIntolerance", queryParams)
@@ -95,25 +113,29 @@ func parseAllergyBundle(responseBody json.RawMessage) ([]*Allergy, error) {
 	}
 	allergies := make([]*Allergy, 0, len(decodedResources))
 	for _, resource := range decodedResources {
-		allergy := &Allergy{}
-		allergy.FHIRResourceID = resource.ID
-		clinicalStatusCode, _, _ := fhir.CodeableConceptParts(resource.ClinicalStatus)
-		allergy.ClinicalStatus = clinicalStatusCode
-		code, display, text := fhir.CodeableConceptParts(resource.Code)
-		allergy.AllergenDisplay = text
-		allergy.AllergenCode = code
-		if allergy.AllergenDisplay == "" {
-			allergy.AllergenDisplay = display
-		}
-		allergy.PatientFHIRID = fhir.SplitReferenceID(resource.Patient.Reference)
-		if parsedTime, ok := fhir.ParseRFC3339(resource.RecordedDate); ok {
-			allergy.RecordedAt = parsedTime
-		}
-		if len(resource.Reaction) > 0 && len(resource.Reaction[0].Manifestation) > 0 {
-			_, _, text := fhir.CodeableConceptParts(resource.Reaction[0].Manifestation[0])
-			allergy.Reaction = text
-		}
-		allergies = append(allergies, allergy)
+		allergies = append(allergies, mapFHIRAllergyToDomain(&resource))
 	}
 	return allergies, nil
+}
+
+func mapFHIRAllergyToDomain(resource *fhir.AllergyIntolerance) *Allergy {
+	allergy := &Allergy{}
+	allergy.FHIRResourceID = resource.ID
+	clinicalStatusCode, _, _ := fhir.CodeableConceptParts(resource.ClinicalStatus)
+	allergy.ClinicalStatus = clinicalStatusCode
+	code, display, text := fhir.CodeableConceptParts(resource.Code)
+	allergy.AllergenDisplay = text
+	allergy.AllergenCode = code
+	if allergy.AllergenDisplay == "" {
+		allergy.AllergenDisplay = display
+	}
+	allergy.PatientFHIRID = fhir.SplitReferenceID(resource.Patient.Reference)
+	if parsedTime, ok := fhir.ParseRFC3339(resource.RecordedDate); ok {
+		allergy.RecordedAt = parsedTime
+	}
+	if len(resource.Reaction) > 0 && len(resource.Reaction[0].Manifestation) > 0 {
+		_, _, text := fhir.CodeableConceptParts(resource.Reaction[0].Manifestation[0])
+		allergy.Reaction = text
+	}
+	return allergy
 }

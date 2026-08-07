@@ -48,7 +48,7 @@ func (handler *HTTPHandler) ListAllergiesByPatient(httpResponseWriter http.Respo
 	allergiesList, allergiesErr := handler.service.GetAllergyIntolerancesByPatient(httpRequest.Context(), patientFhirID)
 	if allergiesErr != nil {
 		slog.Error("failed to list allergies", "error", allergiesErr, "patient_fhir_id", patientFhirID, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.Error(httpResponseWriter, http.StatusInternalServerError, "Erro ao carregar alergias do paciente.")
+		render.ErrorFromAppError(httpResponseWriter, allergiesErr)
 		return
 	}
 
@@ -91,24 +91,17 @@ func (handler *HTTPHandler) CreateAllergy(httpResponseWriter http.ResponseWriter
 		return
 	}
 
-	if payload.AllergenCode == "" {
-		render.Error(httpResponseWriter, http.StatusBadRequest, "O código do alérgeno é obrigatório.")
-		return
-	}
-
-	newAllergy := &Allergy{
+	input := CreateAllergyInput{
 		PatientFHIRID:   patientFhirID,
 		AllergenCode:    payload.AllergenCode,
 		AllergenDisplay: payload.AllergenDisplay,
-		ClinicalStatus:  "active",
 		Reaction:        payload.Reaction,
-		RecordedAt:      time.Now(),
 	}
 
-	createdAllergy, createErr := handler.service.CreateAllergyIntolerance(httpRequest.Context(), newAllergy)
+	createdAllergy, createErr := handler.service.CreateAllergyIntolerance(httpRequest.Context(), input)
 	if createErr != nil {
 		slog.Error("failed to create allergy", "error", createErr, "patient_fhir_id", patientFhirID, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.Error(httpResponseWriter, http.StatusInternalServerError, "Erro ao criar alergia.")
+		render.ErrorFromAppError(httpResponseWriter, createErr)
 		return
 	}
 
@@ -128,10 +121,10 @@ func (handler *HTTPHandler) UpdateAllergy(httpResponseWriter http.ResponseWriter
 	allergyFhirID := httpRequest.PathValue("allergyFhirId")
 
 	var payload struct {
-		AllergenCode    string `json:"allergen_code"`
-		AllergenDisplay string `json:"allergen_display"`
-		ClinicalStatus  string `json:"clinical_status"`
-		Reaction        string `json:"reaction"`
+		AllergenCode    *string `json:"allergen_code"`
+		AllergenDisplay *string `json:"allergen_display"`
+		ClinicalStatus  *string `json:"clinical_status"`
+		Reaction        *string `json:"reaction"`
 	}
 
 	if payloadDecodeErr := json.NewDecoder(httpRequest.Body).Decode(&payload); payloadDecodeErr != nil {
@@ -139,18 +132,17 @@ func (handler *HTTPHandler) UpdateAllergy(httpResponseWriter http.ResponseWriter
 		return
 	}
 
-	updatedAllergy := &Allergy{
-		PatientFHIRID:   patientFhirID,
+	input := UpdateAllergyInput{
 		AllergenCode:    payload.AllergenCode,
 		AllergenDisplay: payload.AllergenDisplay,
 		ClinicalStatus:  payload.ClinicalStatus,
 		Reaction:        payload.Reaction,
 	}
 
-	allergyResult, updateErr := handler.service.UpdateAllergyIntolerance(httpRequest.Context(), allergyFhirID, updatedAllergy)
+	allergyResult, updateErr := handler.service.UpdateAllergyIntolerance(httpRequest.Context(), allergyFhirID, input)
 	if updateErr != nil {
 		slog.Error("failed to update allergy", "error", updateErr, "allergy_fhir_id", allergyFhirID, "patient_fhir_id", patientFhirID, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.Error(httpResponseWriter, http.StatusInternalServerError, "Erro ao atualizar alergia.")
+		render.ErrorFromAppError(httpResponseWriter, updateErr)
 		return
 	}
 
@@ -170,7 +162,7 @@ func (handler *HTTPHandler) DeleteAllergy(httpResponseWriter http.ResponseWriter
 
 	if deleteErr := handler.service.DeleteAllergyIntolerance(httpRequest.Context(), allergyFhirID); deleteErr != nil {
 		slog.Error("failed to delete allergy", "error", deleteErr, "allergy_fhir_id", allergyFhirID, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.Error(httpResponseWriter, http.StatusInternalServerError, "Erro ao remover alergia.")
+		render.ErrorFromAppError(httpResponseWriter, deleteErr)
 		return
 	}
 
