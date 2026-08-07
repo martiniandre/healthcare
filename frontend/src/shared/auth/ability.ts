@@ -18,7 +18,7 @@ export function defineAppAbility(userRole: string | null): AppAbility {
     can([Action.Create, Action.Read], [Feature.DiagnosticReport, Feature.TelemetryBed])
     can([Action.Create, Action.Read], [Feature.MedicationRequest])
     can([Action.Create, Action.Read, Action.Delete], [Feature.ExamAnalysis])
-    can(Action.Read, [Feature.Patient, Feature.Staff, Feature.ImagingStudy])
+    can(Action.Read, [Feature.Patient, Feature.Staff, Feature.ImagingStudy, Feature.Appointment])
     cannot(Action.Create, [Feature.Patient, Feature.Staff])
     return build()
   }
@@ -30,6 +30,7 @@ export function defineAppAbility(userRole: string | null): AppAbility {
     can([Action.Create, Action.Read], [Feature.Encounter])
     can(Action.Read, [
       Feature.Patient, Feature.Staff, Feature.ImagingStudy, Feature.MedicationRequest, Feature.ExamAnalysis,
+      Feature.Appointment,
     ])
     cannot(Action.Create, [Feature.Patient, Feature.Staff, Feature.MedicationRequest])
     cannot(Action.Delete, [Feature.ExamAnalysis])
@@ -37,13 +38,13 @@ export function defineAppAbility(userRole: string | null): AppAbility {
   }
 
   if (userRole === "RECEPTION") {
-    can([Action.Create, Action.Read], [Feature.Patient, Feature.Encounter])
+    can([Action.Create, Action.Read], [Feature.Patient, Feature.Encounter, Feature.Appointment])
     can(Action.Read, [Feature.Staff])
     return build()
   }
 
   if (userRole === "PATIENT") {
-    can(Action.Read, [Feature.Portal])
+    can(Action.Read, [Feature.Portal, Feature.Appointment])
     return build()
   }
 
