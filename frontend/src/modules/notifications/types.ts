@@ -8,6 +8,7 @@ export type NotificationType =
   | "patient_created"
   | "patient_updated"
   | "audit_alert"
+  | "report_ready"
   | "system"
 
 export interface NotificationItem {
