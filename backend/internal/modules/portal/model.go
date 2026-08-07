@@ -57,6 +57,7 @@ type PortalReport struct {
 	ReportDisplay  string `json:"report_display"`
 	Status         string `json:"status"`
 	Conclusion     string `json:"conclusion"`
+	Version        string `json:"version"`
 	IssuedAt       string `json:"issued_at"`
 }
 

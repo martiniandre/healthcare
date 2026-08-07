@@ -314,6 +314,12 @@ func parseReportPortalBundle(responseBody json.RawMessage) ([]PortalReport, erro
 			report.IssuedAt = issued
 		}
 
+		if resourceMeta, ok := resource["meta"].(map[string]interface{}); ok {
+			if versionID, versionOk := resourceMeta["versionId"].(string); versionOk {
+				report.Version = versionID
+			}
+		}
+
 		result = append(result, report)
 	}
 
