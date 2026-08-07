@@ -11,6 +11,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/healthcare/backend/internal/api/middleware"
 	"github.com/healthcare/backend/internal/api/render"
+	"github.com/healthcare/backend/internal/shared/ctxkeys"
 	"github.com/healthcare/backend/internal/shared/role"
 )
 
@@ -27,9 +28,11 @@ func NewHTTPHandler(service Service) *HTTPHandler {
 func (handler *HTTPHandler) RegisterRoutes(mux *http.ServeMux) {
 	scheduleWrite := middleware.RequireRoles(role.RoleAdmin, role.RoleReception)
 	scheduleRead := middleware.RequireRoles(role.RoleAdmin, role.RoleReception, role.RoleDoctor, role.RoleNurse)
+	schedulePatient := middleware.RequireRoles(role.RolePatient)
 
 	mux.Handle("POST /api/v1/appointments", scheduleWrite(http.HandlerFunc(handler.CreateAppointment)))
 	mux.Handle("GET /api/v1/appointments", scheduleRead(http.HandlerFunc(handler.ListAppointments)))
+	mux.Handle("GET /api/v1/appointments/my", schedulePatient(http.HandlerFunc(handler.ListMyAppointments)))
 	mux.Handle("GET /api/v1/appointments/{appointmentId}", scheduleRead(http.HandlerFunc(handler.GetAppointment)))
 	mux.Handle("POST /api/v1/appointments/{appointmentId}/cancel", scheduleWrite(http.HandlerFunc(handler.CancelAppointment)))
 }
@@ -137,6 +140,32 @@ func (handler *HTTPHandler) ListAppointments(httpResponseWriter http.ResponseWri
 	}
 
 	render.Error(httpResponseWriter, http.StatusBadRequest, "Informe patient_fhir_id ou staff_id.")
+}
+
+// ListMyAppointments godoc
+//
+//	@Summary		List the authenticated patient's appointments
+//	@Description	Returns appointments for the authenticated patient
+//	@Tags			appointments
+//	@Produce		json
+//	@Success		200	{array}	AppointmentResponse
+//	@Failure		401	{object}	map[string]string
+//	@Failure		500	{object}	map[string]string
+//	@Router			/appointments/my [get]
+func (handler *HTTPHandler) ListMyAppointments(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
+	patientFHIRID, ok := httpRequest.Context().Value(ctxkeys.UserIDKey).(string)
+	if !ok || patientFHIRID == "" {
+		render.Error(httpResponseWriter, http.StatusUnauthorized, "Usuário não autenticado.")
+		return
+	}
+
+	appointments, listErr := handler.service.ListAppointmentsByPatient(httpRequest.Context(), patientFHIRID)
+	if listErr != nil {
+		render.ErrorFromAppError(httpResponseWriter, listErr)
+		return
+	}
+
+	render.JSON(httpResponseWriter, http.StatusOK, toAppointmentResponseList(appointments))
 }
 
 // GetAppointment godoc
