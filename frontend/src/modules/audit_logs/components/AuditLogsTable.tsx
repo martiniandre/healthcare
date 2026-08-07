@@ -56,6 +56,7 @@ export const AuditLogsTable = ({
             <TableHead>{t("tableUser")}</TableHead>
             <TableHead>{t("tableRole")}</TableHead>
             <TableHead>{t("tableAction")}</TableHead>
+            <TableHead>{t("tableResource")}</TableHead>
             <TableHead>{t("tableStatus")}</TableHead>
             <TableHead className="w-[80px]"></TableHead>
           </TableRow>
@@ -68,13 +69,14 @@ export const AuditLogsTable = ({
                 <TableCell><Skeleton className="h-4 w-36" /></TableCell>
                 <TableCell><Skeleton className="h-4 w-16" /></TableCell>
                 <TableCell><Skeleton className="h-4 w-28" /></TableCell>
+                <TableCell><Skeleton className="h-4 w-20" /></TableCell>
                 <TableCell><Skeleton className="h-4 w-16" /></TableCell>
                 <TableCell><Skeleton className="h-4 w-6" /></TableCell>
               </TableRow>
             ))
           ) : auditLogsList.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={6} className="text-center py-8 text-gray-500 font-semibold text-xs">
+              <TableCell colSpan={7} className="text-center py-8 text-gray-500 font-semibold text-xs">
                 {t("noLogsFound")}
               </TableCell>
             </TableRow>
@@ -108,6 +110,22 @@ export const AuditLogsTable = ({
                       {log.method}
                     </TableCell>
                     <TableCell>
+                      {log.resource_type ? (
+                        <div className="flex flex-col gap-0.5">
+                          <span className="text-[9px] font-bold uppercase text-gray-500">
+                            {log.resource_type}
+                          </span>
+                          {log.resource_id && (
+                            <span className="font-mono text-[10px] text-blue-600">
+                              {log.resource_id}
+                            </span>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="text-xs text-gray-400">—</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
                       <div className="flex items-center gap-1.5">
                         {isSuccess ? (
                           <CheckCircle2 className="w-4 h-4 text-green-500 shrink-0" />
@@ -129,7 +147,7 @@ export const AuditLogsTable = ({
                   </TableRow>
                   {isExpanded && (
                     <TableRow className="bg-gray-50/50 hover:bg-gray-50/50">
-                      <TableCell colSpan={6} className="p-4 border-t border-border">
+                      <TableCell colSpan={7} className="p-4 border-t border-border">
                         <div className="flex flex-col gap-2 bg-white p-3 rounded-lg border border-border text-xs font-mono text-gray-700 overflow-x-auto max-w-full">
                           <div className="flex flex-col gap-1">
                             <span className="font-bold text-gray-500 uppercase text-[9px] tracking-wider">
@@ -137,6 +155,24 @@ export const AuditLogsTable = ({
                             </span>
                             <span className="text-gray-800">{log.id}</span>
                           </div>
+                          {log.action && (
+                            <div className="flex flex-col gap-1 mt-2">
+                              <span className="font-bold text-gray-500 uppercase text-[9px] tracking-wider">
+                                {t("auditAction")}
+                              </span>
+                              <span className="text-gray-800">{log.action}</span>
+                            </div>
+                          )}
+                          {log.payload_diff && Object.keys(log.payload_diff).length > 0 && (
+                            <div className="flex flex-col gap-1 mt-2">
+                              <span className="font-bold text-gray-500 uppercase text-[9px] tracking-wider">
+                                {t("payloadDiff")}
+                              </span>
+                              <pre className="whitespace-pre-wrap font-mono text-gray-800 bg-gray-50 p-2.5 rounded border border-border max-h-56 overflow-y-auto">
+                                {JSON.stringify(log.payload_diff, null, 2)}
+                              </pre>
+                            </div>
+                          )}
                           <div className="flex flex-col gap-1 mt-2">
                             <span className="font-bold text-gray-500 uppercase text-[9px] tracking-wider">
                               {t("details")}

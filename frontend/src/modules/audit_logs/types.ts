@@ -5,6 +5,10 @@ export interface AuditLog {
   caller_role: string
   method: string
   access_granted: boolean
+  resource_type?: string
+  resource_id?: string
+  action?: string
+  payload_diff?: Record<string, Record<string, unknown>>
   created_at: string
 }
 
