@@ -9,7 +9,6 @@ import (
 	"github.com/healthcare/backend/internal/api/middleware"
 	"github.com/healthcare/backend/internal/api/render"
 	"github.com/healthcare/backend/internal/shared/ctxkeys"
-	"github.com/healthcare/backend/internal/shared/role"
 )
 
 type HTTPHandler struct {
@@ -23,11 +22,8 @@ func NewHTTPHandler(service Service) *HTTPHandler {
 }
 
 func (auditLogsHTTPHandler *HTTPHandler) RegisterRoutes(mux *http.ServeMux) {
-	adminOnly := middleware.RequireRoles(role.RoleAdmin)
-	authenticated := middleware.RequireRoles(role.RoleAdmin, role.RoleDoctor, role.RoleNurse, role.RoleReception, role.RolePatient)
-
-	mux.Handle("GET /api/v1/audit-logs", adminOnly(http.HandlerFunc(auditLogsHTTPHandler.ListAuditLogs)))
-	mux.Handle("POST /api/v1/audit-logs", authenticated(http.HandlerFunc(auditLogsHTTPHandler.CreateAuditLog)))
+	mux.Handle("GET /api/v1/audit-logs", middleware.RequirePolicy("GET /api/v1/audit-logs")(http.HandlerFunc(auditLogsHTTPHandler.ListAuditLogs)))
+	mux.Handle("POST /api/v1/audit-logs", middleware.RequirePolicy("POST /api/v1/audit-logs")(http.HandlerFunc(auditLogsHTTPHandler.CreateAuditLog)))
 }
 
 // ListAuditLogs godoc

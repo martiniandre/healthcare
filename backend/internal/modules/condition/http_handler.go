@@ -8,7 +8,6 @@ import (
 
 	"github.com/healthcare/backend/internal/api/middleware"
 	"github.com/healthcare/backend/internal/api/render"
-	"github.com/healthcare/backend/internal/shared/role"
 )
 
 type HTTPHandler struct {
@@ -22,13 +21,10 @@ func NewHTTPHandler(service Service) *HTTPHandler {
 }
 
 func (handler *HTTPHandler) RegisterRoutes(mux *http.ServeMux) {
-	clinicalWrite := middleware.RequireRoles(role.RoleAdmin, role.RoleDoctor, role.RoleNurse)
-	clinicalRead := middleware.RequireRoles(role.RoleAdmin, role.RoleDoctor, role.RoleNurse)
-
-	mux.Handle("GET /api/v1/patients/{patientFhirId}/conditions", clinicalRead(http.HandlerFunc(handler.ListConditionsByPatient)))
-	mux.Handle("POST /api/v1/patients/{patientFhirId}/conditions", clinicalWrite(http.HandlerFunc(handler.CreateCondition)))
-	mux.Handle("PUT /api/v1/patients/{patientFhirId}/conditions/{conditionFhirId}", clinicalWrite(http.HandlerFunc(handler.UpdateCondition)))
-	mux.Handle("DELETE /api/v1/patients/{patientFhirId}/conditions/{conditionFhirId}", clinicalWrite(http.HandlerFunc(handler.DeleteCondition)))
+	mux.Handle("GET /api/v1/patients/{patientFhirId}/conditions", middleware.RequirePolicy("GET /api/v1/patients/{patientFhirId}/conditions")(http.HandlerFunc(handler.ListConditionsByPatient)))
+	mux.Handle("POST /api/v1/patients/{patientFhirId}/conditions", middleware.RequirePolicy("POST /api/v1/patients/{patientFhirId}/conditions")(http.HandlerFunc(handler.CreateCondition)))
+	mux.Handle("PUT /api/v1/patients/{patientFhirId}/conditions/{conditionFhirId}", middleware.RequirePolicy("PUT /api/v1/patients/{patientFhirId}/conditions/{conditionFhirId}")(http.HandlerFunc(handler.UpdateCondition)))
+	mux.Handle("DELETE /api/v1/patients/{patientFhirId}/conditions/{conditionFhirId}", middleware.RequirePolicy("DELETE /api/v1/patients/{patientFhirId}/conditions/{conditionFhirId}")(http.HandlerFunc(handler.DeleteCondition)))
 }
 
 // ListConditionsByPatient godoc

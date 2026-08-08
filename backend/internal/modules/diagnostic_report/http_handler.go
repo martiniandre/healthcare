@@ -8,7 +8,6 @@ import (
 
 	"github.com/healthcare/backend/internal/api/middleware"
 	"github.com/healthcare/backend/internal/api/render"
-	"github.com/healthcare/backend/internal/shared/role"
 )
 
 type HTTPHandler struct {
@@ -22,14 +21,11 @@ func NewHTTPHandler(service Service) *HTTPHandler {
 }
 
 func (handler *HTTPHandler) RegisterRoutes(mux *http.ServeMux) {
-	clinicalWrite := middleware.RequireRoles(role.RoleAdmin, role.RoleDoctor, role.RoleNurse)
-	clinicalRead := middleware.RequireRoles(role.RoleAdmin, role.RoleDoctor, role.RoleNurse)
-
-	mux.Handle("GET /api/v1/encounters/{encounterFhirId}/reports", clinicalRead(http.HandlerFunc(handler.ListReportsByEncounter)))
-	mux.Handle("POST /api/v1/encounters/{encounterFhirId}/reports", clinicalWrite(http.HandlerFunc(handler.CreateReport)))
-	mux.Handle("PUT /api/v1/reports/{reportFhirId}", clinicalWrite(http.HandlerFunc(handler.UpdateReport)))
-	mux.Handle("GET /api/v1/reports/{reportFhirId}/versions", clinicalRead(http.HandlerFunc(handler.ListReportVersions)))
-	mux.Handle("GET /api/v1/reports/{reportFhirId}/versions/{version}", clinicalRead(http.HandlerFunc(handler.GetReportVersion)))
+	mux.Handle("GET /api/v1/encounters/{encounterFhirId}/reports", middleware.RequirePolicy("GET /api/v1/encounters/{encounterFhirId}/reports")(http.HandlerFunc(handler.ListReportsByEncounter)))
+	mux.Handle("POST /api/v1/encounters/{encounterFhirId}/reports", middleware.RequirePolicy("POST /api/v1/encounters/{encounterFhirId}/reports")(http.HandlerFunc(handler.CreateReport)))
+	mux.Handle("PUT /api/v1/reports/{reportFhirId}", middleware.RequirePolicy("PUT /api/v1/reports/{reportFhirId}")(http.HandlerFunc(handler.UpdateReport)))
+	mux.Handle("GET /api/v1/reports/{reportFhirId}/versions", middleware.RequirePolicy("GET /api/v1/reports/{reportFhirId}/versions")(http.HandlerFunc(handler.ListReportVersions)))
+	mux.Handle("GET /api/v1/reports/{reportFhirId}/versions/{version}", middleware.RequirePolicy("GET /api/v1/reports/{reportFhirId}/versions/{version}")(http.HandlerFunc(handler.GetReportVersion)))
 }
 
 // ListReportsByEncounter godoc

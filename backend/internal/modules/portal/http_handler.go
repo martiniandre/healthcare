@@ -7,7 +7,6 @@ import (
 	"github.com/healthcare/backend/internal/api/middleware"
 	"github.com/healthcare/backend/internal/api/render"
 	"github.com/healthcare/backend/internal/shared/ctxkeys"
-	"github.com/healthcare/backend/internal/shared/role"
 )
 
 type HTTPHandler struct {
@@ -21,15 +20,13 @@ func NewHTTPHandler(service Service) *HTTPHandler {
 }
 
 func (handler *HTTPHandler) RegisterRoutes(mux *http.ServeMux) {
-	patientOnly := middleware.RequireRoles(role.RolePatient)
-
-	mux.Handle("GET /api/v1/portal/dashboard", patientOnly(http.HandlerFunc(handler.GetDashboard)))
-	mux.Handle("GET /api/v1/portal/encounters", patientOnly(http.HandlerFunc(handler.GetEncounters)))
-	mux.Handle("GET /api/v1/portal/observations", patientOnly(http.HandlerFunc(handler.GetObservations)))
-	mux.Handle("GET /api/v1/portal/conditions", patientOnly(http.HandlerFunc(handler.GetConditions)))
-	mux.Handle("GET /api/v1/portal/medications", patientOnly(http.HandlerFunc(handler.GetMedications)))
-	mux.Handle("GET /api/v1/portal/reports", patientOnly(http.HandlerFunc(handler.GetReports)))
-	mux.Handle("GET /api/v1/portal/imaging", patientOnly(http.HandlerFunc(handler.GetImaging)))
+	mux.Handle("GET /api/v1/portal/dashboard", middleware.RequirePolicy("GET /api/v1/portal/dashboard")(http.HandlerFunc(handler.GetDashboard)))
+	mux.Handle("GET /api/v1/portal/encounters", middleware.RequirePolicy("GET /api/v1/portal/encounters")(http.HandlerFunc(handler.GetEncounters)))
+	mux.Handle("GET /api/v1/portal/observations", middleware.RequirePolicy("GET /api/v1/portal/observations")(http.HandlerFunc(handler.GetObservations)))
+	mux.Handle("GET /api/v1/portal/conditions", middleware.RequirePolicy("GET /api/v1/portal/conditions")(http.HandlerFunc(handler.GetConditions)))
+	mux.Handle("GET /api/v1/portal/medications", middleware.RequirePolicy("GET /api/v1/portal/medications")(http.HandlerFunc(handler.GetMedications)))
+	mux.Handle("GET /api/v1/portal/reports", middleware.RequirePolicy("GET /api/v1/portal/reports")(http.HandlerFunc(handler.GetReports)))
+	mux.Handle("GET /api/v1/portal/imaging", middleware.RequirePolicy("GET /api/v1/portal/imaging")(http.HandlerFunc(handler.GetImaging)))
 }
 
 func (handler *HTTPHandler) extractPatientFHIRID(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) string {

@@ -94,6 +94,8 @@ Commit: `refactor(modules): move validation behind service interface (ADR-0004 r
 
 ## Phase 2 — Single RBAC policy module (candidate 3)
 
+**Status: DONE** (`go test ./internal/...` green; policy module + rewired transports committed).
+
 Unify the three independent permission stores into one deep module both
 transports read from. Deny-by-default stays the single mental model.
 

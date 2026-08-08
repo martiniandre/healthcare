@@ -12,7 +12,6 @@ import (
 	"github.com/healthcare/backend/internal/api/middleware"
 	"github.com/healthcare/backend/internal/api/render"
 	"github.com/healthcare/backend/internal/shared/ctxkeys"
-	"github.com/healthcare/backend/internal/shared/role"
 )
 
 type HTTPHandler struct {
@@ -26,15 +25,11 @@ func NewHTTPHandler(service Service) *HTTPHandler {
 }
 
 func (handler *HTTPHandler) RegisterRoutes(mux *http.ServeMux) {
-	scheduleWrite := middleware.RequireRoles(role.RoleAdmin, role.RoleReception)
-	scheduleRead := middleware.RequireRoles(role.RoleAdmin, role.RoleReception, role.RoleDoctor, role.RoleNurse)
-	schedulePatient := middleware.RequireRoles(role.RolePatient)
-
-	mux.Handle("POST /api/v1/appointments", scheduleWrite(http.HandlerFunc(handler.CreateAppointment)))
-	mux.Handle("GET /api/v1/appointments", scheduleRead(http.HandlerFunc(handler.ListAppointments)))
-	mux.Handle("GET /api/v1/appointments/my", schedulePatient(http.HandlerFunc(handler.ListMyAppointments)))
-	mux.Handle("GET /api/v1/appointments/{appointmentId}", scheduleRead(http.HandlerFunc(handler.GetAppointment)))
-	mux.Handle("POST /api/v1/appointments/{appointmentId}/cancel", scheduleWrite(http.HandlerFunc(handler.CancelAppointment)))
+	mux.Handle("POST /api/v1/appointments", middleware.RequirePolicy("POST /api/v1/appointments")(http.HandlerFunc(handler.CreateAppointment)))
+	mux.Handle("GET /api/v1/appointments", middleware.RequirePolicy("GET /api/v1/appointments")(http.HandlerFunc(handler.ListAppointments)))
+	mux.Handle("GET /api/v1/appointments/my", middleware.RequirePolicy("GET /api/v1/appointments/my")(http.HandlerFunc(handler.ListMyAppointments)))
+	mux.Handle("GET /api/v1/appointments/{appointmentId}", middleware.RequirePolicy("GET /api/v1/appointments/{appointmentId}")(http.HandlerFunc(handler.GetAppointment)))
+	mux.Handle("POST /api/v1/appointments/{appointmentId}/cancel", middleware.RequirePolicy("POST /api/v1/appointments/{appointmentId}/cancel")(http.HandlerFunc(handler.CancelAppointment)))
 }
 
 // CreateAppointment godoc

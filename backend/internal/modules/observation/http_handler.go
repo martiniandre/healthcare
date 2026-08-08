@@ -8,7 +8,6 @@ import (
 
 	"github.com/healthcare/backend/internal/api/middleware"
 	"github.com/healthcare/backend/internal/api/render"
-	"github.com/healthcare/backend/internal/shared/role"
 )
 
 type HTTPHandler struct {
@@ -22,14 +21,11 @@ func NewHTTPHandler(service Service) *HTTPHandler {
 }
 
 func (handler *HTTPHandler) RegisterRoutes(mux *http.ServeMux) {
-	clinicalWrite := middleware.RequireRoles(role.RoleAdmin, role.RoleDoctor, role.RoleNurse)
-	clinicalRead := middleware.RequireRoles(role.RoleAdmin, role.RoleDoctor, role.RoleNurse)
-
-	mux.Handle("GET /api/v1/patients/{patientFhirId}/observations", clinicalRead(http.HandlerFunc(handler.ListObservationsByPatient)))
-	mux.Handle("GET /api/v1/encounters/{encounterFhirId}/observations", clinicalRead(http.HandlerFunc(handler.ListObservationsByEncounter)))
-	mux.Handle("POST /api/v1/encounters/{encounterFhirId}/observations", clinicalWrite(http.HandlerFunc(handler.CreateObservation)))
-	mux.Handle("PUT /api/v1/observations/{observationFhirId}", clinicalWrite(http.HandlerFunc(handler.UpdateObservation)))
-	mux.Handle("DELETE /api/v1/observations/{observationFhirId}", clinicalWrite(http.HandlerFunc(handler.DeleteObservation)))
+	mux.Handle("GET /api/v1/patients/{patientFhirId}/observations", middleware.RequirePolicy("GET /api/v1/patients/{patientFhirId}/observations")(http.HandlerFunc(handler.ListObservationsByPatient)))
+	mux.Handle("GET /api/v1/encounters/{encounterFhirId}/observations", middleware.RequirePolicy("GET /api/v1/encounters/{encounterFhirId}/observations")(http.HandlerFunc(handler.ListObservationsByEncounter)))
+	mux.Handle("POST /api/v1/encounters/{encounterFhirId}/observations", middleware.RequirePolicy("POST /api/v1/encounters/{encounterFhirId}/observations")(http.HandlerFunc(handler.CreateObservation)))
+	mux.Handle("PUT /api/v1/observations/{observationFhirId}", middleware.RequirePolicy("PUT /api/v1/observations/{observationFhirId}")(http.HandlerFunc(handler.UpdateObservation)))
+	mux.Handle("DELETE /api/v1/observations/{observationFhirId}", middleware.RequirePolicy("DELETE /api/v1/observations/{observationFhirId}")(http.HandlerFunc(handler.DeleteObservation)))
 }
 
 // ListObservationsByPatient godoc
@@ -161,11 +157,11 @@ func (handler *HTTPHandler) UpdateObservation(httpResponseWriter http.ResponseWr
 	}
 
 	updatedObservation := &Observation{
-		PatientFHIRID:   payload.PatientFhirID,
-		LoincCode:       payload.LoincCode,
-		CodeDisplay:     payload.CodeDisplay,
-		ValueQuantity:   payload.ValueQuantity,
-		ValueUnit:       payload.ValueUnit,
+		PatientFHIRID: payload.PatientFhirID,
+		LoincCode:     payload.LoincCode,
+		CodeDisplay:   payload.CodeDisplay,
+		ValueQuantity: payload.ValueQuantity,
+		ValueUnit:     payload.ValueUnit,
 	}
 
 	resultObservation, updateErr := handler.service.UpdateObservation(httpRequest.Context(), observationFhirID, updatedObservation)

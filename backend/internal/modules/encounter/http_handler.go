@@ -8,7 +8,6 @@ import (
 
 	"github.com/healthcare/backend/internal/api/middleware"
 	"github.com/healthcare/backend/internal/api/render"
-	"github.com/healthcare/backend/internal/shared/role"
 )
 
 type HTTPHandler struct {
@@ -22,15 +21,11 @@ func NewHTTPHandler(service Service) *HTTPHandler {
 }
 
 func (handler *HTTPHandler) RegisterRoutes(mux *http.ServeMux) {
-	clinicalWrite := middleware.RequireRoles(role.RoleAdmin, role.RoleDoctor, role.RoleNurse)
-	clinicalRead := middleware.RequireRoles(role.RoleAdmin, role.RoleDoctor, role.RoleNurse)
-	clinicalIntakeWrite := middleware.RequireRoles(role.RoleAdmin, role.RoleDoctor, role.RoleNurse, role.RoleReception)
-
-	mux.Handle("GET /api/v1/patients/{patientFhirId}/encounters", clinicalRead(http.HandlerFunc(handler.ListEncountersByPatient)))
-	mux.Handle("POST /api/v1/patients/{patientFhirId}/encounters", clinicalIntakeWrite(http.HandlerFunc(handler.CreateEncounter)))
-	mux.Handle("GET /api/v1/encounters/{encounterFhirId}", clinicalRead(http.HandlerFunc(handler.GetEncounter)))
-	mux.Handle("PUT /api/v1/encounters/{encounterFhirId}", clinicalWrite(http.HandlerFunc(handler.UpdateEncounter)))
-	mux.Handle("DELETE /api/v1/encounters/{encounterFhirId}", clinicalWrite(http.HandlerFunc(handler.DeleteEncounter)))
+	mux.Handle("GET /api/v1/patients/{patientFhirId}/encounters", middleware.RequirePolicy("GET /api/v1/patients/{patientFhirId}/encounters")(http.HandlerFunc(handler.ListEncountersByPatient)))
+	mux.Handle("POST /api/v1/patients/{patientFhirId}/encounters", middleware.RequirePolicy("POST /api/v1/patients/{patientFhirId}/encounters")(http.HandlerFunc(handler.CreateEncounter)))
+	mux.Handle("GET /api/v1/encounters/{encounterFhirId}", middleware.RequirePolicy("GET /api/v1/encounters/{encounterFhirId}")(http.HandlerFunc(handler.GetEncounter)))
+	mux.Handle("PUT /api/v1/encounters/{encounterFhirId}", middleware.RequirePolicy("PUT /api/v1/encounters/{encounterFhirId}")(http.HandlerFunc(handler.UpdateEncounter)))
+	mux.Handle("DELETE /api/v1/encounters/{encounterFhirId}", middleware.RequirePolicy("DELETE /api/v1/encounters/{encounterFhirId}")(http.HandlerFunc(handler.DeleteEncounter)))
 }
 
 // ListEncountersByPatient godoc

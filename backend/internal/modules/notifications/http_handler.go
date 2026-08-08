@@ -11,7 +11,6 @@ import (
 	"github.com/healthcare/backend/internal/api/middleware"
 	"github.com/healthcare/backend/internal/api/render"
 	"github.com/healthcare/backend/internal/shared/ctxkeys"
-	"github.com/healthcare/backend/internal/shared/role"
 )
 
 type HTTPHandler struct {
@@ -23,12 +22,10 @@ func NewHTTPHandler(service Service) *HTTPHandler {
 }
 
 func (handler *HTTPHandler) RegisterRoutes(mux *http.ServeMux) {
-	authenticatedUser := middleware.RequireRoles(role.RoleAdmin, role.RoleDoctor, role.RoleNurse, role.RoleReception, role.RolePatient)
-
-	mux.Handle("GET /api/v1/notifications", authenticatedUser(http.HandlerFunc(handler.ListNotifications)))
-	mux.Handle("POST /api/v1/notifications/{notificationId}/read", authenticatedUser(http.HandlerFunc(handler.MarkRead)))
-	mux.Handle("GET /api/v1/notifications/unread-count", authenticatedUser(http.HandlerFunc(handler.GetUnreadCount)))
-	mux.Handle("GET /api/v1/notifications/stream", authenticatedUser(http.HandlerFunc(handler.StreamNotifications)))
+	mux.Handle("GET /api/v1/notifications", middleware.RequirePolicy("GET /api/v1/notifications")(http.HandlerFunc(handler.ListNotifications)))
+	mux.Handle("POST /api/v1/notifications/{notificationId}/read", middleware.RequirePolicy("POST /api/v1/notifications/{notificationId}/read")(http.HandlerFunc(handler.MarkRead)))
+	mux.Handle("GET /api/v1/notifications/unread-count", middleware.RequirePolicy("GET /api/v1/notifications/unread-count")(http.HandlerFunc(handler.GetUnreadCount)))
+	mux.Handle("GET /api/v1/notifications/stream", middleware.RequirePolicy("GET /api/v1/notifications/stream")(http.HandlerFunc(handler.StreamNotifications)))
 }
 
 type notificationResponse struct {
@@ -44,7 +41,7 @@ type notificationResponse struct {
 }
 
 func (handler *HTTPHandler) ListNotifications(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
-	authenticatedContext, authPassed := middleware.ValidateHTTPAuth(httpResponseWriter, httpRequest, []role.Role{role.RoleAdmin, role.RoleDoctor, role.RoleNurse, role.RoleReception, role.RolePatient})
+	authenticatedContext, authPassed := middleware.ValidatePolicyAuth(httpResponseWriter, httpRequest, "GET /api/v1/notifications")
 	if !authPassed {
 		return
 	}
@@ -99,7 +96,7 @@ func (handler *HTTPHandler) ListNotifications(httpResponseWriter http.ResponseWr
 }
 
 func (handler *HTTPHandler) MarkRead(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
-	authenticatedContext, authPassed := middleware.ValidateHTTPAuth(httpResponseWriter, httpRequest, []role.Role{role.RoleAdmin, role.RoleDoctor, role.RoleNurse, role.RoleReception, role.RolePatient})
+	authenticatedContext, authPassed := middleware.ValidatePolicyAuth(httpResponseWriter, httpRequest, "POST /api/v1/notifications/{notificationId}/read")
 	if !authPassed {
 		return
 	}
@@ -128,7 +125,7 @@ func (handler *HTTPHandler) MarkRead(httpResponseWriter http.ResponseWriter, htt
 }
 
 func (handler *HTTPHandler) GetUnreadCount(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
-	authenticatedContext, authPassed := middleware.ValidateHTTPAuth(httpResponseWriter, httpRequest, []role.Role{role.RoleAdmin, role.RoleDoctor, role.RoleNurse, role.RoleReception, role.RolePatient})
+	authenticatedContext, authPassed := middleware.ValidatePolicyAuth(httpResponseWriter, httpRequest, "GET /api/v1/notifications/unread-count")
 	if !authPassed {
 		return
 	}
@@ -151,7 +148,7 @@ func (handler *HTTPHandler) GetUnreadCount(httpResponseWriter http.ResponseWrite
 }
 
 func (handler *HTTPHandler) StreamNotifications(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
-	authenticatedContext, authPassed := middleware.ValidateHTTPAuth(httpResponseWriter, httpRequest, []role.Role{role.RoleAdmin, role.RoleDoctor, role.RoleNurse, role.RoleReception, role.RolePatient})
+	authenticatedContext, authPassed := middleware.ValidatePolicyAuth(httpResponseWriter, httpRequest, "GET /api/v1/notifications/stream")
 	if !authPassed {
 		return
 	}

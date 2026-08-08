@@ -13,7 +13,6 @@ import (
 	"github.com/healthcare/backend/internal/api/middleware"
 	"github.com/healthcare/backend/internal/api/render"
 	"github.com/healthcare/backend/internal/shared/ctxkeys"
-	"github.com/healthcare/backend/internal/shared/role"
 )
 
 type HTTPHandler struct {
@@ -31,13 +30,10 @@ func NewHTTPHandler(repository Repository, service Service, worker *Worker) *HTT
 }
 
 func (handler *HTTPHandler) RegisterRoutes(mux *http.ServeMux) {
-	clinicalRead := middleware.RequireRoles(role.RoleAdmin, role.RoleDoctor, role.RoleNurse)
-	clinicalDelete := middleware.RequireRoles(role.RoleAdmin, role.RoleDoctor)
-
-	mux.Handle("GET /api/v1/exam-analyses", clinicalRead(http.HandlerFunc(handler.ListAnalyses)))
-	mux.Handle("POST /api/v1/exam-analyses", clinicalRead(http.HandlerFunc(handler.CreateAnalysis)))
-	mux.Handle("GET /api/v1/exam-analyses/{analysisId}", clinicalRead(http.HandlerFunc(handler.GetAnalysis)))
-	mux.Handle("DELETE /api/v1/exam-analyses/{analysisId}", clinicalDelete(http.HandlerFunc(handler.DeleteAnalysis)))
+	mux.Handle("GET /api/v1/exam-analyses", middleware.RequirePolicy("GET /api/v1/exam-analyses")(http.HandlerFunc(handler.ListAnalyses)))
+	mux.Handle("POST /api/v1/exam-analyses", middleware.RequirePolicy("POST /api/v1/exam-analyses")(http.HandlerFunc(handler.CreateAnalysis)))
+	mux.Handle("GET /api/v1/exam-analyses/{analysisId}", middleware.RequirePolicy("GET /api/v1/exam-analyses/{analysisId}")(http.HandlerFunc(handler.GetAnalysis)))
+	mux.Handle("DELETE /api/v1/exam-analyses/{analysisId}", middleware.RequirePolicy("DELETE /api/v1/exam-analyses/{analysisId}")(http.HandlerFunc(handler.DeleteAnalysis)))
 }
 
 // ListAnalyses godoc

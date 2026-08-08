@@ -7,7 +7,6 @@ import (
 
 	"github.com/healthcare/backend/internal/api/middleware"
 	"github.com/healthcare/backend/internal/api/render"
-	"github.com/healthcare/backend/internal/shared/role"
 )
 
 type HTTPHandler struct {
@@ -21,14 +20,10 @@ func NewHTTPHandler(service Service) *HTTPHandler {
 }
 
 func (handler *HTTPHandler) RegisterRoutes(mux *http.ServeMux) {
-	medicalStaff := middleware.RequireRoles(role.RoleAdmin, role.RoleDoctor, role.RoleNurse, role.RoleReception)
-	clinicalStaff := middleware.RequireRoles(role.RoleAdmin, role.RoleDoctor, role.RoleNurse)
-	clinicalWrite := middleware.RequireRoles(role.RoleAdmin, role.RoleDoctor, role.RoleNurse)
-
-	mux.Handle("GET /api/v1/telemetry/rooms", medicalStaff(http.HandlerFunc(handler.ListRooms)))
-	mux.Handle("POST /api/v1/telemetry/rooms/{roomId}/unlock", clinicalStaff(http.HandlerFunc(handler.UnlockRoom)))
-	mux.Handle("GET /api/v1/telemetry/rooms/{roomId}/beds", clinicalStaff(http.HandlerFunc(handler.ListBedsByRoom)))
-	mux.Handle("POST /api/v1/telemetry/beds/{bedId}/condition", clinicalWrite(http.HandlerFunc(handler.UpdateBedCondition)))
+	mux.Handle("GET /api/v1/telemetry/rooms", middleware.RequirePolicy("GET /api/v1/telemetry/rooms")(http.HandlerFunc(handler.ListRooms)))
+	mux.Handle("POST /api/v1/telemetry/rooms/{roomId}/unlock", middleware.RequirePolicy("POST /api/v1/telemetry/rooms/{roomId}/unlock")(http.HandlerFunc(handler.UnlockRoom)))
+	mux.Handle("GET /api/v1/telemetry/rooms/{roomId}/beds", middleware.RequirePolicy("GET /api/v1/telemetry/rooms/{roomId}/beds")(http.HandlerFunc(handler.ListBedsByRoom)))
+	mux.Handle("POST /api/v1/telemetry/beds/{bedId}/condition", middleware.RequirePolicy("POST /api/v1/telemetry/beds/{bedId}/condition")(http.HandlerFunc(handler.UpdateBedCondition)))
 }
 
 // ListRooms godoc

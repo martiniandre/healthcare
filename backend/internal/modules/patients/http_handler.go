@@ -8,7 +8,6 @@ import (
 
 	"github.com/healthcare/backend/internal/api/middleware"
 	"github.com/healthcare/backend/internal/api/render"
-	"github.com/healthcare/backend/internal/shared/role"
 )
 
 type HTTPHandler struct {
@@ -22,12 +21,9 @@ func NewHTTPHandler(service Service) *HTTPHandler {
 }
 
 func (handler *HTTPHandler) RegisterRoutes(mux *http.ServeMux) {
-	medicalStaff := middleware.RequireRoles(role.RoleAdmin, role.RoleDoctor, role.RoleNurse, role.RoleReception)
-	adminOrReception := middleware.RequireRoles(role.RoleAdmin, role.RoleReception)
-
-	mux.Handle("GET /api/v1/patients", medicalStaff(http.HandlerFunc(handler.ListPatients)))
-	mux.Handle("POST /api/v1/patients", adminOrReception(http.HandlerFunc(handler.CreatePatient)))
-	mux.Handle("GET /api/v1/patients/{patientFhirId}", medicalStaff(http.HandlerFunc(handler.GetPatient)))
+	mux.Handle("GET /api/v1/patients", middleware.RequirePolicy("GET /api/v1/patients")(http.HandlerFunc(handler.ListPatients)))
+	mux.Handle("POST /api/v1/patients", middleware.RequirePolicy("POST /api/v1/patients")(http.HandlerFunc(handler.CreatePatient)))
+	mux.Handle("GET /api/v1/patients/{patientFhirId}", middleware.RequirePolicy("GET /api/v1/patients/{patientFhirId}")(http.HandlerFunc(handler.GetPatient)))
 }
 
 // ListPatients godoc

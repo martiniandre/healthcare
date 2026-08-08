@@ -6,7 +6,6 @@ import (
 
 	"github.com/healthcare/backend/internal/api/middleware"
 	"github.com/healthcare/backend/internal/api/render"
-	"github.com/healthcare/backend/internal/shared/role"
 )
 
 type HTTPHandler struct {
@@ -20,13 +19,12 @@ func NewHTTPHandler(analyticsService Service) *HTTPHandler {
 }
 
 func (analyticsHTTPHandler *HTTPHandler) RegisterRoutes(httpServeMux *http.ServeMux) {
-	authorizedRoles := middleware.RequireRoles(role.RoleAdmin, role.RoleDoctor, role.RoleNurse)
-	httpServeMux.Handle("GET /api/v1/analytics", authorizedRoles(http.HandlerFunc(analyticsHTTPHandler.GetStats)))
-	httpServeMux.Handle("GET /api/v1/analytics/dashboard", authorizedRoles(http.HandlerFunc(analyticsHTTPHandler.GetDashboard)))
-	httpServeMux.Handle("GET /api/v1/analytics/dashboard/consultations-per-doctor", authorizedRoles(http.HandlerFunc(analyticsHTTPHandler.GetConsultationsPerDoctor)))
-	httpServeMux.Handle("GET /api/v1/analytics/dashboard/occupancy-rate", authorizedRoles(http.HandlerFunc(analyticsHTTPHandler.GetOccupancyRate)))
-	httpServeMux.Handle("GET /api/v1/analytics/dashboard/avg-wait-time", authorizedRoles(http.HandlerFunc(analyticsHTTPHandler.GetAvgWaitTime)))
-	httpServeMux.Handle("GET /api/v1/analytics/dashboard/top-diagnoses", authorizedRoles(http.HandlerFunc(analyticsHTTPHandler.GetTopDiagnoses)))
+	httpServeMux.Handle("GET /api/v1/analytics", middleware.RequirePolicy("GET /api/v1/analytics")(http.HandlerFunc(analyticsHTTPHandler.GetStats)))
+	httpServeMux.Handle("GET /api/v1/analytics/dashboard", middleware.RequirePolicy("GET /api/v1/analytics/dashboard")(http.HandlerFunc(analyticsHTTPHandler.GetDashboard)))
+	httpServeMux.Handle("GET /api/v1/analytics/dashboard/consultations-per-doctor", middleware.RequirePolicy("GET /api/v1/analytics/dashboard/consultations-per-doctor")(http.HandlerFunc(analyticsHTTPHandler.GetConsultationsPerDoctor)))
+	httpServeMux.Handle("GET /api/v1/analytics/dashboard/occupancy-rate", middleware.RequirePolicy("GET /api/v1/analytics/dashboard/occupancy-rate")(http.HandlerFunc(analyticsHTTPHandler.GetOccupancyRate)))
+	httpServeMux.Handle("GET /api/v1/analytics/dashboard/avg-wait-time", middleware.RequirePolicy("GET /api/v1/analytics/dashboard/avg-wait-time")(http.HandlerFunc(analyticsHTTPHandler.GetAvgWaitTime)))
+	httpServeMux.Handle("GET /api/v1/analytics/dashboard/top-diagnoses", middleware.RequirePolicy("GET /api/v1/analytics/dashboard/top-diagnoses")(http.HandlerFunc(analyticsHTTPHandler.GetTopDiagnoses)))
 }
 
 // GetStats godoc

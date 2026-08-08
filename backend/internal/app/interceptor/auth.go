@@ -4,6 +4,7 @@ import (
 	"context"
 	"strings"
 
+	"github.com/healthcare/backend/internal/app/policy"
 	"github.com/healthcare/backend/internal/modules/auth"
 	"github.com/healthcare/backend/internal/shared/apperrors"
 	"github.com/healthcare/backend/internal/shared/ctxkeys"
@@ -19,7 +20,7 @@ func UnaryAuthInterceptor() grpc.UnaryServerInterceptor {
 		info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler,
 	) (interface{}, error) {
-		if publicMethods[info.FullMethod] {
+		if policy.IsPublicGRPCMethod(info.FullMethod) {
 			return handler(ctx, req)
 		}
 
@@ -57,7 +58,7 @@ func UnaryAuthInterceptor() grpc.UnaryServerInterceptor {
 }
 
 func checkPermission(fullMethod string, callerRole role.Role) error {
-	allowedRoles, methodIsDefined := methodPermissions[fullMethod]
+	allowedRoles, methodIsDefined := policy.GRPCMethodRoles(fullMethod)
 	if !methodIsDefined {
 		return apperrors.ErrMethodNotInPermissionMatrix.ToGRPC()
 	}
@@ -106,7 +107,7 @@ func StreamAuthInterceptor() grpc.StreamServerInterceptor {
 		info *grpc.StreamServerInfo,
 		handler grpc.StreamHandler,
 	) error {
-		if publicMethods[info.FullMethod] {
+		if policy.IsPublicGRPCMethod(info.FullMethod) {
 			return handler(srv, stream)
 		}
 

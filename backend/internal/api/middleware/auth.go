@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/healthcare/backend/internal/app/policy"
 	"github.com/healthcare/backend/internal/modules/auth"
 	"github.com/healthcare/backend/internal/shared/ctxkeys"
 	"github.com/healthcare/backend/internal/shared/role"
@@ -78,4 +79,27 @@ func RequireRoles(allowedRoles ...role.Role) func(http.Handler) http.Handler {
 			next.ServeHTTP(httpResponseWriter, httpRequest.WithContext(authenticatedContext))
 		})
 	}
+}
+
+func RequirePolicy(routePattern string) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
+			authenticatedContext, authorizationPassed := ValidatePolicyAuth(httpResponseWriter, httpRequest, routePattern)
+			if !authorizationPassed {
+				return
+			}
+			next.ServeHTTP(httpResponseWriter, httpRequest.WithContext(authenticatedContext))
+		})
+	}
+}
+
+func ValidatePolicyAuth(httpResponseWriter http.ResponseWriter, httpRequest *http.Request, routePattern string) (context.Context, bool) {
+	allowedRoles, routeIsDefined := policy.HTTPRouteRoles(routePattern)
+	if !routeIsDefined {
+		httpResponseWriter.Header().Set("Content-Type", "application/json")
+		httpResponseWriter.WriteHeader(http.StatusForbidden)
+		json.NewEncoder(httpResponseWriter).Encode(map[string]string{"error": "Acesso negado."})
+		return nil, false
+	}
+	return ValidateHTTPAuth(httpResponseWriter, httpRequest, allowedRoles)
 }

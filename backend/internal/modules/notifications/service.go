@@ -7,23 +7,11 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/healthcare/backend/internal/shared/role"
+	"github.com/healthcare/backend/internal/app/policy"
 )
 
 var ErrNotificationNotFound = errors.New("notification not found")
 var ErrInvalidNotificationType = errors.New("invalid notification type")
-
-var notificationRoleRoutes = map[NotificationType][]role.Role{
-	NotificationTypeTelemetryAlert:  {role.RoleNurse, role.RoleDoctor},
-	NotificationTypeExamComplete:    {role.RoleDoctor},
-	NotificationTypeEncounterCreate: {role.RoleDoctor, role.RoleReception, role.RolePatient},
-	NotificationTypeEncounterUpdate: {role.RoleDoctor, role.RoleReception},
-	NotificationTypePatientCreate:   {role.RoleReception, role.RoleAdmin},
-	NotificationTypePatientUpdate:   {role.RoleReception, role.RoleDoctor},
-	NotificationTypeAuditAlert:      {role.RoleAdmin},
-	NotificationTypeReportReady:     {role.RolePatient},
-	NotificationTypeSystem:          {role.RoleAdmin, role.RoleDoctor, role.RoleNurse},
-}
 
 var notificationPriorityDefaults = map[NotificationType]NotificationPriority{
 	NotificationTypeTelemetryAlert:  PriorityCritical,
@@ -101,7 +89,7 @@ func (notificationService *service) CreateNotification(ctx context.Context, noti
 }
 
 func (notificationService *service) CreateNotificationByRole(ctx context.Context, notifType NotificationType, title, body string, actorID *uuid.UUID, resourceType, resourceID string) (*Notification, error) {
-	roles, exists := notificationRoleRoutes[notifType]
+	roles, exists := policy.RolesForNotificationType(string(notifType))
 	if !exists {
 		return nil, ErrInvalidNotificationType
 	}

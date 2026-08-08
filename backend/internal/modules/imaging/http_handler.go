@@ -6,7 +6,6 @@ import (
 
 	"github.com/healthcare/backend/internal/api/middleware"
 	"github.com/healthcare/backend/internal/api/render"
-	"github.com/healthcare/backend/internal/shared/role"
 )
 
 type HTTPHandler struct {
@@ -20,12 +19,9 @@ func NewHTTPHandler(service Service) *HTTPHandler {
 }
 
 func (handler *HTTPHandler) RegisterRoutes(mux *http.ServeMux) {
-	clinicalRead := middleware.RequireRoles(role.RoleAdmin, role.RoleDoctor, role.RoleNurse)
-	clinicalWrite := middleware.RequireRoles(role.RoleAdmin, role.RoleDoctor, role.RoleNurse)
-
-	mux.Handle("GET /api/v1/patients/{patientFhirId}/studies", clinicalRead(http.HandlerFunc(handler.ListPatientStudies)))
-	mux.Handle("POST /api/v1/patients/{patientFhirId}/studies", clinicalWrite(http.HandlerFunc(handler.UploadPatientStudy)))
-	mux.Handle("GET /api/v1/studies/{studyId}", clinicalRead(http.HandlerFunc(handler.GetStudy)))
+	mux.Handle("GET /api/v1/patients/{patientFhirId}/studies", middleware.RequirePolicy("GET /api/v1/patients/{patientFhirId}/studies")(http.HandlerFunc(handler.ListPatientStudies)))
+	mux.Handle("POST /api/v1/patients/{patientFhirId}/studies", middleware.RequirePolicy("POST /api/v1/patients/{patientFhirId}/studies")(http.HandlerFunc(handler.UploadPatientStudy)))
+	mux.Handle("GET /api/v1/studies/{studyId}", middleware.RequirePolicy("GET /api/v1/studies/{studyId}")(http.HandlerFunc(handler.GetStudy)))
 }
 
 // ListPatientStudies godoc

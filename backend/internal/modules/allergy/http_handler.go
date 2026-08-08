@@ -8,7 +8,6 @@ import (
 
 	"github.com/healthcare/backend/internal/api/middleware"
 	"github.com/healthcare/backend/internal/api/render"
-	"github.com/healthcare/backend/internal/shared/role"
 )
 
 type HTTPHandler struct {
@@ -22,13 +21,10 @@ func NewHTTPHandler(service Service) *HTTPHandler {
 }
 
 func (handler *HTTPHandler) RegisterRoutes(mux *http.ServeMux) {
-	clinicalWrite := middleware.RequireRoles(role.RoleAdmin, role.RoleDoctor, role.RoleNurse)
-	clinicalRead := middleware.RequireRoles(role.RoleAdmin, role.RoleDoctor, role.RoleNurse)
-
-	mux.Handle("GET /api/v1/patients/{patientFhirId}/allergies", clinicalRead(http.HandlerFunc(handler.ListAllergiesByPatient)))
-	mux.Handle("POST /api/v1/patients/{patientFhirId}/allergies", clinicalWrite(http.HandlerFunc(handler.CreateAllergy)))
-	mux.Handle("PUT /api/v1/patients/{patientFhirId}/allergies/{allergyFhirId}", clinicalWrite(http.HandlerFunc(handler.UpdateAllergy)))
-	mux.Handle("DELETE /api/v1/patients/{patientFhirId}/allergies/{allergyFhirId}", clinicalWrite(http.HandlerFunc(handler.DeleteAllergy)))
+	mux.Handle("GET /api/v1/patients/{patientFhirId}/allergies", middleware.RequirePolicy("GET /api/v1/patients/{patientFhirId}/allergies")(http.HandlerFunc(handler.ListAllergiesByPatient)))
+	mux.Handle("POST /api/v1/patients/{patientFhirId}/allergies", middleware.RequirePolicy("POST /api/v1/patients/{patientFhirId}/allergies")(http.HandlerFunc(handler.CreateAllergy)))
+	mux.Handle("PUT /api/v1/patients/{patientFhirId}/allergies/{allergyFhirId}", middleware.RequirePolicy("PUT /api/v1/patients/{patientFhirId}/allergies/{allergyFhirId}")(http.HandlerFunc(handler.UpdateAllergy)))
+	mux.Handle("DELETE /api/v1/patients/{patientFhirId}/allergies/{allergyFhirId}", middleware.RequirePolicy("DELETE /api/v1/patients/{patientFhirId}/allergies/{allergyFhirId}")(http.HandlerFunc(handler.DeleteAllergy)))
 }
 
 // ListAllergiesByPatient godoc
