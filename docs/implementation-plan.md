@@ -135,6 +135,8 @@ Commit: `refactor(security): unify RBAC policy across gRPC and HTTP`
 
 ## Phase 3 — Single i18n accessor (candidate 5)
 
+**Status: DONE** (`cd frontend && npm run lint && npm run test` green; accessor + migration committed).
+
 Fix the dual-convention i18n leak (raw `patients.validation.*` keys rendered
 in UI) before touching the modals, since both modals and schemas depend on it.
 
