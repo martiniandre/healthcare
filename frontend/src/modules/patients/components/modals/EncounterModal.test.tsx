@@ -1,12 +1,17 @@
 import { describe, it, expect, vi } from "vitest"
 import { render, screen, fireEvent, waitFor } from "@testing-library/react"
 import { EncounterModal } from "./EncounterModal"
+import { createModuleTranslator } from "../../../../shared/i18n/i18n"
 
-vi.mock("react-i18next", () => ({
-  useTranslation: () => ({
-    t: (key: string) => key,
-  }),
-}))
+vi.mock("react-i18next", async (importOriginal) => {
+  const actual = await importOriginal()
+  return {
+    ...actual,
+    useTranslation: () => ({
+      t: (key: string) => key,
+    }),
+  }
+})
 
 vi.mock("../../../staff/queries", () => ({
   useStaffListQuery: () => ({
@@ -24,7 +29,7 @@ describe("EncounterModal", () => {
       target: { value: "Routine checkup" },
     })
     fireEvent.click(screen.getByRole("button", { name: "modals.encounter.confirm" }))
-    expect(await screen.findByText("patients.validation.practitionerReq")).toBeDefined()
+    expect(await screen.findByText(createModuleTranslator("patients")("validation.practitionerReq"))).toBeDefined()
     expect(onSubmit).not.toHaveBeenCalled()
   })
 

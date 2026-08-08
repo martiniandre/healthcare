@@ -1,12 +1,17 @@
 import { describe, it, expect, vi } from "vitest"
 import { render, screen, fireEvent, waitFor } from "@testing-library/react"
 import { ReportModal } from "./ReportModal"
+import { createModuleTranslator } from "../../../../shared/i18n/i18n"
 
-vi.mock("react-i18next", () => ({
-  useTranslation: () => ({
-    t: (key: string) => key,
-  }),
-}))
+vi.mock("react-i18next", async (importOriginal) => {
+  const actual = await importOriginal()
+  return {
+    ...actual,
+    useTranslation: () => ({
+      t: (key: string) => key,
+    }),
+  }
+})
 
 describe("ReportModal", () => {
   it("should show validation error when exam type is not selected", async () => {
@@ -19,7 +24,7 @@ describe("ReportModal", () => {
       target: { value: "Resultados dentro dos limites esperados para o exame." },
     })
     fireEvent.click(screen.getByRole("button", { name: "modals.report.confirm" }))
-    expect(await screen.findByText("patients.validation.reportCodeReq")).toBeDefined()
+    expect(await screen.findByText(createModuleTranslator("patients")("validation.reportCodeReq"))).toBeDefined()
     expect(onSubmit).not.toHaveBeenCalled()
   })
 

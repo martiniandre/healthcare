@@ -24,13 +24,13 @@ export const StatsExamsChart = ({
   setSelectedModality,
   examModalitiesWithCalculatedAngles
 }: StatsExamsChartProps) => {
-  const { t: translate } = useTranslation()
+  const { t: translate } = useTranslation("analytics")
 
   return (
     <Card className="p-5 flex flex-col gap-5 text-left border border-border">
       <div>
-        <h3 className="font-extrabold text-gray-900 text-md">{translate("analytics.exams.title")}</h3>
-        <span className="text-xs text-muted block mt-1">{translate("analytics.exams.subtitle")}</span>
+        <h3 className="font-extrabold text-gray-900 text-md">{translate("exams.title")}</h3>
+        <span className="text-xs text-muted block mt-1">{translate("exams.subtitle")}</span>
       </div>
 
       <div className="flex flex-col sm:flex-row items-center justify-around gap-6 py-4">
@@ -58,9 +58,9 @@ export const StatsExamsChart = ({
           </svg>
 
           <div className="absolute flex flex-col items-center justify-center text-center">
-            <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">{translate("analytics.exams.totalLabel")}</span>
+            <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">{translate("exams.totalLabel")}</span>
             <span className="text-xl font-black text-gray-900">{totalStudiesCount}</span>
-            <span className="text-[9px] text-muted font-semibold mt-0.5">{translate("analytics.exams.studiesLabel")}</span>
+            <span className="text-[9px] text-muted font-semibold mt-0.5">{translate("exams.studiesLabel")}</span>
           </div>
         </div>
 
@@ -82,15 +82,15 @@ export const StatsExamsChart = ({
                   <span className="text-xs font-bold text-gray-700">{item.modality}</span>
                 </div>
                 <div className="text-right">
-                  <span className="text-xs font-black text-gray-900 block">{item.count} {translate("analytics.exams.examesUnit")}</span>
+                  <span className="text-xs font-black text-gray-900 block">{item.count} {translate("exams.examesUnit")}</span>
                   <span className="text-[10px] text-gray-500 font-semibold">{item.percentage}%</span>
                 </div>
               </div>
             ))
           ) : (
             <EmptyState 
-              title={translate("analytics.empty.exams")} 
-              description={translate("analytics.empty.examsDesc")} 
+              title={translate("empty.exams")} 
+              description={translate("empty.examsDesc")} 
               className="h-full"
             />
           )}

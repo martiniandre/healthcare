@@ -18,7 +18,7 @@ export const ExamAnalyzerModal = ({
   onClose,
   patientFhirId,
 }: ExamAnalyzerModalProps) => {
-  const { t } = useTranslation()
+  const { t } = useTranslation("examAnalyzer")
 
   if (!isOpen) {
     return null
@@ -29,7 +29,7 @@ export const ExamAnalyzerModal = ({
       <DialogContent className="sm:max-w-6xl w-[95vw] h-[90vh] overflow-y-auto bg-gray-50/50 flex flex-col p-0">
         <DialogHeader className="p-4 sm:p-6 pb-0 shrink-0">
           <DialogTitle className="text-left sr-only">
-            {t("examAnalyzer.title")}
+            {t("title")}
           </DialogTitle>
         </DialogHeader>
         <div className="flex-1 overflow-auto">

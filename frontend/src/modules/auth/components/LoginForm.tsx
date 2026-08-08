@@ -12,7 +12,7 @@ import { KeyRound, Mail, ShieldAlert } from "lucide-react"
 import { useLoginMutation } from "../queries"
 
 export const LoginForm = () => {
-  const { t } = useTranslation()
+  const { t } = useTranslation("auth")
   const loginToStore = useAuthStore((state) => state.login)
   const [generalError, setGeneralError] = useState<string | null>(null)
   const loginMutation = useLoginMutation()
@@ -40,14 +40,14 @@ export const LoginForm = () => {
       if (loginRequestError instanceof Error) {
         setGeneralError(loginRequestError.message)
       } else {
-        setGeneralError(t("auth.defaultError"))
+        setGeneralError(t("defaultError"))
       }
     }
   }
 
   return (
     <Card glowingType="cyan" className="p-8">
-      <h2 className="text-lg font-bold text-gray-800 mb-6">{t("auth.authTitle")}</h2>
+      <h2 className="text-lg font-bold text-gray-800 mb-6">{t("authTitle")}</h2>
 
       {generalError && (
         <Alert variant="destructive" className="mb-6">
@@ -62,11 +62,11 @@ export const LoginForm = () => {
         <div className="flex flex-col gap-1 text-left">
           <label className="text-xs font-semibold text-gray-600 flex items-center gap-1.5 mb-1">
             <Mail className="w-3.5 h-3.5 text-primary" />
-            {t("auth.emailLabel")}
+            {t("emailLabel")}
           </label>
           <Input
             type="email"
-            placeholder={t("auth.emailPlaceholder")}
+            placeholder={t("emailPlaceholder")}
             autoComplete="email"
             maxLength={255}
             errorText={errors.email?.message}
@@ -77,11 +77,11 @@ export const LoginForm = () => {
         <div className="flex flex-col gap-1 text-left">
           <label className="text-xs font-semibold text-gray-600 flex items-center gap-1.5 mb-1">
             <KeyRound className="w-3.5 h-3.5 text-primary" />
-            {t("auth.passwordLabel")}
+            {t("passwordLabel")}
           </label>
           <Input
             type="password"
-            placeholder={t("auth.passwordPlaceholder")}
+            placeholder={t("passwordPlaceholder")}
             autoComplete="current-password"
             errorText={errors.password?.message}
             {...register("password")}
@@ -93,7 +93,7 @@ export const LoginForm = () => {
           disabled={loginMutation.isPending}
           className="w-full py-3.5 mt-2 text-sm font-bold tracking-wide uppercase"
         >
-          {loginMutation.isPending ? t("auth.loadingText") : t("auth.submitText")}
+          {loginMutation.isPending ? t("loadingText") : t("submitText")}
         </Button>
       </form>
     </Card>

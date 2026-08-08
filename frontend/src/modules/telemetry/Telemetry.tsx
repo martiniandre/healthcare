@@ -20,7 +20,7 @@ import { TelemetryBedMonitor } from "./components/TelemetryBedMonitor"
 import { TelemetryBedList } from "./components/TelemetryBedList"
 
 export const Telemetry = () => {
-  const { t } = useTranslation()
+  const { t } = useTranslation("telemetry")
   const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null)
   const [unlockedRoomIds, setUnlockedRoomIds] = useState<string[]>([])
   const [selectedBedId, setSelectedBedId] = useState<string | null>(null)
@@ -80,9 +80,9 @@ export const Telemetry = () => {
         status: dynamicStatus,
         condition: newCondition,
       })
-      toast.success(t("telemetry.toast.simulateSuccess"))
+      toast.success(t("toast.simulateSuccess"))
     } catch {
-      toast.error(t("telemetry.toast.simulateError"))
+      toast.error(t("toast.simulateError"))
     }
   }
 
@@ -219,7 +219,7 @@ export const Telemetry = () => {
       setUnlockedRoomIds((previousUnlocked) => [...previousUnlocked, selectedRoomId])
       setPasscode({ input: "", error: "" })
     } catch {
-      setPasscode((prev) => ({ ...prev, error: t("telemetry.toast.unlockError") }))
+      setPasscode((prev) => ({ ...prev, error: t("toast.unlockError") }))
     }
   }
 
@@ -274,7 +274,7 @@ export const Telemetry = () => {
       ) : beds.length === 0 ? (
         <Card className="flex-1 p-8 border border-border bg-white flex flex-col items-center justify-center text-center gap-3 min-h-[400px]">
           <Activity className="w-8 h-8 text-gray-400 animate-pulse" />
-          <span className="text-xs text-gray-500 font-bold">{t("telemetry.noBeds")}</span>
+          <span className="text-xs text-gray-500 font-bold">{t("noBeds")}</span>
         </Card>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fade-in">

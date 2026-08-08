@@ -32,7 +32,7 @@ export const TelemetryBedMonitor = ({
   canvasRef,
   updateSelectedBedCondition
 }: TelemetryBedMonitorProps) => {
-  const { t } = useTranslation()
+  const { t } = useTranslation("telemetry")
 
   if (!activeBed) {
     return (
@@ -42,10 +42,10 @@ export const TelemetryBedMonitor = ({
         </div>
         <div className="max-w-md flex flex-col gap-1">
           <h3 className="text-md font-extrabold text-gray-900">
-            {t("telemetry.noBedSelected")}
+            {t("noBedSelected")}
           </h3>
           <p className="text-xs text-gray-500 leading-normal">
-            {t("telemetry.noBedSelectedDesc")}
+            {t("noBedSelectedDesc")}
           </p>
         </div>
       </Card>
@@ -61,12 +61,12 @@ export const TelemetryBedMonitor = ({
         </div>
         <div className="flex items-center gap-2">
           <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded font-bold">
-            {activeBed.age} {t("telemetry.years")} · {activeBed.gender}
+            {activeBed.age} {t("years")} · {activeBed.gender}
           </span>
           {activeBed.status !== BedStatus.Normal && (
             <span className="text-xs bg-red-50 text-red-600 px-2.5 py-1 rounded-full font-bold flex items-center gap-1 border border-red-200">
               <AlertTriangle className="w-3.5 h-3.5" />
-              {t("telemetry.criticalBadge")}
+              {t("criticalBadge")}
             </span>
           )}
         </div>
@@ -80,14 +80,14 @@ export const TelemetryBedMonitor = ({
           className="block w-full max-w-full rounded-lg"
         />
         <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded text-[10px] text-emerald-400 font-mono border border-emerald-500/20">
-          {t("telemetry.ecgLead")}
+          {t("ecgLead")}
         </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-gray-50 border border-border p-4 rounded-xl flex items-center justify-between">
           <div className="text-left">
-            <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block">{t("telemetry.sensors.ecg")}</span>
+            <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block">{t("sensors.ecg")}</span>
             <span className="text-2xl font-black text-gray-900 mt-1 block">
               {activeBed.bpm > 0 ? `${activeBed.bpm} ` : "--- "}
               <span className="text-xs font-normal text-gray-400">BPM</span>
@@ -98,7 +98,7 @@ export const TelemetryBedMonitor = ({
 
         <div className="bg-gray-50 border border-border p-4 rounded-xl flex items-center justify-between">
           <div className="text-left">
-            <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block">{t("telemetry.sensors.spo2")}</span>
+            <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block">{t("sensors.spo2")}</span>
             <span className="text-2xl font-black text-gray-900 mt-1 block">
               {activeBed.spo2 > 0 ? `${activeBed.spo2}%` : "---%"}
             </span>
@@ -108,7 +108,7 @@ export const TelemetryBedMonitor = ({
 
         <div className="bg-gray-50 border border-border p-4 rounded-xl flex items-center justify-between">
           <div className="text-left">
-            <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block">{t("telemetry.sensors.temp")}</span>
+            <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block">{t("sensors.temp")}</span>
             <span className="text-2xl font-black text-gray-900 mt-1 block">
               {activeBed.temperature.toFixed(1)}°C
             </span>
@@ -120,21 +120,21 @@ export const TelemetryBedMonitor = ({
       <Can I={Action.Update} a={Feature.TelemetryBed}>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-border pt-4 text-left">
           <div className="flex flex-col gap-2">
-            <span className="text-xs font-bold text-gray-600 block">{t("telemetry.simulation.title")}</span>
+            <span className="text-xs font-bold text-gray-600 block">{t("simulation.title")}</span>
             <div className="flex gap-2 flex-wrap">
               <Button 
                 variantType={activeBed.condition === CardiacCondition.Normal ? "primary" : "outline"} 
                 onClick={() => updateSelectedBedCondition(CardiacCondition.Normal)}
                 className="px-3 py-2 text-[11px] font-bold"
               >
-                {t("telemetry.simulation.normal")}
+                {t("simulation.normal")}
               </Button>
               <Button 
                 variantType={activeBed.condition === CardiacCondition.Bradycardia ? "primary" : "outline"} 
                 onClick={() => updateSelectedBedCondition(CardiacCondition.Bradycardia)}
                 className="px-3 py-2 text-[11px] font-bold"
               >
-                {t("telemetry.simulation.bradycardia")}
+                {t("simulation.bradycardia")}
               </Button>
             </div>
           </div>
@@ -145,14 +145,14 @@ export const TelemetryBedMonitor = ({
                 onClick={() => updateSelectedBedCondition(CardiacCondition.Tachycardia)}
                 className="px-3 py-2 text-[11px] font-bold"
               >
-                {t("telemetry.simulation.tachycardia")}
+                {t("simulation.tachycardia")}
               </Button>
               <Button 
                 variantType={activeBed.condition === CardiacCondition.CardiacArrest ? "danger" : "outline"} 
                 onClick={() => updateSelectedBedCondition(CardiacCondition.CardiacArrest)}
                 className="px-3 py-2 text-[11px] font-bold text-red-500 hover:text-white"
               >
-                {t("telemetry.simulation.cardiacArrest")}
+                {t("simulation.cardiacArrest")}
               </Button>
             </div>
           </div>

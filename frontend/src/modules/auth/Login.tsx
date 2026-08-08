@@ -3,7 +3,7 @@ import { Activity } from "lucide-react"
 import { LoginForm } from "./components/LoginForm"
 
 export const Login = () => {
-  const { t } = useTranslation()
+  const { t } = useTranslation("auth")
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 select-none relative overflow-hidden">
@@ -19,14 +19,14 @@ export const Login = () => {
             HealthCare
           </h1>
           <p className="text-sm text-muted max-w-[280px]">
-            {t("auth.portalSubtitle")}
+            {t("portalSubtitle")}
           </p>
         </div>
 
         <LoginForm />
 
         <p className="text-center text-[10px] text-gray-500 mt-8 leading-relaxed">
-          {t("auth.footerNotice")}
+          {t("footerNotice")}
         </p>
       </div>
     </div>

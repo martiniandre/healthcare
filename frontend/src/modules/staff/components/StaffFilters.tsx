@@ -15,7 +15,7 @@ export const StaffFilters = ({
   filterRole,
   onFilterChange,
 }: StaffFiltersProps) => {
-  const { t } = useTranslation()
+  const { t } = useTranslation("staff")
 
   return (
     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -23,7 +23,7 @@ export const StaffFilters = ({
         <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
         <input
           type="text"
-          placeholder={t("staff.searchPlaceholder")}
+          placeholder={t("searchPlaceholder")}
           value={searchQuery === " " ? "" : searchQuery}
           onChange={(event) => onSearchChange(event.target.value)}
           className="w-full bg-white border border-border rounded-lg pl-9 pr-4 py-2 text-xs text-gray-800 placeholder-gray-400 focus:outline-none focus:border-primary/50 transition-all duration-200"
@@ -34,11 +34,11 @@ export const StaffFilters = ({
         {["All", StaffRole.Doctor, StaffRole.Nurse, StaffRole.Receptionist, StaffRole.Admin].map((roleOption) => {
           const getRoleLabel = (role: string) => {
             switch (role) {
-              case "All": return t("staff.filterAll")
-              case StaffRole.Doctor: return t("staff.table.roles.doctor", "Médico")
-              case StaffRole.Nurse: return t("staff.table.roles.nurse", "Enfermeiro")
-              case StaffRole.Receptionist: return t("staff.table.roles.receptionist", "Recepção")
-              case StaffRole.Admin: return t("staff.table.roles.admin", "Admin")
+              case "All": return t("filterAll")
+              case StaffRole.Doctor: return t("table.roles.doctor", "Médico")
+              case StaffRole.Nurse: return t("table.roles.nurse", "Enfermeiro")
+              case StaffRole.Receptionist: return t("table.roles.receptionist", "Recepção")
+              case StaffRole.Admin: return t("table.roles.admin", "Admin")
               default: return role
             }
           }

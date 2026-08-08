@@ -18,7 +18,7 @@ const navigationItems = [
 ]
 
 export const AppSidebar = () => {
-  const { t } = useTranslation()
+  const { t } = useTranslation("sidebar")
   const navigate = useNavigate()
   const location = useLocation()
   const { email, logout, role } = useAuthStore()
@@ -45,9 +45,9 @@ export const AppSidebar = () => {
             </div>
             <div>
               <h1 className="text-sm font-black tracking-tight text-gray-900 leading-none">
-                {t("sidebar.title")}
+                {t("title")}
               </h1>
-              <span className="text-[10px] text-muted font-medium">{t("sidebar.subtitle")}</span>
+              <span className="text-[10px] text-muted font-medium">{t("subtitle")}</span>
             </div>
           </div>
           <button
@@ -62,7 +62,7 @@ export const AppSidebar = () => {
 
         <nav className="flex-1 px-3 py-5 flex flex-col gap-1">
           <span className="text-[9px] font-black text-muted/60 uppercase tracking-[0.15em] px-3 mb-3">
-            {t("sidebar.menuHeader")}
+            {t("menuHeader")}
           </span>
           {navigationItems
             .filter((item) => {
@@ -98,10 +98,10 @@ export const AppSidebar = () => {
                   }`}
                 >
                 <item.icon className="w-[18px] h-[18px] shrink-0" />
-                {t(`sidebar.${item.key}`)}
+                {t(`${item.key}`)}
                 {item.disabled && (
                   <span className="ml-auto text-[8px] bg-gray-100 text-gray-400 px-1.5 py-0.5 rounded font-bold uppercase">
-                    {t("sidebar.comingSoon")}
+                    {t("comingSoon")}
                   </span>
                 )}
               </button>
@@ -118,7 +118,7 @@ export const AppSidebar = () => {
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-semibold text-red-400 hover:text-red-600 hover:bg-red-50 transition-all duration-200"
           >
             <LogOut className="w-[18px] h-[18px] shrink-0" />
-            {t("sidebar.logout")}
+            {t("logout")}
           </button>
         </div>
 

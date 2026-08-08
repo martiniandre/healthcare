@@ -39,7 +39,7 @@ export const PatientsTable = ({
   totalPatients,
   onPageChange
 }: PatientsTableProps) => {
-  const { t } = useTranslation()
+  const { t } = useTranslation("patients")
   const navigate = useNavigate()
 
   const sortIndicator = (field: SortField) => {
@@ -57,25 +57,25 @@ export const PatientsTable = ({
                 className="cursor-pointer hover:text-gray-700 transition-colors select-none"
                 onClick={() => onSort("full_name")}
               >
-                {t("patients.table.patient")}{sortIndicator("full_name")}
+                {t("table.patient")}{sortIndicator("full_name")}
               </TableHead>
               <TableHead
                 className="cursor-pointer hover:text-gray-700 transition-colors select-none"
                 onClick={() => onSort("document_id")}
               >
-                {t("patients.table.document")}{sortIndicator("document_id")}
+                {t("table.document")}{sortIndicator("document_id")}
               </TableHead>
               <TableHead
                 className="cursor-pointer hover:text-gray-700 transition-colors select-none"
                 onClick={() => onSort("birth_date")}
               >
-                {t("patients.table.birthDate")}{sortIndicator("birth_date")}
+                {t("table.birthDate")}{sortIndicator("birth_date")}
               </TableHead>
               <TableHead>
-                {t("patients.table.phone")}
+                {t("table.phone")}
               </TableHead>
               <TableHead className="text-right">
-                {t("patients.table.action")}
+                {t("table.action")}
               </TableHead>
             </TableRow>
           </TableHeader>
@@ -141,7 +141,7 @@ export const PatientsTable = ({
                       onClick={() => navigate(`/patients/${patient.fhir_resource_id}`)}
                       className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-primary hover:text-primary/80 px-3 py-1.5 rounded-md hover:bg-primary/5 transition-all"
                     >
-                      {t("patients.table.medicalRecord")}
+                      {t("table.medicalRecord")}
                       <ArrowRight className="w-3 h-3 transition-transform group-hover:translate-x-0.5" />
                     </button>
                   </TableCell>
@@ -154,7 +154,7 @@ export const PatientsTable = ({
       {totalPages > 1 && (
         <div className="flex items-center justify-between border-t border-border px-6 py-4 bg-gray-50/50">
           <span className="text-xs text-gray-500 font-semibold">
-            {t("patients.pagination.pageInfo", { currentPage, totalPages, total: totalPatients })}
+            {t("pagination.pageInfo", { currentPage, totalPages, total: totalPatients })}
           </span>
           <div className="flex gap-2">
             <Button
@@ -163,7 +163,7 @@ export const PatientsTable = ({
               disabled={currentPage === 1}
               onClick={() => onPageChange(Math.max(currentPage - 1, 1))}
             >
-              {t("patients.pagination.prev")}
+              {t("pagination.prev")}
             </Button>
             <Button
               variantType="outline"
@@ -171,7 +171,7 @@ export const PatientsTable = ({
               disabled={currentPage === totalPages}
               onClick={() => onPageChange(Math.min(currentPage + 1, totalPages))}
             >
-              {t("patients.pagination.next")}
+              {t("pagination.next")}
             </Button>
           </div>
         </div>

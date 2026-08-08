@@ -15,17 +15,17 @@ export const StatsMetricsGrid = ({
   averageServiceDurationMinutes,
   activeConsultationsTotal
 }: StatsMetricsGridProps) => {
-  const { t: translate } = useTranslation()
+  const { t: translate } = useTranslation("analytics")
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
       <Card className="p-4 flex items-center justify-between border border-border">
         <div className="text-left">
-          <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block">{translate("analytics.metrics.activePatients")}</span>
+          <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block">{translate("metrics.activePatients")}</span>
           <span className="text-2xl font-black text-gray-900 mt-1 block">{totalRegisteredPatients}</span>
           <span className="text-[10px] text-emerald-600 font-bold flex items-center gap-1 mt-1.5">
             <ArrowUpRight className="w-3.5 h-3.5" />
-            {translate("analytics.metrics.admissionsGrowth")}
+            {translate("metrics.admissionsGrowth")}
           </span>
         </div>
         <div className="bg-primary/8 p-3 rounded-xl">
@@ -35,11 +35,11 @@ export const StatsMetricsGrid = ({
 
       <Card className="p-4 flex items-center justify-between border border-border">
         <div className="text-left">
-          <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block">{translate("analytics.metrics.fhirCompliance")}</span>
+          <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block">{translate("metrics.fhirCompliance")}</span>
           <span className="text-2xl font-black text-gray-900 mt-1 block">{fhirComplianceRate}%</span>
           <span className="text-[10px] text-emerald-600 font-bold flex items-center gap-1 mt-1.5">
             <CheckSquare className="w-3.5 h-3.5" />
-            {translate("analytics.metrics.fhirCompliantDesc")}
+            {translate("metrics.fhirCompliantDesc")}
           </span>
         </div>
         <div className="bg-emerald-50 p-3 rounded-xl">
@@ -49,11 +49,11 @@ export const StatsMetricsGrid = ({
 
       <Card className="p-4 flex items-center justify-between border border-border">
         <div className="text-left">
-          <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block">{translate("analytics.metrics.avgConsultationTime")}</span>
+          <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block">{translate("metrics.avgConsultationTime")}</span>
           <span className="text-2xl font-black text-gray-900 mt-1 block">{averageServiceDurationMinutes} min</span>
           <span className="text-[10px] text-emerald-600 font-bold flex items-center gap-1 mt-1.5">
             <Clock className="w-3.5 h-3.5" />
-            {translate("analytics.metrics.consultationTrend")}
+            {translate("metrics.consultationTrend")}
           </span>
         </div>
         <div className="bg-purple-50 p-3 rounded-xl">
@@ -63,11 +63,11 @@ export const StatsMetricsGrid = ({
 
       <Card className="p-4 flex items-center justify-between border border-border">
         <div className="text-left">
-          <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block">{translate("analytics.metrics.weeklyConsultations")}</span>
+          <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block">{translate("metrics.weeklyConsultations")}</span>
           <span className="text-2xl font-black text-gray-900 mt-1 block">{activeConsultationsTotal}</span>
           <span className="text-[10px] text-amber-600 font-bold flex items-center gap-1 mt-1.5">
             <Activity className="w-3.5 h-3.5" />
-            {translate("analytics.metrics.activeIcuBeds")}
+            {translate("metrics.activeIcuBeds")}
           </span>
         </div>
         <div className="bg-amber-50 p-3 rounded-xl">

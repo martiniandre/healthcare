@@ -20,7 +20,7 @@ export interface ExamAnalyzerProps {
 }
 
 export const ExamAnalyzer = ({ patientFhirId }: ExamAnalyzerProps = {}) => {
-  const { t } = useTranslation()
+  const { t } = useTranslation("examAnalyzer")
   const [selectedAnalysisID, setSelectedAnalysisID] = useState<string | null>(null)
   const [uploadPercentageValue, setUploadPercentageValue] = useState<number | null>(null)
 
@@ -55,7 +55,7 @@ export const ExamAnalyzer = ({ patientFhirId }: ExamAnalyzerProps = {}) => {
         polledAnalysisDetails.status === "failed" ||
         polledAnalysisDetails.status === "insufficient_data"
       ) {
-        toast.info(t("examAnalyzer.toast.analysisCompleted", { fileName: polledAnalysisDetails.file_name }))
+        toast.info(t("toast.analysisCompleted", { fileName: polledAnalysisDetails.file_name }))
         queryClient.invalidateQueries({ queryKey: examAnalyzerKeys.all })
       }
     }
@@ -74,10 +74,10 @@ export const ExamAnalyzer = ({ patientFhirId }: ExamAnalyzerProps = {}) => {
         },
       })
       
-      toast.success(t("examAnalyzer.toast.uploadSuccess"))
+      toast.success(t("toast.uploadSuccess"))
       setSelectedAnalysisID(createdRecord.id)
     } catch {
-      toast.error(t("examAnalyzer.toast.uploadError"))
+      toast.error(t("toast.uploadError"))
     } finally {
       setUploadPercentageValue(null)
     }
@@ -90,12 +90,12 @@ export const ExamAnalyzer = ({ patientFhirId }: ExamAnalyzerProps = {}) => {
   const handleDeleteAnalysis = async (id: string) => {
     try {
       await deleteAnalysisMutation.mutateAsync(id)
-      toast.success(t("examAnalyzer.toast.deleteSuccess"))
+      toast.success(t("toast.deleteSuccess"))
       if (selectedAnalysisID === id) {
         setSelectedAnalysisID(null)
       }
     } catch {
-      toast.error(t("examAnalyzer.toast.deleteError"))
+      toast.error(t("toast.deleteError"))
     }
   }
 
@@ -112,15 +112,15 @@ export const ExamAnalyzer = ({ patientFhirId }: ExamAnalyzerProps = {}) => {
         <div>
           <div className="flex items-center gap-2">
             <h2 className="text-xl font-black text-gray-900 tracking-tight leading-none">
-              {t("examAnalyzer.title")}
+              {t("title")}
             </h2>
             <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-primary/8 border border-primary/10">
               <Sparkles className="w-3 h-3 text-primary animate-pulse" />
-              <span className="text-[10px] font-bold text-primary">{t("examAnalyzer.badge")}</span>
+              <span className="text-[10px] font-bold text-primary">{t("badge")}</span>
             </div>
           </div>
           <span className="text-xs text-muted mt-1.5 block">
-            {t("examAnalyzer.subtitle")}
+            {t("subtitle")}
           </span>
         </div>
       </div>

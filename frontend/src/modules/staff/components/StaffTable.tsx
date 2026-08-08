@@ -19,14 +19,14 @@ interface StaffTableProps {
 
 export const StaffTable = ({ isLoading, filteredStaff }: StaffTableProps) => {
   console.log({ filteredStaff })
-  const { t } = useTranslation()
+  const { t } = useTranslation("staff")
 
   const getRoleLabel = (role: string) => {
     switch (role) {
-      case StaffRole.Doctor: return t("staff.table.roles.doctor", "Médico")
-      case StaffRole.Nurse: return t("staff.table.roles.nurse", "Enfermeiro")
-      case StaffRole.Receptionist: return t("staff.table.roles.receptionist", "Recepção")
-      case StaffRole.Admin: return t("staff.table.roles.admin", "Admin")
+      case StaffRole.Doctor: return t("table.roles.doctor", "Médico")
+      case StaffRole.Nurse: return t("table.roles.nurse", "Enfermeiro")
+      case StaffRole.Receptionist: return t("table.roles.receptionist", "Recepção")
+      case StaffRole.Admin: return t("table.roles.admin", "Admin")
       default: return role
     }
   }
@@ -36,11 +36,11 @@ export const StaffTable = ({ isLoading, filteredStaff }: StaffTableProps) => {
       <Table className="min-w-[700px] md:min-w-0">
         <TableHeader>
           <TableRow className="hover:bg-transparent">
-            <TableHead>{t("staff.table.professional")}</TableHead>
-            <TableHead>{t("staff.table.role")}</TableHead>
-            <TableHead>{t("staff.table.license")}</TableHead>
-            <TableHead>{t("staff.table.department")}</TableHead>
-            <TableHead>{t("staff.table.status")}</TableHead>
+            <TableHead>{t("table.professional")}</TableHead>
+            <TableHead>{t("table.role")}</TableHead>
+            <TableHead>{t("table.license")}</TableHead>
+            <TableHead>{t("table.department")}</TableHead>
+            <TableHead>{t("table.status")}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>

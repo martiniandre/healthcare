@@ -29,7 +29,7 @@ interface StaffModalProps {
 }
 
 export const StaffModal = ({ isOpen, onClose }: StaffModalProps) => {
-  const { t } = useTranslation()
+  const { t } = useTranslation("staff")
   const createEmployeeMutation = useCreateEmployeeMutation()
 
   const {
@@ -67,9 +67,9 @@ export const StaffModal = ({ isOpen, onClose }: StaffModalProps) => {
       })
 
       onClose()
-      toast.success(t("staff.toast.createSuccess"))
+      toast.success(t("toast.createSuccess"))
     } catch {
-      toast.error(t("staff.toast.createError"))
+      toast.error(t("toast.createError"))
     }
   }
 
@@ -79,16 +79,16 @@ export const StaffModal = ({ isOpen, onClose }: StaffModalProps) => {
         <DialogHeader className="border-b border-border pb-3">
           <DialogTitle className="flex items-center gap-2">
             <UserPlus className="w-5 h-5 text-primary" />
-            {t("staff.modal.title")}
+            {t("modal.title")}
           </DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit(handleRegisterStaff)} className="flex flex-col gap-4" noValidate>
           <div className="flex flex-col gap-1">
-            <label className="text-xs font-semibold text-gray-600">{t("staff.modal.name")}</label>
+            <label className="text-xs font-semibold text-gray-600">{t("modal.name")}</label>
             <Input
               type="text"
-              placeholder={t("staff.modal.namePlaceholder")}
+              placeholder={t("modal.namePlaceholder")}
               errorText={errors.fullName?.message}
               {...register("fullName")}
             />
@@ -96,14 +96,14 @@ export const StaffModal = ({ isOpen, onClose }: StaffModalProps) => {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-semibold text-gray-600">{t("staff.modal.category")}</label>
+              <label className="text-xs font-semibold text-gray-600">{t("modal.category")}</label>
               <Controller
                 control={control}
                 name="role"
                 render={({ field }) => (
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <SelectTrigger className="w-full">
-                      <SelectValue placeholder={t("staff.modal.category")} />
+                      <SelectValue placeholder={t("modal.category")} />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value={StaffRole.Doctor}>{StaffRole.Doctor}</SelectItem>
@@ -122,10 +122,10 @@ export const StaffModal = ({ isOpen, onClose }: StaffModalProps) => {
             </div>
 
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-semibold text-gray-600">{t("staff.modal.license")}</label>
+              <label className="text-xs font-semibold text-gray-600">{t("modal.license")}</label>
               <Input
                 type="text"
-                placeholder={t("staff.modal.licensePlaceholder")}
+                placeholder={t("modal.licensePlaceholder")}
                 errorText={errors.license?.message}
                 {...register("license")}
               />
@@ -134,20 +134,20 @@ export const StaffModal = ({ isOpen, onClose }: StaffModalProps) => {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-semibold text-gray-600">{t("staff.modal.email")}</label>
+              <label className="text-xs font-semibold text-gray-600">{t("modal.email")}</label>
               <Input
                 type="email"
-                placeholder={t("staff.modal.emailPlaceholder")}
+                placeholder={t("modal.emailPlaceholder")}
                 errorText={errors.email?.message}
                 {...register("email")}
               />
             </div>
 
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-semibold text-gray-600">{t("staff.modal.department")}</label>
+              <label className="text-xs font-semibold text-gray-600">{t("modal.department")}</label>
               <Input
                 type="text"
-                placeholder={t("staff.modal.departmentPlaceholder")}
+                placeholder={t("modal.departmentPlaceholder")}
                 errorText={errors.department?.message}
                 {...register("department")}
               />
@@ -161,7 +161,7 @@ export const StaffModal = ({ isOpen, onClose }: StaffModalProps) => {
               onClick={onClose}
               className="px-4 py-2 text-xs font-bold"
             >
-              {t("staff.modal.cancel")}
+              {t("modal.cancel")}
             </Button>
             <Button
               type="submit"
@@ -169,7 +169,7 @@ export const StaffModal = ({ isOpen, onClose }: StaffModalProps) => {
               variantType="primary"
               className="px-4 py-2 text-xs font-bold"
             >
-              {t("staff.modal.confirm")}
+              {t("modal.confirm")}
             </Button>
           </div>
         </form>

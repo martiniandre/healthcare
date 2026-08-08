@@ -17,7 +17,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "../../../../shared/components/ui/Dialog"
-import { getNewReportSchema, resolvePatientsKey, type NewReportFormData } from "../../patient_schemas"
+import { getNewReportSchema, type NewReportFormData } from "../../patient_schemas"
+import { createModuleTranslator } from "../../../../shared/i18n/i18n"
 
 const reportExamTypes = [
   { code: "58410-2", labelKey: "modals.report.examTypes.completeBloodCount" },
@@ -47,7 +48,7 @@ export const ReportModal = ({
     control,
     formState: { errors },
   } = useForm<NewReportFormData>({
-    resolver: zodResolver(getNewReportSchema(resolvePatientsKey(t))),
+    resolver: zodResolver(getNewReportSchema(createModuleTranslator("patients"))),
     defaultValues: {
       reportCode: "",
       reportDisplay: "",

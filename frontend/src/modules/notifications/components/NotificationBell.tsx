@@ -5,7 +5,7 @@ import { useUnreadCountQuery, useNotificationsQuery, useMarkReadMutation } from 
 import { NotificationItem } from "./NotificationItem"
 
 export function NotificationBell() {
-  const { t } = useTranslation()
+  const { t } = useTranslation("notifications")
   const [isOpen, setIsOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
@@ -35,7 +35,7 @@ export function NotificationBell() {
   return (
     <div ref={dropdownRef} className="relative">
       <button
-        title={t("header.notificationTooltip")}
+        title={t("header:notificationTooltip")}
         onClick={() => setIsOpen(!isOpen)}
         className="relative p-2 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-50 transition-colors"
       >
@@ -50,10 +50,10 @@ export function NotificationBell() {
       {isOpen && (
         <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl border border-border z-50 max-h-96 flex flex-col">
           <div className="px-4 py-2.5 border-b border-border flex items-center justify-between shrink-0">
-            <h3 className="text-sm font-semibold text-gray-800">{t("notifications.title")}</h3>
+            <h3 className="text-sm font-semibold text-gray-800">{t("title")}</h3>
             {unreadCount > 0 && (
               <span className="text-[10px] font-medium text-gray-500">
-                {unreadCount} {t("notifications.unread")}
+                {unreadCount} {t("unread")}
               </span>
             )}
           </div>
@@ -61,7 +61,7 @@ export function NotificationBell() {
           <div className="overflow-y-auto flex-1">
             {notifications.length === 0 ? (
               <div className="px-4 py-8 text-center text-sm text-gray-400">
-                {t("notifications.empty")}
+                {t("empty")}
               </div>
             ) : (
               notifications.map((notification) => (

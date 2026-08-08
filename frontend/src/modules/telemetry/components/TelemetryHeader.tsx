@@ -8,17 +8,17 @@ interface TelemetryHeaderProps {
 }
 
 export const TelemetryHeader = ({ isMuted, setIsMuted }: TelemetryHeaderProps) => {
-  const { t } = useTranslation()
+  const { t } = useTranslation("telemetry")
 
   return (
     <div className="flex items-center justify-between flex-wrap gap-4">
       <div className="text-left">
         <h2 className="text-xl font-black text-gray-900 leading-none flex items-center gap-2">
           <Activity className="w-5 h-5 text-primary animate-pulse-glow" />
-          {t("telemetry.title")}
+          {t("title")}
         </h2>
         <span className="text-xs text-muted mt-1.5 block">
-          {t("telemetry.subtitle")}
+          {t("subtitle")}
         </span>
       </div>
 
@@ -31,12 +31,12 @@ export const TelemetryHeader = ({ isMuted, setIsMuted }: TelemetryHeaderProps) =
           {isMuted ? (
             <>
               <VolumeX className="w-4 h-4 text-red-500" />
-              {t("telemetry.alarmsMuted")}
+              {t("alarmsMuted")}
             </>
           ) : (
             <>
               <Volume2 className="w-4 h-4 text-emerald-500 animate-pulse" />
-              {t("telemetry.alarmsActive")}
+              {t("alarmsActive")}
             </>
           )}
         </Button>

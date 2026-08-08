@@ -9,7 +9,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "../../../../shared/components/ui/Dialog"
-import { getNewConditionSchema, resolvePatientsKey, type NewConditionFormData } from "../../patient_schemas"
+import { getNewConditionSchema, type NewConditionFormData } from "../../patient_schemas"
+import { createModuleTranslator } from "../../../../shared/i18n/i18n"
 
 interface ConditionModalProps {
   isOpen: boolean
@@ -32,7 +33,7 @@ export const ConditionModal = ({
     formState: { errors },
     reset,
   } = useForm<NewConditionFormData>({
-    resolver: zodResolver(getNewConditionSchema(resolvePatientsKey(t))),
+    resolver: zodResolver(getNewConditionSchema(createModuleTranslator("patients"))),
   })
 
   if (!isOpen) {

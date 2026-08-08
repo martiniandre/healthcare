@@ -49,11 +49,6 @@ export type NewConditionFormData = z.infer<typeof baseConditionSchema>
 export type NewAllergyFormData = z.infer<typeof baseAllergySchema>
 export type NewMedicationFormData = z.infer<typeof baseMedicationSchema>
 
-export const resolvePatientsKey =
-  (translateFunction: (key: string) => string) =>
-  (key: string): string =>
-    translateFunction(`patients.${key}`)
-
 export const getNewPatientSchema = (translateFunction: (key: string) => string) => z.object({
   fullName: z.string().min(3, translateFunction("validation.fullNameMin")).max(255).trim(),
   birthDate: z.string().min(10, translateFunction("validation.birthDateReq")).refine(isPastDate, translateFunction("validation.birthDatePast")),

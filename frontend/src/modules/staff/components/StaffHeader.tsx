@@ -7,17 +7,17 @@ interface StaffHeaderProps {
 }
 
 export const StaffHeader = ({ onAddStaff }: StaffHeaderProps) => {
-  const { t } = useTranslation()
+  const { t } = useTranslation("staff")
 
   return (
     <div className="flex items-center justify-between flex-wrap gap-4">
       <div className="text-left">
         <h2 className="text-xl font-black text-gray-900 leading-none flex items-center gap-2">
           <Users className="w-5 h-5 text-primary animate-pulse-glow" />
-          {t("staff.title")}
+          {t("title")}
         </h2>
         <span className="text-xs text-muted mt-1.5 block">
-          {t("staff.subtitle")}
+          {t("subtitle")}
         </span>
       </div>
 
@@ -27,7 +27,7 @@ export const StaffHeader = ({ onAddStaff }: StaffHeaderProps) => {
         className="px-4 gap-2 text-xs font-bold"
       >
         <UserPlus className="w-4 h-4" />
-        {t("staff.addStaff")}
+        {t("addStaff")}
       </Button>
     </div>
   )

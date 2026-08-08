@@ -9,7 +9,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "../../../../shared/components/ui/Dialog"
-import { getNewMedicationSchema, resolvePatientsKey, type NewMedicationFormData } from "../../patient_schemas"
+import { getNewMedicationSchema, type NewMedicationFormData } from "../../patient_schemas"
+import { createModuleTranslator } from "../../../../shared/i18n/i18n"
 
 interface MedicationModalProps {
   isOpen: boolean
@@ -32,7 +33,7 @@ export const MedicationModal = ({
     formState: { errors },
     reset,
   } = useForm<NewMedicationFormData>({
-    resolver: zodResolver(getNewMedicationSchema(resolvePatientsKey(t))),
+    resolver: zodResolver(getNewMedicationSchema(createModuleTranslator("patients"))),
   })
 
   if (!isOpen) {

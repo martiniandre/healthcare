@@ -6,7 +6,7 @@ interface PatientsMetricsGridProps {
 }
 
 export const PatientsMetricsGrid = ({ totalPatients }: PatientsMetricsGridProps) => {
-  const { t } = useTranslation()
+  const { t } = useTranslation("patients")
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -16,7 +16,7 @@ export const PatientsMetricsGrid = ({ totalPatients }: PatientsMetricsGridProps)
         </div>
         <div>
           <span className="text-[10px] text-muted font-semibold uppercase tracking-wider block">
-            {t("patients.cards.total")}
+            {t("cards.total")}
           </span>
           <span className="text-2xl font-black text-gray-900 leading-none mt-0.5 block">
             {totalPatients}
@@ -30,7 +30,7 @@ export const PatientsMetricsGrid = ({ totalPatients }: PatientsMetricsGridProps)
         </div>
         <div>
           <span className="text-[10px] text-muted font-semibold uppercase tracking-wider block">
-            {t("patients.cards.standard")}
+            {t("cards.standard")}
           </span>
           <span className="text-sm font-bold text-gray-800 mt-0.5 block">FHIR R4 Compliant</span>
         </div>
@@ -42,7 +42,7 @@ export const PatientsMetricsGrid = ({ totalPatients }: PatientsMetricsGridProps)
         </div>
         <div>
           <span className="text-[10px] text-muted font-semibold uppercase tracking-wider block">
-            {t("patients.cards.integration")}
+            {t("cards.integration")}
           </span>
           <span className="text-sm font-bold text-gray-800 mt-0.5 block">Cloud Healthcare API</span>
         </div>

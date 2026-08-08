@@ -10,7 +10,8 @@ import {
 import { MaskedInput } from "../../../shared/components/ui/MaskedInput"
 import { Button } from "../../../shared/components/ui/Button"
 import { Input } from "../../../shared/components/ui/Input"
-import { getNewPatientSchema, resolvePatientsKey, type NewPatientFormData } from "../patient_schemas"
+import { getNewPatientSchema, type NewPatientFormData } from "../patient_schemas"
+import { createModuleTranslator } from "../../../shared/i18n/i18n"
 import { useCreatePatientMutation } from "../queries"
 import { toast } from "../../../shared/store/toast_store"
 import { useEffect } from "react"
@@ -21,7 +22,7 @@ interface PatientModalProps {
 }
 
 export const PatientModal = ({ isOpen, onOpenChange }: PatientModalProps) => {
-  const { t } = useTranslation()
+  const { t } = useTranslation("patients")
   const createPatientMutation = useCreatePatientMutation()
 
   const {
@@ -30,7 +31,7 @@ export const PatientModal = ({ isOpen, onOpenChange }: PatientModalProps) => {
     reset,
     formState: { errors },
   } = useForm<NewPatientFormData>({
-    resolver: zodResolver(getNewPatientSchema(resolvePatientsKey(t))),
+    resolver: zodResolver(getNewPatientSchema(createModuleTranslator("patients"))),
     defaultValues: {
       fullName: "",
       birthDate: "",
@@ -54,9 +55,9 @@ export const PatientModal = ({ isOpen, onOpenChange }: PatientModalProps) => {
         phone_number: formData.phoneNumber,
       })
       onOpenChange(false)
-      toast.success(t("patients.toast.createSuccess"))
+      toast.success(t("toast.createSuccess"))
     } catch {
-      toast.error(t("patients.toast.createError"))
+      toast.error(t("toast.createError"))
     }
   }
 
@@ -64,45 +65,45 @@ export const PatientModal = ({ isOpen, onOpenChange }: PatientModalProps) => {
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[480px]">
         <DialogHeader>
-          <DialogTitle className="text-left">{t("patients.modal.title")}</DialogTitle>
+          <DialogTitle className="text-left">{t("modal.title")}</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4 text-left mt-4" noValidate>
           <div className="flex flex-col gap-1">
-            <label className="text-xs font-semibold text-gray-600">{t("patients.modal.name")}</label>
+            <label className="text-xs font-semibold text-gray-600">{t("modal.name")}</label>
             <Input
               type="text"
-              placeholder={t("patients.modal.namePlaceholder")}
+              placeholder={t("modal.namePlaceholder")}
               errorText={errors.fullName?.message}
               {...register("fullName")}
             />
           </div>
 
           <div className="flex flex-col gap-1">
-            <label className="text-xs font-semibold text-gray-600">{t("patients.modal.birthDate")}</label>
+            <label className="text-xs font-semibold text-gray-600">{t("modal.birthDate")}</label>
             <MaskedInput
               mask="9999-99-99"
-              placeholder={t("patients.modal.birthDatePlaceholder")}
+              placeholder={t("modal.birthDatePlaceholder")}
               errorText={errors.birthDate?.message}
               {...register("birthDate")}
             />
           </div>
 
           <div className="flex flex-col gap-1">
-            <label className="text-xs font-semibold text-gray-600">{t("patients.modal.document")}</label>
+            <label className="text-xs font-semibold text-gray-600">{t("modal.document")}</label>
             <MaskedInput
               mask="999.999.999-99"
-              placeholder={t("patients.modal.documentPlaceholder")}
+              placeholder={t("modal.documentPlaceholder")}
               errorText={errors.documentId?.message}
               {...register("documentId")}
             />
           </div>
 
           <div className="flex flex-col gap-1">
-            <label className="text-xs font-semibold text-gray-600">{t("patients.modal.phone")}</label>
+            <label className="text-xs font-semibold text-gray-600">{t("modal.phone")}</label>
             <MaskedInput
               mask="(99) 99999-9999"
-              placeholder={t("patients.modal.phonePlaceholder")}
+              placeholder={t("modal.phonePlaceholder")}
               errorText={errors.phoneNumber?.message}
               {...register("phoneNumber")}
             />
@@ -110,10 +111,10 @@ export const PatientModal = ({ isOpen, onOpenChange }: PatientModalProps) => {
 
           <div className="flex gap-3 justify-end mt-3">
             <Button variantType="outline" type="button" onClick={() => onOpenChange(false)}>
-              {t("patients.modal.cancel")}
+              {t("modal.cancel")}
             </Button>
             <Button type="submit" disabled={createPatientMutation.isPending}>
-              {t("patients.modal.confirm")}
+              {t("modal.confirm")}
             </Button>
           </div>
         </form>

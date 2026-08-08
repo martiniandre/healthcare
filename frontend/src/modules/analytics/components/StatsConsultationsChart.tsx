@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next"
+import { createModuleTranslator } from "../../../shared/i18n/i18n"
 import { Card } from "../../../shared/components/ui/Card"
 import { EmptyState } from "../../../shared/components/ui/EmptyState"
 
@@ -22,13 +23,14 @@ export const StatsConsultationsChart = ({
   hoveredBarIndex,
   setHoveredBarIndex
 }: StatsConsultationsChartProps) => {
-  const { t: translate } = useTranslation()
+  const { t: translate } = useTranslation("analytics")
+  const translateModuleKey = createModuleTranslator("analytics")
 
   return (
     <Card className="p-5 flex flex-col gap-5 text-left border border-border">
       <div>
-        <h3 className="font-extrabold text-gray-900 text-md">{translate("analytics.consultations.title")}</h3>
-        <span className="text-xs text-muted block mt-1">{translate("analytics.consultations.subtitle")}</span>
+        <h3 className="font-extrabold text-gray-900 text-md">{translate("consultations.title")}</h3>
+        <span className="text-xs text-muted block mt-1">{translate("consultations.subtitle")}</span>
       </div>
 
       <div className="overflow-x-auto w-full">
@@ -38,8 +40,8 @@ export const StatsConsultationsChart = ({
               const isHovered = hoveredBarIndex === indexValue
               const percentageHeight = (item.count / maxWeeklyConsultationCount) * 100
               const translatedDayName = item.dayName.startsWith("analytics.days.") 
-                ? translate(item.dayName) 
-                : translate(`analytics.days.${item.dayName}`)
+                ? translateModuleKey(item.dayName) 
+                : translateModuleKey(`days.${item.dayName}`)
 
               return (
                 <div
@@ -50,7 +52,7 @@ export const StatsConsultationsChart = ({
                 >
                   {isHovered && (
                     <div className="absolute -top-10 bg-gray-900 text-white text-[10px] font-bold px-2 py-1 rounded shadow-md z-10 whitespace-nowrap">
-                      {item.count} {translate("analytics.consultations.consultationsLabel")}
+                      {item.count} {translate("consultations.consultationsLabel")}
                     </div>
                   )}
 
@@ -71,8 +73,8 @@ export const StatsConsultationsChart = ({
         ) : (
           <div className="h-48 border-b border-border mb-2 pt-6">
             <EmptyState 
-              title={translate("analytics.empty.consultations")} 
-              description={translate("analytics.empty.consultationsDesc")} 
+              title={translate("empty.consultations")} 
+              description={translate("empty.consultationsDesc")} 
               className="h-full"
             />
           </div>
@@ -80,9 +82,9 @@ export const StatsConsultationsChart = ({
       </div>
 
       <div className="flex justify-between items-center text-xs text-gray-500 px-2.5">
-        <span>{translate("analytics.consultations.minLabel")} {weeklyChartSummary.min} {translate("analytics.consultations.sunShort")}</span>
-        <span>{translate("analytics.consultations.avgLabel")} {weeklyChartSummary.average} {translate("analytics.consultations.perDay")}</span>
-        <span>{translate("analytics.consultations.peakLabel")} {weeklyChartSummary.peak} {translate("analytics.consultations.friShort")}</span>
+        <span>{translate("consultations.minLabel")} {weeklyChartSummary.min} {translate("consultations.sunShort")}</span>
+        <span>{translate("consultations.avgLabel")} {weeklyChartSummary.average} {translate("consultations.perDay")}</span>
+        <span>{translate("consultations.peakLabel")} {weeklyChartSummary.peak} {translate("consultations.friShort")}</span>
       </div>
     </Card>
   )

@@ -16,7 +16,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "../../../../shared/components/ui/Dialog"
-import { getNewEncounterSchema, resolvePatientsKey, type NewEncounterFormData } from "../../patient_schemas"
+import { getNewEncounterSchema, type NewEncounterFormData } from "../../patient_schemas"
+import { createModuleTranslator } from "../../../../shared/i18n/i18n"
 import { useStaffListQuery } from "../../../staff/queries"
 import { StaffRole } from "../../../../shared/types"
 
@@ -42,7 +43,7 @@ export const EncounterModal = ({
     control,
     formState: { errors },
   } = useForm<NewEncounterFormData>({
-    resolver: zodResolver(getNewEncounterSchema(resolvePatientsKey(t))),
+    resolver: zodResolver(getNewEncounterSchema(createModuleTranslator("patients"))),
     defaultValues: {
       reasonDisplay: "",
       practitionerId: "",

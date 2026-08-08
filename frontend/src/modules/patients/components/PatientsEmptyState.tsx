@@ -8,13 +8,13 @@ interface PatientsEmptyStateProps {
 }
 
 export const PatientsEmptyState = ({ hasSearchTerm, searchTerm }: PatientsEmptyStateProps) => {
-  const { t } = useTranslation()
+  const { t } = useTranslation("patients")
 
   return (
     <EmptyState
       icon={Users}
-      title={hasSearchTerm ? t("patients.noResults") : t("patients.noPatients")}
-      description={hasSearchTerm ? t("patients.noResultsDesc", { searchTerm }) : t("patients.noPatientsDesc")}
+      title={hasSearchTerm ? t("noResults") : t("noPatients")}
+      description={hasSearchTerm ? t("noResultsDesc", { searchTerm }) : t("noPatientsDesc")}
       className="flex-1 py-20"
     />
   )

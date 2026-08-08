@@ -20,14 +20,14 @@ interface TelemetryBedListProps {
 }
 
 export const TelemetryBedList = ({ beds, selectedBedId, setSelectedBedId }: TelemetryBedListProps) => {
-  const { t } = useTranslation()
+  const { t } = useTranslation("telemetry")
 
   return (
     <div className="flex flex-col gap-4 lg:col-span-1 text-left">
       <Card className="p-4 flex flex-col gap-4">
         <h3 className="font-extrabold text-gray-900 text-md flex items-center gap-2 border-b border-border pb-3">
           <Bell className="w-4 h-4 text-primary animate-pulse-glow" />
-          {t("telemetry.availableBeds", { count: beds.length })}
+          {t("availableBeds", { count: beds.length })}
         </h3>
 
         <div className="flex flex-col gap-3">

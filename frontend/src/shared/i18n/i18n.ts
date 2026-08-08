@@ -11,14 +11,23 @@ i18n
   .use(initReactI18next)
   .init({
     resources: {
-      "pt-BR": { ...ptBRResource, translation: ptBRResource },
-      "en-US": { ...enUSResource, translation: enUSResource },
-      "es-ES": { ...esESResource, translation: esESResource }
+      "pt-BR": ptBRResource,
+      "en-US": enUSResource,
+      "es-ES": esESResource
     },
     fallbackLng: "pt-BR",
     interpolation: {
       escapeValue: false
     }
   })
+
+export const createModuleTranslator =
+  (namespace: string) =>
+  (key: string, defaultValue?: string): string => {
+    const namespacedKey = key.startsWith(`${namespace}.`) ? key : `${namespace}.${key}`
+    return defaultValue
+      ? i18n.t(namespacedKey, { defaultValue })
+      : i18n.t(namespacedKey)
+  }
 
 export default i18n

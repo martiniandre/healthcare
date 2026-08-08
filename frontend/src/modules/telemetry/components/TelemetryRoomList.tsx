@@ -23,7 +23,7 @@ export const TelemetryRoomList = ({
   handleSelectRoom,
   handleLockRoom
 }: TelemetryRoomListProps) => {
-  const { t } = useTranslation()
+  const { t } = useTranslation("telemetry")
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -43,7 +43,7 @@ export const TelemetryRoomList = ({
           >
             <div className="flex items-center justify-between">
               <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block">
-                {t("telemetry.monitoredWing")}
+                {t("monitoredWing")}
               </span>
               <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full border ${
                 isUnlocked 
@@ -53,12 +53,12 @@ export const TelemetryRoomList = ({
                 {isUnlocked ? (
                   <>
                     <Unlock className="w-3 h-3" />
-                    {t("telemetry.unlocked")}
+                    {t("unlocked")}
                   </>
                 ) : (
                   <>
                     <Lock className="w-3 h-3" />
-                    {t("telemetry.protected")}
+                    {t("protected")}
                   </>
                 )}
               </span>
@@ -79,7 +79,7 @@ export const TelemetryRoomList = ({
                 }}
                 className="absolute bottom-4 right-4 text-xs text-red-500 hover:text-red-700 transition-colors font-bold"
               >
-                {t("telemetry.lockButton")}
+                {t("lockButton")}
               </button>
             )}
           </Card>

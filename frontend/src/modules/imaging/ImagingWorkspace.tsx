@@ -16,7 +16,7 @@ interface ImagingWorkspaceProps {
 }
 
 export const ImagingWorkspace = ({ studyId, onBack }: ImagingWorkspaceProps) => {
-  const { t } = useTranslation()
+  const { t } = useTranslation("imaging")
   const [uploadState, setUploadState] = useState<{
     percentage: number | null
     status: string | null
@@ -37,7 +37,7 @@ export const ImagingWorkspace = ({ studyId, onBack }: ImagingWorkspaceProps) => 
       return
     }
 
-    setUploadState({ percentage: 0, status: t("imaging.uploadStatus.initial") })
+    setUploadState({ percentage: 0, status: t("uploadStatus.initial") })
     await waitForUploadFrame(300)
     setUploadState((prev) => ({ ...prev, percentage: 30 }))
 
@@ -49,11 +49,11 @@ export const ImagingWorkspace = ({ studyId, onBack }: ImagingWorkspaceProps) => 
         dicomBlob: selectedFile,
       })
 
-      setUploadState({ percentage: 100, status: t("imaging.uploadStatus.grpcCompleted") })
+      setUploadState({ percentage: 100, status: t("uploadStatus.grpcCompleted") })
       await waitForUploadFrame(500)
-      toast.success(t("imaging.toast.uploadSuccess"))
+      toast.success(t("toast.uploadSuccess"))
     } catch {
-      toast.error(t("imaging.toast.uploadError"))
+      toast.error(t("toast.uploadError"))
     } finally {
       setUploadState({ percentage: null, status: null })
       if (fileInputReference.current) {
@@ -69,7 +69,7 @@ export const ImagingWorkspace = ({ studyId, onBack }: ImagingWorkspaceProps) => 
   if (isStudyLoading || !study) {
     return (
       <div className="text-center py-16">
-        <span className="text-sm text-muted">{t("imaging.loading")}</span>
+        <span className="text-sm text-muted">{t("loading")}</span>
       </div>
     )
   }
@@ -80,11 +80,11 @@ export const ImagingWorkspace = ({ studyId, onBack }: ImagingWorkspaceProps) => 
         <div className="flex items-center gap-4">
           <Button variantType="outline" onClick={onBack} className="px-3">
             <ArrowLeft className="w-4 h-4" />
-            {t("imaging.backToRecord")}
+            {t("backToRecord")}
           </Button>
           <div className="text-left">
             <h2 className="text-xl font-black text-gray-900 leading-none">
-              {t("imaging.titleConsole")}
+              {t("titleConsole")}
             </h2>
             <span className="text-xs text-muted mt-1.5 block">
               Estudo: {study.title} • UID: {study.study_instance_uid}
@@ -107,7 +107,7 @@ export const ImagingWorkspace = ({ studyId, onBack }: ImagingWorkspaceProps) => 
             className="px-3.5 gap-2 border-primary/20 text-primary hover:bg-primary/5"
           >
             <UploadCloud className="w-4 h-4" />
-            {t("imaging.uploadDcm")}
+            {t("uploadDcm")}
           </Button>
         </div>
       </div>
