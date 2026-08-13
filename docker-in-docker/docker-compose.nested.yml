@@ -27,6 +27,15 @@ services:
     networks:
       - app-net
 
+  # Emulador FHIR R4 (HAPI) para modo offline sem Google Cloud
+  fhir:
+    image: hapiproject/hapi:v5.7.0
+    container_name: nested-fhir
+    ports:
+      - "8081:8080"
+    networks:
+      - app-net
+
   # API Backend em Go
   backend:
     build:
@@ -44,6 +53,8 @@ services:
       - DB_URL=postgres://healthcare_user:healthcare_password@postgres:5432/healthcare_db?sslmode=disable
       - REDIS_URL=redis:6379
       - JWT_SECRET=escreva_uma_senha_muito_forte_aqui_como_por_exemplo_qweasd123zxc
+      # Modo offline: usa o emulador HAPI local em vez do Google Cloud Healthcare API
+      - FHIR_BASE_URL=http://fhir:8080/fhir
       # Defina suas credenciais reais de Sentry e Google Cloud conforme o guia se necessário
       - SENTRY_DSN=
       - GCP_PROJECT_ID=
@@ -53,6 +64,7 @@ services:
     depends_on:
       - postgres
       - redis
+      - fhir
     networks:
       - app-net
 

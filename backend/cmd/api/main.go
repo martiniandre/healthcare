@@ -97,7 +97,7 @@ func main() {
 	}
 	defer databasePool.Close()
 
-	fhirClient, fhirClientError := healthcare.NewClient(mainContext, appConfig.GCPProjectID, appConfig.GCPLocationID, appConfig.GCPDatasetID, appConfig.GCPFHIRStore)
+	fhirClient, fhirClientError := buildFHIRClient(mainContext, appConfig)
 	if fhirClientError != nil {
 		slog.Error("Failed to initialize Healthcare API client", "error", fhirClientError)
 		os.Exit(1)
@@ -228,4 +228,16 @@ func main() {
 	}
 
 	slog.Info("Server stopped")
+}
+
+func buildFHIRClient(ctx context.Context, appConfig *config.Config) (*healthcare.Client, error) {
+	if appConfig.FHIRBaseURL != "" {
+		client, clientError := healthcare.NewClientWithBaseURL(appConfig.FHIRBaseURL)
+		if clientError == nil {
+			slog.Info("FHIR client initialized in offline mode", "base_url", appConfig.FHIRBaseURL)
+		}
+		return client, clientError
+	}
+
+	return healthcare.NewClient(ctx, appConfig.GCPProjectID, appConfig.GCPLocationID, appConfig.GCPDatasetID, appConfig.GCPFHIRStore)
 }

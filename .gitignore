@@ -29,6 +29,7 @@ frontend/dist-ssr/
 
 # Go / Backend
 backend/bin/
+backend/tmp/
 *.exe
 *.exe~
 *.dll

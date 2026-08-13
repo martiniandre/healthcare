@@ -10,22 +10,23 @@ import (
 )
 
 type Config struct {
-	AppPort             string
-	HTTPPort            string
-	AppEnv              string
-	DBUrl               string
-	RedisUrl            string
-	SentryDSN           string
-	JWTSecret           string
+	AppPort              string
+	HTTPPort             string
+	AppEnv               string
+	DBUrl                string
+	RedisUrl             string
+	SentryDSN            string
+	JWTSecret            string
 	OTELExporterEndpoint string
-	OTELServiceName     string
-	GCPProjectID        string
-	GCPLocationID       string
-	GCPDatasetID        string
-	GCPFHIRStore        string
-	GCPDICOMStore       string
-	GCPVertexModel      string
-	GCSBucketName       string
+	OTELServiceName      string
+	GCPProjectID         string
+	GCPLocationID        string
+	GCPDatasetID         string
+	GCPFHIRStore         string
+	GCPDICOMStore        string
+	GCPVertexModel       string
+	GCSBucketName        string
+	FHIRBaseURL          string
 }
 
 func Load() (*Config, error) {
@@ -51,6 +52,7 @@ func Load() (*Config, error) {
 		GCPDICOMStore:        getEnv("GCP_DICOM_STORE_ID", "default-dicom"),
 		GCPVertexModel:       getEnv("GCP_VERTEX_MODEL", "gemini-2.0-flash-001"),
 		GCSBucketName:        getEnv("GCS_BUCKET_NAME", "default-bucket"),
+		FHIRBaseURL:          getEnv("FHIR_BASE_URL", ""),
 	}
 
 	if validationErr := cfg.validate(); validationErr != nil {
@@ -62,11 +64,14 @@ func Load() (*Config, error) {
 
 func (cfg *Config) validate() error {
 	requiredFields := map[string]string{
-		"DB_URL":            cfg.DBUrl,
-		"JWT_SECRET":        cfg.JWTSecret,
-		"GCP_PROJECT_ID":    cfg.GCPProjectID,
-		"GCP_DATASET_ID":    cfg.GCPDatasetID,
-		"GCP_FHIR_STORE_ID": cfg.GCPFHIRStore,
+		"DB_URL":     cfg.DBUrl,
+		"JWT_SECRET": cfg.JWTSecret,
+	}
+
+	if cfg.FHIRBaseURL == "" && cfg.AppEnv != "test" {
+		requiredFields["GCP_PROJECT_ID"] = cfg.GCPProjectID
+		requiredFields["GCP_DATASET_ID"] = cfg.GCPDatasetID
+		requiredFields["GCP_FHIR_STORE_ID"] = cfg.GCPFHIRStore
 	}
 
 	var missingFields []string

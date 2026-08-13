@@ -30,5 +30,17 @@ services:
       timeout: 5s
       retries: 5
 
+  fhir:
+    image: hapiproject/hapi:v5.7.0
+    container_name: healthcare_fhir
+    ports:
+      - "8081:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'exec 3<>/dev/tcp/localhost/8080 && printf \"GET /fhir/metadata HTTP/1.0\\r\\nHost: localhost\\r\\n\\r\\n\" >&3 && cat <&3 | grep -q 200'"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
 volumes:
   postgres_data:

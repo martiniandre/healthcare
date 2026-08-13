@@ -55,6 +55,23 @@ func NewClient(ctx context.Context, projectID, locationID, datasetID, fhirStoreI
 	}, nil
 }
 
+func NewClientWithBaseURL(baseURL string) (*Client, error) {
+	parsedBaseURL, err := url.Parse(baseURL)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse FHIR base url: %w", err)
+	}
+	if parsedBaseURL.Scheme == "" || parsedBaseURL.Host == "" {
+		return nil, fmt.Errorf("invalid FHIR base url %q: expected an absolute url like http://localhost:8081/fhir", baseURL)
+	}
+
+	httpClient := &http.Client{Timeout: defaultHTTPTimeout}
+
+	return &Client{
+		httpClient: httpClient,
+		baseURL:    strings.TrimRight(baseURL, "/"),
+	}, nil
+}
+
 func (healthcareClient *Client) CreateResource(ctx context.Context, resourceType string, resourceBody interface{}) (json.RawMessage, error) {
 	bodyBytes, err := json.Marshal(resourceBody)
 	if err != nil {
