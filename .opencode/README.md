@@ -23,7 +23,7 @@ Orquestração de automações do ecossistema Healthcare (stack Go + React/Vite)
 ## Automação Git (`.githooks/` e CI)
 
 - `.githooks/commit-msg` — valida Conventional Commits v1.0.0 a cada commit.
-- `.githooks/pre-push` — já existente em `.git/hooks`; agora versionado como referência (go vet + npm lint).
+- `.githooks/pre-push` — check rápido (go vet + npm lint) antes do push.
 - `.github/workflows/pr-conventions.yml` — valida título do PR e todos os commits na CI.
 
 ### Instalar hooks (uma vez por clone)

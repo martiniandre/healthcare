@@ -1,0 +1,47 @@
+#!/bin/sh
+
+COLOR_CYAN="\033[1;36m"
+COLOR_GREEN="\033[1;32m"
+COLOR_YELLOW="\033[1;33m"
+COLOR_RED="\033[1;31m"
+COLOR_RESET="\033[0m"
+
+echo ""
+echo "${COLOR_CYAN}===================================================${COLOR_RESET}"
+echo "${COLOR_CYAN}     HEALTHCARE ECOSYSTEM - PRE-PUSH FAST CHECK    ${COLOR_RESET}"
+echo "${COLOR_CYAN}===================================================${COLOR_RESET}"
+echo ""
+
+if command -v go >/dev/null 2>&1; then
+    echo "${COLOR_CYAN}[1/2] Running Go vet (go vet)...${COLOR_RESET}"
+    if ! (cd backend && go vet ./...); then
+        echo ""
+        echo "${COLOR_RED}FAILED: 'go vet' found static analysis issues in Backend.${COLOR_RESET}"
+        echo "${COLOR_RED}Please fix the errors above before pushing.${COLOR_RESET}"
+        echo ""
+        exit 1
+    fi
+else
+    echo "${COLOR_YELLOW}[!] 'go' not found in PATH. Skipping Backend checks.${COLOR_RESET}"
+fi
+
+if command -v npm >/dev/null 2>&1; then
+    echo "${COLOR_CYAN}[2/2] Running Frontend lint (npm run lint)...${COLOR_RESET}"
+    if ! (cd frontend && npm run lint); then
+        echo ""
+        echo "${COLOR_RED}FAILED: ESLint found quality warnings or errors in Frontend.${COLOR_RESET}"
+        echo "${COLOR_RED}Please fix lint issues before pushing.${COLOR_RESET}"
+        echo ""
+        exit 1
+    fi
+else
+    echo "${COLOR_YELLOW}[!] 'npm' not found in PATH. Skipping Frontend checks.${COLOR_RESET}"
+fi
+
+echo ""
+echo "${COLOR_GREEN}===================================================${COLOR_RESET}"
+echo "${COLOR_GREEN}     PRE-PUSH CHECK: PASSED SUCCESSFULLY           ${COLOR_RESET}"
+echo "${COLOR_GREEN}===================================================${COLOR_RESET}"
+echo ""
+
+exit 0
