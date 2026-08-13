@@ -2,5 +2,7 @@
   "title": "Notifications",
   "unread": "unread",
   "empty": "No notifications yet",
+  "listError": "Unable to load notifications.",
+  "markReadError": "Failed to mark the notification as read.",
   "markRead": "Mark as read"
 }

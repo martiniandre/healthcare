@@ -4,7 +4,9 @@ import {
   baseEncounterSchema,
   baseReportSchema,
   getNewEncounterSchema,
+  getNewPatientSchema,
   getNewReportSchema,
+  getNewMedicationSchema,
 } from './patient_schemas'
 
 const mockTranslate = (key: string) => `message:${key}`
@@ -73,6 +75,36 @@ describe('patient schemas', () => {
       })
       expect(result.success).toBe(true)
     })
+
+    it('should reject a reason longer than the max length', () => {
+      const result = getNewEncounterSchema(mockTranslate).safeParse({
+        reasonDisplay: 'x'.repeat(256),
+        practitionerId: 'fhir-practitioner-1',
+      })
+      expect(result.success).toBe(false)
+    })
+  })
+
+  describe('getNewPatientSchema', () => {
+    it('should reject a full name longer than the max length', () => {
+      const result = getNewPatientSchema(mockTranslate).safeParse({
+        fullName: 'x'.repeat(256),
+        birthDate: '1990-01-15',
+        documentId: '111.222.333-44',
+        phoneNumber: '(11) 98765-4321',
+      })
+      expect(result.success).toBe(false)
+    })
+
+    it('should accept valid patient data', () => {
+      const result = getNewPatientSchema(mockTranslate).safeParse({
+        fullName: 'John Doe',
+        birthDate: '1990-01-15',
+        documentId: '111.222.333-44',
+        phoneNumber: '(11) 98765-4321',
+      })
+      expect(result.success).toBe(true)
+    })
   })
 
   describe('baseReportSchema', () => {
@@ -111,6 +143,33 @@ describe('patient schemas', () => {
         conclusion: 'No anomalies found in the sample.',
       })
       expect(result.success).toBe(true)
+    })
+
+    it('should reject a conclusion longer than the max length', () => {
+      const result = getNewReportSchema(mockTranslate).safeParse({
+        reportCode: '58410-2',
+        reportDisplay: 'Complete Blood Count',
+        conclusion: 'x'.repeat(2001),
+      })
+      expect(result.success).toBe(false)
+    })
+  })
+
+  describe('getNewMedicationSchema', () => {
+    it('should accept valid medication data', () => {
+      const result = getNewMedicationSchema(mockTranslate).safeParse({
+        medicationDisplay: 'Paracetamol 500mg',
+        dosageInstruction: 'Take one tablet every 6 hours.',
+      })
+      expect(result.success).toBe(true)
+    })
+
+    it('should reject a dosage instruction longer than the max length', () => {
+      const result = getNewMedicationSchema(mockTranslate).safeParse({
+        medicationDisplay: 'Paracetamol 500mg',
+        dosageInstruction: 'x'.repeat(1001),
+      })
+      expect(result.success).toBe(false)
     })
   })
 })

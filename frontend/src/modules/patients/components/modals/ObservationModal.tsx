@@ -58,7 +58,7 @@ export const ObservationModal = ({
               {t("modals.observation.title")}
             </DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4 text-left mt-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4 text-left mt-4" noValidate>
             <div className="flex flex-col gap-1">
               <label className="text-xs font-semibold text-gray-600">
                 {t("modals.observation.selectMetric")}

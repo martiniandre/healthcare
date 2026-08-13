@@ -67,6 +67,7 @@
     "birth": "Birth Date",
     "fhirId": "FHIR ID",
     "loadingDetails": "Loading clinical records...",
+    "loadError": "Unable to load the clinical record. Check that the patient exists or try again.",
     "clinicalResources": "Clinical Resources",
     "focus": "Focus",
     "openEncounter": "Open",
@@ -241,6 +242,7 @@
     "allergenDisplayMin": "Allergen description must be at least 3 characters",
     "reactionMin": "Reported reaction must be at least 3 characters",
     "medicationMin": "Medication name must be at least 3 characters",
-    "dosageMin": "Dosage instruction must be at least 3 characters"
+    "dosageMin": "Dosage instruction must be at least 3 characters",
+    "maxLength": "Value exceeds the maximum allowed length"
   }
 }

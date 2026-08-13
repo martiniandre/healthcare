@@ -37,6 +37,16 @@ export const isPastDate = (dateStr: string): boolean => {
   return parsedDate < new Date()
 }
 
+export const isTodayOrFutureDate = (dateStr: string): boolean => {
+  const parsedDate = new Date(dateStr)
+  if (isNaN(parsedDate.getTime())) {
+    return false
+  }
+  const inputIsoDate = parsedDate.toISOString().slice(0, 10)
+  const todayIsoDate = new Date().toISOString().slice(0, 10)
+  return inputIsoDate >= todayIsoDate
+}
+
 export const isValidICD10 = (code: string): boolean => {
   return /^[A-Z]\d{2}(\.\d{1,2})?$/i.test(code.trim())
 }

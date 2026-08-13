@@ -27,9 +27,6 @@ export const examAnalyzerApi = {
     }
 
     return http.post<ExamAnalysis, FormData>("/exam-analyses", formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
       onUploadProgress: (progressEvent) => {
         if (onUploadProgress && progressEvent.total) {
           const percentage = Math.round((progressEvent.loaded * 100) / progressEvent.total)

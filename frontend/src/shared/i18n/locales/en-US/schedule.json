@@ -66,6 +66,8 @@
     "startTimeRequired": "Enter a start time.",
     "endTimeRequired": "Enter an end time.",
     "reasonMin": "Enter the appointment reason (at least 3 characters).",
+    "reasonMax": "The reason must be at most 500 characters.",
+    "dateFuture": "The appointment date must be today or a future date.",
     "endAfterStart": "The end time must be after the start time."
   }
 }

@@ -99,7 +99,7 @@ describe("AppointmentModal", () => {
   })
 
   it("should submit appointment with patient, staff, times and idempotency key", async () => {
-    const onSubmit = renderModal({ defaultDate: "2026-05-20" })
+    const onSubmit = renderModal({ defaultDate: "2027-05-20" })
     await fillPatientAndStaff()
     fillTimes("09:00", "10:00")
     fireEvent.change(screen.getByPlaceholderText("modals.create.reasonPlaceholder"), {
@@ -118,15 +118,15 @@ describe("AppointmentModal", () => {
     })
     const parsedStart = new Date(submittedPayload.starts_at as string)
     const parsedEnd = new Date(submittedPayload.ends_at as string)
-    expect(parsedStart.getTime()).toBe(new Date("2026-05-20T09:00").getTime())
-    expect(parsedEnd.getTime()).toBe(new Date("2026-05-20T10:00").getTime())
+    expect(parsedStart.getTime()).toBe(new Date("2027-05-20T09:00").getTime())
+    expect(parsedEnd.getTime()).toBe(new Date("2027-05-20T10:00").getTime())
   })
 
   it("should display conflict message when backend returns 409", async () => {
     const onSubmit = vi.fn().mockRejectedValue(
       Object.assign(new Error("Conflict"), { isAxiosError: true, response: { status: 409 } })
     )
-    renderModal({ onSubmit, defaultDate: "2026-05-20" })
+    renderModal({ onSubmit, defaultDate: "2027-05-20" })
     await fillPatientAndStaff()
     fillTimes("09:00", "10:00")
     fireEvent.change(screen.getByPlaceholderText("modals.create.reasonPlaceholder"), {

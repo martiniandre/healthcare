@@ -31,6 +31,7 @@
   },
   "toast": {
     "createSuccess": "Profissional de saúde cadastrado com sucesso!",
-    "createError": "Falha ao registrar profissional de saúde."
+    "createError": "Falha ao registrar profissional de saúde.",
+    "sessionError": "Sessão expirada. Faça login novamente para registrar profissionais."
   }
 }

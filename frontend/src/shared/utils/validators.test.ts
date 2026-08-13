@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { cpfValidation, isPastDate, isValidICD10 } from './validators'
+import { cpfValidation, isPastDate, isTodayOrFutureDate, isValidICD10 } from './validators'
 
 describe('cpfValidation', () => {
   it('should accept a valid CPF', () => {
@@ -26,6 +26,28 @@ describe('isPastDate', () => {
 
   it('should return false for an invalid date string', () => {
     expect(isPastDate('not-a-date')).toBe(false)
+  })
+})
+
+describe('isTodayOrFutureDate', () => {
+  const todayIso = new Date().toISOString().slice(0, 10)
+  const futureIso = new Date(Date.now() + 5 * 86400000).toISOString().slice(0, 10)
+  const pastIso = new Date(Date.now() - 5 * 86400000).toISOString().slice(0, 10)
+
+  it('should return true for today', () => {
+    expect(isTodayOrFutureDate(todayIso)).toBe(true)
+  })
+
+  it('should return true for a future date', () => {
+    expect(isTodayOrFutureDate(futureIso)).toBe(true)
+  })
+
+  it('should return false for a past date', () => {
+    expect(isTodayOrFutureDate(pastIso)).toBe(false)
+  })
+
+  it('should return false for an invalid date string', () => {
+    expect(isTodayOrFutureDate('not-a-date')).toBe(false)
   })
 })
 

@@ -23,7 +23,7 @@ export const ImagingWorkspace = ({ studyId, onBack }: ImagingWorkspaceProps) => 
   }>({ percentage: null, status: null })
   const fileInputReference = useRef<HTMLInputElement>(null)
 
-  const { data: study, isLoading: isStudyLoading } = useImagingStudyQuery(studyId)
+  const { data: study, isLoading: isStudyLoading, isError: isStudyError } = useImagingStudyQuery(studyId)
   const uploadImagingStudyMutation = useUploadImagingStudyMutation()
   const dicomViewer = useDicomViewer(study)
 
@@ -64,6 +64,14 @@ export const ImagingWorkspace = ({ studyId, onBack }: ImagingWorkspaceProps) => 
 
   if (!studyId) {
     return null
+  }
+
+  if (isStudyError) {
+    return (
+      <div className="text-center py-16">
+        <span className="text-sm text-red-500 font-medium">{t("loadError")}</span>
+      </div>
+    )
   }
 
   if (isStudyLoading || !study) {

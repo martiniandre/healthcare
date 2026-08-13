@@ -66,6 +66,8 @@
     "startTimeRequired": "Ingrese la hora de inicio.",
     "endTimeRequired": "Ingrese la hora de fin.",
     "reasonMin": "Ingrese el motivo de la consulta (mínimo 3 caracteres).",
+    "reasonMax": "El motivo debe tener como máximo 500 caracteres.",
+    "dateFuture": "La fecha de la cita debe ser hoy o una fecha futura.",
     "endAfterStart": "La hora de fin debe ser posterior al inicio."
   }
 }

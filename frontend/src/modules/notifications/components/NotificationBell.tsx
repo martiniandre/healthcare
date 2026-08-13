@@ -1,16 +1,17 @@
 import { useState, useRef, useEffect } from "react"
 import { useTranslation } from "react-i18next"
-import { Bell } from "lucide-react"
+import { Bell, Loader2 } from "lucide-react"
 import { useUnreadCountQuery, useNotificationsQuery, useMarkReadMutation } from "../queries"
 import { NotificationItem } from "./NotificationItem"
+import { toast } from "../../../shared/store/toast_store"
 
 export function NotificationBell() {
   const { t } = useTranslation("notifications")
   const [isOpen, setIsOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
-  const { data: unreadData } = useUnreadCountQuery()
-  const { data: notificationsData } = useNotificationsQuery(20, 0)
+  const { data: unreadData, isLoading: isUnreadLoading } = useUnreadCountQuery()
+  const { data: notificationsData, isLoading: isListLoading, isError: hasListError } = useNotificationsQuery(20, 0)
   const markReadMutation = useMarkReadMutation()
 
   const unreadCount = unreadData?.count ?? 0
@@ -27,7 +28,11 @@ export function NotificationBell() {
   }, [])
 
   const handleMarkRead = (notificationId: string) => {
-    markReadMutation.mutate(notificationId)
+    markReadMutation.mutate(notificationId, {
+      onError: () => {
+        toast.error(t("markReadError"))
+      },
+    })
   }
 
   const notifications = notificationsData?.notifications ?? []
@@ -40,7 +45,12 @@ export function NotificationBell() {
         className="relative p-2 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-50 transition-colors"
       >
         <Bell className="w-4 h-4" />
-        {unreadCount > 0 && (
+        {isUnreadLoading && (
+          <span className="absolute -top-0.5 -right-0.5 w-4 h-4 flex items-center justify-center">
+            <Loader2 className="w-3 h-3 animate-spin text-gray-400" />
+          </span>
+        )}
+        {!isUnreadLoading && unreadCount > 0 && (
           <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
             {unreadCount > 9 ? "9+" : unreadCount}
           </span>
@@ -59,7 +69,15 @@ export function NotificationBell() {
           </div>
 
           <div className="overflow-y-auto flex-1">
-            {notifications.length === 0 ? (
+            {isListLoading ? (
+              <div className="px-4 py-8 flex justify-center">
+                <Loader2 className="w-5 h-5 animate-spin text-gray-300" />
+              </div>
+            ) : hasListError ? (
+              <div className="px-4 py-8 text-center text-sm text-red-500">
+                {t("listError")}
+              </div>
+            ) : notifications.length === 0 ? (
               <div className="px-4 py-8 text-center text-sm text-gray-400">
                 {t("empty")}
               </div>

@@ -31,6 +31,7 @@
   },
   "toast": {
     "createSuccess": "Health professional successfully registered!",
-    "createError": "Failed to register health professional."
+    "createError": "Failed to register health professional.",
+    "sessionError": "Session expired. Sign in again to register professionals."
   }
 }

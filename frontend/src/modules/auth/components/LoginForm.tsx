@@ -8,13 +8,14 @@ import { Input } from "../../../shared/components/ui/Input"
 import { Button } from "../../../shared/components/ui/Button"
 import { Alert, AlertDescription } from "../../../shared/components/ui/Alert"
 import { getLoginFormSchema, type LoginFormData } from "../auth_schemas"
-import { KeyRound, Mail, ShieldAlert } from "lucide-react"
+import { Eye, EyeOff, KeyRound, Mail, ShieldAlert } from "lucide-react"
 import { useLoginMutation } from "../queries"
 
 export const LoginForm = () => {
   const { t } = useTranslation("auth")
   const loginToStore = useAuthStore((state) => state.login)
   const [generalError, setGeneralError] = useState<string | null>(null)
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false)
   const loginMutation = useLoginMutation()
 
   const {
@@ -58,7 +59,7 @@ export const LoginForm = () => {
         </Alert>
       )}
 
-      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
+      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5" noValidate>
         <div className="flex flex-col gap-1 text-left">
           <label className="text-xs font-semibold text-gray-600 flex items-center gap-1.5 mb-1">
             <Mail className="w-3.5 h-3.5 text-primary" />
@@ -79,18 +80,30 @@ export const LoginForm = () => {
             <KeyRound className="w-3.5 h-3.5 text-primary" />
             {t("passwordLabel")}
           </label>
-          <Input
-            type="password"
-            placeholder={t("passwordPlaceholder")}
-            autoComplete="current-password"
-            errorText={errors.password?.message}
-            {...register("password")}
-          />
+          <div className="relative">
+            <Input
+              type={isPasswordVisible ? "text" : "password"}
+              placeholder={t("passwordPlaceholder")}
+              autoComplete="current-password"
+              errorText={errors.password?.message}
+              className="pr-10"
+              {...register("password")}
+            />
+            <button
+              type="button"
+              onClick={() => setIsPasswordVisible((visible) => !visible)}
+              aria-label={isPasswordVisible ? t("hidePassword") : t("showPassword")}
+              className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              {isPasswordVisible ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            </button>
+          </div>
         </div>
 
         <Button
           type="submit"
           disabled={loginMutation.isPending}
+          isLoading={loginMutation.isPending}
           className="w-full py-3.5 mt-2 text-sm font-bold tracking-wide uppercase"
         >
           {loginMutation.isPending ? t("loadingText") : t("submitText")}

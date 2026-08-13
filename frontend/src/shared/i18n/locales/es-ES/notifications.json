@@ -2,5 +2,7 @@
   "title": "Notificaciones",
   "unread": "no leídas",
   "empty": "Sin notificaciones",
+  "listError": "No se pudieron cargar las notificaciones.",
+  "markReadError": "Error al marcar la notificación como leída.",
   "markRead": "Marcar como leída"
 }

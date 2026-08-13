@@ -50,19 +50,19 @@ export type NewAllergyFormData = z.infer<typeof baseAllergySchema>
 export type NewMedicationFormData = z.infer<typeof baseMedicationSchema>
 
 export const getNewPatientSchema = (translateFunction: (key: string) => string) => z.object({
-  fullName: z.string().min(3, translateFunction("validation.fullNameMin")).max(255).trim(),
+  fullName: z.string().min(3, translateFunction("validation.fullNameMin")).max(255, translateFunction("validation.maxLength")).trim(),
   birthDate: z.string().min(10, translateFunction("validation.birthDateReq")).refine(isPastDate, translateFunction("validation.birthDatePast")),
   documentId: z.string().min(11, translateFunction("validation.documentMin")).refine(cpfValidation, translateFunction("validation.documentInvalid")),
   phoneNumber: z.string().regex(/^\(\d{2}\) \d{4,5}-\d{4}$/, translateFunction("validation.phoneFormat")),
 })
 
 export const getNewEncounterSchema = (translateFunction: (key: string) => string) => z.object({
-  reasonDisplay: z.string().min(3, translateFunction("validation.reasonMin")),
+  reasonDisplay: z.string().min(3, translateFunction("validation.reasonMin")).max(255, translateFunction("validation.maxLength")),
   practitionerId: z.string().min(1, translateFunction("validation.practitionerReq")),
 })
 
 export const getNewObservationSchema = (translateFunction: (key: string) => string) => z.object({
-  loincCode: z.string().min(1, translateFunction("validation.loincReq")),
+  loincCode: z.string().min(1, translateFunction("validation.loincReq")).max(10, translateFunction("validation.maxLength")),
   valueQuantity: z.number().min(0.1, translateFunction("validation.valueReq")),
 }).refine(
   (data) => {
@@ -84,23 +84,23 @@ export const getNewObservationSchema = (translateFunction: (key: string) => stri
 )
 
 export const getNewReportSchema = (translateFunction: (key: string) => string) => z.object({
-  reportCode: z.string().min(1, translateFunction("validation.reportCodeReq")),
-  reportDisplay: z.string().min(3, translateFunction("validation.reportTitleMin")),
-  conclusion: z.string().min(5, translateFunction("validation.conclusionMin")),
+  reportCode: z.string().min(1, translateFunction("validation.reportCodeReq")).max(10, translateFunction("validation.maxLength")),
+  reportDisplay: z.string().min(3, translateFunction("validation.reportTitleMin")).max(255, translateFunction("validation.maxLength")),
+  conclusion: z.string().min(5, translateFunction("validation.conclusionMin")).max(2000, translateFunction("validation.maxLength")),
 })
 
 export const getNewConditionSchema = (translateFunction: (key: string) => string) => z.object({
-  icd10Code: z.string().min(3, translateFunction("validation.icdCodeMin")).refine(isValidICD10, translateFunction("validation.icdFormat")),
-  codeDisplay: z.string().min(3, translateFunction("validation.icdDisplayMin")),
+  icd10Code: z.string().min(3, translateFunction("validation.icdCodeMin")).max(10, translateFunction("validation.maxLength")).refine(isValidICD10, translateFunction("validation.icdFormat")),
+  codeDisplay: z.string().min(3, translateFunction("validation.icdDisplayMin")).max(255, translateFunction("validation.maxLength")),
 })
 
 export const getNewAllergySchema = (translateFunction: (key: string) => string) => z.object({
-  allergenCode: z.string().min(3, translateFunction("validation.allergenCodeMin")),
-  allergenDisplay: z.string().min(3, translateFunction("validation.allergenDisplayMin")),
-  reaction: z.string().min(3, translateFunction("validation.reactionMin")),
+  allergenCode: z.string().min(3, translateFunction("validation.allergenCodeMin")).max(50, translateFunction("validation.maxLength")),
+  allergenDisplay: z.string().min(3, translateFunction("validation.allergenDisplayMin")).max(255, translateFunction("validation.maxLength")),
+  reaction: z.string().min(3, translateFunction("validation.reactionMin")).max(500, translateFunction("validation.maxLength")),
 })
 
 export const getNewMedicationSchema = (translateFunction: (key: string) => string) => z.object({
-  medicationDisplay: z.string().min(3, translateFunction("validation.medicationMin")),
-  dosageInstruction: z.string().min(3, translateFunction("validation.dosageMin")),
+  medicationDisplay: z.string().min(3, translateFunction("validation.medicationMin")).max(255, translateFunction("validation.maxLength")),
+  dosageInstruction: z.string().min(3, translateFunction("validation.dosageMin")).max(1000, translateFunction("validation.maxLength")),
 })

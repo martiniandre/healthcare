@@ -21,6 +21,7 @@ import { StaffRole } from "../../../shared/types"
 import { staffFormSchema, type StaffFormData } from "../schemas/staff_schemas"
 import { toast } from "../../../shared/store/toast_store"
 import { useCreateEmployeeMutation } from "../queries"
+import { useAuthStore } from "../../../shared/store/auth_store"
 import { useEffect } from "react"
 
 interface StaffModalProps {
@@ -31,6 +32,7 @@ interface StaffModalProps {
 export const StaffModal = ({ isOpen, onClose }: StaffModalProps) => {
   const { t } = useTranslation("staff")
   const createEmployeeMutation = useCreateEmployeeMutation()
+  const authenticatedUserId = useAuthStore((state) => state.userId)
 
   const {
     register,
@@ -57,9 +59,12 @@ export const StaffModal = ({ isOpen, onClose }: StaffModalProps) => {
 
   const handleRegisterStaff = async (formData: StaffFormData) => {
     try {
-      const temporaryRandomUserId = crypto.randomUUID()
+      if (!authenticatedUserId) {
+        toast.error(t("toast.sessionError"))
+        return
+      }
       await createEmployeeMutation.mutateAsync({
-        userId: temporaryRandomUserId,
+        userId: authenticatedUserId,
         fullName: formData.fullName,
         email: formData.email,
         role: formData.role,

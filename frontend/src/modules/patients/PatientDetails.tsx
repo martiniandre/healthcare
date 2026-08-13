@@ -66,7 +66,7 @@ export const PatientDetails = () => {
 
   const [isExamModalOpen, setIsExamModalOpen] = useState(false)
 
-  const { data: patient, isLoading: isPatientLoading } = usePatientQuery(id)
+  const { data: patient, isLoading: isPatientLoading, isError: isPatientError } = usePatientQuery(id)
   const { data: encounters = [] } = useEncountersQuery(id)
 
   const canReadConditions = ability.can(Action.Read, Feature.Condition)
@@ -82,6 +82,14 @@ export const PatientDetails = () => {
   const resolvedActiveTab = availableTabs[activeTab] ? activeTab : PatientTab.Encounters
 
   const { data: studies = [] } = useImagingStudiesQuery(id, canReadStudies)
+
+  if (isPatientError) {
+    return (
+      <div className="text-center py-16">
+        <span className="text-sm text-red-500 font-medium">{t("details.loadError")}</span>
+      </div>
+    )
+  }
 
   if (isPatientLoading || !patient) {
     return (

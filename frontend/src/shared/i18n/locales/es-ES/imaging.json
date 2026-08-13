@@ -25,6 +25,7 @@
     "uploadSuccess": "DICOM cargado y procesado con éxito"
   },
   "loading": "Cargando el visor PACS...",
+  "loadError": "No se pudo cargar el estudio de imagen. Verifique que exista o intente nuevamente.",
   "backToRecord": "Volver al Historial Clínico",
   "titleConsole": "Consola Quirúrgica PACS",
   "uploadDcm": "Subir Nuevo .DCM",

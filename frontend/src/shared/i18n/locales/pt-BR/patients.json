@@ -67,6 +67,7 @@
     "birth": "Nascimento",
     "fhirId": "ID FHIR",
     "loadingDetails": "Carregando ficha clínica...",
+    "loadError": "Não foi possível carregar a ficha clínica. Verifique se o paciente existe ou tente novamente.",
     "clinicalResources": "Recursos Clínicos",
     "focus": "Focar",
     "openEncounter": "Abrir",
@@ -241,6 +242,7 @@
     "allergenDisplayMin": "A descrição do alérgeno deve ter no mínimo 3 caracteres",
     "reactionMin": "A reação relatada deve ter no mínimo 3 caracteres",
     "medicationMin": "O nome da medicação deve ter no mínimo 3 caracteres",
-    "dosageMin": "A instrução de dosagem deve ter no mínimo 3 caracteres"
+    "dosageMin": "A instrução de dosagem deve ter no mínimo 3 caracteres",
+    "maxLength": "Valor excede o limite máximo de caracteres"
   }
 }

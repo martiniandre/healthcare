@@ -13,12 +13,8 @@ export const patientsApi = {
     return http.get<Patient[]>(`/patients${queryString ? `?${queryString}` : ""}`)
   },
 
-  getPatient: async (patientFhirId: string): Promise<Patient | null> => {
-    try {
-      return await http.get<Patient>(`/patients/${patientFhirId}`)
-    } catch {
-      return null
-    }
+  getPatient: async (patientFhirId: string): Promise<Patient> => {
+    return http.get<Patient>(`/patients/${patientFhirId}`)
   },
 
   createPatient: async (patientData: Omit<Patient, "patient_id" | "fhir_resource_id">): Promise<Patient> => {

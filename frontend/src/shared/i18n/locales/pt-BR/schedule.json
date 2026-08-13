@@ -66,6 +66,8 @@
     "startTimeRequired": "Informe o horário de início.",
     "endTimeRequired": "Informe o horário de término.",
     "reasonMin": "Informe o motivo da consulta (mínimo 3 caracteres).",
+    "reasonMax": "O motivo deve ter no máximo 500 caracteres.",
+    "dateFuture": "A data do agendamento deve ser hoje ou uma data futura.",
     "endAfterStart": "O horário de término deve ser após o início."
   }
 }

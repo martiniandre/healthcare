@@ -44,7 +44,7 @@ export function EncounterDetail() {
     setSearchParameters({ tab: tabName })
   }
 
-  const { data: patient, isLoading: isPatientLoading } = usePatientQuery(id)
+  const { data: patient, isLoading: isPatientLoading, isError: isPatientError } = usePatientQuery(id)
 
   const canReadObservations = ability.can(Action.Read, Feature.Observation)
   const canReadReports = ability.can(Action.Read, Feature.DiagnosticReport)
@@ -56,6 +56,14 @@ export function EncounterDetail() {
     [EncounterTab.Medications]: canReadMedications,
   }
   const resolvedActiveTab = availableTabs[activeTab] ? activeTab : EncounterTab.Vitals
+
+  if (isPatientError) {
+    return (
+      <div className="text-center py-16">
+        <span className="text-sm text-red-500 font-medium">{t("details.loadError")}</span>
+      </div>
+    )
+  }
 
   if (isPatientLoading || !patient) {
     return (

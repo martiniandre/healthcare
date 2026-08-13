@@ -25,6 +25,7 @@
     "uploadSuccess": "DICOM successfully uploaded and processed"
   },
   "loading": "Loading PACS viewer...",
+  "loadError": "Unable to load the imaging study. Check that it exists or try again.",
   "backToRecord": "Back to Medical Record",
   "titleConsole": "PACS Surgical Console",
   "uploadDcm": "Upload New .DCM",

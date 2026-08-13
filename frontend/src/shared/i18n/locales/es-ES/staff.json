@@ -31,6 +31,7 @@
   },
   "toast": {
     "createSuccess": "¡Profesional de la salud registrado con éxito!",
-    "createError": "Error al registrar profesional de la salud."
+    "createError": "Error al registrar profesional de la salud.",
+    "sessionError": "Sesión expirada. Inicie sesión nuevamente para registrar profesionales."
   }
 }

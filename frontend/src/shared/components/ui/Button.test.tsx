@@ -37,4 +37,14 @@ describe('Button', () => {
     const button = screen.getByRole('button')
     expect(button.className).toContain('bg-red-50')
   })
+
+  it('should be disabled while loading', () => {
+    render(<Button isLoading>Loading</Button>)
+    expect(screen.getByRole('button')).toBeDisabled()
+  })
+
+  it('should render a spinner while loading', () => {
+    render(<Button isLoading>Loading</Button>)
+    expect(screen.getByRole('button').querySelector('.animate-spin')).not.toBeNull()
+  })
 })
