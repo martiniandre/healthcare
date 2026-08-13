@@ -53,3 +53,26 @@ test.describe("Medical Imaging Module (PACS Console)", () => {
     await expect(successToast).toBeVisible()
   })
 })
+
+test.describe("Imaging Workspace Error States", () => {
+  test.beforeEach(async ({ page }) => {
+    await loginAsDoctor(page)
+  })
+
+  test("should show an error state instead of infinite loading when the imaging study fails to load", async ({ page }) => {
+    await page.route("**/api/v1/studies/*", async (networkRoute) => {
+      await networkRoute.fulfill({
+        status: 500,
+        contentType: "application/json",
+        body: JSON.stringify({ error: "Internal Server Error" }),
+      })
+    })
+
+    await page.goto("/patients/fhir-pat-1?tab=pacs")
+    await page.getByRole("button", { name: "Abrir PACS" }).click()
+
+    await expect(
+      page.getByText("Não foi possível carregar o estudo de imagem. Verifique se ele existe ou tente novamente.")
+    ).toBeVisible()
+  })
+})

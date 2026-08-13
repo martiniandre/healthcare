@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/healthcare/backend/internal/shared/apperrors"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -35,6 +36,12 @@ func (staffRepository *repository) CreateEmployee(ctx context.Context, employee 
 		employee.ID, employee.FullName, employee.Email,
 		employee.Role, employee.CRMNumber, employee.FHIRResourceID, employee.CreatedBy, employee.IsActive, employee.CreatedAt, employee.UpdatedAt,
 	)
+	if err != nil {
+		var postgresError *pgconn.PgError
+		if errors.As(err, &postgresError) && postgresError.Code == "23505" {
+			return apperrors.ErrEmployeeAlreadyExists
+		}
+	}
 	return err
 }
 
@@ -65,7 +72,7 @@ func (staffRepository *repository) GetEmployeeByID(ctx context.Context, employee
 func (staffRepository *repository) ListEmployees(ctx context.Context, search string, role string) ([]*Employee, error) {
 	query := `SELECT id, full_name, email, role, crm_number, fhir_resource_id, created_by, is_active, created_at, updated_at
 			  FROM employees WHERE is_active = true`
-	
+
 	args := []interface{}{}
 	argId := 1
 

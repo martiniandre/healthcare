@@ -92,3 +92,25 @@ test.describe("Patient Record and Clinical File Module", () => {
     await expect(newEncounterRow).toContainText("finished")
   })
 })
+
+test.describe("Patient Record Error States", () => {
+  test.beforeEach(async ({ page }) => {
+    await loginAsDoctor(page)
+  })
+
+  test("should show an error state instead of infinite loading when the patient record fails to load", async ({ page }) => {
+    await page.route("**/api/v1/patients/*", async (networkRoute) => {
+      await networkRoute.fulfill({
+        status: 500,
+        contentType: "application/json",
+        body: JSON.stringify({ error: "Internal Server Error" }),
+      })
+    })
+
+    await page.goto("/patients/fhir-pat-1")
+
+    await expect(
+      page.getByText("Não foi possível carregar a ficha clínica. Verifique se o paciente existe ou tente novamente.")
+    ).toBeVisible()
+  })
+})

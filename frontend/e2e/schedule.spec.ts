@@ -79,4 +79,32 @@ test.describe("Appointment Scheduling Module", () => {
 
     await expect(page.locator("text=Conflito de horário")).toBeVisible()
   })
+
+  test("should show a validation error when the appointment date is in the past", async ({ page }) => {
+    await page.goto("/schedule")
+    await selectStaffOnPage(page)
+    await page.getByRole("button", { name: "Novo Agendamento" }).click()
+
+    await fillAppointmentForm(page)
+    await page.getByRole("dialog").locator('input[type="date"]').fill("2020-01-01")
+    await page.getByRole("button", { name: "Agendar" }).click()
+
+    await expect(
+      page.locator("text=A data do agendamento deve ser hoje ou uma data futura.")
+    ).toBeVisible()
+  })
+
+  test("should show a validation error when the appointment reason exceeds the maximum length", async ({ page }) => {
+    await page.goto("/schedule")
+    await selectStaffOnPage(page)
+    await page.getByRole("button", { name: "Novo Agendamento" }).click()
+
+    await fillAppointmentForm(page)
+    await page.getByPlaceholder("Motivo da consulta...").fill("a".repeat(501))
+    await page.getByRole("button", { name: "Agendar" }).click()
+
+    await expect(
+      page.locator("text=O motivo deve ter no máximo 500 caracteres.")
+    ).toBeVisible()
+  })
 })

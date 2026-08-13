@@ -1,9 +1,9 @@
 package staff
 
 import (
-	"github.com/jackc/pgx/v5/pgxpool"
 	staffpb "github.com/healthcare/backend/internal/modules/staff/pb"
 	"github.com/healthcare/backend/internal/shared/healthcare"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"google.golang.org/grpc"
 )
 

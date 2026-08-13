@@ -97,6 +97,12 @@ var (
 		Message:  "employee not found",
 	}
 
+	ErrEmployeeAlreadyExists = AppError{
+		GRPCCode: codes.AlreadyExists,
+		HTTPCode: http.StatusConflict,
+		Message:  "employee already exists",
+	}
+
 	ErrPatientNotFound = AppError{
 		GRPCCode: codes.NotFound,
 		HTTPCode: http.StatusNotFound,

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
+	"strconv"
 	"strings"
 	"sync"
 
@@ -51,6 +52,7 @@ func (fake *inMemoryFHIRClient) CreateResource(ctx context.Context, resourceType
 		resource["id"] = resourceID
 	}
 	resource["resourceType"] = resourceType
+	resource["meta"] = map[string]string{"versionId": "1"}
 
 	rawWithID, err := json.Marshal(resource)
 	if err != nil {
@@ -124,6 +126,7 @@ func (fake *inMemoryFHIRClient) UpdateResource(ctx context.Context, resourceType
 	}
 	resource["id"] = resourceID
 	resource["resourceType"] = resourceType
+	resource["meta"] = map[string]string{"versionId": fake.nextVersionID(resourceType, resourceID)}
 
 	rawWithID, err := json.Marshal(resource)
 	if err != nil {
@@ -131,6 +134,24 @@ func (fake *inMemoryFHIRClient) UpdateResource(ctx context.Context, resourceType
 	}
 	fake.resources[resourceType][resourceID] = rawWithID
 	return rawWithID, nil
+}
+
+func (fake *inMemoryFHIRClient) nextVersionID(resourceType, resourceID string) string {
+	existingRaw, exists := fake.resources[resourceType][resourceID]
+	currentVersion := int64(1)
+	if exists {
+		var existingResource map[string]interface{}
+		if err := json.Unmarshal(existingRaw, &existingResource); err == nil {
+			if existingMeta, ok := existingResource["meta"].(map[string]interface{}); ok {
+				if rawVersion, ok := existingMeta["versionId"].(string); ok {
+					if parsedVersion, parseErr := strconv.ParseInt(rawVersion, 10, 64); parseErr == nil {
+						currentVersion = parsedVersion + 1
+					}
+				}
+			}
+		}
+	}
+	return strconv.FormatInt(currentVersion, 10)
 }
 
 func (fake *inMemoryFHIRClient) DeleteResource(ctx context.Context, fhirResourcePath string) error {

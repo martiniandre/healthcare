@@ -26,4 +26,17 @@ test.describe("Patient Registration Validation", () => {
     await expect(documentError).toBeVisible()
     await expect(phoneError).toBeVisible()
   })
+
+  test("should show a validation error when a field exceeds the maximum length", async ({ page }) => {
+    await page.getByRole("button", { name: "Novo Paciente" }).click()
+
+    await page.getByPlaceholder("Nome Completo do Paciente").fill("A".repeat(256))
+    await page.getByPlaceholder("AAAA-MM-DD").fill("1990-01-01")
+    await page.getByPlaceholder("123.456.789-00").fill("529.982.247-25")
+    await page.getByPlaceholder("(11) 98765-4321").fill("(11) 98765-4321")
+
+    await page.getByRole("button", { name: "Confirmar Cadastro" }).click()
+
+    await expect(page.locator("text=Valor excede o limite máximo de caracteres")).toBeVisible()
+  })
 })
