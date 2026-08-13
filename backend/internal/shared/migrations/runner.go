@@ -10,7 +10,11 @@ import (
 )
 
 func Run(databaseURL string) error {
-	migrationInstance, err := migrate.New("file://migrations", databaseURL)
+	return RunFromSource("file://migrations", databaseURL)
+}
+
+func RunFromSource(sourcePath string, databaseURL string) error {
+	migrationInstance, err := migrate.New(sourcePath, databaseURL)
 	if err != nil {
 		return err
 	}
