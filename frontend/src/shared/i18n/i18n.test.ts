@@ -9,14 +9,21 @@ describe("createModuleTranslator", () => {
   it("should resolve a bare key inside the module namespace", () => {
     const translatePatients = createModuleTranslator("patients")
     const translatedValue = translatePatients("validation.reportCodeReq")
-    expect(translatedValue).toBe(i18n.t("patients.validation.reportCodeReq"))
-    expect(translatedValue).not.toBe("validation.reportCodeReq")
+    expect(translatedValue).toBe(i18n.t("validation.reportCodeReq", { ns: "patients" }))
+    expect(translatedValue).not.toBe("patients.validation.reportCodeReq")
   })
 
-  it("should resolve an already-prefixed key as-is", () => {
+  it("should resolve an already-prefixed dotted key as-is", () => {
     const translateAnalytics = createModuleTranslator("analytics")
     expect(translateAnalytics("analytics.days.mon")).toBe(translateAnalytics("days.mon"))
-    expect(translateAnalytics("analytics.days.mon")).toBe(i18n.t("analytics.days.mon"))
+    expect(translateAnalytics("analytics.days.mon")).toBe(i18n.t("days.mon", { ns: "analytics" }))
+  })
+
+  it("should resolve an already-prefixed colon key as-is", () => {
+    const translatePatients = createModuleTranslator("patients")
+    expect(translatePatients("patients:validation.reportCodeReq")).toBe(
+      translatePatients("validation.reportCodeReq")
+    )
   })
 
   it("should render the default value when the key is missing", () => {
@@ -28,7 +35,7 @@ describe("createModuleTranslator", () => {
     await i18n.changeLanguage("de-DE")
     const translatePatients = createModuleTranslator("patients")
     expect(translatePatients("validation.reportCodeReq")).toBe(
-      i18n.t("patients.validation.reportCodeReq", { lng: "pt-BR" })
+      i18n.t("validation.reportCodeReq", { lng: "pt-BR", ns: "patients" })
     )
   })
 })

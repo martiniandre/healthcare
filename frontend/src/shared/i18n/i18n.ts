@@ -24,7 +24,14 @@ i18n
 export const createModuleTranslator =
   (namespace: string) =>
   (key: string, defaultValue?: string): string => {
-    const namespacedKey = key.startsWith(`${namespace}.`) ? key : `${namespace}.${key}`
+    let namespacedKey: string
+    if (key.startsWith(`${namespace}:`) || key.startsWith(`${namespace}.`)) {
+      namespacedKey = key.startsWith(`${namespace}:`)
+        ? key
+        : `${namespace}:${key.slice(namespace.length + 1)}`
+    } else {
+      namespacedKey = `${namespace}:${key}`
+    }
     return defaultValue
       ? i18n.t(namespacedKey, { defaultValue })
       : i18n.t(namespacedKey)
