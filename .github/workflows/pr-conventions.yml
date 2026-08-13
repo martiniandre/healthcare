@@ -1,0 +1,57 @@
+name: PR Conventions
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+    branches: [main]
+
+jobs:
+  conventional-commits:
+    name: Conventional Commits Check
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const allowedTypes = ["feat", "fix", "docs", "style", "refactor", "test", "chore"]
+            const allowedPrefixes = ["Merge ", "Revert ", "fixup! ", "squash! "]
+
+            const isConventional = (message) => {
+              const firstLine = message.split("\n")[0].trim()
+              if (allowedPrefixes.some((prefix) => firstLine.startsWith(prefix))) return true
+              const match = firstLine.match(/^([a-z]+)(\([a-z0-9_-]+\))?(!)?: (.+)$/)
+              if (!match) return false
+              return allowedTypes.includes(match[1]) && match[4].length > 0
+            }
+
+            const pullRequestNumber = context.payload.pull_request.number
+            const title = context.payload.pull_request.title
+
+            if (!isConventional(title)) {
+              core.setFailed(
+                `PR title does not follow Conventional Commits v1.0.0: "${title}"\n` +
+                `Expected: <tipo>(<escopo>): <descricao> with types ${allowedTypes.join(", ")}`
+              )
+            }
+
+            const { data: commits } = await github.rest.pulls.listCommits({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: pullRequestNumber,
+            })
+
+            for (const commit of commits) {
+              if (!isConventional(commit.commit.message)) {
+                core.setFailed(
+                  `Commit does not follow Conventional Commits v1.0.0: "${commit.commit.message.split("\n")[0]}"\n` +
+                  `Allowed types: ${allowedTypes.join(", ")}`
+                )
+              }
+            }

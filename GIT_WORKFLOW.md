@@ -100,7 +100,7 @@ Ao abrir um PR no GitHub, o autor deve validar e preencher o seguinte formulári
 
 ## 🔒 Segurança & Healthcare Compliance (HIPAA/LGPD)
 - [ ] **Persistência Correta:** Dados clínicos salvos estritamente no FHIR (GCP Healthcare API); Dados operacionais salvos no Postgres local.
-- [ ] **RBAC:** O novo endpoint foi devidamente registrado no interceptor de permissões (`internal/app/interceptor/permissions.go`)?
+- [ ] **RBAC:** O novo endpoint foi devidamente registrado no mapa de permissões (`internal/app/policy/policy.go`)?
 - [ ] **Sem Segredos:** Verificado que nenhuma chave `.env` ou credenciais foram adicionadas acidentalmente.
 - [ ] **Zero Comentários:** O código gerado está 100% livre de comentários redundantes e documentação em linha (autoexplicativo).
 - [ ] **Variáveis Descritivas:** Todas as variáveis possuem nomes claros e significativos (sem letras únicas).
@@ -125,7 +125,7 @@ Ao revisar o código de um colega de equipe, foque nos seguintes pilares:
 *   **Dados Operacionais (Users, Employees, Appointments):** Devem utilizar PostgreSQL via `pgxpool` com migrations adequadas no diretório `migrations/`.
 
 ### 🛡️ Proteção e Permissões
-*   Se um novo endpoint gRPC foi criado no backend, o revisor deve garantir que o arquivo `internal/app/interceptor/permissions.go` foi atualizado para conter o mapeamento de permissões (RBAC). Caso contrário, por padrão, o interceptor negará acesso ao novo método.
+*   Se um novo endpoint gRPC foi criado no backend, o revisor deve garantir que o arquivo `internal/app/policy/policy.go` foi atualizado para conter o mapeamento de permissões (RBAC). Caso contrário, por padrão, o interceptor negará acesso ao novo método.
 
 ---
 

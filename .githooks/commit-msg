@@ -1,0 +1,25 @@
+#!/bin/sh
+COMMIT_MSG_FILE="$1"
+COMMIT_MSG=$(cat "$COMMIT_MSG_FILE")
+
+CONVENTIONAL_COMMIT_REGEX='^(feat|fix|docs|style|refactor|test|chore)(\([a-z0-9_-]+\))?!?: .+'
+ALLOWED_PREFIXES='^(Merge |Revert |fixup! |squash! )'
+
+if printf '%s' "$COMMIT_MSG" | grep -qE "$ALLOWED_PREFIXES"; then
+    exit 0
+fi
+
+if ! printf '%s' "$COMMIT_MSG" | grep -qE "$CONVENTIONAL_COMMIT_REGEX"; then
+    echo ""
+    echo "ERROR: Commit message does not follow Conventional Commits v1.0.0."
+    echo "Expected format: <tipo>(<escopo>): <descricao>"
+    echo "Allowed types: feat, fix, docs, style, refactor, test, chore"
+    echo ""
+    echo "Examples:"
+    echo "  feat(patients): criar endpoint gRPC de historico de pacientes"
+    echo "  fix(observation): corrigir parse de datas FHIR"
+    echo ""
+    exit 1
+fi
+
+exit 0

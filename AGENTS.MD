@@ -43,7 +43,7 @@ Este documento dita a execução técnica e a orquestração das automações do
 5.  **Repository:** Gerar `repository.go` criando uma interface para persistência local (`pgxpool`) ou integração remota (`Google Cloud Healthcare API`).
 6.  **Service:** Gerar `service.go` encapsulando as regras de negócio e validações clínicas, injetando a interface do repositório.
 7.  **gRPC Handler:** Gerar `grpc_handler.go` implementando a interface gRPC gerada, atuando como controller e chamando o Service. Todos os erros devem ser convertidos via `apperrors.ToGRPCStatus(err)`.
-8.  **Permissões (OBRIGATÓRIO):** Abrir `internal/app/interceptor/permissions.go` e adicionar cada novo endpoint na `methodPermissions` com as roles permitidas. **Endpoints não registrados são bloqueados por padrão.** A matriz de roles disponíveis é: `RoleAdmin`, `RoleDoctor`, `RoleNurse`, `RoleReception`, `RolePatient`.
+8.  **Permissões (OBRIGATÓRIO):** Abrir `internal/app/policy/policy.go` e adicionar cada novo endpoint nos maps `grpcMethodRoles`/`httpRouteRoles` com as roles permitidas. **Endpoints não registrados são bloqueados por padrão.** A matriz de roles disponíveis é: `role.RoleAdmin`, `role.RoleDoctor`, `role.RoleNurse`, `role.RoleReception`, `role.RolePatient`.
 9.  **Core Injection:** Criar `register.go` no módulo com uma função `Register(grpcServer *grpc.Server, dep Dependency)` que encapsula todo o wiring interno (repo → svc → handler → RegisterXxxServer). No `main.go`, adicionar apenas `modulename.Register(server.GRPCServer, dep)`.
 10. **Testing:** Gerar os testes unitários (`tests/service_test.go`) com `MockRepository` no mesmo pacote do módulo, validando validações, defaults e falhas de repositório.
 

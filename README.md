@@ -41,6 +41,8 @@ graph TD
 ```text
 healthcare/
 ├── .github/workflows/          # Pipelines de automação CI/CD (GitHub Actions)
+├── .opencode/skills/           # Skills automatizadas de projeto (go-module-gen, frontend-module-gen, healthcare-commit)
+├── .githooks/                  # Hooks Git versionados (commit-msg Conventional Commits + setup)
 ├── backend/                    # Core Engine (Go gRPC Server)
 │   ├── cmd/api/                # Ponto de entrada (Bootstrapping)
 │   ├── internal/               # Kernel da aplicação (Modules e Shared)
@@ -133,3 +135,6 @@ npm run lint
 > *   **Sem Comentários inline (Regra Estrita):** O código deve ser 100% autoexplicativo, utilizando nomes de variáveis legíveis e descritivos.
 > *   **Conventional Commits:** Todo histórico deve ser escrito no formato semântico de commits (ex: `feat(auth): ...`, `fix(clinical): ...`).
 > *   **Aprovação Mandatória:** Nenhum código entra na `main` sem passar pela pipeline de CI do GitHub Actions e por pelo menos uma aprovação de Code Review.
+
+> [!TIP]
+> O fluxo de automação (skills de projeto, orquestrador e hooks) está documentado em [`.opencode/README.md`](.opencode/README.md). Para habilitar os hooks locais, execute `powershell -ExecutionPolicy Bypass -File .githooks/setup.ps1`.
