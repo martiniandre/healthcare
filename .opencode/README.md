@@ -20,6 +20,20 @@ Orquestração de automações do ecossistema Healthcare (stack Go + React/Vite)
 - **Finalize:** `healthcare-commit`
 - **Review:** validações + PR
 
+## Plugin Skills & Flows (global)
+
+`~/.config/opencode/plugins/skills-flows.ts` — plugin global que gerencia skills e flows de qualquer projeto. Tools expostas ao agente:
+
+| Tool | O que faz |
+| --- | --- |
+| `list_skills` | Lista skills de projeto + globais com descrição e escopo. |
+| `create_skill` | Cria `SKILL.md` com frontmatter válido (projeto ou global), sem sobrescrever. |
+| `validate_skills` | Varre todas as skills e reporta frontmatter ausente ou nome fora do padrão. |
+| `list_flows` | Lista os flows do registry do projeto atual. |
+| `run_flow` | Executa as validações de um flow via shell e orienta os próximos passos (carregar skill, commitar). |
+
+Os flows ficam no registry do projeto em `.opencode/flows/registry.json` (neste repo: `backend-module`, `frontend-module`, `full-feature`, `finalize`, `review`). O plugin resolve o registry do repo atual automaticamente (`<worktree>/.opencode/flows/registry.json`).
+
 ## Automação Git (`.githooks/` e CI)
 
 - `.githooks/commit-msg` — valida Conventional Commits v1.0.0 a cada commit.

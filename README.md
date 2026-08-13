@@ -42,6 +42,7 @@ graph TD
 healthcare/
 ├── .github/workflows/          # Pipelines de automação CI/CD (GitHub Actions)
 ├── .opencode/skills/           # Skills automatizadas de projeto (go-module-gen, frontend-module-gen, healthcare-commit)
+├── .opencode/flows/            # Registry de flows automatizados (backend-module, frontend-module, finalize, review)
 ├── .githooks/                  # Hooks Git versionados (commit-msg Conventional Commits + setup)
 ├── backend/                    # Core Engine (Go gRPC Server)
 │   ├── cmd/api/                # Ponto de entrada (Bootstrapping)
@@ -137,4 +138,4 @@ npm run lint
 > *   **Aprovação Mandatória:** Nenhum código entra na `main` sem passar pela pipeline de CI do GitHub Actions e por pelo menos uma aprovação de Code Review.
 
 > [!TIP]
-> O fluxo de automação (skills de projeto, orquestrador e hooks) está documentado em [`.opencode/README.md`](.opencode/README.md). Para habilitar os hooks locais, execute `powershell -ExecutionPolicy Bypass -File .githooks/setup.ps1`.
+> O fluxo de automação (skills de projeto, orquestrador e hooks) está documentado em [`.opencode/README.md`](.opencode/README.md). Para habilitar os hooks locais, execute `powershell -ExecutionPolicy Bypass -File .githooks/setup.ps1`. O gerenciador global de skills/flows é o plugin `skills-flows` em `~/.config/opencode/plugins/` (tools: `list_skills`, `create_skill`, `validate_skills`, `list_flows`, `run_flow`).

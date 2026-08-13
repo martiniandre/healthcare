@@ -1,0 +1,91 @@
+{
+  "flows": [
+    {
+      "id": "backend-module",
+      "name": "Backend Module",
+      "description": "Scaffolds a new Go gRPC domain module end-to-end (proto, pb stubs, model, repository, service, handler, register, RBAC, migration opcional, testes).",
+      "triggers": [
+        "crie o módulo backend",
+        "novo módulo go",
+        "novo módulo backend",
+        "backend module",
+        "go-module-gen"
+      ],
+      "skill": "go-module-gen",
+      "validate": [
+        { "cwd": "backend", "command": "go build ./..." },
+        { "cwd": "backend", "command": "go vet ./..." },
+        { "cwd": "backend", "command": "go test -v ./internal/modules/..." }
+      ],
+      "commit": true
+    },
+    {
+      "id": "frontend-module",
+      "name": "Frontend Module",
+      "description": "Scaffolds a new React/Vite domain module end-to-end (types, api, queries, schemas Zod, página, componentes, rota, i18n, testes Vitest + E2E Playwright offline).",
+      "triggers": [
+        "crie o módulo frontend",
+        "novo módulo react",
+        "novo módulo frontend",
+        "frontend module",
+        "frontend-module-gen"
+      ],
+      "skill": "frontend-module-gen",
+      "validate": [
+        { "cwd": "frontend", "command": "npm run lint" },
+        { "cwd": "frontend", "command": "npm run test" },
+        { "cwd": "frontend", "command": "npm run build" }
+      ],
+      "commit": true
+    },
+    {
+      "id": "full-feature",
+      "name": "Full Feature",
+      "description": "Delivers a feature end-to-end: scaffolding (module), validation, commit+push and opening the PR.",
+      "triggers": [
+        "implementa de ponta a ponta",
+        "full feature",
+        "feature completa"
+      ],
+      "skill": "go-module-gen",
+      "validate": [
+        { "cwd": "backend", "command": "go build ./..." },
+        { "cwd": "frontend", "command": "npm run build" }
+      ],
+      "commit": true
+    },
+    {
+      "id": "finalize",
+      "name": "Finalize",
+      "description": "Validates the changed areas, commits with Conventional Commits v1.0.0 and pushes immediately to the active branch.",
+      "triggers": [
+        "commit e push",
+        "publique",
+        "publicar",
+        "finaliza o marco",
+        "finalize",
+        "healthcare-commit"
+      ],
+      "skill": "healthcare-commit",
+      "validate": [],
+      "commit": true
+    },
+    {
+      "id": "review",
+      "name": "Review",
+      "description": "Runs fast validations (go vet + npm lint) and opens the PR for review.",
+      "triggers": [
+        "revisa",
+        "revisar",
+        "review",
+        "code review",
+        "abre o pr"
+      ],
+      "validate": [
+        { "cwd": "backend", "command": "go vet ./..." },
+        { "cwd": "frontend", "command": "npm run lint" }
+      ],
+      "commit": false
+    }
+  ]
+}
