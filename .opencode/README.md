@@ -16,7 +16,7 @@ Orquestração de automações do ecossistema Healthcare (stack Go + React/Vite)
 
 - **Backend module:** `go-module-gen` → validação → `healthcare-commit`
 - **Frontend module:** `frontend-module-gen` → validação → `healthcare-commit`
-- **Full feature:** módulo + commit + push + abertura de PR (`gh pr create`)
+- **Full feature:** backend + testes unitários (`go-module-gen`) → frontend + testes Vitest + E2E (`frontend-module-gen`) → validações completas → commit+push → PR
 - **Finalize:** `healthcare-commit`
 - **Review:** validações + PR
 

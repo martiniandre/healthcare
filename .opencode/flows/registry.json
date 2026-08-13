@@ -3,7 +3,7 @@
     {
       "id": "backend-module",
       "name": "Backend Module",
-      "description": "Scaffolds a new Go gRPC domain module end-to-end (proto, pb stubs, model, repository, service, handler, register, RBAC, migration opcional, testes).",
+      "description": "Scaffolds a new Go gRPC domain module end-to-end (proto, pb stubs, model, repository, service, handler, register, RBAC, migration opcional, testes unitários).",
       "triggers": [
         "crie o módulo backend",
         "novo módulo go",
@@ -13,9 +13,9 @@
       ],
       "skill": "go-module-gen",
       "validate": [
-        { "cwd": "backend", "command": "go build ./..." },
-        { "cwd": "backend", "command": "go vet ./..." },
-        { "cwd": "backend", "command": "go test -v ./internal/modules/..." }
+        { "cwd": "backend", "command": "go build ./...", "label": "Build backend" },
+        { "cwd": "backend", "command": "go vet ./...", "label": "Vet backend" },
+        { "cwd": "backend", "command": "go test -v ./internal/modules/...", "label": "Testes unitários backend" }
       ],
       "commit": true
     },
@@ -32,27 +32,39 @@
       ],
       "skill": "frontend-module-gen",
       "validate": [
-        { "cwd": "frontend", "command": "npm run lint" },
-        { "cwd": "frontend", "command": "npm run test" },
-        { "cwd": "frontend", "command": "npm run build" }
+        { "cwd": "frontend", "command": "npm run lint", "label": "Lint frontend" },
+        { "cwd": "frontend", "command": "npm run test", "label": "Testes unitários frontend (Vitest)" },
+        { "cwd": "frontend", "command": "npm run build", "label": "Build frontend" },
+        { "cwd": "frontend", "command": "npm run test:e2e", "label": "Testes E2E (Playwright)", "optional": true }
       ],
       "commit": true
     },
     {
       "id": "full-feature",
       "name": "Full Feature",
-      "description": "Delivers a feature end-to-end: scaffolding (module), validation, commit+push and opening the PR.",
+      "description": "Delivers a complete feature end-to-end: backend module com testes unitários, frontend module com testes Vitest + E2E Playwright, validações completas, commit+push e abertura de PR.",
       "triggers": [
+        "full-feature",
+        "feature completa",
         "implementa de ponta a ponta",
-        "full feature",
-        "feature completa"
+        "implementa tudo",
+        "faz o módulo completo"
       ],
-      "skill": "go-module-gen",
+      "phases": [
+        { "name": "Backend module (scaffold + testes unitários)", "skill": "go-module-gen" },
+        { "name": "Frontend module (scaffold + testes Vitest + E2E)", "skill": "frontend-module-gen" }
+      ],
       "validate": [
-        { "cwd": "backend", "command": "go build ./..." },
-        { "cwd": "frontend", "command": "npm run build" }
+        { "cwd": "backend", "command": "go build ./...", "label": "Build backend" },
+        { "cwd": "backend", "command": "go vet ./...", "label": "Vet backend" },
+        { "cwd": "backend", "command": "go test -v ./internal/...", "label": "Testes unitários backend" },
+        { "cwd": "frontend", "command": "npm run lint", "label": "Lint frontend" },
+        { "cwd": "frontend", "command": "npm run test", "label": "Testes unitários frontend (Vitest)" },
+        { "cwd": "frontend", "command": "npm run build", "label": "Build frontend" },
+        { "cwd": "frontend", "command": "npm run test:e2e", "label": "Testes E2E (Playwright)", "optional": true }
       ],
-      "commit": true
+      "commit": true,
+      "openPr": true
     },
     {
       "id": "finalize",
@@ -82,10 +94,11 @@
         "abre o pr"
       ],
       "validate": [
-        { "cwd": "backend", "command": "go vet ./..." },
-        { "cwd": "frontend", "command": "npm run lint" }
+        { "cwd": "backend", "command": "go vet ./...", "label": "Vet backend" },
+        { "cwd": "frontend", "command": "npm run lint", "label": "Lint frontend" }
       ],
-      "commit": false
+      "commit": false,
+      "openPr": true
     }
   ]
 }
