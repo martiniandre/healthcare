@@ -152,7 +152,7 @@ function splitLines(rawContent) {
 }
 
 function isLineCommentLine(line) {
-  return /^\s*\/\//.test(line)
+  return /^\s*[/][/]/.test(line)
 }
 
 function isSwaggerLine(line) {
