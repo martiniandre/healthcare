@@ -96,9 +96,12 @@
     {
       "id": "issue-feature",
       "name": "Issue to Feature",
-      "description": "Turns a GitHub issue into a complete feature: reads the issue with gh, creates a branch, scaffolds backend/frontend modules, registers RBAC endpoints, validates and opens a PR referencing the issue.",
+      "description": "Cria uma feature completa do zero a partir de uma issue detalhada do GitHub, com um único comando: lê a issue via gh (título, body, labels, comentários, acceptance criteria), extrai domínio e campos, cria branch, gera backend e/ou frontend (default: ambos), registra RBAC, valida, commita, faz push e abre PR fechando a issue.",
       "triggers": [
         "implemente a issue",
+        "implementa a issue",
+        "feature from issue",
+        "feature da issue",
         "issue-to-feature",
         "issue #",
         "issue para feature"
