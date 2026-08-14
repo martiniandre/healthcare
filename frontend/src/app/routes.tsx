@@ -5,7 +5,6 @@ import { AbilityProvider } from "../shared/auth/AbilityContext"
 import { AppSidebar } from "../shared/components/AppSidebar"
 import { AppHeader } from "../shared/components/AppHeader"
 import { Spinner } from "../shared/components/ui/Spinner"
-import { usePageViewLogger } from "../shared/hooks/usePageViewLogger"
 
 const Login = lazy(() => import("../modules/auth/Login").then((module) => ({ default: module.Login })))
 const Patients = lazy(() => import("../modules/patients/Patients").then((module) => ({ default: module.Patients })))
@@ -20,18 +19,12 @@ const PortalPage = lazy(() => import("../modules/portal/PortalPage").then((modul
 const Schedule = lazy(() => import("../modules/schedule/Schedule").then((module) => ({ default: module.Schedule })))
 const ClinicalDashboard = lazy(() => import("../modules/analytics/ClinicalDashboard").then((module) => ({ default: module.ClinicalDashboard })))
 
-const PageViewLogger = () => {
-  usePageViewLogger()
-  return null
-}
-
 export const AppRoutes = () => {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
   const role = useAuthStore((state) => state.role)
 
   return (
     <BrowserRouter>
-      <PageViewLogger />
       <Suspense
         fallback={
           <div className="min-h-screen bg-background flex items-center justify-center">

@@ -56,7 +56,6 @@ export const AuditLogsFilters = ({
             className="w-full bg-white border border-border rounded-lg px-3 py-2 text-xs text-gray-800 focus:outline-none focus:border-primary/50 transition-all duration-200 h-9 cursor-pointer"
           >
             <option value="All">{t("filterAllActions")}</option>
-            <option value="PAGE_VIEW">{t("actionPageView")}</option>
             <option value="LOGIN">{t("actionLogin")}</option>
             <option value="LOGOUT">{t("actionLogout")}</option>
             <option value="API_REQUEST">{t("actionApiRequest")}</option>

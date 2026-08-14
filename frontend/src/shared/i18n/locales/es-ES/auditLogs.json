@@ -1,10 +1,9 @@
 {
   "title": "Registros de Auditoría",
-  "subtitle": "Rastree acciones del sistema, vistas de página y llamadas API en toda la organización.",
+  "subtitle": "Rastree acciones del sistema y llamadas API en toda la organización.",
   "refresh": "Actualizar",
   "filterEmailPlaceholder": "Buscar correo del usuario...",
   "filterAllActions": "Todas las Acciones",
-  "actionPageView": "Vista de Página",
   "actionLogin": "Inicio de Sesión",
   "actionLogout": "Cierre de Sesión",
   "actionApiRequest": "Solicitud de API",

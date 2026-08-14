@@ -26,7 +26,7 @@ describe("auditLogsApi", () => {
     vi.mocked(http.get).mockResolvedValue({ audit_logs: [], total: 0 })
 
     await auditLogsApi.listAuditLogs({
-      action: "PAGE_VIEW",
+      action: "API_REQUEST",
       email: "medico@clinica.com",
       status: "GRANTED",
       startDate: "2026-01-01",
@@ -34,7 +34,7 @@ describe("auditLogsApi", () => {
     })
 
     expect(http.get).toHaveBeenCalledWith(
-      "/audit-logs?action=PAGE_VIEW&email=medico%40clinica.com&status=GRANTED&startDate=2026-01-01&endDate=2026-01-31"
+      "/audit-logs?action=API_REQUEST&email=medico%40clinica.com&status=GRANTED&startDate=2026-01-01&endDate=2026-01-31"
     )
   })
 
@@ -44,21 +44,5 @@ describe("auditLogsApi", () => {
     await auditLogsApi.listAuditLogs({ action: "All", status: "All" })
 
     expect(http.get).toHaveBeenCalledWith("/audit-logs")
-  })
-
-  it("should create an audit log entry", async () => {
-    vi.mocked(http.post).mockResolvedValue(undefined)
-
-    await auditLogsApi.createAuditLog({
-      method: "PAGE_VIEW",
-      correlation_id: "Viewed page: /dashboard",
-      access_granted: true,
-    })
-
-    expect(http.post).toHaveBeenCalledWith("/audit-logs", {
-      method: "PAGE_VIEW",
-      correlation_id: "Viewed page: /dashboard",
-      access_granted: true,
-    })
   })
 })

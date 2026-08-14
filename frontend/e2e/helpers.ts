@@ -80,19 +80,6 @@ export const mockAuthAPI = async (
       }),
     })
   })
-
-  await pageInstance.route("**/api/v1/audit-logs", async (networkRoute) => {
-    const httpRequest = networkRoute.request()
-    if (httpRequest.method() === "POST") {
-      await networkRoute.fulfill({
-        status: 201,
-        contentType: "application/json",
-        body: JSON.stringify({ success: true }),
-      })
-      return
-    }
-    await networkRoute.continue()
-  })
 }
 
 export const mockPatientsAPI = async (pageInstance: Page): Promise<void> => {
@@ -977,12 +964,12 @@ export const mockAuditLogsAPI = async (pageInstance: Page): Promise<void> => {
       correlation_id: "corr-001",
       caller_user_id: "admin@hospital.com",
       caller_role: "ADMIN",
-      method: "PAGE_VIEW",
+      method: "API_REQUEST",
       access_granted: true,
-      resource_type: "page",
-      resource_id: "/patients",
-      action: "page.view",
-      payload_diff: { path: { from: null, to: "/patients" } },
+      resource_type: "patient",
+      resource_id: "fhir-pat-1",
+      action: "patient.created",
+      payload_diff: { full_name: { from: null, to: "Guilherme de Souza Araujo" } },
       created_at: "2026-07-03T10:00:00Z",
     },
     {
@@ -1037,12 +1024,6 @@ export const mockAuditLogsAPI = async (pageInstance: Page): Promise<void> => {
         status: 200,
         contentType: "application/json",
         body: JSON.stringify({ audit_logs: filteredLogs, total: filteredLogs.length }),
-      })
-    } else if (httpRequest.method() === "POST") {
-      await networkRoute.fulfill({
-        status: 201,
-        contentType: "application/json",
-        body: JSON.stringify({ success: true }),
       })
     }
   })

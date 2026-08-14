@@ -1,10 +1,9 @@
 {
   "title": "Registros de Auditoria",
-  "subtitle": "Monitore ações do sistema, visualizações de página e chamadas de API em toda a organização.",
+  "subtitle": "Monitore ações do sistema e chamadas de API em toda a organização.",
   "refresh": "Atualizar",
   "filterEmailPlaceholder": "Buscar e-mail do usuário...",
   "filterAllActions": "Todas as Ações",
-  "actionPageView": "Visualização de Página",
   "actionLogin": "Login",
   "actionLogout": "Logout",
   "actionApiRequest": "Requisição de API",

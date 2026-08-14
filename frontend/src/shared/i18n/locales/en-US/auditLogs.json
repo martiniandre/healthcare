@@ -1,10 +1,9 @@
 {
   "title": "Audit Logs",
-  "subtitle": "Track system actions, page views, and API calls across the organization.",
+  "subtitle": "Track system actions and API calls across the organization.",
   "refresh": "Refresh",
   "filterEmailPlaceholder": "Search User Email...",
   "filterAllActions": "All Actions",
-  "actionPageView": "Page View",
   "actionLogin": "Login",
   "actionLogout": "Logout",
   "actionApiRequest": "API Request",
