@@ -3,16 +3,16 @@ package fhir
 import "time"
 
 type MedicationRequestResource struct {
-	ResourceType               string                `json:"resourceType"`
-	ID                         string                `json:"id,omitempty"`
-	Status                     string                `json:"status"`
-	Intent                     string                `json:"intent"`
-	MedicationCodeableConcept  CodeableConcept       `json:"medicationCodeableConcept"`
-	Subject                    Reference             `json:"subject"`
-	Encounter                  Reference             `json:"encounter"`
-	Requester                  Reference             `json:"requester"`
-	AuthoredOn                 string                `json:"authoredOn"`
-	DosageInstruction          []DosageInstruction   `json:"dosageInstruction"`
+	ResourceType              string              `json:"resourceType"`
+	ID                        string              `json:"id,omitempty"`
+	Status                    string              `json:"status"`
+	Intent                    string              `json:"intent"`
+	MedicationCodeableConcept CodeableConcept     `json:"medicationCodeableConcept"`
+	Subject                   Reference           `json:"subject"`
+	Encounter                 *Reference          `json:"encounter,omitempty"`
+	Requester                 Reference          `json:"requester,omitempty"`
+	AuthoredOn                string              `json:"authoredOn"`
+	DosageInstruction         []DosageInstruction `json:"dosageInstruction"`
 }
 
 type DosageInstruction struct {
@@ -31,11 +31,13 @@ func NewMedicationRequestResource(patientFHIRID, encounterFHIRID, practitionerFH
 			Text: medicationName,
 		},
 		Subject:   Reference{Reference: "Patient/" + patientFHIRID},
-		Encounter: Reference{Reference: "Encounter/" + encounterFHIRID},
 		AuthoredOn: time.Now().Format(time.RFC3339),
 		DosageInstruction: []DosageInstruction{
 			{Text: dosageInstructions},
 		},
+	}
+	if encounterFHIRID != "" {
+		resource.Encounter = &Reference{Reference: "Encounter/" + encounterFHIRID}
 	}
 	if practitionerFHIRID != "" {
 		resource.Requester = Reference{Reference: "Practitioner/" + practitionerFHIRID}

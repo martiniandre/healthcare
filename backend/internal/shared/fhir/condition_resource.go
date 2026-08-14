@@ -3,18 +3,18 @@ package fhir
 import "time"
 
 type ConditionResource struct {
-	ResourceType   string         `json:"resourceType"`
-	ID             string         `json:"id,omitempty"`
+	ResourceType   string          `json:"resourceType"`
+	ID             string          `json:"id,omitempty"`
 	ClinicalStatus CodeableConcept `json:"clinicalStatus"`
 	Code           CodeableConcept `json:"code"`
 	Subject        Reference       `json:"subject"`
-	Encounter      Reference       `json:"encounter"`
+	Encounter      *Reference      `json:"encounter,omitempty"`
 	OnsetDateTime  string          `json:"onsetDateTime"`
 	RecordedDate   string          `json:"recordedDate"`
 }
 
 func NewConditionResource(patientFHIRID, encounterFHIRID, icdCode, display, clinicalStatus string, onsetAt time.Time) *ConditionResource {
-	return &ConditionResource{
+	conditionResource := &ConditionResource{
 		ResourceType: "Condition",
 		ClinicalStatus: CodeableConcept{
 			Coding: []Coding{
@@ -28,8 +28,11 @@ func NewConditionResource(patientFHIRID, encounterFHIRID, icdCode, display, clin
 			Text: display,
 		},
 		Subject:       Reference{Reference: "Patient/" + patientFHIRID},
-		Encounter:     Reference{Reference: "Encounter/" + encounterFHIRID},
 		OnsetDateTime: onsetAt.Format(time.RFC3339),
 		RecordedDate:  time.Now().Format(time.RFC3339),
 	}
+	if encounterFHIRID != "" {
+		conditionResource.Encounter = &Reference{Reference: "Encounter/" + encounterFHIRID}
+	}
+	return conditionResource
 }

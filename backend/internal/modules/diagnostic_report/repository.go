@@ -82,9 +82,11 @@ func (reportRepository *repository) UpdateDiagnosticReport(ctx context.Context, 
 			Text: report.ReportDisplay,
 		},
 		Subject:    fhir.Reference{Reference: "Patient/" + report.PatientFHIRID},
-		Encounter:  fhir.Reference{Reference: "Encounter/" + report.EncounterFHIRID},
 		Issued:     report.IssuedAt.Format(time.RFC3339),
 		Conclusion: report.Conclusion,
+	}
+	if report.EncounterFHIRID != "" {
+		fhirReport.Encounter = &fhir.Reference{Reference: "Encounter/" + report.EncounterFHIRID}
 	}
 
 	responseBody, err := reportRepository.fhirClient.UpdateResource(ctx, "DiagnosticReport", reportFHIRID, fhirReport)
