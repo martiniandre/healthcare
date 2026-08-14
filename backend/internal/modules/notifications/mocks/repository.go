@@ -37,11 +37,11 @@ func (mockRepo *MockNotificationRepository) Create(ctx context.Context, notifica
 
 func (mockRepo *MockNotificationRepository) ListByUserID(ctx context.Context, userID uuid.UUID, limit, offset int32) ([]*notifications.Notification, int32, error) {
 	filtered := make([]*notifications.Notification, 0)
-	for _, n := range mockRepo.Notifications {
-		recipients := mockRepo.Recipients[n.ID]
+	for _, notification := range mockRepo.Notifications {
+		recipients := mockRepo.Recipients[notification.ID]
 		for _, recipientID := range recipients {
 			if recipientID == userID {
-				filtered = append(filtered, n)
+				filtered = append(filtered, notification)
 				break
 			}
 		}

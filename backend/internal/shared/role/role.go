@@ -31,6 +31,6 @@ func ParseRole(rawRole string) (Role, bool) {
 	}
 }
 
-func (r Role) String() string {
-	return string(r)
+func (receivedRole Role) String() string {
+	return string(receivedRole)
 }

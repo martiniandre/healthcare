@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package clinical.v1;
+package imaging.v1;
 
 option go_package = "github.com/healthcare/backend/internal/modules/imaging/pb";
 

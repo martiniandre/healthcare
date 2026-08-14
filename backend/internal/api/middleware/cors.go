@@ -10,7 +10,7 @@ func CORS(secureCookies bool) func(http.Handler) http.Handler {
 		return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 			allowedOrigin := os.Getenv("FRONTEND_URL")
 			if allowedOrigin == "" {
-				allowedOrigin = "http://localhost:5173" // fallback
+				allowedOrigin = "http://localhost:5173"
 			}
 			writer.Header().Set("Access-Control-Allow-Origin", allowedOrigin)
 			writer.Header().Set("Access-Control-Allow-Credentials", "true")

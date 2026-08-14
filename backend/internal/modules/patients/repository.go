@@ -98,21 +98,20 @@ func (patientRepository *repository) GetPatientByDocumentID(ctx context.Context,
 }
 
 func (patientRepository *repository) ListPatients(ctx context.Context, search string, sortField string, sortDirection string, page int, limit int) ([]*Patient, error) {
-	v := url.Values{}
+	queryValues := url.Values{}
 	
 	if limit <= 0 {
 		limit = 100
 	}
-	v.Add("_count", fmt.Sprintf("%d", limit))
+	queryValues.Add("_count", fmt.Sprintf("%d", limit))
 	
-	// Note: Healthcare API might not support _offset directly for all resources, but we try standard FHIR
 	if page > 1 {
 		offset := (page - 1) * limit
-		v.Add("_offset", fmt.Sprintf("%d", offset))
+		queryValues.Add("_offset", fmt.Sprintf("%d", offset))
 	}
 	
 	if search != "" {
-		v.Add("name:contains", search)
+		queryValues.Add("name:contains", search)
 	}
 	
 	if sortField != "" {
@@ -129,11 +128,11 @@ func (patientRepository *repository) ListPatients(ctx context.Context, search st
 			if sortDirection == "desc" {
 				fhirField = "-" + fhirField
 			}
-			v.Add("_sort", fhirField)
+			queryValues.Add("_sort", fhirField)
 		}
 	}
 
-	queryParams := v.Encode()
+	queryParams := queryValues.Encode()
 	responseBody, err := patientRepository.fhirClient.SearchResources(ctx, "Patient", queryParams)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list patients from healthcare api: %w", err)

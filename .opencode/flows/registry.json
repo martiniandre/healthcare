@@ -67,6 +67,56 @@
       "openPr": true
     },
     {
+      "id": "migration",
+      "name": "Migration",
+      "description": "Creates a new numbered SQL migration pair (up/down) in backend/migrations following the golang-migrate naming convention.",
+      "triggers": [
+        "crie a migration",
+        "nova migration",
+        "migration para",
+        "migration-gen"
+      ],
+      "skill": "migration-gen",
+      "validate": [],
+      "commit": true
+    },
+    {
+      "id": "changelog",
+      "name": "Changelog",
+      "description": "Generates CHANGELOG.md from the Conventional Commits history (node scripts/changelog.mjs) and commits the update.",
+      "triggers": [
+        "gera o changelog",
+        "gerar changelog",
+        "atualiza o changelog",
+        "changelog"
+      ],
+      "validate": [],
+      "commit": true
+    },
+    {
+      "id": "issue-feature",
+      "name": "Issue to Feature",
+      "description": "Turns a GitHub issue into a complete feature: reads the issue with gh, creates a branch, scaffolds backend/frontend modules, registers RBAC endpoints, validates and opens a PR referencing the issue.",
+      "triggers": [
+        "implemente a issue",
+        "issue-to-feature",
+        "issue #",
+        "issue para feature"
+      ],
+      "skill": "issue-to-feature",
+      "validate": [
+        { "cwd": "backend", "command": "go build ./...", "label": "Build backend" },
+        { "cwd": "backend", "command": "go vet ./...", "label": "Vet backend" },
+        { "cwd": "backend", "command": "go test -v ./internal/...", "label": "Testes unitários backend" },
+        { "cwd": "frontend", "command": "npm run lint", "label": "Lint frontend" },
+        { "cwd": "frontend", "command": "npm run test", "label": "Testes unitários frontend (Vitest)" },
+        { "cwd": "frontend", "command": "npm run build", "label": "Build frontend" },
+        { "cwd": "frontend", "command": "npm run test:e2e", "label": "Testes E2E (Playwright)", "optional": true }
+      ],
+      "commit": true,
+      "openPr": true
+    },
+    {
       "id": "finalize",
       "name": "Finalize",
       "description": "Validates the changed areas, commits with Conventional Commits v1.0.0 and pushes immediately to the active branch.",
