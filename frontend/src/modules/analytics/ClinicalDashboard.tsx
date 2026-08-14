@@ -57,9 +57,7 @@ export const ClinicalDashboard = () => {
         <WaitTimeChart
           waitTimeByDepartment={dashboardData.wait_time_by_department}
         />
-        <div>
-          {/* Empty slot for future widget */}
-        </div>
+        <div />
       </div>
 
       <TopDiagnosesTable
