@@ -3,13 +3,13 @@ package portal
 import "time"
 
 type PortalDashboard struct {
-	PatientInfo        PatientInfo          `json:"patient_info"`
-	UpcomingEncounters []PortalEncounter    `json:"upcoming_encounters"`
-	RecentObservations []PortalObservation  `json:"recent_observations"`
-	ActiveConditions   []PortalCondition    `json:"active_conditions"`
-	ActiveMedications  []PortalMedication   `json:"active_medications"`
-	RecentReports      []PortalReport       `json:"recent_reports"`
-	RecentImaging      []PortalImaging      `json:"recent_imaging"`
+	PatientInfo        PatientInfo         `json:"patient_info"`
+	UpcomingEncounters []PortalEncounter   `json:"upcoming_encounters"`
+	RecentObservations []PortalObservation `json:"recent_observations"`
+	ActiveConditions   []PortalCondition   `json:"active_conditions"`
+	ActiveMedications  []PortalMedication  `json:"active_medications"`
+	RecentReports      []PortalReport      `json:"recent_reports"`
+	RecentImaging      []PortalImaging     `json:"recent_imaging"`
 }
 
 type PatientInfo struct {
