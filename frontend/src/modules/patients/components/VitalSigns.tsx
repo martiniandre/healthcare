@@ -9,6 +9,7 @@ import { ObservationModal } from "./modals/ObservationModal"
 import { useObservationsQuery, useCreateObservationMutation } from "../queries"
 import { toast } from "../../../shared/store/toast_store"
 import type { Observation } from "../types"
+import type { SubmittedObservationFormData } from "./ClinicalFormModal/clinicalFormConfigs"
 
 interface VitalSignsProps {
   patientId: string
@@ -23,17 +24,9 @@ export default function VitalSigns({ patientId, encounterId }: VitalSignsProps) 
   const { data: observations = [] } = useObservationsQuery(encounterId)
   const createObservationMutation = useCreateObservationMutation()
 
-  const handleCreateObservation = async (formData: { loincCode: string; valueQuantity: number }) => {
-    let display = "Frequência Cardíaca"
-    let unit = "bpm"
-
-    if (formData.loincCode === "8310-5") {
-      display = "Temperatura Corporal"
-      unit = "°C"
-    } else if (formData.loincCode === "85354-9") {
-      display = "Pressão Arterial Sistólica"
-      unit = "mmHg"
-    }
+  const handleCreateObservation = async (formData: SubmittedObservationFormData) => {
+    const display = formData.codeDisplay
+    const unit = formData.valueUnit
 
     try {
       await createObservationMutation.mutateAsync({

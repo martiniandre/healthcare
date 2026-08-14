@@ -1,25 +1,8 @@
-import { useForm, Controller } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useTranslation } from "react-i18next"
-import { Input } from "../../../../shared/components/ui/Input"
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from "../../../../shared/components/ui/Select"
-import { Button } from "../../../../shared/components/ui/Button"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "../../../../shared/components/ui/Dialog"
-import { getNewEncounterSchema, type NewEncounterFormData } from "../../patient_schemas"
-import { createModuleTranslator } from "../../../../shared/i18n/i18n"
+import type { NewEncounterFormData } from "../../patient_schemas"
 import { useStaffListQuery } from "../../../staff/queries"
 import { StaffRole } from "../../../../shared/types"
+import { ClinicalFormModal } from "../ClinicalFormModal/ClinicalFormModal"
+import { buildEncounterFormConfig } from "../ClinicalFormModal/clinicalFormConfigs"
 
 interface EncounterModalProps {
   isOpen: boolean
@@ -28,90 +11,20 @@ interface EncounterModalProps {
   isPending: boolean
 }
 
-export const EncounterModal = ({
-  isOpen,
-  onClose,
-  onSubmit,
-  isPending
-}: EncounterModalProps) => {
-  const { t } = useTranslation("patients")
+export const EncounterModal = ({ isOpen, onClose, onSubmit, isPending }: EncounterModalProps) => {
   const { data: doctors = [] } = useStaffListQuery("", StaffRole.Doctor)
 
-  const {
-    register,
-    handleSubmit,
-    control,
-    formState: { errors },
-  } = useForm<NewEncounterFormData>({
-    resolver: zodResolver(getNewEncounterSchema(createModuleTranslator("patients"))),
-    defaultValues: {
-      reasonDisplay: "",
-      practitionerId: "",
-    },
-  })
-
-  if (!isOpen) {
-    return null
-  }
+  const doctorOptions = doctors
+    .filter((doctor) => doctor.fhirResourceId)
+    .map((doctor) => ({ value: doctor.fhirResourceId, label: doctor.fullName }))
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-[460px]">
-        <DialogHeader>
-          <DialogTitle className="text-left">
-            {t("modals.encounter.title")}
-          </DialogTitle>
-        </DialogHeader>
-        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4 text-left mt-4">
-          <div className="flex flex-col gap-1">
-            <label className="text-xs font-semibold text-gray-600">
-              {t("modals.encounter.reason")}
-            </label>
-            <Input
-              type="text"
-              placeholder={t("modals.encounter.reasonPlaceholder")}
-              errorText={errors.reasonDisplay?.message}
-              {...register("reasonDisplay")}
-            />
-          </div>
-          <div className="flex flex-col gap-1">
-            <label className="text-xs font-semibold text-gray-600">
-              {t("modals.encounter.practitioner")}
-            </label>
-            <Controller
-              control={control}
-              name="practitionerId"
-              render={({ field }) => (
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder={t("modals.encounter.selectPractitioner")} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {doctors.filter((doctor) => doctor.fhirResourceId).map((doctor) => (
-                      <SelectItem key={doctor.id} value={doctor.fhirResourceId}>
-                        {doctor.fullName}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-            />
-            {errors.practitionerId?.message && (
-              <span className="text-xs text-red-500 font-medium px-1 mt-1">
-                {errors.practitionerId.message}
-              </span>
-            )}
-          </div>
-          <div className="flex gap-3 justify-end mt-4">
-            <Button variantType="outline" type="button" onClick={onClose}>
-              {t("modal.cancel")}
-            </Button>
-            <Button type="submit" disabled={isPending}>
-              {t("modals.encounter.confirm")}
-            </Button>
-          </div>
-        </form>
-      </DialogContent>
-    </Dialog>
+    <ClinicalFormModal
+      isOpen={isOpen}
+      onClose={onClose}
+      onSubmit={onSubmit}
+      isPending={isPending}
+      config={buildEncounterFormConfig(doctorOptions)}
+    />
   )
 }
