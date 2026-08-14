@@ -37,7 +37,9 @@ func (auditLogsRepository *repository) ListAuditLogs(contextVal context.Context,
 		return nil, 0, countError
 	}
 
-	query := `SELECT id, correlation_id, caller_user_id, caller_role, method, access_granted, resource_type, resource_id, action, payload_diff, created_at
+	query := `SELECT id, correlation_id, caller_user_id, caller_role, method, access_granted,
+			         COALESCE(resource_type, ''), COALESCE(resource_id, ''), COALESCE(action, ''),
+			         COALESCE(payload_diff, '{}'::jsonb), created_at
 			  FROM audit_logs
 			  ORDER BY created_at DESC
 			  LIMIT $1 OFFSET $2`
