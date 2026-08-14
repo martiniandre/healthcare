@@ -283,7 +283,7 @@ export const mockClinicalAPI = async (pageInstance: Page): Promise<void> => {
     const patientFhirId = urlParts[urlParts.length - 2]
 
     if (httpRequest.method() === "GET") {
-      const filtered = currentEncountersList.filter((e) => e.patient_fhir_id === patientFhirId)
+      const filtered = currentEncountersList.filter((encounter) => encounter.patient_fhir_id === patientFhirId)
       await networkRoute.fulfill({
         status: 200,
         contentType: "application/json",
@@ -342,7 +342,7 @@ export const mockClinicalAPI = async (pageInstance: Page): Promise<void> => {
     const patientFhirId = urlParts[urlParts.length - 2]
 
     if (httpRequest.method() === "GET") {
-      const filtered = currentObservationsList.filter((o) => o.patient_fhir_id === patientFhirId)
+      const filtered = currentObservationsList.filter((observation) => observation.patient_fhir_id === patientFhirId)
       await networkRoute.fulfill({
         status: 200,
         contentType: "application/json",
@@ -358,7 +358,7 @@ export const mockClinicalAPI = async (pageInstance: Page): Promise<void> => {
     const patientFhirId = urlParts[urlParts.length - 2]
 
     if (httpRequest.method() === "GET") {
-      const filtered = currentConditionsList.filter((c) => c.patient_fhir_id === patientFhirId)
+      const filtered = currentConditionsList.filter((condition) => condition.patient_fhir_id === patientFhirId)
       await networkRoute.fulfill({
         status: 200,
         contentType: "application/json",
@@ -390,7 +390,7 @@ export const mockClinicalAPI = async (pageInstance: Page): Promise<void> => {
     const encounterFhirId = urlParts[urlParts.length - 2]
 
     if (httpRequest.method() === "GET") {
-      const filtered = currentObservationsList.filter((o) => o.encounter_fhir_id === encounterFhirId)
+      const filtered = currentObservationsList.filter((observation) => observation.encounter_fhir_id === encounterFhirId)
       await networkRoute.fulfill({
         status: 200,
         contentType: "application/json",
@@ -424,7 +424,7 @@ export const mockClinicalAPI = async (pageInstance: Page): Promise<void> => {
     const encounterFhirId = urlParts[urlParts.length - 2]
 
     if (httpRequest.method() === "GET") {
-      const filtered = currentReportsList.filter((r) => r.encounter_fhir_id === encounterFhirId)
+      const filtered = currentReportsList.filter((report) => report.encounter_fhir_id === encounterFhirId)
       await networkRoute.fulfill({
         status: 200,
         contentType: "application/json",
@@ -455,7 +455,7 @@ export const mockClinicalAPI = async (pageInstance: Page): Promise<void> => {
     const requestURL = httpRequest.url()
     const urlParts = requestURL.split("/")
     const reportFhirId = urlParts[urlParts.length - 2]
-    const reportEntry = currentReportsList.find((r) => r.fhir_id === reportFhirId)
+    const reportEntry = currentReportsList.find((report) => report.fhir_id === reportFhirId)
     if (!reportEntry) {
       await networkRoute.fulfill({
         status: 404,
@@ -500,7 +500,7 @@ export const mockClinicalAPI = async (pageInstance: Page): Promise<void> => {
     const encounterFhirId = urlParts[urlParts.length - 2]
 
     if (httpRequest.method() === "GET") {
-      const filtered = currentMedicationsList.filter((m) => m.encounter_fhir_id === encounterFhirId)
+      const filtered = currentMedicationsList.filter((medication) => medication.encounter_fhir_id === encounterFhirId)
       await networkRoute.fulfill({
         status: 200,
         contentType: "application/json",
@@ -533,7 +533,7 @@ export const mockClinicalAPI = async (pageInstance: Page): Promise<void> => {
     const patientFhirId = urlParts[urlParts.length - 2]
 
     if (httpRequest.method() === "GET") {
-      const filtered = currentStudiesList.filter((s) => s.patient_fhir_id === patientFhirId)
+      const filtered = currentStudiesList.filter((study) => study.patient_fhir_id === patientFhirId)
       await networkRoute.fulfill({
         status: 200,
         contentType: "application/json",
@@ -565,7 +565,7 @@ export const mockClinicalAPI = async (pageInstance: Page): Promise<void> => {
     const studyId = urlParts[urlParts.length - 1]
 
     if (httpRequest.method() === "GET") {
-      const study = currentStudiesList.find((s) => s.id === studyId)
+      const study = currentStudiesList.find((study) => study.id === studyId)
       if (study) {
         await networkRoute.fulfill({
           status: 200,
@@ -700,7 +700,7 @@ export const mockAnalyzerAPI = async (pageInstance: Page): Promise<void> => {
     const anaId = urlParts[urlParts.length - 1]
 
     if (httpRequest.method() === "GET") {
-      const analysis = currentAnalysesList.find((a) => a.id === anaId)
+      const analysis = currentAnalysesList.find((analysis) => analysis.id === anaId)
       if (analysis) {
         await networkRoute.fulfill({
           status: 200,
@@ -711,7 +711,7 @@ export const mockAnalyzerAPI = async (pageInstance: Page): Promise<void> => {
         await networkRoute.fulfill({ status: 404 })
       }
     } else if (httpRequest.method() === "DELETE") {
-      const index = currentAnalysesList.findIndex((a) => a.id === anaId)
+      const index = currentAnalysesList.findIndex((analysis) => analysis.id === anaId)
       if (index !== -1) {
         currentAnalysesList.splice(index, 1)
         await networkRoute.fulfill({
@@ -1381,7 +1381,7 @@ export const mockNotificationsAPI = async (
   await pageInstance.route("**/api/v1/notifications/unread-count", async (networkRoute) => {
     const httpRequest = networkRoute.request()
     if (httpRequest.method() === "GET") {
-      const unreadCount = currentNotifications.filter((n) => n.is_read === false).length
+      const unreadCount = currentNotifications.filter((notification) => notification.is_read === false).length
       await networkRoute.fulfill({
         status: 200,
         contentType: "application/json",
@@ -1396,7 +1396,7 @@ export const mockNotificationsAPI = async (
     const urlParts = requestURL.split("/")
     const notificationId = urlParts[urlParts.length - 2]
     if (httpRequest.method() === "POST") {
-      const notification = currentNotifications.find((n) => n.id === notificationId)
+      const notification = currentNotifications.find((notification) => notification.id === notificationId)
       if (notification) {
         notification.is_read = true
       }
