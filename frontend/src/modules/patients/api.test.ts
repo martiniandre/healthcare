@@ -73,7 +73,7 @@ describe("patientsApi", () => {
     expect(http.get).toHaveBeenCalledWith("/patients/patient-1/encounters")
   })
 
-  it("should create an encounter with only the accepted fields", async () => {
+  it("should create an encounter with the reason payload", async () => {
     vi.mocked(http.post).mockResolvedValue({ fhir_id: "enc-1" })
 
     await patientsApi.createEncounter({
@@ -83,6 +83,7 @@ describe("patientsApi", () => {
     })
 
     expect(http.post).toHaveBeenCalledWith("/patients/patient-1/encounters", {
+      reason_code: "",
       reason_display: "Dor abdominal",
       practitioner_id: "practitioner-1",
     })

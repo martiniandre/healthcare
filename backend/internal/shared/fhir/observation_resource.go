@@ -6,15 +6,16 @@ import (
 )
 
 type ObservationResource struct {
-	ResourceType string              `json:"resourceType"`
-	ID           string              `json:"id,omitempty"`
-	Status       string              `json:"status"`
-	Category     []CodeableConcept   `json:"category"`
-	Code         CodeableConcept     `json:"code"`
-	Subject      Reference           `json:"subject"`
-	EffectiveDateTime string         `json:"effectiveDateTime"`
-	ValueQuantity *ValueQuantity     `json:"valueQuantity,omitempty"`
-	ValueString  string              `json:"valueString,omitempty"`
+	ResourceType      string              `json:"resourceType"`
+	ID                string              `json:"id,omitempty"`
+	Status            string              `json:"status"`
+	Category          []CodeableConcept   `json:"category"`
+	Code              CodeableConcept     `json:"code"`
+	Subject           Reference           `json:"subject"`
+	Encounter         *Reference          `json:"encounter,omitempty"`
+	EffectiveDateTime string              `json:"effectiveDateTime"`
+	ValueQuantity     *ValueQuantity      `json:"valueQuantity,omitempty"`
+	ValueString       string              `json:"valueString,omitempty"`
 }
 
 type CodeableConcept struct {
@@ -40,7 +41,7 @@ type ValueQuantity struct {
 }
 
 func NewObservationResource(patientFHIRID, encounterFHIRID, loincCode, codeDisplay string, valueQuantity float64, valueUnit string) *ObservationResource {
-	return &ObservationResource{
+	observationResource := &ObservationResource{
 		ResourceType: "Observation",
 		Status:       "final",
 		Category: []CodeableConcept{
@@ -75,5 +76,9 @@ func NewObservationResource(patientFHIRID, encounterFHIRID, loincCode, codeDispl
 			Code:   valueUnit,
 		},
 	}
+	if encounterFHIRID != "" {
+		observationResource.Encounter = &Reference{Reference: "Encounter/" + encounterFHIRID}
+	}
+	return observationResource
 }
 

@@ -94,8 +94,11 @@ func parseEncounterPortalBundle(responseBody json.RawMessage) ([]PortalEncounter
 		}
 
 		if len(resource.ReasonCode) > 0 {
-			_, display, _ := fhir.CodeableConceptParts(resource.ReasonCode[0])
+			_, display, text := fhir.CodeableConceptParts(resource.ReasonCode[0])
 			encounter.ReasonDisplay = display
+			if encounter.ReasonDisplay == "" {
+				encounter.ReasonDisplay = text
+			}
 		}
 
 		result = append(result, encounter)

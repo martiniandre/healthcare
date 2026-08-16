@@ -1,5 +1,10 @@
 import { http } from "../../shared/utils/http"
-import type { Appointment, CreateAppointmentPayload } from "./types"
+import type {
+  Appointment,
+  CreateAppointmentPayload,
+  StaffUnavailability,
+  CreateUnavailabilityPayload,
+} from "./types"
 
 export const scheduleApi = {
   createAppointment: async (payload: CreateAppointmentPayload): Promise<Appointment> => {
@@ -26,5 +31,18 @@ export const scheduleApi = {
 
   cancelAppointment: async (appointmentId: string): Promise<Appointment> => {
     return http.post<Appointment>(`/appointments/${appointmentId}/cancel`)
+  },
+
+  createUnavailability: async (payload: CreateUnavailabilityPayload): Promise<StaffUnavailability> => {
+    return http.post<StaffUnavailability>("/schedule/unavailability", payload)
+  },
+
+  listUnavailabilityByStaff: async (staffId: string): Promise<StaffUnavailability[]> => {
+    const queryParameters = new URLSearchParams({ staff_id: staffId })
+    return http.get<StaffUnavailability[]>(`/schedule/unavailability?${queryParameters.toString()}`)
+  },
+
+  deleteUnavailability: async (unavailabilityId: string): Promise<StaffUnavailability> => {
+    return http.delete<StaffUnavailability>(`/schedule/unavailability/${unavailabilityId}`)
   },
 }

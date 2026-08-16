@@ -17,7 +17,7 @@ func TestAppointmentLifecycleAndOverlapConflict(t *testing.T) {
 	receptionClient := loginAs(t, serverURL, "recepcao@hospital.com", "secret123")
 
 	doctorEmployeeID := seedDoctorEmployee(t, testServer.db)
-	tomorrowStartsAt := time.Now().Add(24 * time.Hour).Truncate(time.Second)
+	tomorrowStartsAt := alignToValidSlot(time.Now().Add(24 * time.Hour))
 	tomorrowEndsAt := tomorrowStartsAt.Add(30 * time.Minute)
 
 	createResponse := receptionClient.Post(t, "/api/v1/appointments", map[string]interface{}{
@@ -83,7 +83,7 @@ func TestCreateAppointmentRejectsNonExistentStaff(t *testing.T) {
 	serverURL := startTestHTTPServer(t, testServer.handler)
 
 	receptionClient := loginAs(t, serverURL, "recepcao@hospital.com", "secret123")
-	tomorrowStartsAt := time.Now().Add(24 * time.Hour).Truncate(time.Second)
+	tomorrowStartsAt := alignToValidSlot(time.Now().Add(24 * time.Hour))
 
 	response := receptionClient.Post(t, "/api/v1/appointments", map[string]interface{}{
 		"patient_fhir_id": "patient-1",
@@ -103,7 +103,7 @@ func TestPatientCanListOwnAppointments(t *testing.T) {
 
 	receptionClient := loginAs(t, serverURL, "recepcao@hospital.com", "secret123")
 	doctorEmployeeID := seedDoctorEmployee(t, testServer.db)
-	tomorrowStartsAt := time.Now().Add(24 * time.Hour).Truncate(time.Second)
+	tomorrowStartsAt := alignToValidSlot(time.Now().Add(24 * time.Hour))
 
 	createResponse := receptionClient.Post(t, "/api/v1/appointments", map[string]interface{}{
 		"patient_fhir_id": patientUserID,
@@ -122,6 +122,18 @@ func TestPatientCanListOwnAppointments(t *testing.T) {
 	decodeJSONResponse(t, myAppointmentsResponse, &appointmentsList)
 	if len(appointmentsList) == 0 {
 		t.Fatal("expected at least one appointment for the patient")
+	}
+}
+
+func alignToValidSlot(t time.Time) time.Time {
+	minute := t.Minute()
+	switch {
+	case minute <= 30:
+		return time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), 30, 0, 0, t.Location())
+	case minute <= 45:
+		return time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), 45, 0, 0, t.Location())
+	default:
+		return time.Date(t.Year(), t.Month(), t.Day(), t.Hour()+1, 0, 0, 0, t.Location())
 	}
 }
 

@@ -21,17 +21,34 @@ func mustMarshalAppointment(t *testing.T, appointment *Appointment) []byte {
 	return marshaledBody
 }
 
+func futureAlignedSlotStart(slotMinute int) time.Time {
+	currentTime := time.Now()
+	alignedStart := time.Date(currentTime.Year(), currentTime.Month(), currentTime.Day(), currentTime.Hour(), 0, 0, 0, currentTime.Location()).Add(48 * time.Hour)
+	return alignedStart.Add(time.Duration(slotMinute) * time.Minute)
+}
+
+func assertFieldViolation(t *testing.T, validationErr error, fieldName string) {
+	t.Helper()
+	var validationError apperrors.AppError
+	if !errors.As(validationErr, &validationError) {
+		t.Fatalf("expected app error, got %v", validationErr)
+	}
+	if !strings.Contains(validationError.Message, fieldName) {
+		t.Errorf("expected field violation %s in message, got %v", fieldName, validationError.Message)
+	}
+}
+
 func TestCreateAppointment_ValidInputCreatesScheduledAppointment(t *testing.T) {
 	repositoryMock := &MockRepository{}
 	appointmentService := NewService(repositoryMock, nil, nil)
 	staffID := uuid.New()
-	futureTime := time.Now().Add(48 * time.Hour).Truncate(time.Second)
+	slotStart := futureAlignedSlotStart(0)
 
 	createdAppointment, createErr := appointmentService.CreateAppointment(context.Background(), CreateAppointmentInput{
 		PatientFHIRID: "patient-123",
 		StaffID:       staffID,
-		StartsAt:      futureTime,
-		EndsAt:        futureTime.Add(time.Hour),
+		StartsAt:      slotStart,
+		EndsAt:        slotStart.Add(30 * time.Minute),
 		Reason:        "Follow-up",
 	})
 
@@ -49,6 +66,83 @@ func TestCreateAppointment_ValidInputCreatesScheduledAppointment(t *testing.T) {
 	}
 }
 
+func TestCreateAppointment_AcceptsFortyFiveMinuteSlot(t *testing.T) {
+	repositoryMock := &MockRepository{}
+	appointmentService := NewService(repositoryMock, nil, nil)
+	slotStart := futureAlignedSlotStart(30)
+
+	createdAppointment, createErr := appointmentService.CreateAppointment(context.Background(), CreateAppointmentInput{
+		PatientFHIRID: "patient-123",
+		StaffID:       uuid.New(),
+		StartsAt:      slotStart,
+		EndsAt:        slotStart.Add(45 * time.Minute),
+	})
+
+	if createErr != nil {
+		t.Fatalf("unexpected error: %v", createErr)
+	}
+	if createdAppointment == nil {
+		t.Fatal("expected created appointment, got nil")
+	}
+	if createdAppointment.EndsAt.Sub(createdAppointment.StartsAt) != 45*time.Minute {
+		t.Errorf("expected 45 minute slot, got %s", createdAppointment.EndsAt.Sub(createdAppointment.StartsAt))
+	}
+}
+
+func TestCreateAppointment_RejectsOneHourDuration(t *testing.T) {
+	repositoryMock := &MockRepository{}
+	appointmentService := NewService(repositoryMock, nil, nil)
+	slotStart := futureAlignedSlotStart(0)
+
+	_, createErr := appointmentService.CreateAppointment(context.Background(), CreateAppointmentInput{
+		PatientFHIRID: "patient-123",
+		StaffID:       uuid.New(),
+		StartsAt:      slotStart,
+		EndsAt:        slotStart.Add(time.Hour),
+	})
+
+	if createErr == nil {
+		t.Fatal("expected validation error, got nil")
+	}
+	assertFieldViolation(t, createErr, "ends_at")
+}
+
+func TestCreateAppointment_RejectsArbitraryDuration(t *testing.T) {
+	repositoryMock := &MockRepository{}
+	appointmentService := NewService(repositoryMock, nil, nil)
+	slotStart := futureAlignedSlotStart(0)
+
+	_, createErr := appointmentService.CreateAppointment(context.Background(), CreateAppointmentInput{
+		PatientFHIRID: "patient-123",
+		StaffID:       uuid.New(),
+		StartsAt:      slotStart,
+		EndsAt:        slotStart.Add(20 * time.Minute),
+	})
+
+	if createErr == nil {
+		t.Fatal("expected validation error, got nil")
+	}
+	assertFieldViolation(t, createErr, "ends_at")
+}
+
+func TestCreateAppointment_RejectsUnalignedStart(t *testing.T) {
+	repositoryMock := &MockRepository{}
+	appointmentService := NewService(repositoryMock, nil, nil)
+	unalignedStart := futureAlignedSlotStart(15)
+
+	_, createErr := appointmentService.CreateAppointment(context.Background(), CreateAppointmentInput{
+		PatientFHIRID: "patient-123",
+		StaffID:       uuid.New(),
+		StartsAt:      unalignedStart,
+		EndsAt:        unalignedStart.Add(30 * time.Minute),
+	})
+
+	if createErr == nil {
+		t.Fatal("expected validation error, got nil")
+	}
+	assertFieldViolation(t, createErr, "starts_at")
+}
+
 func TestCreateAppointment_RejectsPastStartsAt(t *testing.T) {
 	repositoryMock := &MockRepository{}
 	appointmentService := NewService(repositoryMock, nil, nil)
@@ -58,37 +152,31 @@ func TestCreateAppointment_RejectsPastStartsAt(t *testing.T) {
 		PatientFHIRID: "patient-123",
 		StaffID:       uuid.New(),
 		StartsAt:      pastTime,
-		EndsAt:        pastTime.Add(time.Hour),
+		EndsAt:        pastTime.Add(30 * time.Minute),
 	})
 
 	if createErr == nil {
 		t.Fatal("expected validation error, got nil")
 	}
-	var validationError apperrors.AppError
-	if !errors.As(createErr, &validationError) {
-		t.Errorf("expected app error, got %v", createErr)
-	}
+	assertFieldViolation(t, createErr, "starts_at")
 }
 
 func TestCreateAppointment_RejectsEndsBeforeStarts(t *testing.T) {
 	repositoryMock := &MockRepository{}
 	appointmentService := NewService(repositoryMock, nil, nil)
-	futureTime := time.Now().Add(48 * time.Hour)
+	slotStart := futureAlignedSlotStart(0)
 
 	_, createErr := appointmentService.CreateAppointment(context.Background(), CreateAppointmentInput{
 		PatientFHIRID: "patient-123",
 		StaffID:       uuid.New(),
-		StartsAt:      futureTime,
-		EndsAt:        futureTime.Add(-time.Hour),
+		StartsAt:      slotStart,
+		EndsAt:        slotStart.Add(-time.Minute),
 	})
 
 	if createErr == nil {
 		t.Fatal("expected validation error, got nil")
 	}
-	var validationError apperrors.AppError
-	if !errors.As(createErr, &validationError) {
-		t.Errorf("expected app error, got %v", createErr)
-	}
+	assertFieldViolation(t, createErr, "ends_at")
 }
 
 func TestCreateAppointment_PropagatesConflictFromRepository(t *testing.T) {
@@ -98,13 +186,13 @@ func TestCreateAppointment_PropagatesConflictFromRepository(t *testing.T) {
 		},
 	}
 	appointmentService := NewService(repositoryMock, nil, nil)
-	futureTime := time.Now().Add(48 * time.Hour)
+	slotStart := futureAlignedSlotStart(0)
 
 	_, createErr := appointmentService.CreateAppointment(context.Background(), CreateAppointmentInput{
 		PatientFHIRID: "patient-123",
 		StaffID:       uuid.New(),
-		StartsAt:      futureTime,
-		EndsAt:        futureTime.Add(time.Hour),
+		StartsAt:      slotStart,
+		EndsAt:        slotStart.Add(30 * time.Minute),
 	})
 
 	if createErr == nil {
@@ -116,7 +204,7 @@ func TestCreateAppointment_PropagatesConflictFromRepository(t *testing.T) {
 }
 
 func TestCreateAppointment_ReplaysCachedResponseForSameIdempotencyKey(t *testing.T) {
-	futureTime := time.Now().Add(48 * time.Hour).Truncate(time.Second)
+	slotStart := futureAlignedSlotStart(0)
 	cachedAppointment := &Appointment{
 		ID:            uuid.New(),
 		PatientFHIRID: "patient-123",
@@ -138,8 +226,8 @@ func TestCreateAppointment_ReplaysCachedResponseForSameIdempotencyKey(t *testing
 	createdAppointment, createErr := appointmentService.CreateAppointment(context.Background(), CreateAppointmentInput{
 		PatientFHIRID:  "patient-123",
 		StaffID:        uuid.New(),
-		StartsAt:       futureTime,
-		EndsAt:         futureTime.Add(time.Hour),
+		StartsAt:       slotStart,
+		EndsAt:         slotStart.Add(30 * time.Minute),
 		IdempotencyKey: "key-abc",
 		RequestHash:    "request-hash-value",
 	})
@@ -156,7 +244,7 @@ func TestCreateAppointment_ReplaysCachedResponseForSameIdempotencyKey(t *testing
 }
 
 func TestCreateAppointment_RejectsIdempotencyKeyReusedWithDifferentPayload(t *testing.T) {
-	futureTime := time.Now().Add(48 * time.Hour)
+	slotStart := futureAlignedSlotStart(0)
 	repositoryMock := &MockRepository{
 		FindIdempotencyKeyFunc: func(ctx context.Context, idempotencyKey string) (*IdempotencyKey, error) {
 			return &IdempotencyKey{
@@ -172,8 +260,8 @@ func TestCreateAppointment_RejectsIdempotencyKeyReusedWithDifferentPayload(t *te
 	_, createErr := appointmentService.CreateAppointment(context.Background(), CreateAppointmentInput{
 		PatientFHIRID:  "patient-123",
 		StaffID:        uuid.New(),
-		StartsAt:       futureTime,
-		EndsAt:         futureTime.Add(time.Hour),
+		StartsAt:       slotStart,
+		EndsAt:         slotStart.Add(30 * time.Minute),
 		IdempotencyKey: "key-abc",
 		RequestHash:    "request-hash-value",
 	})
@@ -308,7 +396,7 @@ func TestComputeRequestHash_IsDeterministic(t *testing.T) {
 		PatientFhirID: "patient-123",
 		StaffID:       uuid.New().String(),
 		StartsAt:      "2026-08-03T09:00:00Z",
-		EndsAt:        "2026-08-03T10:00:00Z",
+		EndsAt:        "2026-08-03T09:30:00Z",
 		Reason:        "Follow-up",
 	}
 
@@ -316,5 +404,40 @@ func TestComputeRequestHash_IsDeterministic(t *testing.T) {
 	secondHash := computeRequestHash(payload)
 	if firstHash != secondHash {
 		t.Errorf("expected deterministic hash, got %s and %s", firstHash, secondHash)
+	}
+}
+
+func TestComputeRequestHash_NormalizesEmptyReason(t *testing.T) {
+	staffID := uuid.New().String()
+	emptyReasonPayload := CreateAppointmentRequest{
+		PatientFhirID: "patient-123",
+		StaffID:       staffID,
+		StartsAt:      "2026-08-03T09:00:00Z",
+		EndsAt:        "2026-08-03T09:30:00Z",
+		Reason:        "",
+	}
+	absentReasonPayload := CreateAppointmentRequest{
+		PatientFhirID: "patient-123",
+		StaffID:       staffID,
+		StartsAt:      "2026-08-03T09:00:00Z",
+		EndsAt:        "2026-08-03T09:30:00Z",
+	}
+	withReasonPayload := CreateAppointmentRequest{
+		PatientFhirID: "patient-123",
+		StaffID:       staffID,
+		StartsAt:      "2026-08-03T09:00:00Z",
+		EndsAt:        "2026-08-03T09:30:00Z",
+		Reason:        "Follow-up",
+	}
+
+	emptyReasonHash := computeRequestHash(emptyReasonPayload)
+	absentReasonHash := computeRequestHash(absentReasonPayload)
+	withReasonHash := computeRequestHash(withReasonPayload)
+
+	if emptyReasonHash != absentReasonHash {
+		t.Errorf("expected empty reason and absent reason to produce the same hash, got %s and %s", emptyReasonHash, absentReasonHash)
+	}
+	if emptyReasonHash == withReasonHash {
+		t.Error("expected hash with a reason to differ from hash without a reason")
 	}
 }

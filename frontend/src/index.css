@@ -13,6 +13,24 @@
   --color-warning: #d97706;
   --color-danger: #dc2626;
 
+  --color-foreground: #1f2937;
+  --color-background-foreground: #1f2937;
+  --color-surface-foreground: #1f2937;
+  --color-card-foreground: #1f2937;
+  --color-popover: #ffffff;
+  --color-popover-foreground: #1f2937;
+  --color-primary-foreground: #ffffff;
+  --color-secondary-foreground: #ffffff;
+  --color-accent-foreground: #ffffff;
+  --color-muted-foreground: #6b7280;
+  --color-success-foreground: #ffffff;
+  --color-warning-foreground: #ffffff;
+  --color-danger-foreground: #ffffff;
+  --color-input: #e5e7eb;
+  --color-ring: #2563eb;
+
+  --default-border-color: #e5e7eb;
+
   --font-sans: "Outfit", "Inter", "system-ui", "sans-serif";
 
   --animate-pulse-glow: pulseGlow 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
@@ -36,9 +54,15 @@
 }
 
 @layer base {
+  *,
+  ::before,
+  ::after {
+    border-color: var(--color-border);
+  }
+
   body {
-    background-color: #f7f8fa;
-    color: #1f2937;
+    background-color: var(--color-background);
+    color: var(--color-foreground);
     font-family: "Outfit", "Inter", sans-serif;
     overflow-x: hidden;
     -webkit-font-smoothing: antialiased;

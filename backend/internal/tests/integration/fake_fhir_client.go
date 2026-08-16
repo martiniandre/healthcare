@@ -87,10 +87,18 @@ func (fake *inMemoryFHIRClient) SearchResources(ctx context.Context, resourceTyp
 
 	parsedQuery, _ := url.ParseQuery(queryParams)
 	identifierFilter := parsedQuery.Get("identifier")
+	encounterFilter := parsedQuery.Get("encounter")
+	subjectFilter := parsedQuery.Get("subject")
 
 	entries := make([]map[string]json.RawMessage, 0)
 	for _, rawResource := range fake.resources[resourceType] {
 		if identifierFilter != "" && !fake.resourceMatchesIdentifier(rawResource, identifierFilter) {
+			continue
+		}
+		if encounterFilter != "" && !fake.resourceMatchesReference(rawResource, "encounter", encounterFilter) {
+			continue
+		}
+		if subjectFilter != "" && !fake.resourceMatchesReference(rawResource, "subject", subjectFilter) {
 			continue
 		}
 		entries = append(entries, map[string]json.RawMessage{"resource": rawResource})
@@ -189,4 +197,20 @@ func (fake *inMemoryFHIRClient) resourceMatchesIdentifier(rawResource json.RawMe
 		}
 	}
 	return false
+}
+
+func (fake *inMemoryFHIRClient) resourceMatchesReference(rawResource json.RawMessage, fieldName string, expectedReference string) bool {
+	var resource map[string]interface{}
+	if err := json.Unmarshal(rawResource, &resource); err != nil {
+		return false
+	}
+	referenceObject, exists := resource[fieldName].(map[string]interface{})
+	if !exists {
+		return false
+	}
+	actualReference, ok := referenceObject["reference"].(string)
+	if !ok {
+		return false
+	}
+	return actualReference == expectedReference
 }

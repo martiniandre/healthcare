@@ -4,6 +4,7 @@ vi.mock("../../shared/utils/http", () => ({
   http: {
     get: vi.fn(),
     post: vi.fn(),
+    delete: vi.fn(),
   },
 }))
 
@@ -67,5 +68,35 @@ describe("scheduleApi", () => {
     await scheduleApi.cancelAppointment("appointment-1")
 
     expect(http.post).toHaveBeenCalledWith("/appointments/appointment-1/cancel")
+  })
+
+  it("should create an unavailability window", async () => {
+    vi.mocked(http.post).mockResolvedValue({ id: "unavail-1" })
+    const payload = {
+      staff_id: "staff-1",
+      starts_at: "2026-09-01T09:00:00Z",
+      ends_at: "2026-09-01T12:00:00Z",
+      reason: "Vacation",
+    }
+
+    await scheduleApi.createUnavailability(payload)
+
+    expect(http.post).toHaveBeenCalledWith("/schedule/unavailability", payload)
+  })
+
+  it("should list unavailability windows by staff", async () => {
+    vi.mocked(http.get).mockResolvedValue([])
+
+    await scheduleApi.listUnavailabilityByStaff("staff-1")
+
+    expect(http.get).toHaveBeenCalledWith("/schedule/unavailability?staff_id=staff-1")
+  })
+
+  it("should delete an unavailability window", async () => {
+    vi.mocked(http.delete).mockResolvedValue({ id: "unavail-1" })
+
+    await scheduleApi.deleteUnavailability("unavail-1")
+
+    expect(http.delete).toHaveBeenCalledWith("/schedule/unavailability/unavail-1")
   })
 })

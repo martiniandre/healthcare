@@ -1031,6 +1031,8 @@ export const mockAuditLogsAPI = async (pageInstance: Page): Promise<void> => {
 
 export const mockScheduleAPI = async (pageInstance: Page): Promise<void> => {
   const currentAppointments: Record<string, unknown>[] = []
+  const allowedSlotDurationsMinutes = [30, 45]
+  const allowedStartMinutes = [0, 30, 45]
 
   const hasTimeOverlap = (
     firstStart: Date,
@@ -1072,6 +1074,20 @@ export const mockScheduleAPI = async (pageInstance: Page): Promise<void> => {
       const newStart = new Date(submittedJSON.starts_at)
       const newEnd = new Date(submittedJSON.ends_at)
 
+      const slotDurationMinutes = (newEnd.getTime() - newStart.getTime()) / 60000
+      const isAllowedSlotDuration = allowedSlotDurationsMinutes.includes(slotDurationMinutes)
+      const isAlignedSlotStart =
+        allowedStartMinutes.includes(newStart.getMinutes()) && newStart.getSeconds() === 0
+
+      if (!isAllowedSlotDuration || !isAlignedSlotStart) {
+        await networkRoute.fulfill({
+          status: 400,
+          contentType: "application/json",
+          body: JSON.stringify({ error: "appointment slot must be 30 or 45 minutes and start aligned to a valid slot time" }),
+        })
+        return
+      }
+
       const conflictingAppointment = currentAppointments.find(
         (appointment) =>
           appointment.staff_id === submittedJSON.staff_id &&
@@ -1095,7 +1111,7 @@ export const mockScheduleAPI = async (pageInstance: Page): Promise<void> => {
         starts_at: submittedJSON.starts_at,
         ends_at: submittedJSON.ends_at,
         status: "scheduled",
-        reason: submittedJSON.reason,
+        reason: submittedJSON.reason ?? "",
         version: 1,
         created_at: new Date().toISOString(),
       }

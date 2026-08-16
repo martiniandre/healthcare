@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { scheduleApi } from "./api"
-import type { CreateAppointmentPayload } from "./types"
+import type { CreateAppointmentPayload, CreateUnavailabilityPayload } from "./types"
 
 export const scheduleQueryKeys = {
   all: ["schedule"] as const,
@@ -10,6 +10,9 @@ export const scheduleQueryKeys = {
   byPatient: (patientFhirId: string) =>
     [...scheduleQueryKeys.appointments(), "patient", patientFhirId] as const,
   mine: () => [...scheduleQueryKeys.appointments(), "mine"] as const,
+  unavailability: () => [...scheduleQueryKeys.all, "unavailability"] as const,
+  unavailabilityByStaff: (staffId: string) =>
+    [...scheduleQueryKeys.unavailability(), "staff", staffId] as const,
 }
 
 export const useStaffDayAppointmentsQuery = (staffId: string, date: string) => {
@@ -54,6 +57,36 @@ export const useCancelAppointmentMutation = () => {
     mutationFn: (appointmentId: string) => scheduleApi.cancelAppointment(appointmentId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: scheduleQueryKeys.appointments() })
+    },
+  })
+}
+
+export const useStaffUnavailabilityQuery = (staffId: string) => {
+  return useQuery({
+    queryKey: scheduleQueryKeys.unavailabilityByStaff(staffId),
+    queryFn: () => scheduleApi.listUnavailabilityByStaff(staffId),
+    enabled: !!staffId,
+  })
+}
+
+export const useCreateUnavailabilityMutation = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (payload: CreateUnavailabilityPayload) => scheduleApi.createUnavailability(payload),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: scheduleQueryKeys.unavailabilityByStaff(variables.staff_id),
+      })
+    },
+  })
+}
+
+export const useDeleteUnavailabilityMutation = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (unavailabilityId: string) => scheduleApi.deleteUnavailability(unavailabilityId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: scheduleQueryKeys.unavailability() })
     },
   })
 }

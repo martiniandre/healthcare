@@ -76,12 +76,10 @@ func mapFHIREncounterToDomain(resource *fhir.Encounter) *Encounter {
 	}
 	if len(resource.ReasonCode) > 0 {
 		code, display, text := fhir.CodeableConceptParts(resource.ReasonCode[0])
-		if text != "" {
-			encounter.ReasonCode = text
+		encounter.ReasonCode = code
+		encounter.ReasonDisplay = display
+		if encounter.ReasonDisplay == "" {
 			encounter.ReasonDisplay = text
-		} else {
-			encounter.ReasonCode = code
-			encounter.ReasonDisplay = display
 		}
 	}
 	if len(resource.Participant) > 0 {

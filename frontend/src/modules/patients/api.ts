@@ -32,6 +32,7 @@ export const patientsApi = {
 
   createEncounter: async (encounterData: Omit<Encounter, "fhir_id" | "created_at" | "status">): Promise<Encounter> => {
     return http.post<Encounter>(`/patients/${encounterData.patient_fhir_id}/encounters`, {
+      reason_code: encounterData.reason_code ?? "",
       reason_display: encounterData.reason_display,
       practitioner_id: encounterData.practitioner_id,
     })
