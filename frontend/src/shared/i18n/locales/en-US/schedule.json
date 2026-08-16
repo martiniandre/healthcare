@@ -70,5 +70,32 @@
     "endAfterStart": "The end time must be after the start time.",
     "startTimeAligned": "The appointment start time must be aligned to a valid slot time (:00, :30 or :45).",
     "slotDuration": "The appointment duration must be 30 or 45 minutes."
+  },
+  "unavailability": {
+    "badge": "Unavailable",
+    "delete": "Remove period",
+    "createButton": "Block Period",
+    "modal": {
+      "title": "Block Unavailability Period",
+      "date": "Date",
+      "startTime": "Start",
+      "endTime": "End",
+      "reason": "Reason",
+      "reasonPlaceholder": "Reason for unavailability...",
+      "cancel": "Cancel",
+      "confirm": "Block"
+    },
+    "deleteModal": {
+      "title": "Remove Unavailability Period",
+      "description": "Are you sure you want to remove this unavailability period?",
+      "back": "Back",
+      "confirm": "Confirm Removal"
+    },
+    "toasts": {
+      "createSuccess": "Unavailability period blocked successfully!",
+      "createError": "Failed to block unavailability period.",
+      "deleteSuccess": "Unavailability period removed successfully!",
+      "deleteError": "Failed to remove unavailability period."
+    }
   }
 }

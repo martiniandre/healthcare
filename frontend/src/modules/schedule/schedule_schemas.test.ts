@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { getNewAppointmentSchema } from './schedule_schemas'
+import { getNewAppointmentSchema, getUnavailabilitySchema } from './schedule_schemas'
 
 const mockTranslate = (key: string) => `message:${key}`
 
@@ -102,6 +102,61 @@ describe('getNewAppointmentSchema', () => {
     const result = getNewAppointmentSchema(mockTranslate).safeParse({
       ...validAppointment,
       reason: 'x'.repeat(501),
+    })
+    expect(result.success).toBe(false)
+  })
+})
+
+const validUnavailability = {
+  date: todayIso,
+  startTime: '09:00',
+  endTime: '12:00',
+  reason: 'Vacation',
+}
+
+describe('getUnavailabilitySchema', () => {
+  it('should accept a valid unavailability window', () => {
+    const result = getUnavailabilitySchema(mockTranslate).safeParse(validUnavailability)
+    expect(result.success).toBe(true)
+  })
+
+  it('should accept an unavailability window without a reason', () => {
+    const result = getUnavailabilitySchema(mockTranslate).safeParse({
+      ...validUnavailability,
+      reason: '',
+    })
+    expect(result.success).toBe(true)
+  })
+
+  it('should reject a past date', () => {
+    const result = getUnavailabilitySchema(mockTranslate).safeParse({
+      ...validUnavailability,
+      date: pastIso,
+    })
+    expect(result.success).toBe(false)
+  })
+
+  it('should reject an end time before the start time', () => {
+    const result = getUnavailabilitySchema(mockTranslate).safeParse({
+      ...validUnavailability,
+      startTime: '12:00',
+      endTime: '09:00',
+    })
+    expect(result.success).toBe(false)
+  })
+
+  it('should require a start time', () => {
+    const result = getUnavailabilitySchema(mockTranslate).safeParse({
+      ...validUnavailability,
+      startTime: '',
+    })
+    expect(result.success).toBe(false)
+  })
+
+  it('should require an end time', () => {
+    const result = getUnavailabilitySchema(mockTranslate).safeParse({
+      ...validUnavailability,
+      endTime: '',
     })
     expect(result.success).toBe(false)
   })

@@ -70,5 +70,32 @@
     "endAfterStart": "O horário de término deve ser após o início.",
     "startTimeAligned": "O início da consulta deve estar alinhado a um horário válido (:00, :30 ou :45).",
     "slotDuration": "A duração da consulta deve ser de 30 ou 45 minutos."
+  },
+  "unavailability": {
+    "badge": "Indisponível",
+    "delete": "Remover período",
+    "createButton": "Bloquear Período",
+    "modal": {
+      "title": "Bloquear Período de Indisponibilidade",
+      "date": "Data",
+      "startTime": "Início",
+      "endTime": "Fim",
+      "reason": "Motivo",
+      "reasonPlaceholder": "Motivo da indisponibilidade...",
+      "cancel": "Cancelar",
+      "confirm": "Bloquear"
+    },
+    "deleteModal": {
+      "title": "Remover Período de Indisponibilidade",
+      "description": "Tem certeza que deseja remover este período de indisponibilidade?",
+      "back": "Voltar",
+      "confirm": "Confirmar Remoção"
+    },
+    "toasts": {
+      "createSuccess": "Período de indisponibilidade bloqueado com sucesso!",
+      "createError": "Falha ao bloquear período de indisponibilidade.",
+      "deleteSuccess": "Período de indisponibilidade removido com sucesso!",
+      "deleteError": "Falha ao remover período de indisponibilidade."
+    }
   }
 }

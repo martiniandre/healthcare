@@ -70,3 +70,29 @@ const getSlotDurationMinutes = (startTimeValue: string, endTimeValue: string): n
   const [endHour, endMinute] = endTimeValue.split(":").map(Number)
   return endHour * 60 + endMinute - (startHour * 60 + startMinute)
 }
+
+export type UnavailabilityFormData = {
+  date: string
+  startTime: string
+  endTime: string
+  reason?: string
+}
+
+export const getUnavailabilitySchema = (translateFunction: (key: string) => string) => z.object({
+  date: z.string().min(1, translateFunction("validation.dateRequired"))
+    .refine(isTodayOrFutureDate, translateFunction("validation.dateFuture")),
+  startTime: z.string().min(1, translateFunction("validation.startTimeRequired")),
+  endTime: z.string().min(1, translateFunction("validation.endTimeRequired")),
+  reason: z.string().max(500, translateFunction("validation.reasonMax")).optional(),
+}).refine(
+  (formData) => {
+    if (!formData.startTime || !formData.endTime) {
+      return true
+    }
+    return formData.endTime > formData.startTime
+  },
+  {
+    message: translateFunction("validation.endAfterStart"),
+    path: ["endTime"],
+  }
+)

@@ -102,4 +102,14 @@ test.describe("Appointment Scheduling Module", () => {
       page.locator("text=O motivo deve ter no máximo 500 caracteres.")
     ).toBeVisible()
   })
+
+  test("should display an opaque backdrop when the appointment modal opens", async ({ page }) => {
+    await page.goto("/schedule")
+    await selectStaffOnPage(page)
+    await page.getByRole("button", { name: "Novo Agendamento" }).click()
+
+    const backdrop = page.locator('[data-state="open"].bg-black\\/60')
+    await expect(backdrop).toBeVisible()
+    await expect(backdrop).toHaveCSS("opacity", "1")
+  })
 })

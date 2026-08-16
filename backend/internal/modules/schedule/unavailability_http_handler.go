@@ -27,20 +27,6 @@ func (handler *UnavailabilityHTTPHandler) RegisterRoutes(mux *http.ServeMux) {
 	mux.Handle("DELETE /api/v1/schedule/unavailability/{unavailabilityId}", middleware.RequirePolicy("DELETE /api/v1/schedule/unavailability/{unavailabilityId}")(http.HandlerFunc(handler.DeleteUnavailability)))
 }
 
-// CreateUnavailability godoc
-//
-//	@Summary		Create a staff unavailability window
-//	@Description	Blocks a period during which a staff member cannot receive appointment bookings
-//	@Tags			schedule
-//	@Accept			json
-//	@Produce		json
-//	@Param			body	body	CreateUnavailabilityRequest	true	"Unavailability data"
-//	@Success		201		{object}	UnavailabilityResponse
-//	@Failure		400		{object}	map[string]string
-//	@Failure		404		{object}	map[string]string
-//	@Failure		409		{object}	map[string]string
-//	@Failure		500		{object}	map[string]string
-//	@Router			/schedule/unavailability [post]
 func (handler *UnavailabilityHTTPHandler) CreateUnavailability(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
 	var payload CreateUnavailabilityRequest
 	if payloadDecodeErr := json.NewDecoder(httpRequest.Body).Decode(&payload); payloadDecodeErr != nil {
@@ -79,19 +65,6 @@ func (handler *UnavailabilityHTTPHandler) CreateUnavailability(httpResponseWrite
 	render.JSON(httpResponseWriter, http.StatusCreated, toUnavailabilityResponse(createdUnavailability))
 }
 
-// ListUnavailability godoc
-//
-//	@Summary		List staff unavailability windows
-//	@Description	Lists unavailability windows for a staff member, optionally filtered by date range
-//	@Tags			schedule
-//	@Accept			json
-//	@Produce		json
-//	@Param			staff_id	query	string	false	"Staff UUID"
-//	@Param			from		query	string	false	"Start of range (RFC3339)"
-//	@Param			to			query	string	false	"End of range (RFC3339)"
-//	@Success		200			{array}	UnavailabilityResponse
-//	@Failure		500			{object}	map[string]string
-//	@Router			/schedule/unavailability [get]
 func (handler *UnavailabilityHTTPHandler) ListUnavailability(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
 	staffIDValue := httpRequest.URL.Query().Get("staff_id")
 	if staffIDValue == "" {
@@ -138,17 +111,6 @@ func (handler *UnavailabilityHTTPHandler) ListUnavailability(httpResponseWriter 
 	render.JSON(httpResponseWriter, http.StatusOK, toUnavailabilityResponseList(unavailabilityWindows))
 }
 
-// DeleteUnavailability godoc
-//
-//	@Summary		Delete a staff unavailability window
-//	@Description	Removes a previously configured unavailability window
-//	@Tags			schedule
-//	@Accept			json
-//	@Produce		json
-//	@Param			unavailabilityId	path	string	true	"Unavailability UUID"
-//	@Success		200				{object}	UnavailabilityResponse
-//	@Failure		404				{object}	map[string]string
-//	@Router			/schedule/unavailability/{unavailabilityId} [delete]
 func (handler *UnavailabilityHTTPHandler) DeleteUnavailability(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
 	unavailabilityID, idParseErr := uuid.Parse(httpRequest.PathValue("unavailabilityId"))
 	if idParseErr != nil {
