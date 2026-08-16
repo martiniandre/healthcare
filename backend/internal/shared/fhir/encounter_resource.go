@@ -50,19 +50,19 @@ func NewEncounterResource(patientFHIRID, practitionerID, reasonCode, reasonDispl
 	}
 
 	var reasonsCodeableConcepts []CodeableConcept
-	if reasonCode != "" {
-		reasonsCodeableConcepts = []CodeableConcept{
-			{
-				Coding: []Coding{
-					{
-						System:  "http://hl7.org/fhir/sid/icd-10",
-						Code:    reasonCode,
-						Display: reasonDisplay,
-					},
+	if reasonCode != "" || reasonDisplay != "" {
+		reasonConcept := CodeableConcept{Coding: []Coding{}}
+		if reasonCode != "" {
+			reasonConcept.Coding = []Coding{
+				{
+					System:  "http://hl7.org/fhir/sid/icd-10",
+					Code:    reasonCode,
+					Display: reasonDisplay,
 				},
-				Text: reasonDisplay,
-			},
+			}
 		}
+		reasonConcept.Text = reasonDisplay
+		reasonsCodeableConcepts = []CodeableConcept{reasonConcept}
 	}
 
 	return &EncounterResource{

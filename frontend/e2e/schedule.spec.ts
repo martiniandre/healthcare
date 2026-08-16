@@ -17,9 +17,7 @@ const fillAppointmentForm = async (page: import("@playwright/test").Page) => {
 
   const timeInputs = page.locator('input[type="time"]')
   await timeInputs.first().fill("09:00")
-  await timeInputs.nth(1).fill("10:00")
-
-  await page.getByPlaceholder("Motivo da consulta...").fill("Consulta de rotina")
+  await timeInputs.nth(1).fill("09:30")
 }
 
 test.describe("Appointment Scheduling Module", () => {
@@ -41,7 +39,7 @@ test.describe("Appointment Scheduling Module", () => {
     await fillAppointmentForm(page)
     await page.getByRole("button", { name: "Agendar" }).click()
 
-    await expect(page.locator("text=Consulta de rotina")).toBeVisible()
+    await expect(page.locator("text=Sem motivo informado")).toBeVisible()
     await expect(page.locator("text=Guilherme de Souza Araujo")).toBeVisible()
     await expect(page.locator("text=Agendado")).toBeVisible()
   })
@@ -53,7 +51,7 @@ test.describe("Appointment Scheduling Module", () => {
 
     await fillAppointmentForm(page)
     await page.getByRole("button", { name: "Agendar" }).click()
-    await expect(page.locator("text=Consulta de rotina")).toBeVisible()
+    await expect(page.locator("text=Sem motivo informado")).toBeVisible()
 
     await page.getByRole("button", { name: "Cancelar agendamento" }).click()
     await page.getByRole("button", { name: "Confirmar Cancelamento" }).click()
@@ -68,13 +66,10 @@ test.describe("Appointment Scheduling Module", () => {
 
     await fillAppointmentForm(page)
     await page.getByRole("button", { name: "Agendar" }).click()
-    await expect(page.locator("text=Consulta de rotina")).toBeVisible()
+    await expect(page.locator("text=Sem motivo informado")).toBeVisible()
 
     await page.getByRole("button", { name: "Novo Agendamento" }).click()
     await fillAppointmentForm(page)
-    const timeInputs = page.locator('input[type="time"]')
-    await timeInputs.first().fill("09:30")
-    await timeInputs.nth(1).fill("10:30")
     await page.getByRole("button", { name: "Agendar" }).click()
 
     await expect(page.locator("text=Conflito de horário")).toBeVisible()

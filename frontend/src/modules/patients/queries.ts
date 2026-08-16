@@ -61,6 +61,7 @@ export const useCreateEncounterMutation = () => {
   return useMutation({
     mutationFn: (payload: {
       patient_fhir_id: string
+      reason_code?: string
       reason_display: string
       practitioner_id: string
     }) => patientsApi.createEncounter(payload),

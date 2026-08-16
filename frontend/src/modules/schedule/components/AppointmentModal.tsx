@@ -198,13 +198,13 @@ export const AppointmentModal = ({
               <label className="text-xs font-semibold text-gray-600">
                 {t("modals.create.startTime")}
               </label>
-              <Input type="time" errorText={errors.startTime?.message} {...register("startTime")} />
+              <Input type="time" step={900} errorText={errors.startTime?.message} {...register("startTime")} />
             </div>
             <div className="flex flex-col gap-1">
               <label className="text-xs font-semibold text-gray-600">
                 {t("modals.create.endTime")}
               </label>
-              <Input type="time" errorText={errors.endTime?.message} {...register("endTime")} />
+              <Input type="time" step={900} errorText={errors.endTime?.message} {...register("endTime")} />
             </div>
           </div>
 

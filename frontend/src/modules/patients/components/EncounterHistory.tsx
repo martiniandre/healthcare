@@ -32,6 +32,7 @@ export default function EncounterHistory({
     try {
       const newEncounter = await createEncounterMutation.mutateAsync({
         patient_fhir_id: patientId,
+        reason_code: formData.reasonCode ?? "",
         reason_display: formData.reasonDisplay,
         practitioner_id: formData.practitionerId,
       })

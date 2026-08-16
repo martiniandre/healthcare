@@ -26,7 +26,7 @@ export const ExamAnalyzerModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-6xl w-[95vw] h-[90vh] overflow-y-auto bg-gray-50/50 flex flex-col p-0">
+      <DialogContent className="sm:max-w-6xl w-[95vw] h-[90vh] overflow-y-auto bg-background flex flex-col p-0">
         <DialogHeader className="p-4 sm:p-6 pb-0 shrink-0">
           <DialogTitle className="text-left sr-only">
             {t("title")}

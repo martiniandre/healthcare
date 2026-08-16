@@ -80,6 +80,10 @@ var httpRouteRoles = map[string][]role.Role{
 	"GET /api/v1/appointments/{appointmentId}":         {role.RoleAdmin, role.RoleReception, role.RoleDoctor, role.RoleNurse},
 	"POST /api/v1/appointments/{appointmentId}/cancel": {role.RoleAdmin, role.RoleReception},
 
+	"POST /api/v1/schedule/unavailability":                      {role.RoleAdmin, role.RoleDoctor},
+	"GET /api/v1/schedule/unavailability":                       {role.RoleAdmin, role.RoleDoctor},
+	"DELETE /api/v1/schedule/unavailability/{unavailabilityId}": {role.RoleAdmin, role.RoleDoctor},
+
 	"GET /api/v1/portal/dashboard":    {role.RolePatient},
 	"GET /api/v1/portal/encounters":   {role.RolePatient},
 	"GET /api/v1/portal/observations": {role.RolePatient},

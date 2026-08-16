@@ -235,6 +235,18 @@ var (
 		Message:  "appointment status transition not allowed",
 	}
 
+	ErrUnavailabilityNotFound = AppError{
+		GRPCCode: codes.NotFound,
+		HTTPCode: http.StatusNotFound,
+		Message:  "staff unavailability window not found",
+	}
+
+	ErrUnavailabilityConflict = AppError{
+		GRPCCode: codes.AlreadyExists,
+		HTTPCode: http.StatusConflict,
+		Message:  "staff unavailability window overlaps an existing unavailability window",
+	}
+
 	ErrNotFound = AppError{
 		GRPCCode: codes.NotFound,
 		HTTPCode: http.StatusNotFound,

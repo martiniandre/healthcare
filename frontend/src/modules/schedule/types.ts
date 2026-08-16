@@ -17,7 +17,7 @@ export interface CreateAppointmentPayload {
   staff_id: string
   starts_at: string
   ends_at: string
-  reason: string
+  reason?: string
   idempotency_key: string
 }
 

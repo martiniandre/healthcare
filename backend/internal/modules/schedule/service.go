@@ -3,6 +3,8 @@ package schedule
 import (
 	"context"
 	"encoding/json"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -31,6 +33,41 @@ func NewService(repo Repository, eventBus eventbus.Bus, auditService audit_logs.
 	return &service{repo: repo, eventBus: eventBus, auditService: auditService}
 }
 
+var allowedAppointmentDurations = []int{30, 45}
+
+var allowedAppointmentStartMinutes = []int{0, 30, 45}
+
+func isAllowedAppointmentDuration(appointmentStart time.Time, appointmentEnd time.Time) bool {
+	durationMinutes := int(appointmentEnd.Sub(appointmentStart).Minutes())
+	for _, allowedDuration := range allowedAppointmentDurations {
+		if durationMinutes == allowedDuration {
+			return true
+		}
+	}
+	return false
+}
+
+func appointmentDurationViolationDescription() string {
+	durationLabels := make([]string, 0, len(allowedAppointmentDurations))
+	for _, allowedDuration := range allowedAppointmentDurations {
+		durationLabels = append(durationLabels, strconv.Itoa(allowedDuration))
+	}
+	return "must be exactly " + strings.Join(durationLabels, " or ") + " minutes after starts_at"
+}
+
+func isAlignedToAllowedSlotStart(appointmentStart time.Time) bool {
+	if appointmentStart.Second() != 0 {
+		return false
+	}
+	startMinute := appointmentStart.Minute()
+	for _, allowedMinute := range allowedAppointmentStartMinutes {
+		if startMinute == allowedMinute {
+			return true
+		}
+	}
+	return false
+}
+
 func (appointmentService *service) CreateAppointment(ctx context.Context, input CreateAppointmentInput) (*Appointment, error) {
 	if input.IdempotencyKey != "" {
 		cachedAppointment, cachedErr := appointmentService.resolveIdempotency(ctx, input)
@@ -53,11 +90,15 @@ func (appointmentService *service) CreateAppointment(ctx context.Context, input 
 		fieldViolations["starts_at"] = "is required"
 	} else if !input.StartsAt.After(time.Now()) {
 		fieldViolations["starts_at"] = "must be in the future"
+	} else if !isAlignedToAllowedSlotStart(input.StartsAt) {
+		fieldViolations["starts_at"] = "must start at an allowed slot time (:00, :30 or :45)"
 	}
 	if input.EndsAt.IsZero() {
 		fieldViolations["ends_at"] = "is required"
 	} else if !input.EndsAt.After(input.StartsAt) {
 		fieldViolations["ends_at"] = "must be after starts_at"
+	} else if !input.StartsAt.IsZero() && !isAllowedAppointmentDuration(input.StartsAt, input.EndsAt) {
+		fieldViolations["ends_at"] = appointmentDurationViolationDescription()
 	}
 	if len(fieldViolations) > 0 {
 		return nil, apperrors.InvalidArgument("invalid appointment input", fieldViolations)

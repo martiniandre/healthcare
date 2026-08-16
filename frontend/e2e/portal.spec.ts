@@ -66,4 +66,33 @@ test.describe("Patient Portal Module", () => {
 
     await expect(page.getByText("Nenhum agendamento encontrado.")).toBeVisible()
   })
+
+  test("should render the encounter reason in the portal encounters list", async ({ page }) => {
+    await page.route("**/api/v1/portal/encounters", async (networkRoute) => {
+      await networkRoute.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify([
+          {
+            fhir_resource_id: "enc-1",
+            status: "finished",
+            reason_display: "Dor abdominal persistente",
+            started_at: "2026-08-01T09:00:00Z",
+            ended_at: "2026-08-01T09:30:00Z",
+          },
+          {
+            fhir_resource_id: "enc-2",
+            status: "finished",
+            reason_display: "Retorno Cardiológico",
+            started_at: "2026-08-05T14:00:00Z",
+          },
+        ]),
+      })
+    })
+
+    await page.goto("/portal?tab=encounters")
+
+    await expect(page.getByText("Dor abdominal persistente")).toBeVisible()
+    await expect(page.getByText("Retorno Cardiológico")).toBeVisible()
+  })
 })

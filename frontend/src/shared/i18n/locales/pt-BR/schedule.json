@@ -65,9 +65,10 @@
     "dateRequired": "Informe a data.",
     "startTimeRequired": "Informe o horário de início.",
     "endTimeRequired": "Informe o horário de término.",
-    "reasonMin": "Informe o motivo da consulta (mínimo 3 caracteres).",
     "reasonMax": "O motivo deve ter no máximo 500 caracteres.",
     "dateFuture": "A data do agendamento deve ser hoje ou uma data futura.",
-    "endAfterStart": "O horário de término deve ser após o início."
+    "endAfterStart": "O horário de término deve ser após o início.",
+    "startTimeAligned": "O início da consulta deve estar alinhado a um horário válido (:00, :30 ou :45).",
+    "slotDuration": "A duração da consulta deve ser de 30 ou 45 minutos."
   }
 }

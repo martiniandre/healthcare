@@ -11,13 +11,30 @@ const validAppointment = {
   staffId: 'fhir-staff-1',
   date: todayIso,
   startTime: '09:00',
-  endTime: '10:00',
+  endTime: '09:30',
   reason: 'Routine checkup',
 }
 
 describe('getNewAppointmentSchema', () => {
-  it('should accept a valid appointment', () => {
+  it('should accept a valid 30 minute appointment', () => {
     const result = getNewAppointmentSchema(mockTranslate).safeParse(validAppointment)
+    expect(result.success).toBe(true)
+  })
+
+  it('should accept a valid 45 minute appointment', () => {
+    const result = getNewAppointmentSchema(mockTranslate).safeParse({
+      ...validAppointment,
+      startTime: '09:30',
+      endTime: '10:15',
+    })
+    expect(result.success).toBe(true)
+  })
+
+  it('should accept an appointment without a reason', () => {
+    const result = getNewAppointmentSchema(mockTranslate).safeParse({
+      ...validAppointment,
+      reason: '',
+    })
     expect(result.success).toBe(true)
   })
 
@@ -54,10 +71,29 @@ describe('getNewAppointmentSchema', () => {
     expect(result.success).toBe(false)
   })
 
-  it('should reject a reason shorter than the minimum', () => {
+  it('should reject a one hour duration', () => {
     const result = getNewAppointmentSchema(mockTranslate).safeParse({
       ...validAppointment,
-      reason: 'ab',
+      startTime: '09:00',
+      endTime: '10:00',
+    })
+    expect(result.success).toBe(false)
+  })
+
+  it('should reject an arbitrary duration', () => {
+    const result = getNewAppointmentSchema(mockTranslate).safeParse({
+      ...validAppointment,
+      startTime: '09:00',
+      endTime: '09:20',
+    })
+    expect(result.success).toBe(false)
+  })
+
+  it('should reject an unaligned start time', () => {
+    const result = getNewAppointmentSchema(mockTranslate).safeParse({
+      ...validAppointment,
+      startTime: '09:15',
+      endTime: '09:45',
     })
     expect(result.success).toBe(false)
   })
