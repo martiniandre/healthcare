@@ -17,7 +17,7 @@ export interface CreateAppointmentPayload {
   staff_id: string
   starts_at: string
   ends_at: string
-  reason: string
+  reason?: string
   idempotency_key: string
 }
 
@@ -27,3 +27,19 @@ export const AppointmentStatusLabel = {
   cancelled: "cancelled",
   finished: "finished",
 } as const
+
+export interface StaffUnavailability {
+  id: string
+  staff_id: string
+  starts_at: string
+  ends_at: string
+  reason: string
+  created_at: string
+}
+
+export interface CreateUnavailabilityPayload {
+  staff_id: string
+  starts_at: string
+  ends_at: string
+  reason: string
+}

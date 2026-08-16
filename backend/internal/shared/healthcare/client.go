@@ -119,6 +119,8 @@ func (healthcareClient *Client) SearchResources(ctx context.Context, resourceTyp
 		return nil, fmt.Errorf("failed to parse search bundle: %w", parseError)
 	}
 
+	accumulatedBundle := bundle
+
 	for pageCount := 0; pageCount < maxPaginationPages; pageCount++ {
 		links, hasLinks := bundle["link"].([]interface{})
 		if !hasLinks {
@@ -158,14 +160,14 @@ func (healthcareClient *Client) SearchResources(ctx context.Context, resourceTyp
 		}
 
 		if nextEntries, hasEntries := nextBundle["entry"].([]interface{}); hasEntries {
-			currentEntries, _ := bundle["entry"].([]interface{})
-			bundle["entry"] = append(currentEntries, nextEntries...)
+			currentEntries, _ := accumulatedBundle["entry"].([]interface{})
+			accumulatedBundle["entry"] = append(currentEntries, nextEntries...)
 		}
 
 		bundle = nextBundle
 	}
 
-	mergedResponse, marshalError := json.Marshal(bundle)
+	mergedResponse, marshalError := json.Marshal(accumulatedBundle)
 	if marshalError != nil {
 		return nil, fmt.Errorf("failed to marshal merged bundle: %w", marshalError)
 	}

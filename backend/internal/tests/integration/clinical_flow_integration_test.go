@@ -68,7 +68,19 @@ func TestClinicalFlowFromEncounterToMedication(t *testing.T) {
 	requireStatusCode(t, medicationResponse, http.StatusCreated)
 
 	requireStatusCode(t, doctorClient.Get(t, "/api/v1/patients/"+patientFhirID+"/observations"), http.StatusOK)
-	requireStatusCode(t, doctorClient.Get(t, "/api/v1/encounters/"+encounterFhirID+"/observations"), http.StatusOK)
+
+	encounterObservationsResponse := doctorClient.Get(t, "/api/v1/encounters/"+encounterFhirID+"/observations")
+	requireStatusCode(t, encounterObservationsResponse, http.StatusOK)
+	var encounterObservations []struct {
+		FhirID string `json:"fhir_id"`
+	}
+	decodeJSONResponse(t, encounterObservationsResponse, &encounterObservations)
+	if len(encounterObservations) != 1 {
+		t.Fatalf("expected exactly 1 observation for encounter, got %d", len(encounterObservations))
+	}
+	if encounterObservations[0].FhirID != observationFhirID {
+		t.Fatalf("expected observation %s to be listed, got %s", observationFhirID, encounterObservations[0].FhirID)
+	}
 	requireStatusCode(t, doctorClient.Get(t, "/api/v1/patients/"+patientFhirID+"/conditions"), http.StatusOK)
 	requireStatusCode(t, doctorClient.Get(t, "/api/v1/patients/"+patientFhirID+"/allergies"), http.StatusOK)
 	requireStatusCode(t, doctorClient.Get(t, "/api/v1/encounters/"+encounterFhirID+"/medications"), http.StatusOK)

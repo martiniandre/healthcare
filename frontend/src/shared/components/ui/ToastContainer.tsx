@@ -16,7 +16,7 @@ export const ToastContainer = () => {
           <div
             key={toastItem.id}
             className={cn(
-              "pointer-events-auto flex items-start gap-3 w-full bg-white border border-gray-150 rounded-lg p-4 shadow-lg animate-toast-slide-in hover:shadow-xl transition-all duration-200"
+              "pointer-events-auto flex items-start gap-3 w-full bg-white border border-border rounded-lg p-4 shadow-lg animate-toast-slide-in hover:shadow-xl transition-all duration-200"
             )}
           >
             <div className="flex-shrink-0 mt-0.5">

@@ -262,7 +262,11 @@ func toAppointmentResponseList(appointments []*Appointment) []AppointmentRespons
 }
 
 func computeRequestHash(payload CreateAppointmentRequest) string {
-	canonicalPayload := payload.PatientFhirID + "|" + payload.StaffID + "|" + payload.StartsAt + "|" + payload.EndsAt + "|" + payload.Reason
+	normalizedReason := payload.Reason
+	if normalizedReason == "" {
+		normalizedReason = "no-reason"
+	}
+	canonicalPayload := payload.PatientFhirID + "|" + payload.StaffID + "|" + payload.StartsAt + "|" + payload.EndsAt + "|" + normalizedReason
 	payloadHash := sha256.Sum256([]byte(canonicalPayload))
 	return hex.EncodeToString(payloadHash[:])
 }

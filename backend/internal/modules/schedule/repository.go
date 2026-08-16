@@ -64,6 +64,22 @@ func (appointmentRepository *repository) CreateAppointment(ctx context.Context, 
 		return nil, apperrors.ErrAppointmentConflict
 	}
 
+	unavailabilityOverlapQuery := `SELECT id FROM staff_unavailability
+		WHERE staff_id = $1 AND starts_at < $3 AND ends_at > $2
+		FOR UPDATE`
+	overlappingUnavailabilityRows, unavailabilityQueryErr := transaction.Query(ctx, unavailabilityOverlapQuery, appointment.StaffID, appointment.StartsAt, appointment.EndsAt)
+	if unavailabilityQueryErr != nil {
+		return nil, unavailabilityQueryErr
+	}
+	hasUnavailabilityOverlap := overlappingUnavailabilityRows.Next()
+	overlappingUnavailabilityRows.Close()
+	if unavailabilityQueryErr := overlappingUnavailabilityRows.Err(); unavailabilityQueryErr != nil {
+		return nil, unavailabilityQueryErr
+	}
+	if hasUnavailabilityOverlap {
+		return nil, apperrors.ErrAppointmentConflict
+	}
+
 	insertQuery := `INSERT INTO appointments (id, patient_fhir_id, staff_id, starts_at, ends_at, status, reason, version, created_by)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`
 	_, insertErr := transaction.Exec(ctx, insertQuery,

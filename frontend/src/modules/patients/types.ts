@@ -24,6 +24,7 @@ export interface Encounter {
   fhir_id: string
   patient_fhir_id: string
   status: EncounterStatus
+  reason_code?: string
   reason_display: string
   practitioner_id?: string
   created_at: string

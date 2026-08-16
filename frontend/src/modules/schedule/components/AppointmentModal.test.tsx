@@ -98,10 +98,31 @@ describe("AppointmentModal", () => {
     expect(await screen.findByText("validation.endTimeRequired")).toBeDefined()
   })
 
-  it("should submit appointment with patient, staff, times and idempotency key", async () => {
+  it("should submit appointment without a reason", async () => {
     const onSubmit = renderModal({ defaultDate: "2027-05-20" })
     await fillPatientAndStaff()
-    fillTimes("09:00", "10:00")
+    fillTimes("09:00", "09:30")
+
+    fireEvent.click(screen.getByRole("button", { name: "modals.create.confirm" }))
+    await waitFor(() => expect(onSubmit).toHaveBeenCalled())
+
+    const submittedPayload = (onSubmit as ReturnType<typeof vi.fn>).mock.calls[0][0]
+    expect(submittedPayload).toMatchObject({
+      patient_fhir_id: "fhir-pat-1",
+      staff_id: "fhir-staff-1",
+      reason: "",
+      idempotency_key: "fixed-idempotency-key",
+    })
+    const parsedStart = new Date(submittedPayload.starts_at as string)
+    const parsedEnd = new Date(submittedPayload.ends_at as string)
+    expect(parsedStart.getTime()).toBe(new Date("2027-05-20T09:00").getTime())
+    expect(parsedEnd.getTime()).toBe(new Date("2027-05-20T09:30").getTime())
+  })
+
+  it("should submit appointment with a reason", async () => {
+    const onSubmit = renderModal({ defaultDate: "2027-05-20" })
+    await fillPatientAndStaff()
+    fillTimes("09:00", "09:45")
     fireEvent.change(screen.getByPlaceholderText("modals.create.reasonPlaceholder"), {
       target: { value: "Consulta de rotina" },
     })
@@ -116,10 +137,6 @@ describe("AppointmentModal", () => {
       reason: "Consulta de rotina",
       idempotency_key: "fixed-idempotency-key",
     })
-    const parsedStart = new Date(submittedPayload.starts_at as string)
-    const parsedEnd = new Date(submittedPayload.ends_at as string)
-    expect(parsedStart.getTime()).toBe(new Date("2027-05-20T09:00").getTime())
-    expect(parsedEnd.getTime()).toBe(new Date("2027-05-20T10:00").getTime())
   })
 
   it("should display conflict message when backend returns 409", async () => {
@@ -128,10 +145,7 @@ describe("AppointmentModal", () => {
     )
     renderModal({ onSubmit, defaultDate: "2027-05-20" })
     await fillPatientAndStaff()
-    fillTimes("09:00", "10:00")
-    fireEvent.change(screen.getByPlaceholderText("modals.create.reasonPlaceholder"), {
-      target: { value: "Consulta de rotina" },
-    })
+    fillTimes("09:00", "09:30")
 
     fireEvent.click(screen.getByRole("button", { name: "modals.create.confirm" }))
     expect(await screen.findByText("errors.conflict")).toBeDefined()

@@ -68,4 +68,9 @@ describe("AppointmentCard", () => {
     render(<AppointmentCard appointment={baseAppointment} onCancel={vi.fn()} />)
     expect(screen.getByText("fhir-pat-1")).toBeDefined()
   })
+
+  it("should render the no reason label when reason is empty", () => {
+    render(<AppointmentCard appointment={{ ...baseAppointment, reason: "" }} onCancel={vi.fn()} />)
+    expect(screen.getByText("cards.noReason")).toBeDefined()
+  })
 })
