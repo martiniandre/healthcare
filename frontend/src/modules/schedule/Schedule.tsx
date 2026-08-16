@@ -189,7 +189,10 @@ export const Schedule = () => {
               <UnavailabilityCard
                 key={unavailability.id}
                 unavailability={unavailability}
-                onDelete={setUnavailabilityToDelete}
+                onDelete={(id) => {
+                  const found = dayUnavailabilityWindows.find((entry) => entry.id === id)
+                  setUnavailabilityToDelete(found ?? null)
+                }}
               />
             ))}
             {sortedAppointments.map((appointment) => (

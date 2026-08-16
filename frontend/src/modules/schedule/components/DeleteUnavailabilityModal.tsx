@@ -38,7 +38,7 @@ export const DeleteUnavailabilityModal = ({
           <Button variantType="outline" type="button" onClick={onClose}>
             {t("unavailability.deleteModal.back")}
           </Button>
-          <Button variantType="destructive" type="button" onClick={onConfirm} disabled={isPending}>
+          <Button variantType="danger" type="button" onClick={onConfirm} disabled={isPending}>
             {t("unavailability.deleteModal.confirm")}
           </Button>
         </div>
