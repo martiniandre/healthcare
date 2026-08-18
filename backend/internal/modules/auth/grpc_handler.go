@@ -46,7 +46,7 @@ func (handler *GRPCHandler) Login(ctx context.Context, req *pb.LoginRequest) (*p
 
 	grpc.SetHeader(ctx, metadata.Pairs(
 		"set-cookie", "token="+token+"; HttpOnly; Secure; Path=/",
-		"set-cookie", "csrf_token="+csrfToken+"; HttpOnly; Secure; Path=/; SameSite=Lax",
+		"set-cookie", "csrf_token="+csrfToken+"; Secure; Path=/; SameSite=Lax",
 	))
 
 	return &pb.LoginResponse{
@@ -102,7 +102,7 @@ func (handler *GRPCHandler) Logout(ctx context.Context, req *pb.LogoutRequest) (
 
 	grpc.SetHeader(ctx, metadata.Pairs(
 		"set-cookie", "token=; HttpOnly; Secure; Path=/; Max-Age=0",
-		"set-cookie", "csrf_token=; HttpOnly; Secure; Path=/; SameSite=Lax; Max-Age=0",
+		"set-cookie", "csrf_token=; Secure; Path=/; SameSite=Lax; Max-Age=0",
 	))
 	return &pb.LogoutResponse{}, nil
 }
