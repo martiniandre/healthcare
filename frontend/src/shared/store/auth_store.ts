@@ -1,5 +1,6 @@
 import { create } from "zustand"
 import { authApi } from "../../modules/auth/api"
+import { clearCsrfToken } from "../services/api"
 
 interface AuthenticatedUserState {
   isAuthenticated: boolean
@@ -34,6 +35,7 @@ export const useAuthStore = create<AuthenticatedUserState>((set) => ({
     } catch (logoutError) {
       console.error("Logout request failed:", logoutError)
     }
+    clearCsrfToken()
     set({
       isAuthenticated: false,
       userId: null,

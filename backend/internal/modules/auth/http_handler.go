@@ -21,6 +21,10 @@ func NewHTTPHandler(service Service, secureCookies bool) *HTTPHandler {
 	}
 }
 
+func (handler *HTTPHandler) sameSiteMode() http.SameSite {
+	return http.SameSiteLaxMode
+}
+
 func (handler *HTTPHandler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("POST /api/v1/auth/login", handler.HandleLogin)
 	mux.HandleFunc("POST /api/v1/auth/logout", handler.HandleLogout)
@@ -65,7 +69,7 @@ func (handler *HTTPHandler) HandleLogin(httpResponseWriter http.ResponseWriter, 
 		Path:     "/",
 		HttpOnly: true,
 		Secure:   handler.secureCookies,
-		SameSite: http.SameSiteLaxMode,
+		SameSite: handler.sameSiteMode(),
 		MaxAge:   86400,
 	})
 
@@ -75,14 +79,15 @@ func (handler *HTTPHandler) HandleLogin(httpResponseWriter http.ResponseWriter, 
 		Path:     "/",
 		HttpOnly: false,
 		Secure:   handler.secureCookies,
-		SameSite: http.SameSiteLaxMode,
+		SameSite: handler.sameSiteMode(),
 		MaxAge:   86400,
 	})
 
 	render.JSON(httpResponseWriter, http.StatusOK, map[string]interface{}{
-		"userId": authenticatedUser.ID.String(),
-		"role":   string(authenticatedUser.Role),
-		"email":  authenticatedUser.Email,
+		"userId":   authenticatedUser.ID.String(),
+		"role":     string(authenticatedUser.Role),
+		"email":    authenticatedUser.Email,
+		"csrfToken": crossSiteRequestForgeryToken,
 	})
 }
 
@@ -125,7 +130,7 @@ func (handler *HTTPHandler) HandleLogout(httpResponseWriter http.ResponseWriter,
 		Path:     "/",
 		HttpOnly: true,
 		Secure:   handler.secureCookies,
-		SameSite: http.SameSiteLaxMode,
+		SameSite: handler.sameSiteMode(),
 		MaxAge:   -1,
 	})
 
@@ -135,7 +140,7 @@ func (handler *HTTPHandler) HandleLogout(httpResponseWriter http.ResponseWriter,
 		Path:     "/",
 		HttpOnly: true,
 		Secure:   handler.secureCookies,
-		SameSite: http.SameSiteLaxMode,
+		SameSite: handler.sameSiteMode(),
 		MaxAge:   -1,
 	})
 
@@ -177,7 +182,8 @@ func (handler *HTTPHandler) HandleMe(httpResponseWriter http.ResponseWriter, htt
 		return
 	}
 
-	render.JSON(httpResponseWriter, http.StatusOK, map[string]interface{}{
+	csrfCookie, _ := httpRequest.Cookie("csrf_token")
+	responsePayload := map[string]interface{}{
 		"userId":    user.ID.String(),
 		"email":     user.Email,
 		"fullName":  user.FullName,
@@ -185,7 +191,12 @@ func (handler *HTTPHandler) HandleMe(httpResponseWriter http.ResponseWriter, htt
 		"isActive":  user.IsActive,
 		"createdAt": user.CreatedAt,
 		"updatedAt": user.UpdatedAt,
-	})
+	}
+	if csrfCookie != nil {
+		responsePayload["csrfToken"] = csrfCookie.Value
+	}
+
+	render.JSON(httpResponseWriter, http.StatusOK, responsePayload)
 }
 
 type LoginRequest struct {

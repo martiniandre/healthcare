@@ -182,7 +182,9 @@ func mapFHIRPatientToDomain(decodedResource *fhir.Patient, fhirResourceID string
 	}
 
 	if len(decodedResource.Name) > 0 {
-		patient.FullName = decodedResource.Name[0].Family
+		name := decodedResource.Name[0]
+		nameParts := append(name.Given, name.Family)
+		patient.FullName = strings.TrimSpace(strings.Join(nameParts, " "))
 	}
 
 	if parsedBirthDate, err := time.Parse("2006-01-02", decodedResource.BirthDate); err == nil {

@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { authApi } from "./api"
 import type { LoginRequest, RegisterRequest } from "./types"
+import { setCsrfToken, clearCsrfToken } from "../../shared/services/api"
 
 export const authKeys = {
   all: ["auth"] as const,
@@ -11,7 +12,10 @@ export const useLoginMutation = () => {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (data: LoginRequest) => authApi.login(data),
-    onSuccess: () => {
+    onSuccess: (response) => {
+      if (response.csrfToken) {
+        setCsrfToken(response.csrfToken)
+      }
       queryClient.invalidateQueries({ queryKey: authKeys.me() })
     },
   })
@@ -28,6 +32,7 @@ export const useLogoutMutation = () => {
   return useMutation({
     mutationFn: () => authApi.logout(),
     onSuccess: () => {
+      clearCsrfToken()
       queryClient.clear()
     },
   })
@@ -36,6 +41,12 @@ export const useLogoutMutation = () => {
 export const useCurrentUserQuery = () => {
   return useQuery({
     queryKey: authKeys.me(),
-    queryFn: () => authApi.me(),
+    queryFn: async () => {
+      const response = await authApi.me()
+      if (response.csrfToken) {
+        setCsrfToken(response.csrfToken)
+      }
+      return response
+    },
   })
 }
