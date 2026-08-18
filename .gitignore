@@ -59,3 +59,7 @@ sa-key-*.json
 backend/.gocache/
 frontend/playwright-report/
 frontend/test-results/
+
+# Misc
+cookies.txt
+frontend/api/
