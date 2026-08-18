@@ -22,8 +22,10 @@ WORKDIR /app
 COPY --from=builder /app/api /app/api
 COPY --from=builder /app/migrations /app/migrations
 
+RUN printf '#!/bin/sh\nif [ -n "$GCP_KEY_B64" ]; then\n  mkdir -p /tmp/gcp\n  echo "$GCP_KEY_B64" | base64 -d > /tmp/gcp/key.json\n  export GOOGLE_APPLICATION_CREDENTIALS=/tmp/gcp/key.json\nfi\nexec /app/api\n' > /app/entrypoint.sh && chmod +x /app/entrypoint.sh
+
 USER appuser
 
 EXPOSE 50051 8080
 
-ENTRYPOINT ["/app/api"]
+ENTRYPOINT ["/app/entrypoint.sh"]

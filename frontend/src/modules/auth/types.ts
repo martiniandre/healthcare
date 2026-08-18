@@ -11,7 +11,9 @@ export interface AuthUser {
   isActive?: boolean
 }
 
-export type LoginResponse = AuthUser
+export interface LoginResponse extends AuthUser {
+  csrfToken?: string
+}
 
 export interface RegisterRequest {
   email: string

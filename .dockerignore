@@ -1,0 +1,13 @@
+.git
+.github
+.opencode
+.vscode
+frontend/
+*.md
+*.json
+*.yaml
+*.yml
+fly.toml
+docker-compose*.yml
+.dockerignore
+LICENSE
