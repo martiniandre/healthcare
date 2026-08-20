@@ -120,6 +120,7 @@
       "status": "Status",
       "version": "Versão",
       "history": "Histórico de Versões",
+      "viewDetails": "Ver detalhes do laudo",
       "date": "Data do Laudo"
     },
     "encountersCard": {
@@ -218,6 +219,12 @@
       "empty": "Nenhuma versão registrada para este laudo.",
       "versionLabel": "Versão",
       "noConclusion": "Sem conclusão registrada nesta versão."
+    },
+    "reportDetails": {
+      "title": "Detalhes do Laudo",
+      "examLabel": "Exame / Laudo",
+      "conclusionLabel": "Conclusão Clínica",
+      "noConclusion": "Nenhuma conclusão registrada para este laudo."
     }
   },
   "validation": {
