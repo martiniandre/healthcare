@@ -10,6 +10,7 @@ import staff from "./staff.json"
 import auditLogs from "./auditLogs.json"
 import notifications from "./notifications.json"
 import schedule from "./schedule.json"
+import portal from "./portal.json"
 
 const esESResource = {
   sidebar,
@@ -24,6 +25,7 @@ const esESResource = {
   auditLogs,
   notifications,
   schedule,
+  portal,
 }
 
 export default esESResource

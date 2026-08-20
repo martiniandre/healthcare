@@ -1,17 +1,18 @@
 import { useState, useEffect, useRef } from "react"
 import type { FormEvent } from "react"
 import { useTranslation } from "react-i18next"
-import { Card } from "../../shared/components/ui/Card"
 import { Activity } from "lucide-react"
 
 import { CardiacCondition, BedStatus } from "../../shared/types"
-import { 
-  useTelemetryRoomsQuery, 
-  useUnlockRoomMutation, 
-  useTelemetryBedsQuery, 
-  useUpdateBedConditionMutation 
+import {
+  useTelemetryRoomsQuery,
+  useUnlockRoomMutation,
+  useTelemetryBedsQuery,
+  useUpdateBedConditionMutation
 } from "./queries"
 import { toast } from "../../shared/store/toast_store"
+import { PageContainer } from "../../shared/components/ui/PageContainer"
+import { EmptyState } from "../../shared/components/ui/EmptyState"
 
 import { TelemetryHeader } from "./components/TelemetryHeader"
 import { TelemetryRoomList } from "./components/TelemetryRoomList"
@@ -234,13 +235,13 @@ export const Telemetry = () => {
   }
 
   return (
-    <div className="flex-1 p-4 sm:p-6 md:p-8 flex flex-col gap-4 md:gap-6 max-w-7xl mx-auto w-full select-none">
-      <TelemetryHeader 
-        isMuted={isMuted} 
-        setIsMuted={setIsMuted} 
+    <PageContainer className="select-none">
+      <TelemetryHeader
+        isMuted={isMuted}
+        setIsMuted={setIsMuted}
       />
 
-      <TelemetryRoomList 
+      <TelemetryRoomList
         rooms={rooms}
         selectedRoomId={selectedRoomId}
         unlockedRoomIds={unlockedRoomIds}
@@ -249,21 +250,14 @@ export const Telemetry = () => {
       />
 
       {!selectedRoomId ? (
-        <Card className="flex-1 p-8 border border-border bg-gray-50/50 flex flex-col items-center justify-center text-center gap-4 min-h-[400px]">
-          <div className="bg-primary/5 p-4 rounded-full border border-primary/10 text-primary">
-            <Activity className="w-8 h-8 animate-pulse" />
-          </div>
-          <div className="max-w-md flex flex-col gap-1">
-            <h3 className="text-md font-extrabold text-gray-900">
-              Nenhuma sala selecionada
-            </h3>
-            <p className="text-xs text-gray-500 leading-normal">
-              Selecione uma das salas acima para conectar e monitorar os leitos em tempo real.
-            </p>
-          </div>
-        </Card>
+        <EmptyState
+          icon={Activity}
+          title={t("noRoomSelected")}
+          description={t("noRoomSelectedDesc")}
+          className="flex-1 min-h-[400px] justify-center"
+        />
       ) : !isCurrentRoomUnlocked ? (
-        <TelemetryRestrictedState 
+        <TelemetryRestrictedState
           activeRoomName={activeRoom?.name}
           passcodeInput={passcode.input}
           setPasscodeInput={(val) => setPasscode((prev) => ({ ...prev, input: val }))}
@@ -272,10 +266,11 @@ export const Telemetry = () => {
           handleUnlockRoom={handleUnlockRoom}
         />
       ) : beds.length === 0 ? (
-        <Card className="flex-1 p-8 border border-border bg-white flex flex-col items-center justify-center text-center gap-3 min-h-[400px]">
-          <Activity className="w-8 h-8 text-gray-400 animate-pulse" />
-          <span className="text-xs text-gray-500 font-bold">{t("noBeds")}</span>
-        </Card>
+        <EmptyState
+          icon={Activity}
+          title={t("noBeds")}
+          className="flex-1 min-h-[400px] justify-center"
+        />
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fade-in">
           <div className="lg:col-span-2 flex flex-col gap-6">
@@ -287,14 +282,14 @@ export const Telemetry = () => {
             />
           </div>
 
-          <TelemetryBedList 
+          <TelemetryBedList
             beds={beds}
             selectedBedId={selectedBedId}
             setSelectedBedId={setSelectedBedId}
           />
         </div>
       )}
-    </div>
+    </PageContainer>
   )
 }
 

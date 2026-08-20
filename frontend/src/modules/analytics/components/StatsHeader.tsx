@@ -6,7 +6,7 @@ export const StatsHeader = () => {
 
   return (
     <div className="text-left">
-      <h2 className="text-xl font-black text-gray-900 leading-none flex items-center gap-2">
+      <h2 className="text-xl font-display font-bold text-gray-900 leading-none flex items-center gap-2">
         <BarChart3 className="w-5 h-5 text-primary animate-pulse-glow" />
         {translate("title")}
       </h2>

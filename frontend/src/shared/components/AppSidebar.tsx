@@ -44,7 +44,7 @@ export const AppSidebar = () => {
               <Activity className="w-5 h-5 text-primary" />
             </div>
             <div>
-              <h1 className="text-sm font-black tracking-tight text-gray-900 leading-none">
+              <h1 className="text-sm font-display font-bold tracking-tight text-gray-900 leading-none">
                 {t("title")}
               </h1>
               <span className="text-[10px] text-muted font-medium">{t("subtitle")}</span>
@@ -52,6 +52,7 @@ export const AppSidebar = () => {
           </div>
           <button
             onClick={closeMobileSidebar}
+            aria-label={t("closeMenu")}
             className="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-50 md:hidden"
           >
             <X className="w-4 h-4" />
@@ -89,6 +90,7 @@ export const AppSidebar = () => {
                     }
                   }}
                   disabled={item.disabled}
+                  aria-current={!item.disabled && isCurrentlyActive ? "page" : undefined}
                   className={`w-full text-left flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-semibold transition-all duration-200 ${
                     item.disabled
                       ? "text-gray-300 cursor-not-allowed"

@@ -26,7 +26,7 @@ export const PatientHeader = ({ patient, onBack }: PatientHeaderProps) => {
         {t("details.back")}
       </Button>
       <div>
-        <h2 className="text-xl font-black text-gray-900 leading-none">
+        <h2 className="text-xl font-display font-bold text-gray-900 leading-none">
           {patient.full_name}
         </h2>
         <span className="text-xs text-muted mt-2.5 flex flex-wrap items-center gap-x-2.5 gap-y-1.5">

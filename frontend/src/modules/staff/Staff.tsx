@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { useDebounce } from "../../shared/hooks/useDebounce"
 import { Card } from "../../shared/components/ui/Card"
+import { PageContainer } from "../../shared/components/ui/PageContainer"
 import { useStaffListQuery } from "./queries"
 import { StaffHeader } from "./components/StaffHeader"
 import { StaffFilters } from "./components/StaffFilters"
@@ -17,7 +18,7 @@ export const Staff = () => {
   const { data: staffList = [], isLoading } = useStaffListQuery(debouncedSearchQuery, filterRole)
 
   return (
-    <div className="flex-1 p-4 sm:p-6 md:p-8 flex flex-col gap-4 md:gap-6 max-w-7xl mx-auto w-full select-none relative">
+    <PageContainer className="select-none relative">
       <StaffHeader onAddStaff={() => setIsModalOpen(true)} />
 
       <Card className="p-4 flex flex-col gap-4">
@@ -32,6 +33,6 @@ export const Staff = () => {
       </Card>
 
       <StaffModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
-    </div>
+    </PageContainer>
   )
 }

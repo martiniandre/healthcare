@@ -1,9 +1,10 @@
 import { Card } from "../../../shared/components/ui/Card"
 import { Skeleton } from "../../../shared/components/ui/Skeleton"
+import { PageContainer } from "../../../shared/components/ui/PageContainer"
 
 export const StatsLoadingState = () => {
   return (
-    <div className="flex-1 p-4 sm:p-6 md:p-8 flex flex-col gap-4 md:gap-6 max-w-7xl mx-auto w-full">
+    <PageContainer>
       <div className="text-left">
         <Skeleton className="h-6 w-48" />
         <Skeleton className="h-3 w-72 mt-2.5" />
@@ -61,6 +62,6 @@ export const StatsLoadingState = () => {
           ))}
         </div>
       </Card>
-    </div>
+    </PageContainer>
   )
 }

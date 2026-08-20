@@ -1,36 +1,35 @@
+import { useTranslation } from "react-i18next"
 import { useDashboardQuery } from "./dashboard_queries"
 import { DashboardKPICards } from "./components/DashboardKPICards"
 import { DoctorConsultationsChart } from "./components/DoctorConsultationsChart"
 import { OccupancyGauge } from "./components/OccupancyGauge"
 import { TopDiagnosesTable } from "./components/TopDiagnosesTable"
 import { WaitTimeChart } from "./components/WaitTimeChart"
+import { PageContainer, PageTitle } from "../../shared/components/ui/PageContainer"
 import { Card } from "../../shared/components/ui/Card"
 import { Skeleton } from "../../shared/components/ui/Skeleton"
 import { Activity } from "lucide-react"
 import { Button } from "../../shared/components/ui/Button"
 
 export const ClinicalDashboard = () => {
-  const { data: dashboardData, isLoading, isError } = useDashboardQuery()
+  const { t } = useTranslation("analytics")
+  const { data: dashboardData, isLoading, isError, refetch } = useDashboardQuery()
 
   if (isLoading) {
     return <ClinicalDashboardSkeleton />
   }
 
   if (isError || !dashboardData) {
-    return <ClinicalDashboardError />
+    return <ClinicalDashboardError onRetry={() => refetch()} />
   }
 
   return (
-    <div className="flex-1 p-4 sm:p-6 md:p-8 flex flex-col gap-4 md:gap-6 max-w-7xl mx-auto w-full select-none">
-      <div className="text-left">
-        <h2 className="text-xl font-black text-gray-900 leading-none flex items-center gap-2">
-          <Activity className="w-5 h-5 text-primary animate-pulse-glow" />
-          Dashboard Clínico
-        </h2>
-        <span className="text-xs text-muted mt-1.5 block">
-          Indicadores em tempo real para acompanhamento clínico
-        </span>
-      </div>
+    <PageContainer className="select-none">
+      <PageTitle
+        icon={<Activity className="w-5 h-5 text-primary animate-pulse-glow" />}
+        title={t("dashboard.title")}
+        description={t("dashboard.subtitle")}
+      />
 
       <DashboardKPICards
         consultationsToday={dashboardData.consultations_today}
@@ -53,24 +52,21 @@ export const ClinicalDashboard = () => {
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <WaitTimeChart
-          waitTimeByDepartment={dashboardData.wait_time_by_department}
-        />
-        <div />
-      </div>
+      <WaitTimeChart
+        waitTimeByDepartment={dashboardData.wait_time_by_department}
+      />
 
       <TopDiagnosesTable
         topDiagnoses={dashboardData.top_diagnoses}
       />
-    </div>
+    </PageContainer>
   )
 }
 
 const ClinicalDashboardSkeleton = () => {
   return (
-    <div className="flex-1 p-4 sm:p-6 md:p-8 flex flex-col gap-4 md:gap-6 max-w-7xl mx-auto w-full">
-      <div className="text-left">
+    <PageContainer>
+      <div>
         <Skeleton className="h-6 w-48" />
         <Skeleton className="h-3 w-72 mt-2.5" />
       </div>
@@ -121,28 +117,34 @@ const ClinicalDashboardSkeleton = () => {
           ))}
         </div>
       </Card>
-    </div>
+    </PageContainer>
   )
 }
 
-const ClinicalDashboardError = () => {
+interface ClinicalDashboardErrorProps {
+  onRetry: () => void
+}
+
+const ClinicalDashboardError = ({ onRetry }: ClinicalDashboardErrorProps) => {
+  const { t } = useTranslation("analytics")
+
   return (
-    <div className="flex-1 p-4 sm:p-6 md:p-8 flex flex-col items-center justify-center gap-4 max-w-7xl mx-auto w-full select-none">
+    <PageContainer className="flex items-center justify-center select-none">
       <div className="text-center p-8 bg-white border border-red-100 shadow-xl rounded-2xl max-w-md w-full flex flex-col items-center gap-4">
         <div className="bg-red-50 p-4 rounded-full">
           <Activity className="w-10 h-10 text-red-500 animate-bounce" />
         </div>
-        <h3 className="text-lg font-black text-gray-900">Erro ao carregar dashboard</h3>
+        <h3 className="text-lg font-display font-bold text-gray-900">{t("dashboard.errorTitle")}</h3>
         <p className="text-xs text-gray-500 leading-relaxed">
-          Não foi possível carregar os dados do dashboard clínico. Tente novamente mais tarde.
+          {t("dashboard.errorDescription")}
         </p>
         <Button
-          onClick={() => window.location.reload()}
+          onClick={onRetry}
           className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 rounded-xl transition-all duration-200 mt-2"
         >
-          Tentar Novamente
+          {t("dashboard.retryButton")}
         </Button>
       </div>
-    </div>
+    </PageContainer>
   )
 }

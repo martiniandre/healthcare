@@ -15,7 +15,7 @@ export const Login = () => {
           <div className="bg-primary/10 p-3.5 rounded-2xl border border-primary/20 animate-pulse-glow">
             <Activity className="w-8 h-8 text-primary" />
           </div>
-          <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 m-0">
+          <h1 className="text-3xl font-display font-extrabold tracking-tight text-gray-900 m-0">
             HealthCare
           </h1>
           <p className="text-sm text-muted max-w-[280px]">

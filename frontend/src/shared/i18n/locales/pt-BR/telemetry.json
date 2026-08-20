@@ -14,6 +14,8 @@
   "unlockButton": "Liberar Monitoramento",
   "clinicalCouncil": "Conselho Técnico de Enfermagem e Medicina Intensiva",
   "noBeds": "Nenhum leito ativo nesta sala de monitoramento.",
+  "noRoomSelected": "Nenhuma sala selecionada",
+  "noRoomSelectedDesc": "Selecione uma das salas acima para conectar e monitorar os leitos em tempo real.",
   "years": "anos",
   "criticalBadge": "Crítico",
   "ecgLead": "ECG - DERIVAÇÃO II (DII)",

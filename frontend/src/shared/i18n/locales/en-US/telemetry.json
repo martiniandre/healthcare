@@ -14,6 +14,8 @@
   "unlockButton": "Release Monitoring",
   "clinicalCouncil": "Technical Council of Nursing and Intensive Care Medicine",
   "noBeds": "No active beds in this monitoring room.",
+  "noRoomSelected": "No room selected",
+  "noRoomSelectedDesc": "Select one of the rooms above to connect and monitor beds in real time.",
   "years": "years",
   "criticalBadge": "Critical",
   "ecgLead": "ECG - LEAD II (DII)",

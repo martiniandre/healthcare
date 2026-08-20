@@ -14,5 +14,6 @@
   "auditLogs": "Audit Logs",
   "settings": "Settings",
   "comingSoon": "Soon",
-  "logout": "Logout"
+  "logout": "Logout",
+  "closeMenu": "Close menu"
 }

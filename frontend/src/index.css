@@ -31,7 +31,8 @@
 
   --default-border-color: #e5e7eb;
 
-  --font-sans: "Outfit", "Inter", "system-ui", "sans-serif";
+  --font-sans: "Poppins", "Outfit", "system-ui", "sans-serif";
+  --font-display: "Poppins", "Outfit", "system-ui", "sans-serif";
 
   --animate-pulse-glow: pulseGlow 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   --animate-fade-in: fadeIn 0.25s ease-out;
@@ -63,10 +64,15 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
-    font-family: "Outfit", "Inter", sans-serif;
+    font-family: "Poppins", "Outfit", sans-serif;
     overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-ring);
+    outline-offset: 2px;
   }
 }
 

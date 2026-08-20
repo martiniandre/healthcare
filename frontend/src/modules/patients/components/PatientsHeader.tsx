@@ -13,7 +13,7 @@ export const PatientsHeader = ({ onNewPatient }: PatientsHeaderProps) => {
   return (
     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       <div>
-        <h2 className="text-xl font-black text-gray-900 tracking-tight leading-none">
+        <h2 className="text-xl font-display font-bold text-gray-900 tracking-tight leading-none">
           {t("title")}
         </h2>
         <span className="text-xs text-muted mt-1 block">
