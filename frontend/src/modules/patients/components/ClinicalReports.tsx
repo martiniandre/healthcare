@@ -7,6 +7,7 @@ import { Button } from "../../../shared/components/ui/Button"
 import { ClinicalTable } from "../../../shared/components/clinical/ClinicalTable"
 import { ReportModal } from "./modals/ReportModal"
 import { ReportVersionsModal } from "./modals/ReportVersionsModal"
+import { ReportDetailsModal } from "./modals/ReportDetailsModal"
 import { useDiagnosticReportsQuery, useCreateDiagnosticReportMutation } from "../queries"
 import { toast } from "../../../shared/store/toast_store"
 import type { DiagnosticReport } from "../types"
@@ -23,6 +24,7 @@ export default function ClinicalReports({ patientId, encounterId }: ClinicalRepo
   const { t } = useTranslation("patients")
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [versionsReport, setVersionsReport] = useState<DiagnosticReport | null>(null)
+  const [detailsReport, setDetailsReport] = useState<DiagnosticReport | null>(null)
   const { data: reports = [] } = useDiagnosticReportsQuery(encounterId)
   const createReportMutation = useCreateDiagnosticReportMutation()
 
@@ -57,9 +59,16 @@ export default function ClinicalReports({ patientId, encounterId }: ClinicalRepo
     columnHelper.accessor("conclusion", {
       header: t("details.reportsCard.conclusion"),
       cell: (info) => (
-        <p className="text-xs text-gray-600 leading-relaxed bg-gray-50 border border-border p-3 rounded-lg max-h-24 overflow-y-auto">
-          {info.getValue()}
-        </p>
+        <button
+          type="button"
+          onClick={() => setDetailsReport(info.row.original)}
+          title={t("details.reportsCard.viewDetails")}
+          className="text-left w-full cursor-pointer"
+        >
+          <p className="text-xs text-gray-600 leading-relaxed bg-gray-50 border border-border p-3 rounded-lg line-clamp-2 hover:bg-gray-100 transition-colors">
+            {info.getValue() || t("modals.reportDetails.noConclusion")}
+          </p>
+        </button>
       ),
     }),
     columnHelper.accessor("status", {
@@ -144,6 +153,12 @@ export default function ClinicalReports({ patientId, encounterId }: ClinicalRepo
         onClose={() => setVersionsReport(null)}
         reportFhirId={versionsReport?.fhir_id ?? ""}
         reportDisplay={versionsReport?.report_display ?? ""}
+      />
+
+      <ReportDetailsModal
+        isOpen={detailsReport !== null}
+        onClose={() => setDetailsReport(null)}
+        report={detailsReport}
       />
     </>
   )

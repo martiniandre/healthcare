@@ -120,6 +120,7 @@
       "status": "Estado",
       "version": "Versión",
       "history": "Historial de Versiones",
+      "viewDetails": "Ver detalles del informe",
       "date": "Fecha del Informe"
     },
     "encountersCard": {
@@ -218,6 +219,12 @@
       "empty": "No hay versiones registradas para este informe.",
       "versionLabel": "Versión",
       "noConclusion": "Sin conclusión registrada en esta versión."
+    },
+    "reportDetails": {
+      "title": "Detalles del Informe",
+      "examLabel": "Examen / Informe",
+      "conclusionLabel": "Conclusión Clínica",
+      "noConclusion": "No hay conclusión registrada para este informe."
     }
   },
   "validation": {

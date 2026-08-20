@@ -120,6 +120,7 @@
       "status": "Status",
       "version": "Version",
       "history": "Version History",
+      "viewDetails": "View report details",
       "date": "Report Date"
     },
     "encountersCard": {
@@ -218,6 +219,12 @@
       "empty": "No versions recorded for this report.",
       "versionLabel": "Version",
       "noConclusion": "No conclusion recorded in this version."
+    },
+    "reportDetails": {
+      "title": "Report Details",
+      "examLabel": "Exam / Report",
+      "conclusionLabel": "Clinical Conclusion",
+      "noConclusion": "No conclusion recorded for this report."
     }
   },
   "validation": {
