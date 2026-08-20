@@ -12,7 +12,7 @@ export const StaffHeader = ({ onAddStaff }: StaffHeaderProps) => {
   return (
     <div className="flex items-center justify-between flex-wrap gap-4">
       <div className="text-left">
-        <h2 className="text-xl font-black text-gray-900 leading-none flex items-center gap-2">
+        <h2 className="text-xl font-display font-bold text-gray-900 leading-none flex items-center gap-2">
           <Users className="w-5 h-5 text-primary animate-pulse-glow" />
           {t("title")}
         </h2>

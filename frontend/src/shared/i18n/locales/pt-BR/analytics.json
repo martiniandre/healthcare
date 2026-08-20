@@ -73,5 +73,12 @@
   },
   "errorTitle": "Erro ao carregar dados",
   "errorDescription": "Não foi possível estabelecer conexão com o serviço de analytics FHIR.",
-  "retryButton": "Tentar Novamente"
+  "retryButton": "Tentar Novamente",
+  "dashboard": {
+    "title": "Dashboard Clínico",
+    "subtitle": "Indicadores em tempo real para acompanhamento clínico",
+    "errorTitle": "Erro ao carregar dashboard",
+    "errorDescription": "Não foi possível carregar os dados do dashboard clínico. Tente novamente mais tarde.",
+    "retryButton": "Tentar Novamente"
+  }
 }

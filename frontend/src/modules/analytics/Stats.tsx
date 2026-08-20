@@ -9,6 +9,7 @@ import { StatsEpidemiologyTable } from "./components/StatsEpidemiologyTable"
 import { StatsLoadingState } from "./components/StatsLoadingState"
 import { StatsErrorState } from "./components/StatsErrorState"
 import { EmptyState } from "../../shared/components/ui/EmptyState"
+import { PageContainer } from "../../shared/components/ui/PageContainer"
 import { BarChart3 } from "lucide-react"
 
 export const Stats = () => {
@@ -16,7 +17,7 @@ export const Stats = () => {
   const [selectedModality, setSelectedModality] = useState<string | null>(null)
   const [hoveredBarIndex, setHoveredBarIndex] = useState<number | null>(null)
 
-  const { data: analyticsData, isLoading, isError } = useStatsQuery()
+  const { data: analyticsData, isLoading, isError, refetch } = useStatsQuery()
 
   const examModalitiesWithCalculatedAngles = useMemo(() => {
     if (!analyticsData?.examModalitiesData) {
@@ -60,7 +61,7 @@ export const Stats = () => {
   }
 
   if (isError || !analyticsData) {
-    return <StatsErrorState />
+    return <StatsErrorState onRetry={() => refetch()} />
   }
 
   const hasAnyData =
@@ -71,18 +72,18 @@ export const Stats = () => {
 
   if (!hasAnyData) {
     return (
-      <div className="flex-1 p-4 sm:p-6 md:p-8 flex flex-col items-center justify-center max-w-7xl mx-auto w-full">
+      <PageContainer className="items-center justify-center">
         <EmptyState
           icon={BarChart3}
           title={translate("empty.title")}
           description={translate("empty.description")}
         />
-      </div>
+      </PageContainer>
     )
   }
 
   return (
-    <div className="flex-1 p-4 sm:p-6 md:p-8 flex flex-col gap-4 md:gap-6 max-w-7xl mx-auto w-full select-none">
+    <PageContainer className="select-none">
       <StatsHeader />
 
       <StatsMetricsGrid 
@@ -111,6 +112,6 @@ export const Stats = () => {
       </div>
 
       <StatsEpidemiologyTable pathologies={analyticsData.pathologies} />
-    </div>
+    </PageContainer>
   )
 }

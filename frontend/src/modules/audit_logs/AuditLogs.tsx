@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next"
 import { History, RefreshCw } from "lucide-react"
 import { Card } from "../../shared/components/ui/Card"
 import { Button } from "../../shared/components/ui/Button"
+import { PageContainer } from "../../shared/components/ui/PageContainer"
 import { useAuditLogsQuery } from "./queries"
 import { AuditLogsFilters } from "./components/AuditLogsFilters"
 import { AuditLogsTable } from "./components/AuditLogsTable"
@@ -27,14 +28,14 @@ export const AuditLogs = () => {
   }
 
   return (
-    <div className="flex-1 p-4 sm:p-6 md:p-8 flex flex-col gap-4 md:gap-6 max-w-7xl mx-auto w-full select-none relative animate-fade-in">
+    <PageContainer className="select-none relative">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
             <div className="bg-primary/8 p-2 rounded-xl border border-primary/10">
               <History className="w-5 h-5 text-primary" />
             </div>
-            <h1 className="text-xl md:text-2xl font-black text-gray-900 tracking-tight">{t("title")}</h1>
+            <h1 className="text-xl md:text-2xl font-display font-bold text-gray-900 tracking-tight">{t("title")}</h1>
           </div>
           <p className="text-xs text-gray-500 font-medium mt-1">{t("subtitle")}</p>
         </div>
@@ -60,6 +61,6 @@ export const AuditLogs = () => {
           onToggleRowExpansion={(logId) => setExpandedLogId(expandedLogId === logId ? null : logId)}
         />
       </Card>
-    </div>
+    </PageContainer>
   )
 }

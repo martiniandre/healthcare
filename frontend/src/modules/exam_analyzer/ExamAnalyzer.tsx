@@ -13,6 +13,7 @@ import {
   examAnalyzerKeys,
 } from "./queries"
 import { toast } from "../../shared/store/toast_store"
+import { PageContainer } from "../../shared/components/ui/PageContainer"
 import type { ExamAnalysis } from "./types"
 
 export interface ExamAnalyzerProps {
@@ -107,11 +108,11 @@ export const ExamAnalyzer = ({ patientFhirId }: ExamAnalyzerProps = {}) => {
   })()
 
   return (
-    <div className="flex-1 p-4 sm:p-6 md:p-8 flex flex-col gap-6 max-w-7xl mx-auto w-full select-none animate-fade-in">
+    <PageContainer className="gap-6 select-none">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <h2 className="text-xl font-black text-gray-900 tracking-tight leading-none">
+            <h2 className="text-xl font-display font-bold text-gray-900 tracking-tight leading-none">
               {t("title")}
             </h2>
             <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-primary/8 border border-primary/10">
@@ -144,7 +145,7 @@ export const ExamAnalyzer = ({ patientFhirId }: ExamAnalyzerProps = {}) => {
           <AnalysisCard activeAnalysis={activeAnalysisToRender} />
         </div>
       </div>
-    </div>
+    </PageContainer>
   )
 }
 export default ExamAnalyzer

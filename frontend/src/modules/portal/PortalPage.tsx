@@ -76,7 +76,7 @@ export const PortalPage = () => {
             </span>
           </div>
           <div>
-            <h1 className="text-xl font-bold text-gray-900">{patientName}</h1>
+            <h1 className="text-xl font-display font-bold text-gray-900">{patientName}</h1>
             <p className="text-sm text-gray-500">Portal do Paciente</p>
           </div>
         </div>

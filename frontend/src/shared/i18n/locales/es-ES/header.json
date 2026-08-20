@@ -1,5 +1,6 @@
 {
   "offlineStatus": "Sin Conexión",
+  "openMenu": "Abrir menú de navegación",
   "notificationTooltip": "Notificaciones",
   "defaultUserEmail": "usuario@hospital.com",
   "roles": {

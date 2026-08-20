@@ -3,7 +3,7 @@ import { Loader2 } from "lucide-react"
 import { cn } from "../../utils/cn"
 
 interface ClinicalButtonProperties extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variantType?: "primary" | "secondary" | "outline" | "danger"
+  variantType?: "primary" | "secondary" | "outline" | "danger" | "ghost"
   isLoading?: boolean
 }
 
@@ -14,11 +14,12 @@ export const Button = React.forwardRef<HTMLButtonElement, ClinicalButtonProperti
         ref={reference}
         disabled={disabled || isLoading}
         className={cn(
-          "px-4 py-2 rounded-lg font-semibold transition-all duration-200 active:scale-[0.97] disabled:opacity-50 cursor-pointer text-sm flex items-center justify-center gap-2",
+          "px-4 py-2 rounded-lg font-semibold transition-all duration-200 active:scale-[0.97] disabled:opacity-50 disabled:pointer-events-none cursor-pointer text-sm flex items-center justify-center gap-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
           variantType === "primary" && "bg-primary text-white hover:bg-primary/90",
           variantType === "secondary" && "bg-secondary text-white hover:bg-secondary/90",
           variantType === "outline" && "border border-border text-gray-600 hover:bg-gray-50 hover:border-gray-300",
           variantType === "danger" && "bg-red-50 border border-red-200 text-red-600 hover:bg-red-100",
+          variantType === "ghost" && "text-gray-600 hover:bg-gray-100 hover:text-gray-900",
           className
         )}
         aria-busy={isLoading}

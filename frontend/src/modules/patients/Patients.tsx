@@ -9,6 +9,7 @@ import { PatientsEmptyState } from "./components/PatientsEmptyState"
 import { PatientsTable, type SortField, type SortDirection } from "./components/PatientsTable"
 import { PatientModal } from "./components/PatientModal"
 import { usePatientsQuery } from "./queries"
+import { PageContainer } from "../../shared/components/ui/PageContainer"
 
 export const Patients = () => {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -61,7 +62,7 @@ export const Patients = () => {
   const totalPages = patients.length === itemsPerPage ? currentPage + 1 : currentPage
 
   return (
-    <div className="flex-1 p-4 sm:p-6 md:p-8 flex flex-col gap-4 md:gap-5 animate-fade-in">
+    <PageContainer className="gap-4 md:gap-5">
       <PatientsHeader onNewPatient={() => setIsModalOpen(true)} />
       
       <PatientsMetricsGrid totalPatients={patients.length} />
@@ -92,10 +93,10 @@ export const Patients = () => {
         />
       )}
 
-      <PatientModal 
-        isOpen={isModalOpen} 
-        onOpenChange={setIsModalOpen} 
+      <PatientModal
+        isOpen={isModalOpen}
+        onOpenChange={setIsModalOpen}
       />
-    </div>
+    </PageContainer>
   )
 }

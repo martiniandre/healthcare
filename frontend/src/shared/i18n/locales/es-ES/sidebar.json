@@ -14,5 +14,6 @@
   "auditLogs": "Registros de Auditoría",
   "settings": "Configuraciones",
   "comingSoon": "Pronto",
-  "logout": "Salir"
+  "logout": "Salir",
+  "closeMenu": "Cerrar menú"
 }

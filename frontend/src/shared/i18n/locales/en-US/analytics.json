@@ -73,5 +73,12 @@
   },
   "errorTitle": "Error loading data",
   "errorDescription": "Could not connect to the FHIR analytics service.",
-  "retryButton": "Try Again"
+  "retryButton": "Try Again",
+  "dashboard": {
+    "title": "Clinical Dashboard",
+    "subtitle": "Real-time indicators for clinical follow-up",
+    "errorTitle": "Failed to load dashboard",
+    "errorDescription": "The clinical dashboard data could not be loaded. Please try again later.",
+    "retryButton": "Try Again"
+  }
 }

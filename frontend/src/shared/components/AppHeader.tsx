@@ -36,6 +36,7 @@ export const AppHeader = () => {
     <header className="w-full border-b border-border bg-white/80 backdrop-blur-sm sticky top-0 z-50 px-4 md:px-6 py-2.5 flex items-center justify-end gap-3">
       <button
         onClick={toggleMobileSidebar}
+        aria-label={t("openMenu")}
         className="mr-auto p-2 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-50 transition-colors md:hidden"
       >
         <Menu className="w-5 h-5" />
