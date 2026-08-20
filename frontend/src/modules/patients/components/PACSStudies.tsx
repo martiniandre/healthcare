@@ -2,6 +2,7 @@ import { Image as ImageIcon } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { Card } from "../../../shared/components/ui/Card"
 import { Button } from "../../../shared/components/ui/Button"
+import { formatDateTime } from "../../../shared/utils/dates"
 import type { ImagingStudy } from "../../imaging/types"
 import {
   Table,
@@ -83,7 +84,7 @@ export const PACSStudies = ({ studies, onOpen }: PACSStudiesProps) => {
                   </TableCell>
                   <TableCell className="py-4 px-4">
                     <span className="text-xs text-gray-500 font-semibold">
-                      {new Date(study.created_at).toLocaleString()}
+                      {formatDateTime(study.created_at)}
                     </span>
                   </TableCell>
                   <TableCell className="py-4 px-4 text-right pr-6">

@@ -7,6 +7,7 @@ import {
   DialogTitle,
 } from "../../../../shared/components/ui/Dialog"
 import type { DiagnosticReport } from "../../types"
+import { formatDateTime } from "../../../../shared/utils/dates"
 
 interface ReportDetailsModalProps {
   isOpen: boolean
@@ -47,7 +48,7 @@ export const ReportDetailsModal = ({
               </span>
             )}
             <span className="text-xs text-gray-500 font-semibold">
-              {new Date(report.created_at).toLocaleString()}
+                {formatDateTime(report.created_at)}
             </span>
           </div>
           <div>

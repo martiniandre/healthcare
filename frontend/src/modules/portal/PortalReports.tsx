@@ -1,6 +1,8 @@
 import { usePortalReportsQuery } from "./queries"
 import { Card } from "../../shared/components/ui/Card"
 import { Loader2 } from "lucide-react"
+import { formatDate } from "../../shared/utils/dates"
+import { useLocale } from "../../shared/hooks/useLocale"
 
 const statusBadgeClass = (status: string) => {
   switch (status) {
@@ -22,6 +24,7 @@ const statusBadgeClass = (status: string) => {
 
 export const PortalReports = () => {
   const { data: reports, isLoading } = usePortalReportsQuery()
+  const locale = useLocale()
 
   if (isLoading) {
     return (
@@ -51,7 +54,7 @@ export const PortalReports = () => {
               <p className="text-sm font-bold text-gray-900">{report.report_display || "Exame"}</p>
               <p className="text-xs text-gray-500 mt-0.5">
                 {report.issued_at
-                  ? new Date(report.issued_at).toLocaleDateString("pt-BR")
+                  ? formatDate(report.issued_at, locale)
                   : "N/I"}
               </p>
             </div>

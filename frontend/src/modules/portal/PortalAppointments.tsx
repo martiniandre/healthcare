@@ -2,6 +2,7 @@ import { useTranslation } from "react-i18next"
 import { useMyAppointmentsQuery } from "../schedule/queries"
 import { Card } from "../../shared/components/ui/Card"
 import { Loader2 } from "lucide-react"
+import { formatDate, formatTime } from "../../shared/utils/dates"
 
 const statusBadgeClassNames: Record<string, string> = {
   scheduled: "bg-blue-100 text-blue-700",
@@ -46,10 +47,10 @@ export const PortalAppointments = () => {
             {appointments.map((appointment) => (
               <tr key={appointment.id} className="hover:bg-gray-50">
                 <td className="p-4 text-gray-900 font-medium whitespace-nowrap">
-                  {new Date(appointment.starts_at).toLocaleDateString("pt-BR")}
+                  {formatDate(appointment.starts_at)}
                 </td>
                 <td className="p-4 font-mono text-gray-700 whitespace-nowrap">
-                  {new Date(appointment.starts_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                  {formatTime(appointment.starts_at)}
                 </td>
                 <td className="p-4 text-gray-700">{appointment.reason || "-"}</td>
                 <td className="p-4">

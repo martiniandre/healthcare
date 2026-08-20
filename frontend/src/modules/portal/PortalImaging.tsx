@@ -1,9 +1,12 @@
 import { usePortalImagingQuery } from "./queries"
 import { Card } from "../../shared/components/ui/Card"
 import { Loader2 } from "lucide-react"
+import { formatDate } from "../../shared/utils/dates"
+import { useLocale } from "../../shared/hooks/useLocale"
 
 export const PortalImaging = () => {
   const { data: imagingStudies, isLoading } = usePortalImagingQuery()
+  const locale = useLocale()
 
   if (isLoading) {
     return (
@@ -34,7 +37,7 @@ export const PortalImaging = () => {
             </span>
             <span className="text-xs text-gray-400">
               {study.created_at
-                ? new Date(study.created_at).toLocaleDateString("pt-BR")
+                ? formatDate(study.created_at, locale)
                 : ""}
             </span>
           </div>

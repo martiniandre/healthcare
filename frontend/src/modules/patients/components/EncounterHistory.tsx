@@ -9,6 +9,7 @@ import { ClinicalTable } from "../../../shared/components/clinical/ClinicalTable
 import { EncounterModal } from "./modals/EncounterModal"
 import { useCreateEncounterMutation, useEncountersQuery, useUpdateEncounterMutation } from "../queries"
 import { toast } from "../../../shared/store/toast_store"
+import { formatDateTime } from "../../../shared/utils/dates"
 import type { Encounter } from "../types"
 import type { NewEncounterFormData } from "../patient_schemas"
 
@@ -87,7 +88,7 @@ export default function EncounterHistory({
       header: t("details.encountersCard.date"),
       cell: (info) => (
         <span className="text-xs text-gray-400 font-semibold">
-          {new Date(info.getValue()).toLocaleString()}
+          {formatDateTime(info.getValue())}
         </span>
       ),
     }),

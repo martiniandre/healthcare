@@ -8,6 +8,7 @@ import { ClinicalTable } from "../../../shared/components/clinical/ClinicalTable
 import { MedicationModal } from "./modals/MedicationModal"
 import { useMedicationsQuery, useCreateMedicationMutation } from "../queries"
 import { toast } from "../../../shared/store/toast_store"
+import { formatDateTime } from "../../../shared/utils/dates"
 import type { MedicationRequest } from "../types"
 
 interface ClinicalMedicationsProps {
@@ -62,7 +63,7 @@ export default function ClinicalMedications({ patientId, encounterId }: Clinical
       header: t("details.medicationsCard.date"),
       cell: (info) => (
         <span className="text-xs text-gray-500 font-semibold block">
-          {new Date(info.getValue()).toLocaleString()}
+          {formatDateTime(info.getValue())}
         </span>
       ),
     }),

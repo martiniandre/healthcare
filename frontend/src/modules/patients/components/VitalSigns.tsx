@@ -8,6 +8,7 @@ import { ClinicalTable } from "../../../shared/components/clinical/ClinicalTable
 import { ObservationModal } from "./modals/ObservationModal"
 import { useObservationsQuery, useCreateObservationMutation } from "../queries"
 import { toast } from "../../../shared/store/toast_store"
+import { formatDateTime } from "../../../shared/utils/dates"
 import type { Observation } from "../types"
 import type { SubmittedObservationFormData } from "./ClinicalFormModal/clinicalFormConfigs"
 
@@ -86,7 +87,7 @@ export default function VitalSigns({ patientId, encounterId }: VitalSignsProps) 
     columnHelper.accessor("created_at", {
       header: t("details.vitalsCard.date"),
       cell: (info) => (
-        <span className="text-xs text-gray-500 font-semibold">{new Date(info.getValue()).toLocaleString()}</span>
+        <span className="text-xs text-gray-500 font-semibold">{formatDateTime(info.getValue())}</span>
       ),
     }),
   ] as ColumnDef<Observation>[]

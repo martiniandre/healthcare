@@ -1,9 +1,14 @@
+import { useTranslation } from "react-i18next"
 import { usePortalEncountersQuery } from "./queries"
 import { Card } from "../../shared/components/ui/Card"
 import { Loader2 } from "lucide-react"
+import { formatDate } from "../../shared/utils/dates"
+import { useLocale } from "../../shared/hooks/useLocale"
 
 export const PortalEncounters = () => {
+  const { t } = useTranslation("portal")
   const { data: encounters, isLoading } = usePortalEncountersQuery()
+  const locale = useLocale()
 
   if (isLoading) {
     return (
@@ -16,7 +21,7 @@ export const PortalEncounters = () => {
   if (!encounters || encounters.length === 0) {
     return (
       <Card className="py-16 text-center">
-        <p className="text-sm text-gray-500">Nenhuma consulta encontrada.</p>
+        <p className="text-sm text-gray-500">{t("emptyEncounters")}</p>
       </Card>
     )
   }
@@ -36,7 +41,7 @@ export const PortalEncounters = () => {
             {encounters.map((encounter) => (
               <tr key={encounter.fhir_resource_id} className="hover:bg-gray-50">
                 <td className="p-4 text-gray-900 font-medium whitespace-nowrap">
-                  {new Date(encounter.started_at).toLocaleDateString("pt-BR")}
+                  {formatDate(encounter.started_at, locale)}
                 </td>
                 <td className="p-4 text-gray-700">{encounter.reason_display || "-"}</td>
                 <td className="p-4">

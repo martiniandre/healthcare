@@ -12,6 +12,8 @@ import {
 } from "../../shared/components/ui/Select"
 import { Input } from "../../shared/components/ui/Input"
 import { Button } from "../../shared/components/ui/Button"
+import { PageContainer } from "../../shared/components/ui/PageContainer"
+import { formatDate } from "../../shared/utils/dates"
 import { AppointmentModal } from "./components/AppointmentModal"
 import { CancelAppointmentModal } from "./components/CancelAppointmentModal"
 import { AppointmentCard } from "./components/AppointmentCard"
@@ -119,10 +121,10 @@ export const Schedule = () => {
   })
 
   return (
-    <div className="flex-1 p-4 sm:p-6 md:p-8 flex flex-col gap-4 md:gap-6 max-w-7xl mx-auto w-full">
+    <PageContainer>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-gray-900">{t("title")}</h1>
+          <h1 className="text-xl font-display font-bold text-gray-900">{t("title")}</h1>
           <p className="text-sm text-gray-500">{t("subtitle")}</p>
         </div>
         <div className="flex gap-2">
@@ -167,7 +169,7 @@ export const Schedule = () => {
         <div className="flex items-center gap-2">
           <CalendarClock className="w-4 h-4 text-primary" />
           <h2 className="text-sm font-bold text-gray-700">
-            {t("dayAgenda", { date: new Date(`${selectedDate}T12:00:00`).toLocaleDateString() })}
+            {t("dayAgenda", { date: formatDate(new Date(`${selectedDate}T12:00:00`)) })}
           </h2>
         </div>
 
@@ -242,6 +244,6 @@ export const Schedule = () => {
         }}
         isPending={deleteUnavailabilityMutation.isPending}
       />
-    </div>
+    </PageContainer>
   )
 }

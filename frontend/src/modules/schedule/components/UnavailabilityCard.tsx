@@ -1,18 +1,11 @@
 import { useTranslation } from "react-i18next"
 import { CalendarOff, Trash2 } from "lucide-react"
+import { formatTime, formatDate } from "../../../shared/utils/dates"
 import type { StaffUnavailability } from "../types"
 
 interface UnavailabilityCardProps {
   unavailability: StaffUnavailability
   onDelete: (unavailabilityId: string) => void
-}
-
-const formatTime = (dateTimeValue: string): string => {
-  return new Date(dateTimeValue).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-}
-
-const formatDate = (dateTimeValue: string): string => {
-  return new Date(dateTimeValue).toLocaleDateString()
 }
 
 export const UnavailabilityCard = ({ unavailability, onDelete }: UnavailabilityCardProps) => {

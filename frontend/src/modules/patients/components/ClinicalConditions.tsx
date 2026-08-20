@@ -8,6 +8,7 @@ import { ClinicalTable } from "../../../shared/components/clinical/ClinicalTable
 import { ConditionModal } from "./modals/ConditionModal"
 import { usePatientConditionsQuery, useCreateConditionMutation } from "../queries"
 import { toast } from "../../../shared/store/toast_store"
+import { formatDateTime } from "../../../shared/utils/dates"
 import type { Condition } from "../types"
 
 interface ClinicalConditionsProps {
@@ -62,7 +63,7 @@ export default function ClinicalConditions({ patientId }: ClinicalConditionsProp
       header: t("details.conditionsCard.date"),
       cell: (info) => (
         <span className="text-xs text-gray-500 font-semibold block">
-          {new Date(info.getValue()).toLocaleString()}
+          {formatDateTime(info.getValue())}
         </span>
       ),
     }),

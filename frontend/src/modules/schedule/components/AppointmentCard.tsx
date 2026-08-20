@@ -1,15 +1,12 @@
 import { useTranslation } from "react-i18next"
 import { CalendarX2 } from "lucide-react"
 import { usePatientQuery } from "../../patients/queries"
+import { formatTime } from "../../../shared/utils/dates"
 import type { Appointment } from "../types"
 
 interface AppointmentCardProps {
   appointment: Appointment
   onCancel: (appointment: Appointment) => void
-}
-
-const formatTime = (dateTimeValue: string): string => {
-  return new Date(dateTimeValue).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
 }
 
 const statusBadgeClassNames: Record<string, string> = {

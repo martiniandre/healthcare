@@ -1,6 +1,8 @@
 import { usePortalMedicationsQuery } from "./queries"
 import { Card } from "../../shared/components/ui/Card"
 import { Loader2 } from "lucide-react"
+import { formatDate } from "../../shared/utils/dates"
+import { useLocale } from "../../shared/hooks/useLocale"
 
 const statusBadgeClass = (status: string) => {
   switch (status) {
@@ -20,6 +22,7 @@ const statusBadgeClass = (status: string) => {
 
 export const PortalMedications = () => {
   const { data: medications, isLoading } = usePortalMedicationsQuery()
+  const locale = useLocale()
 
   if (isLoading) {
     return (
@@ -50,7 +53,7 @@ export const PortalMedications = () => {
               <p className="text-xs text-gray-500 mt-0.5">
                 Prescrito em:{" "}
                 {medication.issued_at
-                  ? new Date(medication.issued_at).toLocaleDateString("pt-BR")
+                  ? formatDate(medication.issued_at, locale)
                   : "N/I"}
               </p>
             </div>
