@@ -15,9 +15,12 @@ import (
 type Repository interface {
 	CreateAppointment(ctx context.Context, appointment *Appointment) (*Appointment, error)
 	CancelAppointment(ctx context.Context, appointmentID uuid.UUID) (*Appointment, error)
+	RescheduleAppointment(ctx context.Context, appointmentID uuid.UUID, startsAt time.Time, endsAt time.Time) (*Appointment, error)
 	GetAppointmentByID(ctx context.Context, appointmentID uuid.UUID) (*Appointment, error)
 	ListAppointmentsByPatient(ctx context.Context, patientFHIRID string) ([]*Appointment, error)
 	ListAppointmentsByStaffOnDate(ctx context.Context, staffID uuid.UUID, date time.Time) ([]*Appointment, error)
+	ListAppointmentsByStaffInRange(ctx context.Context, staffID uuid.UUID, startDate time.Time, endDate time.Time) ([]*Appointment, error)
+	ResolveActiveEmployeeIDByEmail(ctx context.Context, email string) (*uuid.UUID, error)
 	FindIdempotencyKey(ctx context.Context, idempotencyKey string) (*IdempotencyKey, error)
 	SaveIdempotencyKey(ctx context.Context, idempotencyKey *IdempotencyKey) error
 }
@@ -154,6 +157,93 @@ func (appointmentRepository *repository) ListAppointmentsByStaffOnDate(ctx conte
 	listQuery := `SELECT id, patient_fhir_id, staff_id, starts_at, ends_at, status, reason, version, created_by, created_at, updated_at
 		FROM appointments WHERE staff_id = $1 AND starts_at::date = $2::date ORDER BY starts_at ASC`
 	return appointmentRepository.queryAppointments(ctx, listQuery, staffID, date)
+}
+
+func (appointmentRepository *repository) ListAppointmentsByStaffInRange(ctx context.Context, staffID uuid.UUID, startDate time.Time, endDate time.Time) ([]*Appointment, error) {
+	listQuery := `SELECT id, patient_fhir_id, staff_id, starts_at, ends_at, status, reason, version, created_by, created_at, updated_at
+		FROM appointments
+		WHERE staff_id = $1 AND starts_at::date >= $2::date AND starts_at::date <= $3::date
+		ORDER BY starts_at ASC`
+	return appointmentRepository.queryAppointments(ctx, listQuery, staffID, startDate, endDate)
+}
+
+func (appointmentRepository *repository) RescheduleAppointment(ctx context.Context, appointmentID uuid.UUID, startsAt time.Time, endsAt time.Time) (*Appointment, error) {
+	transaction, beginErr := appointmentRepository.dbPool.Begin(ctx)
+	if beginErr != nil {
+		return nil, beginErr
+	}
+	defer transaction.Rollback(ctx)
+
+	var currentStatus string
+	var currentStaffID uuid.UUID
+	statusQuery := `SELECT status, staff_id FROM appointments WHERE id = $1 FOR UPDATE`
+	statusScanErr := transaction.QueryRow(ctx, statusQuery, appointmentID).Scan(&currentStatus, &currentStaffID)
+	if statusScanErr != nil {
+		if errors.Is(statusScanErr, pgx.ErrNoRows) {
+			return nil, apperrors.ErrAppointmentNotFound
+		}
+		return nil, statusScanErr
+	}
+	if currentStatus != string(AppointmentStatusScheduled) && currentStatus != string(AppointmentStatusConfirmed) {
+		return nil, apperrors.ErrAppointmentInvalidTransition
+	}
+
+	overlapQuery := `SELECT id FROM appointments
+		WHERE id <> $1 AND staff_id = $2 AND status IN ('scheduled', 'confirmed')
+		AND starts_at < $4 AND ends_at > $3
+		FOR UPDATE`
+	overlappingRows, overlapQueryErr := transaction.Query(ctx, overlapQuery, appointmentID, currentStaffID, startsAt, endsAt)
+	if overlapQueryErr != nil {
+		return nil, overlapQueryErr
+	}
+	hasOverlap := overlappingRows.Next()
+	overlappingRows.Close()
+	if overlappingRowsErr := overlappingRows.Err(); overlappingRowsErr != nil {
+		return nil, overlappingRowsErr
+	}
+	if hasOverlap {
+		return nil, apperrors.ErrAppointmentConflict
+	}
+
+	unavailabilityOverlapQuery := `SELECT id FROM staff_unavailability
+		WHERE staff_id = $1 AND starts_at < $3 AND ends_at > $2
+		FOR UPDATE`
+	overlappingUnavailabilityRows, unavailabilityQueryErr := transaction.Query(ctx, unavailabilityOverlapQuery, currentStaffID, startsAt, endsAt)
+	if unavailabilityQueryErr != nil {
+		return nil, unavailabilityQueryErr
+	}
+	hasUnavailabilityOverlap := overlappingUnavailabilityRows.Next()
+	overlappingUnavailabilityRows.Close()
+	if overlappingUnavailabilityRowsErr := overlappingUnavailabilityRows.Err(); overlappingUnavailabilityRowsErr != nil {
+		return nil, overlappingUnavailabilityRowsErr
+	}
+	if hasUnavailabilityOverlap {
+		return nil, apperrors.ErrAppointmentConflict
+	}
+
+	updateQuery := `UPDATE appointments
+		SET starts_at = $2, ends_at = $3, version = version + 1, updated_at = NOW()
+		WHERE id = $1
+		RETURNING id, patient_fhir_id, staff_id, starts_at, ends_at, status, reason, version, created_by, created_at, updated_at`
+	var rescheduledAppointment Appointment
+	scanErr := transaction.QueryRow(ctx, updateQuery, appointmentID, startsAt, endsAt).Scan(
+		&rescheduledAppointment.ID, &rescheduledAppointment.PatientFHIRID, &rescheduledAppointment.StaffID,
+		&rescheduledAppointment.StartsAt, &rescheduledAppointment.EndsAt, &rescheduledAppointment.Status,
+		&rescheduledAppointment.Reason, &rescheduledAppointment.Version, &rescheduledAppointment.CreatedBy,
+		&rescheduledAppointment.CreatedAt, &rescheduledAppointment.UpdatedAt,
+	)
+	if scanErr != nil {
+		return nil, scanErr
+	}
+
+	if commitErr := transaction.Commit(ctx); commitErr != nil {
+		return nil, commitErr
+	}
+	return &rescheduledAppointment, nil
+}
+
+func (appointmentRepository *repository) ResolveActiveEmployeeIDByEmail(ctx context.Context, email string) (*uuid.UUID, error) {
+	return resolveActiveEmployeeIDByEmail(ctx, appointmentRepository.dbPool, email)
 }
 
 func (appointmentRepository *repository) queryAppointments(ctx context.Context, query string, queryArgs ...interface{}) ([]*Appointment, error) {

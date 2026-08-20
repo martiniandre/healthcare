@@ -64,8 +64,10 @@ func ValidateHTTPAuth(httpResponseWriter http.ResponseWriter, httpRequest *http.
 	}
 
 	userIDStr, _ := claims["user_id"].(string)
+	emailStr, _ := claims["email"].(string)
 	contextWithValues := context.WithValue(httpRequest.Context(), ctxkeys.UserIDKey, userIDStr)
 	contextWithValues = context.WithValue(contextWithValues, ctxkeys.RoleKey, roleStr)
+	contextWithValues = context.WithValue(contextWithValues, ctxkeys.EmailKey, emailStr)
 	return contextWithValues, true
 }
 
