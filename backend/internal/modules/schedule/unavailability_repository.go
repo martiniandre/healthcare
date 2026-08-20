@@ -14,7 +14,9 @@ import (
 type UnavailabilityRepository interface {
 	CreateUnavailability(ctx context.Context, unavailability *StaffUnavailability) (*StaffUnavailability, error)
 	ListUnavailabilityByStaff(ctx context.Context, staffID uuid.UUID, from time.Time, to time.Time) ([]*StaffUnavailability, error)
+	GetUnavailabilityByID(ctx context.Context, unavailabilityID uuid.UUID) (*StaffUnavailability, error)
 	DeleteUnavailability(ctx context.Context, unavailabilityID uuid.UUID) (*StaffUnavailability, error)
+	ResolveActiveEmployeeIDByEmail(ctx context.Context, email string) (*uuid.UUID, error)
 }
 
 type unavailabilityRepository struct {
@@ -106,6 +108,29 @@ func (unavailabilityRepository *unavailabilityRepository) ListUnavailabilityBySt
 		unavailabilityWindows = append(unavailabilityWindows, &unavailabilityWindow)
 	}
 	return unavailabilityWindows, nil
+}
+
+func (unavailabilityRepository *unavailabilityRepository) GetUnavailabilityByID(ctx context.Context, unavailabilityID uuid.UUID) (*StaffUnavailability, error) {
+	getQuery := `SELECT id, staff_id, starts_at, ends_at, reason, created_by, created_at, updated_at
+		FROM staff_unavailability WHERE id = $1`
+	var unavailabilityWindow StaffUnavailability
+	scanErr := unavailabilityRepository.dbPool.QueryRow(ctx, getQuery, unavailabilityID).Scan(
+		&unavailabilityWindow.ID, &unavailabilityWindow.StaffID,
+		&unavailabilityWindow.StartsAt, &unavailabilityWindow.EndsAt,
+		&unavailabilityWindow.Reason, &unavailabilityWindow.CreatedBy,
+		&unavailabilityWindow.CreatedAt, &unavailabilityWindow.UpdatedAt,
+	)
+	if scanErr != nil {
+		if errors.Is(scanErr, pgx.ErrNoRows) {
+			return nil, apperrors.ErrUnavailabilityNotFound
+		}
+		return nil, scanErr
+	}
+	return &unavailabilityWindow, nil
+}
+
+func (unavailabilityRepository *unavailabilityRepository) ResolveActiveEmployeeIDByEmail(ctx context.Context, email string) (*uuid.UUID, error) {
+	return resolveActiveEmployeeIDByEmail(ctx, unavailabilityRepository.dbPool, email)
 }
 
 func (unavailabilityRepository *unavailabilityRepository) DeleteUnavailability(ctx context.Context, unavailabilityID uuid.UUID) (*StaffUnavailability, error) {
