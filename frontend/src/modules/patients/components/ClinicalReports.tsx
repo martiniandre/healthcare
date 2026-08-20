@@ -63,7 +63,7 @@ export default function ClinicalReports({ patientId, encounterId }: ClinicalRepo
           type="button"
           onClick={() => setDetailsReport(info.row.original)}
           title={t("details.reportsCard.viewDetails")}
-          className="text-left w-full cursor-pointer"
+          className="text-left w-full max-w-[240px] cursor-pointer"
         >
           <p className="text-xs text-gray-600 leading-relaxed bg-gray-50 border border-border p-3 rounded-lg line-clamp-2 hover:bg-gray-100 transition-colors">
             {info.getValue() || t("modals.reportDetails.noConclusion")}
