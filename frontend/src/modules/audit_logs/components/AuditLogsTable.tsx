@@ -4,6 +4,7 @@ import * as React from "react"
 import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from "../../../shared/components/ui/Table"
 import { Badge } from "../../../shared/components/ui/Badge"
 import { Skeleton } from "../../../shared/components/ui/Skeleton"
+import { formatDateTime } from "../../../shared/utils/dates"
 import type { AuditLog } from "../types"
 
 interface AuditLogsTableProps {
@@ -11,15 +12,6 @@ interface AuditLogsTableProps {
   auditLogsList: AuditLog[]
   expandedLogId: string | null
   onToggleRowExpansion: (logId: string) => void
-}
-
-const formatTimestamp = (timestampString: string) => {
-  try {
-    const dateObject = new Date(timestampString)
-    return dateObject.toLocaleString()
-  } catch {
-    return timestampString
-  }
 }
 
 const getRoleBadgeVariant = (userRole: string) => {
@@ -91,7 +83,7 @@ export const AuditLogsTable = ({
                     className="cursor-pointer hover:bg-gray-50/80 transition-colors"
                   >
                     <TableCell className="text-xs text-gray-600 font-medium">
-                      {formatTimestamp(log.created_at)}
+                      {formatDateTime(log.created_at)}
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">

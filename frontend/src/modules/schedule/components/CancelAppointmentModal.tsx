@@ -8,6 +8,7 @@ import {
   DialogTitle,
 } from "../../../shared/components/ui/Dialog"
 import type { Appointment } from "../types"
+import { formatDateTime } from "../../../shared/utils/dates"
 
 interface CancelAppointmentModalProps {
   isOpen: boolean
@@ -42,7 +43,7 @@ export const CancelAppointmentModal = ({
         <div className="flex flex-col gap-2 text-left mt-4 text-sm text-gray-700">
           <p>{t("modals.cancel.description")}</p>
           <p className="font-mono text-xs text-gray-500">
-            {new Date(appointment.starts_at).toLocaleString()} — {appointment.reason || "-"}
+            {formatDateTime(appointment.starts_at)} — {appointment.reason || "-"}
           </p>
         </div>
         <div className="flex gap-3 justify-end mt-6">

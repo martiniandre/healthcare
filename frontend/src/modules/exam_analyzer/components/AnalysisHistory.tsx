@@ -2,6 +2,7 @@ import { FileText, Trash2, Calendar, Database, Search } from "lucide-react"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Can, Action, Feature } from "../../../shared/auth/AbilityContext"
+import { formatDateTime } from "../../../shared/utils/dates"
 import { ExamAnalysisStatus, type ExamAnalysis } from "../types"
 
 interface AnalysisHistoryProperties {
@@ -19,7 +20,7 @@ export const AnalysisHistory = ({
   onSelect,
   onDelete,
 }: AnalysisHistoryProperties) => {
-  const { t, i18n } = useTranslation("examAnalyzer")
+  const { t } = useTranslation("examAnalyzer")
   const [searchTerm, setSearchTerm] = useState<string>("")
 
   const filteredHistory = history.filter((item) => {
@@ -100,12 +101,7 @@ export const AnalysisHistory = ({
                   <div className="flex items-center gap-3 mt-1 text-[9px] text-muted">
                     <span className="flex items-center gap-1">
                       <Calendar className="w-3 h-3 shrink-0" />
-                      {item.created_at ? new Date(item.created_at).toLocaleDateString(i18n.language, {
-                        day: "2-digit",
-                        month: "2-digit",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      }) : "—"}
+                      {item.created_at ? formatDateTime(item.created_at) : "—"}
                     </span>
                     <span className={`font-bold uppercase tracking-wider ${item.status === ExamAnalysisStatus.COMPLETED
                       ? "text-primary/70"

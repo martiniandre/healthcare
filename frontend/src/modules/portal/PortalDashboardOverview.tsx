@@ -1,12 +1,15 @@
 import type { PortalDashboard } from "./types"
 import { Card } from "../../shared/components/ui/Card"
 import { History, Activity, Pill, FileText } from "lucide-react"
+import { formatDate } from "../../shared/utils/dates"
+import { useLocale } from "../../shared/hooks/useLocale"
 
 interface PortalDashboardOverviewProps {
   dashboard: PortalDashboard
 }
 
 export const PortalDashboardOverview = ({ dashboard }: PortalDashboardOverviewProps) => {
+  const locale = useLocale()
   const summaryCards = [
     {
       icon: <History className="w-5 h-5 text-blue-600" />,
@@ -73,7 +76,7 @@ export const PortalDashboardOverview = ({ dashboard }: PortalDashboardOverviewPr
                     {encounter.reason_display || "Consulta"}
                   </p>
                   <p className="text-xs text-gray-500">
-                    {new Date(encounter.started_at).toLocaleDateString("pt-BR")}
+                    {formatDate(encounter.started_at, locale)}
                   </p>
                 </div>
                 <span className="text-xs font-bold px-2 py-1 rounded-full bg-blue-100 text-blue-700 capitalize">

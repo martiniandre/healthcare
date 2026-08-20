@@ -1,6 +1,9 @@
+import { useTranslation } from "react-i18next"
 import { usePortalConditionsQuery } from "./queries"
 import { Card } from "../../shared/components/ui/Card"
 import { Loader2 } from "lucide-react"
+import { formatDate } from "../../shared/utils/dates"
+import { useLocale } from "../../shared/hooks/useLocale"
 
 const statusBadgeClass = (status: string) => {
   switch (status) {
@@ -21,7 +24,9 @@ const statusBadgeClass = (status: string) => {
 }
 
 export const PortalConditions = () => {
+  const { t } = useTranslation("portal")
   const { data: conditions, isLoading } = usePortalConditionsQuery()
+  const locale = useLocale()
 
   if (isLoading) {
     return (
@@ -34,7 +39,7 @@ export const PortalConditions = () => {
   if (!conditions || conditions.length === 0) {
     return (
       <Card className="py-16 text-center">
-        <p className="text-sm text-gray-500">Nenhuma condição registrada.</p>
+        <p className="text-sm text-gray-500">{t("emptyConditions")}</p>
       </Card>
     )
   }
@@ -50,7 +55,7 @@ export const PortalConditions = () => {
             <p className="text-sm font-bold text-gray-900">{condition.code_display}</p>
             <p className="text-xs text-gray-500 mt-0.5">
               {condition.icd10_code && <span className="font-mono">{condition.icd10_code} | </span>}
-              Início: {condition.onset_at ? new Date(condition.onset_at).toLocaleDateString("pt-BR") : "N/I"}
+              Início: {condition.onset_at ? formatDate(condition.onset_at, locale) : "N/I"}
             </p>
           </div>
           <span

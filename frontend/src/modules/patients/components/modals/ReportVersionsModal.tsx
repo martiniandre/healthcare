@@ -7,6 +7,7 @@ import {
   DialogTitle,
 } from "../../../../shared/components/ui/Dialog"
 import { useDiagnosticReportVersionsQuery } from "../../queries"
+import { formatDateTime } from "../../../../shared/utils/dates"
 
 interface ReportVersionsModalProps {
   isOpen: boolean
@@ -60,7 +61,7 @@ export const ReportVersionsModal = ({
                     {t("modals.reportVersions.versionLabel")} {versionEntry.version}
                   </span>
                   <span className="text-xs text-gray-500 font-semibold">
-                    {new Date(versionEntry.changed_at).toLocaleString()}
+                      {formatDateTime(versionEntry.changed_at)}
                   </span>
                 </div>
                 {versionEntry.snapshot?.report_display && (

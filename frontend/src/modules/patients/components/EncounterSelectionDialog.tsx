@@ -7,6 +7,7 @@ import {
   DialogTitle,
 } from "../../../shared/components/ui/Dialog"
 import type { Encounter } from "../types"
+import { formatDateTime } from "../../../shared/utils/dates"
 
 interface EncounterSelectionDialogProps {
   isOpen: boolean
@@ -62,7 +63,7 @@ export function EncounterSelectionDialog({
                       {encounter.status}
                     </span>
                     <span className="text-[11px] text-gray-400 font-semibold">
-                      {new Date(encounter.created_at).toLocaleString()}
+                      {formatDateTime(encounter.created_at)}
                     </span>
                   </div>
                 </div>

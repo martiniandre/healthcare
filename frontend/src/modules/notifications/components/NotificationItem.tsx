@@ -1,4 +1,6 @@
 import { cn } from "../../../shared/utils/cn"
+import { formatRelativeTime } from "../../../shared/utils/dates"
+import { useLocale } from "../../../shared/hooks/useLocale"
 import type { NotificationItem as NotificationItemType, NotificationPriority } from "../types"
 
 const priorityConfig: Record<NotificationPriority, { dot: string; bg: string }> = {
@@ -15,7 +17,8 @@ interface NotificationItemProps {
 
 export function NotificationItem({ notification, onMarkRead }: NotificationItemProps) {
   const config = priorityConfig[notification.priority] ?? priorityConfig.low
-  const timeAgo = getTimeAgo(notification.created_at)
+  const locale = useLocale()
+  const timeAgo = formatRelativeTime(notification.created_at, locale)
 
   return (
     <button
@@ -42,19 +45,4 @@ export function NotificationItem({ notification, onMarkRead }: NotificationItemP
       </div>
     </button>
   )
-}
-
-function getTimeAgo(isoString: string): string {
-  const now = Date.now()
-  const date = new Date(isoString).getTime()
-  const diffMs = now - date
-  const diffMinutes = Math.floor(diffMs / 60000)
-
-  if (diffMinutes < 1) return "agora"
-  if (diffMinutes < 60) return `${diffMinutes}min`
-  const diffHours = Math.floor(diffMinutes / 60)
-  if (diffHours < 24) return `${diffHours}h`
-  const diffDays = Math.floor(diffHours / 24)
-  if (diffDays < 7) return `${diffDays}d`
-  return new Date(isoString).toLocaleDateString("pt-BR")
 }

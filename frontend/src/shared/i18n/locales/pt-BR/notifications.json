@@ -4,5 +4,6 @@
   "empty": "Nenhuma notificação no momento",
   "listError": "Não foi possível carregar as notificações.",
   "markReadError": "Falha ao marcar a notificação como lida.",
-  "markRead": "Marcar como lida"
+  "markRead": "Marcar como lida",
+  "relativeNow": "agora"
 }

@@ -38,4 +38,39 @@ test.describe("Internationalization (i18n) - Locale Switching", () => {
     const spanishTelemetryLabel = page.getByRole("button", { name: "Telemetría UCI" })
     await expect(spanishTelemetryLabel).toBeVisible()
   })
+
+  test("should format dates according to the selected locale", async ({ page }) => {
+    await page.route("**/api/v1/staff/employees*", async (networkRoute) => {
+      await networkRoute.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify([]) })
+    })
+    await page.route("**/api/v1/appointments*", async (networkRoute) => {
+      await networkRoute.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify([]) })
+    })
+
+    await page.goto("/login")
+    await page.getByPlaceholder("nome.sobrenome@hospital.com").fill("medico@clinica.com")
+    await page.getByPlaceholder("••••••••").fill("senha123")
+    await page.getByRole("button", { name: "Entrar no Console" }).click()
+    await expect(page).toHaveURL(/\/$/)
+
+    await page.goto("/schedule")
+
+    const today = new Date()
+    const expectedPtBrDate = new Intl.DateTimeFormat("pt-BR", {
+      day: "numeric",
+      month: "numeric",
+      year: "numeric",
+    }).format(today)
+    await expect(page.getByRole("heading", { name: `Agenda de ${expectedPtBrDate}` })).toBeVisible()
+
+    await page.getByRole("button", { name: "Português" }).click()
+    await page.getByRole("button", { name: "English" }).click()
+
+    const expectedEnUsDate = new Intl.DateTimeFormat("en-US", {
+      day: "numeric",
+      month: "numeric",
+      year: "numeric",
+    }).format(today)
+    await expect(page.getByRole("heading", { name: `Schedule for ${expectedEnUsDate}` })).toBeVisible()
+  })
 })

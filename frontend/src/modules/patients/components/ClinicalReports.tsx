@@ -10,6 +10,7 @@ import { ReportVersionsModal } from "./modals/ReportVersionsModal"
 import { ReportDetailsModal } from "./modals/ReportDetailsModal"
 import { useDiagnosticReportsQuery, useCreateDiagnosticReportMutation } from "../queries"
 import { toast } from "../../../shared/store/toast_store"
+import { formatDateTime } from "../../../shared/utils/dates"
 import type { DiagnosticReport } from "../types"
 import type { NewReportFormData } from "../patient_schemas"
 
@@ -84,7 +85,7 @@ export default function ClinicalReports({ patientId, encounterId }: ClinicalRepo
       header: t("details.reportsCard.date"),
       cell: (info) => (
         <span className="text-xs text-gray-500 font-semibold block mt-1">
-          {new Date(info.getValue()).toLocaleString()}
+          {formatDateTime(info.getValue())}
         </span>
       ),
     }),

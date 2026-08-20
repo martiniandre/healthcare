@@ -8,6 +8,7 @@ import { ClinicalTable } from "../../../shared/components/clinical/ClinicalTable
 import { AllergyModal } from "./modals/AllergyModal"
 import { usePatientAllergiesQuery, useCreateAllergyMutation } from "../queries"
 import { toast } from "../../../shared/store/toast_store"
+import { formatDateTime } from "../../../shared/utils/dates"
 import type { AllergyIntolerance } from "../types"
 
 interface ClinicalAllergiesProps {
@@ -67,7 +68,7 @@ export default function ClinicalAllergies({ patientId }: ClinicalAllergiesProps)
       header: t("details.allergiesCard.date"),
       cell: (info) => (
         <span className="text-xs text-gray-500 font-semibold block">
-          {new Date(info.getValue()).toLocaleString()}
+          {formatDateTime(info.getValue())}
         </span>
       ),
     }),

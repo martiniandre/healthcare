@@ -1,9 +1,12 @@
 import { usePortalObservationsQuery } from "./queries"
 import { Card } from "../../shared/components/ui/Card"
 import { Loader2 } from "lucide-react"
+import { formatDateTime } from "../../shared/utils/dates"
+import { useLocale } from "../../shared/hooks/useLocale"
 
 export const PortalObservations = () => {
   const { data: observations, isLoading } = usePortalObservationsQuery()
+  const locale = useLocale()
 
   if (isLoading) {
     return (
@@ -34,13 +37,7 @@ export const PortalObservations = () => {
             <span className="text-sm font-normal text-gray-500">{observation.value_unit}</span>
           </p>
           <p className="text-xs text-gray-400 mt-2">
-            {new Date(observation.observed_at).toLocaleDateString("pt-BR", {
-              day: "numeric",
-              month: "short",
-              year: "numeric",
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
+            {formatDateTime(observation.observed_at, locale)}
           </p>
         </div>
       ))}
