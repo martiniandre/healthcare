@@ -32,7 +32,20 @@ graph TD
 
 ### 💾 Divisão de Persistência de Dados (Crítica)
 *   **Dados Clínicos (Google Cloud Healthcare API):** Dados como `Patient`, `Observation` (sinais vitais), `Encounter` (consultas), `Condition` (diagnósticos) e `DiagnosticReport` (laudos) residem **exclusivamente na nuvem segura da GCP em conformidade FHIR**. Nunca são salvos em tabelas SQL locais.
-*   **Dados Operacionais (PostgreSQL local):** Tabelas operacionais de controle de acesso (`auth`), credenciamento da equipe clínica (`staff`) e histórico e catálogo de exames PACS processados (`imaging_studies`).
+*   **Dados Operacionais (PostgreSQL local):** Tabelas operacionais de controle de acesso (`auth`), credenciamento da equipe clínica (`staff`), agendamento (`appointments`, `staff_unavailability`), notificações (`notifications`), monitoramento (`telemetry_rooms`, `telemetry_beds`), análises de exames por IA (`exam_analyses`), versionamento de laudos (`diagnostic_report_versions`) e histórico/catálogo de exames PACS processados (`imaging_studies`).
+
+---
+
+## 🧩 Funcionalidades Principais
+
+*   **Prontuário FHIR completo:** CRUD de pacientes e recursos clínicos (encontros, observações, condições, alergias, medicações e laudos versionados) direto na GCP Healthcare API.
+*   **Portal do Paciente:** área de autoatendimento onde o paciente autenticado visualiza dashboard e histórico dos próprios dados clínicos (consultas futuras, observações recentes, condições ativas, medicações, laudos e imagens).
+*   **Agendamento:** criação, listagem e cancelamento de consultas (`appointments`) com idempotência, além de bloqueio de indisponibilidade da equipe (`staff_unavailability`).
+*   **Notificações em tempo real:** feed priorizado por papel/função com stream via WebSocket, contagem de não lidas e marcação de leitura.
+*   **Telemetria:** monitoramento de sinais vitais por quarto/leito com alertas em tempo real.
+*   **PACS/Imagem:** upload e visualização DICOM com metadados indexados e recurso FHIR `ImagingStudy`.
+*   **Análise de Exames por IA:** processamento assíncrono via Vertex AI (Gemini) com consentimento e anonimização.
+*   **Auditoria & Analytics:** trilha imutável de conformidade HIPAA/LGPD e dashboards agregados de métricas clínicas e operacionais.
 
 ---
 
