@@ -1029,8 +1029,11 @@ export const mockAuditLogsAPI = async (pageInstance: Page): Promise<void> => {
   })
 }
 
-export const mockScheduleAPI = async (pageInstance: Page): Promise<void> => {
-  const currentAppointments: Record<string, unknown>[] = []
+export const mockScheduleAPI = async (
+  pageInstance: Page,
+  initialAppointments: Record<string, unknown>[] = []
+): Promise<void> => {
+  const currentAppointments: Record<string, unknown>[] = [...initialAppointments]
   const allowedSlotDurationsMinutes = [30, 45]
   const allowedStartMinutes = [0, 30, 45]
 
@@ -1048,12 +1051,18 @@ export const mockScheduleAPI = async (pageInstance: Page): Promise<void> => {
     if (httpRequest.method() === "GET") {
       const targetStaffId = requestURL.searchParams.get("staff_id")
       const targetDate = requestURL.searchParams.get("date")
+      const targetStartDate = requestURL.searchParams.get("start_date")
+      const targetEndDate = requestURL.searchParams.get("end_date")
       const targetPatientId = requestURL.searchParams.get("patient_fhir_id")
       const filtered = currentAppointments.filter((appointment) => {
         if (targetStaffId && appointment.staff_id !== targetStaffId) {
           return false
         }
-        if (targetDate && !String(appointment.starts_at).startsWith(targetDate)) {
+        const appointmentDay = String(appointment.starts_at).slice(0, 10)
+        if (targetDate && appointmentDay !== targetDate) {
+          return false
+        }
+        if (targetStartDate && targetEndDate && (appointmentDay < targetStartDate || appointmentDay > targetEndDate)) {
           return false
         }
         if (targetPatientId && appointment.patient_fhir_id !== targetPatientId) {

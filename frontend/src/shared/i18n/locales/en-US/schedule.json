@@ -18,7 +18,11 @@
   },
   "emptyState": {
     "selectStaff": "Select a professional and a date to view the schedule.",
-    "noAppointments": "No appointments for this professional on this date."
+    "noAppointments": "No appointments for this professional on this date.",
+    "noStaff": "No staff members available."
+  },
+  "calendar": {
+    "staffFilters": "Staff"
   },
   "modals": {
     "create": {
@@ -75,6 +79,7 @@
     "badge": "Unavailable",
     "delete": "Remove period",
     "createButton": "Block Period",
+    "blockedPeriodsTitle": "Blocked periods",
     "modal": {
       "title": "Block Unavailability Period",
       "date": "Date",
@@ -99,3 +104,4 @@
     }
   }
 }
+

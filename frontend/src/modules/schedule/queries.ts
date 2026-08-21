@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
+import { useQuery, useQueries, useMutation, useQueryClient } from "@tanstack/react-query"
 import { scheduleApi } from "./api"
 import type { CreateAppointmentPayload, CreateUnavailabilityPayload } from "./types"
 
@@ -7,6 +7,8 @@ export const scheduleQueryKeys = {
   appointments: () => [...scheduleQueryKeys.all, "appointments"] as const,
   byStaff: (staffId: string, date: string) =>
     [...scheduleQueryKeys.appointments(), "staff", staffId, date] as const,
+  byStaffRange: (staffId: string, startDate: string, endDate: string) =>
+    [...scheduleQueryKeys.appointments(), "staff-range", staffId, startDate, endDate] as const,
   byPatient: (patientFhirId: string) =>
     [...scheduleQueryKeys.appointments(), "patient", patientFhirId] as const,
   mine: () => [...scheduleQueryKeys.appointments(), "mine"] as const,
@@ -20,6 +22,22 @@ export const useStaffDayAppointmentsQuery = (staffId: string, date: string) => {
     queryKey: scheduleQueryKeys.byStaff(staffId, date),
     queryFn: () => scheduleApi.listByStaffOnDate(staffId, date),
     enabled: !!staffId && !!date,
+  })
+}
+
+export interface StaffRangeFilter {
+  staffId: string
+  startDate: string
+  endDate: string
+}
+
+export const useStaffRangeAppointmentsQueries = (filters: StaffRangeFilter[]) => {
+  return useQueries({
+    queries: filters.map((filter) => ({
+      queryKey: scheduleQueryKeys.byStaffRange(filter.staffId, filter.startDate, filter.endDate),
+      queryFn: () => scheduleApi.listByStaffInRange(filter.staffId, filter.startDate, filter.endDate),
+      enabled: !!filter.staffId && !!filter.startDate && !!filter.endDate,
+    })),
   })
 }
 
@@ -47,6 +65,7 @@ export const useCreateAppointmentMutation = () => {
       queryClient.invalidateQueries({ queryKey: scheduleQueryKeys.byStaff(variables.staff_id, bookedDate) })
       queryClient.invalidateQueries({ queryKey: scheduleQueryKeys.byPatient(variables.patient_fhir_id) })
       queryClient.invalidateQueries({ queryKey: scheduleQueryKeys.mine() })
+      queryClient.invalidateQueries({ queryKey: [...scheduleQueryKeys.appointments(), "staff-range"] })
     },
   })
 }

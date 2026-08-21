@@ -38,13 +38,22 @@ export const isPastDate = (dateStr: string): boolean => {
 }
 
 export const isTodayOrFutureDate = (dateStr: string): boolean => {
-  const parsedDate = new Date(dateStr)
-  if (isNaN(parsedDate.getTime())) {
+  const dateOnlyMatch = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateStr)
+  if (!dateOnlyMatch) {
     return false
   }
-  const inputIsoDate = parsedDate.toISOString().slice(0, 10)
-  const todayIsoDate = new Date().toISOString().slice(0, 10)
-  return inputIsoDate >= todayIsoDate
+  const [inputYear, inputMonth, inputDay] = dateOnlyMatch.slice(1).map(Number)
+  const now = new Date()
+  const todayYear = now.getFullYear()
+  const todayMonth = now.getMonth() + 1
+  const todayDay = now.getDate()
+  if (inputYear !== todayYear) {
+    return inputYear > todayYear
+  }
+  if (inputMonth !== todayMonth) {
+    return inputMonth > todayMonth
+  }
+  return inputDay >= todayDay
 }
 
 export const isValidICD10 = (code: string): boolean => {
