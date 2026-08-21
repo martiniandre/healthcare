@@ -33,6 +33,7 @@ type PortalObservation struct {
 	LoincCode      string    `json:"loinc_code"`
 	ValueQuantity  float64   `json:"value_quantity"`
 	ValueUnit      string    `json:"value_unit"`
+	NotPerformed   bool      `json:"not_performed"`
 	ObservedAt     time.Time `json:"observed_at"`
 }
 

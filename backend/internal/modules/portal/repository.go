@@ -139,6 +139,7 @@ func parseObservationPortalBundle(responseBody json.RawMessage) ([]PortalObserva
 			observation.ValueQuantity = resource.ValueQuantity.Value
 			observation.ValueUnit = resource.ValueQuantity.Unit
 		}
+		observation.NotPerformed = resource.DataAbsentReason != nil
 
 		if parsed, ok := fhir.ParseRFC3339(resource.EffectiveDateTime); ok {
 			observation.ObservedAt = parsed
