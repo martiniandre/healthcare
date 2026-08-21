@@ -18,7 +18,11 @@
   },
   "emptyState": {
     "selectStaff": "Selecione um profissional e uma data para visualizar a agenda.",
-    "noAppointments": "Nenhum agendamento para este profissional nesta data."
+    "noAppointments": "Nenhum agendamento para este profissional nesta data.",
+    "noStaff": "Nenhum profissional disponível."
+  },
+  "calendar": {
+    "staffFilters": "Profissionais"
   },
   "modals": {
     "create": {
@@ -75,6 +79,7 @@
     "badge": "Indisponível",
     "delete": "Remover período",
     "createButton": "Bloquear Período",
+    "blockedPeriodsTitle": "Períodos bloqueados",
     "modal": {
       "title": "Bloquear Período de Indisponibilidade",
       "date": "Data",

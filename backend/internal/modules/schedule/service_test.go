@@ -441,3 +441,64 @@ func TestComputeRequestHash_NormalizesEmptyReason(t *testing.T) {
 		t.Error("expected hash with a reason to differ from hash without a reason")
 	}
 }
+
+func TestListAppointmentsByStaffInRange_ReturnsAppointments(t *testing.T) {
+	staffID := uuid.New()
+	rangeStart := time.Date(2026, 8, 1, 0, 0, 0, 0, time.UTC)
+	rangeEnd := time.Date(2026, 8, 31, 0, 0, 0, 0, time.UTC)
+	expectedAppointments := []*Appointment{{ID: uuid.New(), StaffID: staffID}}
+
+	repositoryMock := &MockRepository{
+		ListAppointmentsByStaffInRangeFunc: func(ctx context.Context, receivedStaffID uuid.UUID, receivedStart time.Time, receivedEnd time.Time) ([]*Appointment, error) {
+			if receivedStaffID != staffID {
+				t.Errorf("expected staff %s, got %s", staffID, receivedStaffID)
+			}
+			if !receivedStart.Equal(rangeStart) || !receivedEnd.Equal(rangeEnd) {
+				t.Errorf("unexpected range bounds %s..%s", receivedStart, receivedEnd)
+			}
+			return expectedAppointments, nil
+		},
+	}
+	appointmentService := NewService(repositoryMock, nil, nil)
+
+	appointments, listErr := appointmentService.ListAppointmentsByStaffInRange(context.Background(), staffID, rangeStart, rangeEnd)
+	if listErr != nil {
+		t.Fatalf("unexpected error: %v", listErr)
+	}
+	if len(appointments) != 1 {
+		t.Errorf("expected 1 appointment, got %d", len(appointments))
+	}
+}
+
+func TestListAppointmentsByStaffInRange_RejectsInvertedRange(t *testing.T) {
+	repositoryMock := &MockRepository{}
+	appointmentService := NewService(repositoryMock, nil, nil)
+
+	_, listErr := appointmentService.ListAppointmentsByStaffInRange(
+		context.Background(),
+		uuid.New(),
+		time.Date(2026, 8, 31, 0, 0, 0, 0, time.UTC),
+		time.Date(2026, 8, 1, 0, 0, 0, 0, time.UTC),
+	)
+	if listErr == nil {
+		t.Fatal("expected validation error, got nil")
+	}
+	assertFieldViolation(t, listErr, "end_date")
+}
+
+func TestListAppointmentsByStaffInRange_RejectsMissingBounds(t *testing.T) {
+	repositoryMock := &MockRepository{}
+	appointmentService := NewService(repositoryMock, nil, nil)
+
+	_, missingStartErr := appointmentService.ListAppointmentsByStaffInRange(context.Background(), uuid.New(), time.Time{}, time.Now())
+	if missingStartErr == nil {
+		t.Fatal("expected validation error for missing start_date, got nil")
+	}
+	assertFieldViolation(t, missingStartErr, "start_date")
+
+	_, missingEndErr := appointmentService.ListAppointmentsByStaffInRange(context.Background(), uuid.New(), time.Now(), time.Time{})
+	if missingEndErr == nil {
+		t.Fatal("expected validation error for missing end_date, got nil")
+	}
+	assertFieldViolation(t, missingEndErr, "end_date")
+}

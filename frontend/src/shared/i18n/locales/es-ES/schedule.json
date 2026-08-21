@@ -1,6 +1,6 @@
 {
   "title": "Agenda",
-  "subtitle": "Gestión de citas y horarios",
+  "subtitle": "GestiÃ³n de citas y horarios",
   "newAppointment": "Nueva Cita",
   "selectStaff": "Profesional",
   "selectStaffPlaceholder": "Seleccione un profesional",
@@ -18,7 +18,11 @@
   },
   "emptyState": {
     "selectStaff": "Seleccione un profesional y una fecha para ver la agenda.",
-    "noAppointments": "No hay citas para este profesional en esta fecha."
+    "noAppointments": "No hay citas para este profesional en esta fecha.",
+    "noStaff": "No hay profesionales disponibles."
+  },
+  "calendar": {
+    "staffFilters": "Profesionales"
   },
   "modals": {
     "create": {
@@ -38,18 +42,18 @@
     },
     "cancel": {
       "title": "Cancelar Cita",
-      "description": "¿Está seguro de que desea cancelar esta cita?",
+      "description": "Â¿EstÃ¡ seguro de que desea cancelar esta cita?",
       "back": "Volver",
-      "confirm": "Confirmar Cancelación"
+      "confirm": "Confirmar CancelaciÃ³n"
     }
   },
   "errors": {
     "conflict": "Conflicto de horario: ya existe una cita en este intervalo para este profesional. Elija otro horario."
   },
   "toasts": {
-    "createSuccess": "¡Cita creada con éxito!",
+    "createSuccess": "Â¡Cita creada con Ã©xito!",
     "createError": "Error al crear la cita.",
-    "cancelSuccess": "¡Cita cancelada con éxito!",
+    "cancelSuccess": "Â¡Cita cancelada con Ã©xito!",
     "cancelError": "Error al cancelar la cita."
   },
   "portal": {
@@ -65,10 +69,11 @@
     "dateRequired": "Ingrese la fecha.",
     "startTimeRequired": "Ingrese la hora de inicio.",
     "endTimeRequired": "Ingrese la hora de fin.",
-    "reasonMax": "El motivo debe tener como máximo 500 caracteres.",
+    "reasonMax": "El motivo debe tener como mÃ¡ximo 500 caracteres.",
     "dateFuture": "La fecha de la cita debe ser hoy o una fecha futura.",
     "endAfterStart": "La hora de fin debe ser posterior al inicio.",
-    "startTimeAligned": "La hora de inicio de la cita debe estar alineada a un horario válido (:00, :30 o :45).",
-    "slotDuration": "La duración de la cita debe ser de 30 o 45 minutos."
+    "startTimeAligned": "La hora de inicio de la cita debe estar alineada a un horario vÃ¡lido (:00, :30 o :45).",
+    "slotDuration": "La duraciÃ³n de la cita debe ser de 30 o 45 minutos."
   }
 }
+

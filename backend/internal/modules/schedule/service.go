@@ -21,6 +21,7 @@ type Service interface {
 	GetAppointment(ctx context.Context, appointmentID uuid.UUID) (*Appointment, error)
 	ListAppointmentsByPatient(ctx context.Context, patientFHIRID string) ([]*Appointment, error)
 	ListAppointmentsByStaffOnDate(ctx context.Context, staffID uuid.UUID, date time.Time) ([]*Appointment, error)
+	ListAppointmentsByStaffInRange(ctx context.Context, staffID uuid.UUID, startDate time.Time, endDate time.Time) ([]*Appointment, error)
 }
 
 type service struct {
@@ -171,6 +172,25 @@ func (appointmentService *service) ListAppointmentsByStaffOnDate(ctx context.Con
 		return nil, apperrors.InvalidArgument("invalid appointment filter", map[string]string{"staff_id": "is required"})
 	}
 	return appointmentService.repo.ListAppointmentsByStaffOnDate(ctx, staffID, date)
+}
+
+func (appointmentService *service) ListAppointmentsByStaffInRange(ctx context.Context, staffID uuid.UUID, startDate time.Time, endDate time.Time) ([]*Appointment, error) {
+	fieldViolations := make(map[string]string)
+	if staffID == uuid.Nil {
+		fieldViolations["staff_id"] = "is required"
+	}
+	if startDate.IsZero() {
+		fieldViolations["start_date"] = "is required"
+	}
+	if endDate.IsZero() {
+		fieldViolations["end_date"] = "is required"
+	} else if !startDate.IsZero() && endDate.Before(startDate) {
+		fieldViolations["end_date"] = "must not be before start_date"
+	}
+	if len(fieldViolations) > 0 {
+		return nil, apperrors.InvalidArgument("invalid appointment filter", fieldViolations)
+	}
+	return appointmentService.repo.ListAppointmentsByStaffInRange(ctx, staffID, startDate, endDate)
 }
 
 func (appointmentService *service) resolveIdempotency(ctx context.Context, input CreateAppointmentInput) (*Appointment, error) {

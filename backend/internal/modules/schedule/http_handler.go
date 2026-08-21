@@ -96,6 +96,8 @@ func (handler *HTTPHandler) CreateAppointment(httpResponseWriter http.ResponseWr
 //	@Param			patient_fhir_id	query	string	false	"Patient FHIR ID"
 //	@Param			staff_id		query	string	false	"Staff UUID"
 //	@Param			date			query	string	false	"Date (YYYY-MM-DD) for staff listing"
+//	@Param			start_date		query	string	false	"Range start date (YYYY-MM-DD), requires end_date"
+//	@Param			end_date		query	string	false	"Range end date (YYYY-MM-DD), requires start_date"
 //	@Success		200				{array}	AppointmentResponse
 //	@Failure		500				{object}	map[string]string
 //	@Router			/appointments [get]
@@ -120,6 +122,29 @@ func (handler *HTTPHandler) ListAppointments(httpResponseWriter http.ResponseWri
 			render.Error(httpResponseWriter, http.StatusBadRequest, "staff_id inválido.")
 			return
 		}
+		startDateValue := httpRequest.URL.Query().Get("start_date")
+		endDateValue := httpRequest.URL.Query().Get("end_date")
+
+		if startDateValue != "" && endDateValue != "" {
+			startDate, startDateParseErr := time.Parse("2006-01-02", startDateValue)
+			if startDateParseErr != nil {
+				render.Error(httpResponseWriter, http.StatusBadRequest, "start_date inválido.")
+				return
+			}
+			endDate, endDateParseErr := time.Parse("2006-01-02", endDateValue)
+			if endDateParseErr != nil {
+				render.Error(httpResponseWriter, http.StatusBadRequest, "end_date inválido.")
+				return
+			}
+			appointments, listErr := handler.service.ListAppointmentsByStaffInRange(httpRequest.Context(), staffID, startDate, endDate)
+			if listErr != nil {
+				render.ErrorFromAppError(httpResponseWriter, listErr)
+				return
+			}
+			render.JSON(httpResponseWriter, http.StatusOK, toAppointmentResponseList(appointments))
+			return
+		}
+
 		date, dateParseErr := time.Parse("2006-01-02", dateValue)
 		if dateParseErr != nil {
 			render.Error(httpResponseWriter, http.StatusBadRequest, "date inválido.")
