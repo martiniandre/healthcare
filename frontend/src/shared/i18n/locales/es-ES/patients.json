@@ -190,13 +190,17 @@
     },
     "observation": {
       "title": "Registrar Signos Vitales",
-      "selectMetric": "Seleccione la Métrica",
-      "heartRate": "Frecuencia Cardíaca (bpm)",
-      "temperature": "Temperatura Corporal (°C)",
-      "bloodPressure": "Presión Arterial Sistólica (mmHg)",
-      "value": "Valor Medido",
-      "valuePlaceholder": "Ej: 72, 36.5, 120",
-      "confirm": "Registrar Signo"
+      "confirm": "Registrar Signos Vitales",
+      "panel": {
+        "heartRate": "Frecuencia Cardíaca (bpm)",
+        "bodyTemperature": "Temperatura Corporal (°C)",
+        "systolicBloodPressure": "Presión Arterial Sistólica (mmHg)",
+        "diastolicBloodPressure": "Presión Arterial Diastólica (mmHg)",
+        "oxygenSaturation": "Saturación de Oxígeno (%)",
+        "respiratoryRate": "Frecuencia Respiratoria (irpm)",
+        "weightKg": "Peso (kg)",
+        "heightCm": "Altura (cm)"
+      }
     },
     "report": {
       "title": "Registrar Informe Clínico",
@@ -236,9 +240,7 @@
     "phoneFormat": "Formato de teléfono inválido. Ej: (11) 98765-4321",
     "reasonMin": "El motivo debe tener al menos 3 caracteres",
     "practitionerReq": "Seleccione el médico responsable",
-    "loincReq": "Seleccione el signo vital",
-    "valueReq": "Ingrese un valor numérico válido",
-    "rangeError": "Valor fuera del rango aceptable (FC: 0-300, Temp: 30-45, PA: 0-300)",
+    "vitalSignsRange": "valor fuera del rango clínico permitido",
     "reportCodeReq": "Seleccione el tipo de examen",
     "reportTitleMin": "El título del informe debe tener al menos 3 caracteres",
     "conclusionMin": "La conclusión debe tener al menos 5 caracteres",

@@ -6,11 +6,11 @@ import { Can, Action, Feature } from "../../../shared/auth/AbilityContext"
 import { Button } from "../../../shared/components/ui/Button"
 import { ClinicalTable } from "../../../shared/components/clinical/ClinicalTable"
 import { ObservationModal } from "./modals/ObservationModal"
-import { useObservationsQuery, useCreateObservationMutation } from "../queries"
+import { useObservationsQuery, useCreateVitalSignsPanelMutation } from "../queries"
 import { toast } from "../../../shared/store/toast_store"
 import { formatDateTime } from "../../../shared/utils/dates"
 import type { Observation } from "../types"
-import type { SubmittedObservationFormData } from "./ClinicalFormModal/clinicalFormConfigs"
+import type { NewVitalSignsPanelFormData } from "../patient_schemas"
 
 interface VitalSignsProps {
   patientId: string
@@ -23,20 +23,14 @@ export default function VitalSigns({ patientId, encounterId }: VitalSignsProps) 
   const { t } = useTranslation("patients")
   const [isModalOpen, setIsModalOpen] = useState(false)
   const { data: observations = [] } = useObservationsQuery(encounterId)
-  const createObservationMutation = useCreateObservationMutation()
+  const createVitalSignsPanelMutation = useCreateVitalSignsPanelMutation()
 
-  const handleCreateObservation = async (formData: SubmittedObservationFormData) => {
-    const display = formData.codeDisplay
-    const unit = formData.valueUnit
-
+  const handleCreateVitalSignsPanel = async (panelFormData: NewVitalSignsPanelFormData) => {
     try {
-      await createObservationMutation.mutateAsync({
+      await createVitalSignsPanelMutation.mutateAsync({
         encounter_fhir_id: encounterId,
         patient_fhir_id: patientId,
-        loinc_code: formData.loincCode,
-        code_display: display,
-        value_quantity: formData.valueQuantity,
-        value_unit: unit,
+        panel_form_data: panelFormData,
       })
       setIsModalOpen(false)
       toast.success(t("toast.observationSuccess"))
@@ -115,8 +109,8 @@ export default function VitalSigns({ patientId, encounterId }: VitalSignsProps) 
       <ObservationModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onSubmit={handleCreateObservation}
-        isPending={createObservationMutation.isPending}
+        onSubmit={handleCreateVitalSignsPanel}
+        isPending={createVitalSignsPanelMutation.isPending}
       />
     </>
   )

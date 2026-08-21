@@ -190,13 +190,17 @@
     },
     "observation": {
       "title": "Register Vital Signs",
-      "selectMetric": "Select Metric",
-      "heartRate": "Heart Rate (bpm)",
-      "temperature": "Body Temperature (°C)",
-      "bloodPressure": "Systolic Blood Pressure (mmHg)",
-      "value": "Measured Value",
-      "valuePlaceholder": "e.g. 72, 36.5, 120",
-      "confirm": "Register Sign"
+      "confirm": "Register Vital Signs",
+      "panel": {
+        "heartRate": "Heart Rate (bpm)",
+        "bodyTemperature": "Body Temperature (°C)",
+        "systolicBloodPressure": "Systolic Blood Pressure (mmHg)",
+        "diastolicBloodPressure": "Diastolic Blood Pressure (mmHg)",
+        "oxygenSaturation": "Oxygen Saturation (%)",
+        "respiratoryRate": "Respiratory Rate (bpm)",
+        "weightKg": "Weight (kg)",
+        "heightCm": "Height (cm)"
+      }
     },
     "report": {
       "title": "Register Clinical Report",
@@ -236,9 +240,7 @@
     "phoneFormat": "Invalid phone format. e.g. (11) 98765-4321",
     "reasonMin": "Reason must be at least 3 characters",
     "practitionerReq": "Select the responsible doctor",
-    "loincReq": "Select vital sign",
-    "valueReq": "Enter a valid numeric value",
-    "rangeError": "Value out of acceptable range (HR: 0-300, Temp: 30-45, BP: 0-300)",
+    "vitalSignsRange": "value outside the allowed clinical range",
     "reportCodeReq": "Select the exam type",
     "reportTitleMin": "Report title must be at least 3 characters",
     "conclusionMin": "Conclusion must be at least 5 characters",
