@@ -16,16 +16,22 @@ type Encounter struct {
 }
 
 type Observation struct {
-	ResourceType      string           `json:"resourceType"`
-	ID                string           `json:"id,omitempty"`
-	Status            string           `json:"status"`
-	Code              CodeableConcept  `json:"code"`
-	Subject           Reference        `json:"subject"`
-	Encounter         Reference        `json:"encounter"`
-	ValueQuantity     *ValueQuantity   `json:"valueQuantity,omitempty"`
-	DataAbsentReason  *CodeableConcept `json:"dataAbsentReason,omitempty"`
-	EffectiveDateTime string           `json:"effectiveDateTime,omitempty"`
-	Issued            string           `json:"issued,omitempty"`
+	ResourceType      string                     `json:"resourceType"`
+	ID                string                     `json:"id,omitempty"`
+	Status            string                     `json:"status"`
+	Code              CodeableConcept            `json:"code"`
+	Subject           Reference                  `json:"subject"`
+	Encounter         Reference                  `json:"encounter"`
+	ValueQuantity     *ValueQuantity             `json:"valueQuantity,omitempty"`
+	DataAbsentReason  *CodeableConcept           `json:"dataAbsentReason,omitempty"`
+	EffectiveDateTime string                     `json:"effectiveDateTime,omitempty"`
+	Issued            string                     `json:"issued,omitempty"`
+	ReferenceRange    []ObservationReferenceRange `json:"referenceRange,omitempty"`
+}
+
+type ObservationReferenceRange struct {
+	Low  *ValueQuantity `json:"low,omitempty"`
+	High *ValueQuantity `json:"high,omitempty"`
 }
 
 type Condition struct {
@@ -46,6 +52,7 @@ type AllergyIntolerance struct {
 	Code           CodeableConcept   `json:"code"`
 	Patient        Reference         `json:"patient"`
 	RecordedDate   string            `json:"recordedDate,omitempty"`
+	Criticality    string            `json:"criticality,omitempty"`
 	Reaction       []AllergyReaction `json:"reaction,omitempty"`
 }
 

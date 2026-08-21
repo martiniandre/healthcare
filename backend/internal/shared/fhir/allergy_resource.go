@@ -14,6 +14,7 @@ type AllergyIntoleranceResource struct {
 
 type AllergyReaction struct {
 	Manifestation []CodeableConcept `json:"manifestation"`
+	Severity      string            `json:"severity,omitempty"`
 }
 
 func NewAllergyIntoleranceResource(patientFHIRID, allergenCode, allergenDisplay, clinicalStatus, reactionDescription string) *AllergyIntoleranceResource {

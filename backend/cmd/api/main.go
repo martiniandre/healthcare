@@ -43,6 +43,7 @@ import (
 	"github.com/healthcare/backend/internal/modules/portal"
 	"github.com/healthcare/backend/internal/modules/schedule"
 	"github.com/healthcare/backend/internal/modules/staff"
+	"github.com/healthcare/backend/internal/modules/timeline"
 	"github.com/healthcare/backend/internal/modules/telemetry"
 	"github.com/healthcare/backend/internal/shared/cache"
 	"github.com/healthcare/backend/internal/shared/config"
@@ -155,6 +156,7 @@ func main() {
 	examAnalyzerHTTPHandler := exam_analyzer.NewHTTPHandler(examAnalyzerRepo, examAnalyzerSvc, examAnalyzerWorker)
 	auditLogsHTTPHandler := audit_logs.NewHTTPHandler(auditLogsService)
 	healthHTTPHandler := health.NewHTTPHandler(databasePool, redisClient)
+	timelineHTTPHandler := timeline.Register(timeline.Dependency{FHIRClient: fhirClient})
 
 	router := api.NewRouter(
 		secureCookies,
@@ -175,6 +177,7 @@ func main() {
 		auditLogsHTTPHandler,
 		notificationsHTTPHandler,
 		scheduleHTTPHandler,
+		timelineHTTPHandler,
 		healthHTTPHandler,
 	)
 
