@@ -1,7 +1,7 @@
 import { usePatientQuery } from "../../patients/queries"
 import type { Appointment } from "../types"
 
-interface AgendaEventChipProps {
+interface ScheduleEventChipProps {
   appointment: Appointment
   staffColor: string
 }
@@ -10,7 +10,7 @@ const formatChipTime = (dateTimeValue: string): string => {
   return new Date(dateTimeValue).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
 }
 
-export const AgendaEventChip = ({ appointment, staffColor }: AgendaEventChipProps) => {
+export const ScheduleEventChip = ({ appointment, staffColor }: ScheduleEventChipProps) => {
   const { data: patient } = usePatientQuery(appointment.patient_fhir_id)
   const patientLabel = patient?.full_name ?? appointment.patient_fhir_id
 

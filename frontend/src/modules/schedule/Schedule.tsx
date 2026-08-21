@@ -48,17 +48,13 @@ export const Schedule = () => {
     [staffMembers]
   )
 
-  const effectiveSelectedStaffIds = useMemo(
-    () =>
-      selectedStaffIds !== null && selectedStaffIds.length > 0
-        ? selectedStaffIds
-        : selectedStaffIds !== null
-          ? []
-          : staffMemberOptions.length > 0
-            ? [staffMemberOptions[0].fhirResourceId]
-            : [],
-    [selectedStaffIds, staffMemberOptions]
-  )
+  const effectiveSelectedStaffIds = useMemo(() => {
+    if (selectedStaffIds !== null) {
+      return selectedStaffIds
+    }
+    const defaultSelectedStaffId = staffMemberOptions[0]?.fhirResourceId
+    return defaultSelectedStaffId ? [defaultSelectedStaffId] : []
+  }, [selectedStaffIds, staffMemberOptions])
 
   const rangeFilters = useMemo(
     () =>

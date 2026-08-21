@@ -3,7 +3,7 @@ import FullCalendar from "@fullcalendar/react"
 import dayGridPlugin from "@fullcalendar/daygrid"
 import interactionPlugin from "@fullcalendar/interaction"
 import type { EventContentArg } from "@fullcalendar/core"
-import { AgendaEventChip } from "./AgendaEventChip"
+import { ScheduleEventChip } from "./ScheduleEventChip"
 import type { CalendarEventShape } from "../schedule_calendar_helpers"
 
 interface ScheduleMonthCalendarProps {
@@ -22,7 +22,7 @@ export const ScheduleMonthCalendar = ({ events, onVisibleRangeChange }: Schedule
   const renderEventContent = useMemo(() => {
     return (eventContentArgument: EventContentArg) => {
       const extendedProps = eventContentArgument.event.extendedProps as unknown as CalendarEventShape["extendedProps"]
-      return <AgendaEventChip appointment={extendedProps.appointment} staffColor={extendedProps.staffColor} />
+      return <ScheduleEventChip appointment={extendedProps.appointment} staffColor={extendedProps.staffColor} />
     }
   }, [])
 

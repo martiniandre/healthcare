@@ -5,7 +5,7 @@
   "selectStaff": "Profesional",
   "selectStaffPlaceholder": "Seleccione un profesional",
   "selectDate": "Fecha",
-  "dayAgenda": "Agenda de {{date}}",
+  "daySchedule": "Agenda de {{date}}",
   "status": {
     "scheduled": "Programada",
     "confirmed": "Confirmada",
