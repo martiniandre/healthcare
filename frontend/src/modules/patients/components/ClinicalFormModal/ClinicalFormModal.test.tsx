@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from "vitest"
 import { render, screen, fireEvent, waitFor } from "@testing-library/react"
 import { ClinicalFormModal } from "./ClinicalFormModal"
-import { observationFormConfig } from "./clinicalFormConfigs"
+import { vitalSignsPanelFormConfig } from "./clinicalFormConfigs"
 
 vi.mock("react-i18next", async (importOriginal) => {
   const actual = await importOriginal()
@@ -13,8 +13,10 @@ vi.mock("react-i18next", async (importOriginal) => {
   }
 })
 
-describe("ClinicalFormModal", () => {
-  it("should enrich observation submission with default metric metadata", async () => {
+const getNumericInputByIndex = (index: number) => screen.getAllByRole("spinbutton")[index]
+
+describe("ClinicalFormModal with the vital signs panel config", () => {
+  it("should submit filled metrics as numbers leaving unmeasured ones undefined", async () => {
     const onSubmit = vi.fn()
     render(
       <ClinicalFormModal
@@ -22,23 +24,22 @@ describe("ClinicalFormModal", () => {
         onClose={vi.fn()}
         onSubmit={onSubmit}
         isPending={false}
-        config={observationFormConfig}
+        config={vitalSignsPanelFormConfig}
       />
     )
-    fireEvent.change(screen.getByPlaceholderText("modals.observation.valuePlaceholder"), {
-      target: { value: "72" },
-    })
+    fireEvent.change(getNumericInputByIndex(0), { target: { value: "72" } })
+    fireEvent.change(getNumericInputByIndex(2), { target: { value: "120" } })
+    fireEvent.change(getNumericInputByIndex(3), { target: { value: "80" } })
     fireEvent.click(screen.getByRole("button", { name: "modals.observation.confirm" }))
     await waitFor(() => expect(onSubmit).toHaveBeenCalled())
     expect(onSubmit.mock.calls[0][0]).toEqual({
-      loincCode: "8867-4",
-      valueQuantity: 72,
-      codeDisplay: "Frequência Cardíaca",
-      valueUnit: "bpm",
+      heartRate: 72,
+      systolicBloodPressure: 120,
+      diastolicBloodPressure: 80,
     })
   })
 
-  it("should enrich observation submission with selected metric metadata", async () => {
+  it("should accept submitting an entirely empty panel", async () => {
     const onSubmit = vi.fn()
     render(
       <ClinicalFormModal
@@ -46,30 +47,15 @@ describe("ClinicalFormModal", () => {
         onClose={vi.fn()}
         onSubmit={onSubmit}
         isPending={false}
-        config={observationFormConfig}
+        config={vitalSignsPanelFormConfig}
       />
     )
-    fireEvent.click(screen.getByRole("combobox"))
-    const temperatureOption = (await screen.findAllByRole("option", { name: "modals.observation.temperature" }))
-      .find((option) => option.tagName === "DIV")
-    if (!temperatureOption) {
-      throw new Error("Temperature option not found")
-    }
-    fireEvent.click(temperatureOption)
-    fireEvent.change(screen.getByPlaceholderText("modals.observation.valuePlaceholder"), {
-      target: { value: "37.5" },
-    })
     fireEvent.click(screen.getByRole("button", { name: "modals.observation.confirm" }))
     await waitFor(() => expect(onSubmit).toHaveBeenCalled())
-    expect(onSubmit.mock.calls[0][0]).toEqual({
-      loincCode: "8310-5",
-      valueQuantity: 37.5,
-      codeDisplay: "Temperatura Corporal",
-      valueUnit: "°C",
-    })
+    expect(onSubmit.mock.calls[0][0]).toEqual({})
   })
 
-  it("should block submission when required numeric value is missing", async () => {
+  it("should block submission when a metric leaves its clinical range", async () => {
     const onSubmit = vi.fn()
     render(
       <ClinicalFormModal
@@ -77,11 +63,14 @@ describe("ClinicalFormModal", () => {
         onClose={vi.fn()}
         onSubmit={onSubmit}
         isPending={false}
-        config={observationFormConfig}
+        config={vitalSignsPanelFormConfig}
       />
     )
+    fireEvent.change(getNumericInputByIndex(1), { target: { value: "50" } })
     fireEvent.click(screen.getByRole("button", { name: "modals.observation.confirm" }))
     await waitFor(() => expect(onSubmit).not.toHaveBeenCalled())
-    expect(await screen.findByText(/expected number/i)).toBeDefined()
+    expect(
+      await screen.findByText(/fora do intervalo clínico|outside the allowed clinical range|fuera del rango clínico/)
+    ).toBeDefined()
   })
 })

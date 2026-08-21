@@ -5,74 +5,29 @@ import {
   getNewConditionSchema,
   getNewEncounterSchema,
   getNewMedicationSchema,
-  getNewObservationSchema,
   getNewReportSchema,
+  getNewVitalSignsPanelSchema,
+  vitalSignMetricDefinitions,
   type NewAllergyFormData,
   type NewConditionFormData,
   type NewEncounterFormData,
   type NewMedicationFormData,
-  type NewObservationFormData,
   type NewReportFormData,
+  type NewVitalSignsPanelFormData,
 } from "../../patient_schemas"
 import type { ClinicalFormConfig, ClinicalFormOption } from "./ClinicalFormModal"
 
-export const LOINC_HEART_RATE = "8867-4"
-export const LOINC_BODY_TEMPERATURE = "8310-5"
-export const LOINC_BLOOD_PRESSURE = "85354-9"
-
-export type SubmittedObservationFormData = NewObservationFormData & {
-  codeDisplay: string
-  valueUnit: string
-}
-
-interface ObservationMetricMetadata {
-  display: string
-  unit: string
-}
-
-const observationMetricMetadata: Record<string, ObservationMetricMetadata> = {
-  [LOINC_HEART_RATE]: { display: "Frequência Cardíaca", unit: "bpm" },
-  [LOINC_BODY_TEMPERATURE]: { display: "Temperatura Corporal", unit: "°C" },
-  [LOINC_BLOOD_PRESSURE]: { display: "Pressão Arterial Sistólica", unit: "mmHg" },
-}
-
-const observationMetricOptions: ClinicalFormOption[] = [
-  { value: LOINC_HEART_RATE, labelKey: "modals.observation.heartRate" },
-  { value: LOINC_BODY_TEMPERATURE, labelKey: "modals.observation.temperature" },
-  { value: LOINC_BLOOD_PRESSURE, labelKey: "modals.observation.bloodPressure" },
-]
-
-export const observationFormConfig: ClinicalFormConfig<SubmittedObservationFormData> = {
+export const vitalSignsPanelFormConfig: ClinicalFormConfig<NewVitalSignsPanelFormData> = {
   titleKey: "modals.observation.title",
   confirmKey: "modals.observation.confirm",
-  fields: [
-    {
-      name: "loincCode",
-      labelKey: "modals.observation.selectMetric",
-      placeholderKey: "modals.observation.selectMetric",
-      kind: "select",
-      options: observationMetricOptions,
-    },
-    {
-      name: "valueQuantity",
-      labelKey: "modals.observation.value",
-      placeholderKey: "modals.observation.valuePlaceholder",
-      kind: "number",
-    },
-  ],
-  schema: getNewObservationSchema(
+  fields: vitalSignMetricDefinitions.map((metricDefinition) => ({
+    name: metricDefinition.formFieldName,
+    labelKey: metricDefinition.labelKey,
+    kind: "number" as const,
+  })),
+  schema: getNewVitalSignsPanelSchema(
     createModuleTranslator("patients")
-  ) as unknown as z.ZodType<SubmittedObservationFormData>,
-  defaultValues: { loincCode: LOINC_HEART_RATE },
-  transformOnSubmit: (formData) => {
-    const metricMetadata =
-      observationMetricMetadata[formData.loincCode] ?? observationMetricMetadata[LOINC_HEART_RATE]
-    return {
-      ...formData,
-      codeDisplay: metricMetadata.display,
-      valueUnit: metricMetadata.unit,
-    }
-  },
+  ) as unknown as z.ZodType<NewVitalSignsPanelFormData>,
 }
 
 const reportExamOptions: ClinicalFormOption[] = [

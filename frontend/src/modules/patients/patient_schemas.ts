@@ -1,6 +1,5 @@
 import * as z from "zod"
 import { cpfValidation, isPastDate, isValidICD10 } from "../../shared/utils/validators"
-import { LoincCode } from "../../shared/types"
 
 export const basePatientSchema = z.object({
   fullName: z.string(),
@@ -15,10 +14,35 @@ export const baseEncounterSchema = z.object({
   practitionerId: z.string(),
 })
 
-export const baseObservationSchema = z.object({
-  loincCode: z.string(),
-  valueQuantity: z.number(),
-})
+export type NewVitalSignsPanelFormData = {
+  heartRate?: number
+  bodyTemperature?: number
+  systolicBloodPressure?: number
+  diastolicBloodPressure?: number
+  oxygenSaturation?: number
+  respiratoryRate?: number
+  weightKg?: number
+  heightCm?: number
+}
+
+export interface VitalSignMetricDefinition {
+  formFieldName: keyof NewVitalSignsPanelFormData
+  loincCode: string
+  minimumValue: number
+  maximumValue: number
+  labelKey: string
+}
+
+export const vitalSignMetricDefinitions: VitalSignMetricDefinition[] = [
+  { formFieldName: "heartRate", loincCode: "8867-4", minimumValue: 0, maximumValue: 300, labelKey: "modals.observation.panel.heartRate" },
+  { formFieldName: "bodyTemperature", loincCode: "8310-5", minimumValue: 30, maximumValue: 45, labelKey: "modals.observation.panel.bodyTemperature" },
+  { formFieldName: "systolicBloodPressure", loincCode: "8480-6", minimumValue: 0, maximumValue: 300, labelKey: "modals.observation.panel.systolicBloodPressure" },
+  { formFieldName: "diastolicBloodPressure", loincCode: "8462-4", minimumValue: 0, maximumValue: 300, labelKey: "modals.observation.panel.diastolicBloodPressure" },
+  { formFieldName: "oxygenSaturation", loincCode: "59408-5", minimumValue: 0, maximumValue: 100, labelKey: "modals.observation.panel.oxygenSaturation" },
+  { formFieldName: "respiratoryRate", loincCode: "9279-1", minimumValue: 0, maximumValue: 60, labelKey: "modals.observation.panel.respiratoryRate" },
+  { formFieldName: "weightKg", loincCode: "29463-7", minimumValue: 0, maximumValue: 500, labelKey: "modals.observation.panel.weightKg" },
+  { formFieldName: "heightCm", loincCode: "8302-2", minimumValue: 0, maximumValue: 250, labelKey: "modals.observation.panel.heightCm" },
+]
 
 export const baseReportSchema = z.object({
   reportCode: z.string(),
@@ -44,7 +68,6 @@ export const baseMedicationSchema = z.object({
 
 export type NewPatientFormData = z.infer<typeof basePatientSchema>
 export type NewEncounterFormData = z.infer<typeof baseEncounterSchema>
-export type NewObservationFormData = z.infer<typeof baseObservationSchema>
 export type NewReportFormData = z.infer<typeof baseReportSchema>
 export type NewConditionFormData = z.infer<typeof baseConditionSchema>
 export type NewAllergyFormData = z.infer<typeof baseAllergySchema>
@@ -63,27 +86,30 @@ export const getNewEncounterSchema = (translateFunction: (key: string) => string
   practitionerId: z.string().min(1, translateFunction("validation.practitionerReq")),
 })
 
-export const getNewObservationSchema = (translateFunction: (key: string) => string) => z.object({
-  loincCode: z.string().min(1, translateFunction("validation.loincReq")).max(10, translateFunction("validation.maxLength")),
-  valueQuantity: z.number().min(0.1, translateFunction("validation.valueReq")),
-}).refine(
-  (data) => {
-    if (data.loincCode === LoincCode.HeartRate) {
-      return data.valueQuantity >= 0 && data.valueQuantity <= 300
-    }
-    if (data.loincCode === LoincCode.BodyTemperature) {
-      return data.valueQuantity >= 30 && data.valueQuantity <= 45
-    }
-    if (data.loincCode === LoincCode.BloodPressure) {
-      return data.valueQuantity >= 0 && data.valueQuantity <= 300
-    }
-    return true
-  },
-  {
-    message: translateFunction("validation.rangeError"),
-    path: ["valueQuantity"],
-  }
-)
+const buildVitalSignMetricField = (
+  metricDefinition: VitalSignMetricDefinition,
+  translateFunction: (key: string) => string
+) => {
+  const rangeErrorMessage = `${translateFunction(metricDefinition.labelKey)}: ${translateFunction("validation.vitalSignsRange")}`
+  return z.preprocess(
+    (rawValue) => (typeof rawValue === "number" && Number.isNaN(rawValue) ? undefined : rawValue),
+    z
+      .number()
+      .min(metricDefinition.minimumValue, rangeErrorMessage)
+      .max(metricDefinition.maximumValue, rangeErrorMessage)
+      .optional()
+  )
+}
+
+export const getNewVitalSignsPanelSchema = (translateFunction: (key: string) => string) =>
+  z.object(
+    Object.fromEntries(
+      vitalSignMetricDefinitions.map((metricDefinition) => [
+        metricDefinition.formFieldName,
+        buildVitalSignMetricField(metricDefinition, translateFunction),
+      ])
+    )
+  ) as unknown as z.ZodType<NewVitalSignsPanelFormData>
 
 export const getNewReportSchema = (translateFunction: (key: string) => string) => z.object({
   reportCode: z.string().min(1, translateFunction("validation.reportCodeReq")).max(10, translateFunction("validation.maxLength")),

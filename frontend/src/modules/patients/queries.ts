@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { patientsApi } from "./api"
+import type { NewVitalSignsPanelFormData } from "./patient_schemas"
 
 export const patientQueryKeys = {
   all: ["patients"] as const,
@@ -93,17 +94,14 @@ export const useObservationsQuery = (encounterId: string) => {
   })
 }
 
-export const useCreateObservationMutation = () => {
+export const useCreateVitalSignsPanelMutation = () => {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (payload: {
       encounter_fhir_id: string
       patient_fhir_id: string
-      loinc_code: string
-      code_display: string
-      value_quantity: number
-      value_unit: string
-    }) => patientsApi.createObservation(payload),
+      panel_form_data: NewVitalSignsPanelFormData
+    }) => patientsApi.createVitalSignsBatch(payload.encounter_fhir_id, payload.patient_fhir_id, payload.panel_form_data),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: patientQueryKeys.observations(variables.encounter_fhir_id) })
     },
