@@ -1,11 +1,13 @@
 import { useState } from "react"
-import { Heart, Thermometer, Activity, Plus } from "lucide-react"
+import { Activity, Heart, Plus } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { createColumnHelper, type ColumnDef } from "@tanstack/react-table"
 import { Can, Action, Feature } from "../../../shared/auth/AbilityContext"
 import { Button } from "../../../shared/components/ui/Button"
 import { ClinicalTable } from "../../../shared/components/clinical/ClinicalTable"
 import { ObservationModal } from "./modals/ObservationModal"
+import { findVitalSignDisplay } from "./vitalSignDisplay"
+import { VitalSignValueDisplay } from "./VitalSignValueDisplay"
 import { useObservationsQuery, useCreateVitalSignsPanelMutation } from "../queries"
 import { toast } from "../../../shared/store/toast_store"
 import { formatDateTime } from "../../../shared/utils/dates"
@@ -44,20 +46,16 @@ export default function VitalSigns({ patientId, encounterId }: VitalSignsProps) 
       header: t("details.vitalsCard.display"),
       cell: (info) => {
         const observation = info.row.original
-        const isHeartRate = observation.loinc_code === "8867-4"
-        const isTemp = observation.loinc_code === "8310-5"
+        const displayMetadata = findVitalSignDisplay(observation.loinc_code)
+        const IconComponent = displayMetadata?.IconComponent ?? Activity
         return (
           <div className="flex items-center gap-3">
-            <div className={`p-2 rounded-lg border ${
-              isHeartRate
-                ? "bg-red-50 border-red-100 text-red-600"
-                : isTemp
-                  ? "bg-amber-50 border-amber-100 text-amber-600"
-                  : "bg-blue-50 border-blue-100 text-blue-600"
-            }`}>
-              {isHeartRate ? <Heart className="w-4 h-4" /> : isTemp ? <Thermometer className="w-4 h-4" /> : <Activity className="w-4 h-4" />}
+            <div className={`p-2 rounded-lg border ${displayMetadata?.iconClassName ?? "bg-blue-50 border-blue-100 text-blue-600"}`}>
+              <IconComponent className="w-4 h-4" />
             </div>
-            <span className="text-sm font-bold text-gray-800 block">{info.getValue()}</span>
+            <span className="text-sm font-bold text-gray-800 block">
+              {displayMetadata?.labelKey ? t(displayMetadata.labelKey) : info.getValue()}
+            </span>
           </div>
         )
       },
@@ -71,10 +69,11 @@ export default function VitalSigns({ patientId, encounterId }: VitalSignsProps) 
       cell: (info) => {
         const observation = info.row.original
         return (
-          <span className="text-sm font-extrabold text-gray-800">
-            {info.getValue()}
-            <span className="text-xs text-muted font-normal ml-1">{observation.value_unit}</span>
-          </span>
+          <VitalSignValueDisplay
+            notPerformed={observation.not_performed}
+            valueQuantity={info.getValue()}
+            valueUnit={observation.value_unit}
+          />
         )
       },
     }),

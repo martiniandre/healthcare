@@ -150,7 +150,17 @@
       "display": "Métrica de Medición",
       "code": "Código LOINC",
       "value": "Valor Clínico",
-      "date": "Fecha de la Medición"
+      "date": "Fecha de la Medición",
+      "metrics": {
+        "heartRate": "Frecuencia Cardíaca",
+        "bodyTemperature": "Temperatura Corporal",
+        "systolicBloodPressure": "Presión Arterial Sistólica",
+        "diastolicBloodPressure": "Presión Arterial Diastólica",
+        "oxygenSaturation": "Saturación de Oxígeno",
+        "respiratoryRate": "Frecuencia Respiratoria",
+        "weightKg": "Peso",
+        "heightCm": "Altura"
+      }
     }
   },
   "modals": {

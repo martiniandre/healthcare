@@ -3,12 +3,16 @@ import { Card } from "../../shared/components/ui/Card"
 import { History, Activity, Pill, FileText } from "lucide-react"
 import { formatDate } from "../../shared/utils/dates"
 import { useLocale } from "../../shared/hooks/useLocale"
+import { useTranslation } from "react-i18next"
+import { findVitalSignDisplay } from "../patients/components/vitalSignDisplay"
+import { VitalSignValueDisplay } from "../patients/components/VitalSignValueDisplay"
 
 interface PortalDashboardOverviewProps {
   dashboard: PortalDashboard
 }
 
 export const PortalDashboardOverview = ({ dashboard }: PortalDashboardOverviewProps) => {
+  const { t } = useTranslation("patients")
   const locale = useLocale()
   const summaryCards = [
     {
@@ -92,18 +96,25 @@ export const PortalDashboardOverview = ({ dashboard }: PortalDashboardOverviewPr
         <div className="bg-white border border-border rounded-xl p-6">
           <h3 className="text-sm font-bold text-gray-900 mb-4">Últimos Sinais Vitais</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {dashboard.recent_observations.slice(0, 8).map((observation) => (
-              <div
-                key={observation.fhir_resource_id}
-                className="p-3 bg-gray-50 rounded-lg"
-              >
-                <p className="text-xs text-gray-500 font-medium">{observation.code_display}</p>
-                <p className="text-lg font-bold text-gray-900">
-                  {observation.value_quantity}{" "}
-                  <span className="text-sm font-normal text-gray-500">{observation.value_unit}</span>
-                </p>
-              </div>
-            ))}
+            {dashboard.recent_observations.slice(0, 8).map((observation) => {
+              const displayMetadata = findVitalSignDisplay(observation.loinc_code)
+              return (
+                <div
+                  key={observation.fhir_resource_id}
+                  className="p-3 bg-gray-50 rounded-lg"
+                >
+                  <p className="text-xs text-gray-500 font-medium">
+                    {displayMetadata?.labelKey ? t(displayMetadata.labelKey) : observation.code_display}
+                  </p>
+                  <VitalSignValueDisplay
+                    notPerformed={observation.not_performed}
+                    valueQuantity={observation.value_quantity}
+                    valueUnit={observation.value_unit}
+                    valueClassName="text-lg font-bold text-gray-900"
+                  />
+                </div>
+              )
+            })}
           </div>
         </div>
       )}

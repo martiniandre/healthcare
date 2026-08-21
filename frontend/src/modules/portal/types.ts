@@ -29,6 +29,7 @@ export interface PortalObservation {
   loinc_code: string
   value_quantity: number
   value_unit: string
+  not_performed?: boolean
   observed_at: string
 }
 

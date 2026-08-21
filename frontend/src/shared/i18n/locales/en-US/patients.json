@@ -150,7 +150,17 @@
       "display": "Measurement Metric",
       "code": "LOINC Code",
       "value": "Clinical Value",
-      "date": "Measurement Date"
+      "date": "Measurement Date",
+      "metrics": {
+        "heartRate": "Heart Rate",
+        "bodyTemperature": "Body Temperature",
+        "systolicBloodPressure": "Systolic Blood Pressure",
+        "diastolicBloodPressure": "Diastolic Blood Pressure",
+        "oxygenSaturation": "Oxygen Saturation",
+        "respiratoryRate": "Respiratory Rate",
+        "weightKg": "Weight",
+        "heightCm": "Height"
+      }
     }
   },
   "modals": {
