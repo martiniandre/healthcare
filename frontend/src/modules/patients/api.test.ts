@@ -113,24 +113,28 @@ describe("patientsApi", () => {
     expect(http.get).toHaveBeenCalledWith("/patients/patient-1/observations")
   })
 
-  it("should create an observation with the clinical payload", async () => {
-    vi.mocked(http.post).mockResolvedValue({ fhir_id: "obs-1" })
+  it("should post the vital signs batch with nulls for unmeasured metrics", async () => {
+    vi.mocked(http.post).mockResolvedValue([])
 
-    await patientsApi.createObservation({
-      encounter_fhir_id: "enc-1",
-      patient_fhir_id: "patient-1",
-      loinc_code: "8867-4",
-      code_display: "Frequência cardíaca",
-      value_quantity: 72,
-      value_unit: "bpm",
+    await patientsApi.createVitalSignsBatch("enc-1", "patient-1", {
+      heartRate: 72,
+      bodyTemperature: 36.5,
+      systolicBloodPressure: 120,
+      diastolicBloodPressure: 80,
     })
 
-    expect(http.post).toHaveBeenCalledWith("/encounters/enc-1/observations", {
+    expect(http.post).toHaveBeenCalledWith("/encounters/enc-1/observations/batch", {
       patient_fhir_id: "patient-1",
-      loinc_code: "8867-4",
-      code_display: "Frequência cardíaca",
-      value_quantity: 72,
-      value_unit: "bpm",
+      panel: {
+        heart_rate: 72,
+        body_temperature: 36.5,
+        systolic_blood_pressure: 120,
+        diastolic_blood_pressure: 80,
+        oxygen_saturation: null,
+        respiratory_rate: null,
+        weight_kg: null,
+        height_cm: null,
+      },
     })
   })
 
