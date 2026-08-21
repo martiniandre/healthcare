@@ -11,6 +11,12 @@
 - **Google Cloud Healthcare API (FHIR):** Dados clínicos — `Patient`, `Observation`, `Encounter`, `Condition`, `DiagnosticReport`, `ImagingStudy`. Nesses módulos, `repository.go` bate no cliente `shared/healthcare.Client`, não no `pgxpool`.
 - **PostgreSQL local:** Dados operacionais — `auth`, `staff`. Nesses módulos, `repository.go` usa `pgxpool` e requer migration SQL.
 
+**REGRA DE ISOLAMENTO COM GIT WORKTREES:** Toda tarefa, feature ou correção deve ser desenvolvida em um worktree dedicado — nunca diretamente na pasta principal do repositório nem na branch `main`. Fluxo obrigatório:
+1. Antes de escrever qualquer código, criar o worktree em pasta irmã do repo: `git worktree add ../healthcare-worktrees/{slug-da-tarefa} -b {tipo}/{slug-da-tarefa}`, onde `{tipo}` segue o Conventional Commits (`feat/`, `fix/`, `chore/`, `refactor/`).
+2. Todo o trabalho (código, testes, validações, commits e push) acontece dentro do worktree; a pasta principal permanece apenas na `main`.
+3. É proibido criar worktrees dentro da própria pasta do repo ou no Temp do sistema; o caminho padrão é sempre `../healthcare-worktrees/`.
+4. Após o merge do PR, limpar o ambiente: `git worktree remove ../healthcare-worktrees/{slug-da-tarefa}` seguido de `git branch -d {tipo}/{slug-da-tarefa}`.
+
 **REGRA DE COMMIT E PUSH AUTOMÁTICO:** Sempre que uma funcionalidade relevante for concluída ou um marco de desenvolvimento for atingido (ex: criação de um novo módulo, término de testes de um serviço, correção de bugs críticos), o engenheiro/agente deve obrigatoriamente:
 1. Validar a integridade local do código (compilação livre de erros e testes passando com sucesso).
 2. Adicionar os novos arquivos e modificações ao staging (`git add .`).
