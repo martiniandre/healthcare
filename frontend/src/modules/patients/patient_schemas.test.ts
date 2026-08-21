@@ -7,6 +7,8 @@ import {
   getNewPatientSchema,
   getNewReportSchema,
   getNewMedicationSchema,
+  getNewVitalSignsPanelSchema,
+  vitalSignMetricDefinitions,
 } from './patient_schemas'
 
 const mockTranslate = (key: string) => `message:${key}`
@@ -170,6 +172,70 @@ describe('patient schemas', () => {
         dosageInstruction: 'x'.repeat(1001),
       })
       expect(result.success).toBe(false)
+    })
+  })
+
+  describe('getNewVitalSignsPanelSchema', () => {
+    it('should accept an entirely empty panel since every metric is optional', () => {
+      const result = getNewVitalSignsPanelSchema(mockTranslate).safeParse({})
+      expect(result.success).toBe(true)
+    })
+
+    it('should treat empty numeric inputs as unmeasured metrics', () => {
+      const result = getNewVitalSignsPanelSchema(mockTranslate).safeParse({
+        heartRate: Number.NaN,
+        bodyTemperature: Number.NaN,
+      })
+      expect(result.success).toBe(true)
+      if (result.success) {
+        expect(result.data.heartRate).toBeUndefined()
+        expect(result.data.bodyTemperature).toBeUndefined()
+      }
+    })
+
+    it('should accept a mixed panel within the clinical ranges', () => {
+      const result = getNewVitalSignsPanelSchema(mockTranslate).safeParse({
+        heartRate: 72,
+        bodyTemperature: 36.5,
+        systolicBloodPressure: 120,
+        diastolicBloodPressure: 80,
+        oxygenSaturation: 98,
+        respiratoryRate: 16,
+        weightKg: 70.5,
+        heightCm: 175,
+      })
+      expect(result.success).toBe(true)
+    })
+
+    it.each(vitalSignMetricDefinitions.map((metricDefinition) => [
+      metricDefinition.formFieldName,
+      metricDefinition.minimumValue,
+      metricDefinition.maximumValue,
+    ]))('should accept boundary values for %s', (formFieldName, minimumValue, maximumValue) => {
+      const schema = getNewVitalSignsPanelSchema(mockTranslate)
+      expect(schema.safeParse({ [formFieldName]: minimumValue }).success).toBe(true)
+      expect(schema.safeParse({ [formFieldName]: maximumValue }).success).toBe(true)
+    })
+
+    it.each(vitalSignMetricDefinitions.map((metricDefinition) => [
+      metricDefinition.formFieldName,
+      metricDefinition.minimumValue - 1,
+      metricDefinition.maximumValue + 1,
+    ]))('should reject out-of-range values for %s at the offending field path', (formFieldName, belowMinimum, aboveMaximum) => {
+      const schema = getNewVitalSignsPanelSchema(mockTranslate)
+
+      const belowResult = schema.safeParse({ [formFieldName]: belowMinimum })
+      expect(belowResult.success).toBe(false)
+      if (!belowResult.success) {
+        expect(belowResult.error.issues[0].path).toEqual([formFieldName])
+        expect(belowResult.error.issues[0].message).toContain('validation.vitalSignsRange')
+      }
+
+      const aboveResult = schema.safeParse({ [formFieldName]: aboveMaximum })
+      expect(aboveResult.success).toBe(false)
+      if (!aboveResult.success) {
+        expect(aboveResult.error.issues[0].path).toEqual([formFieldName])
+      }
     })
   })
 })

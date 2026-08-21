@@ -1,5 +1,6 @@
 import { http } from "../../shared/utils/http"
 import type { DiagnosticReport, DiagnosticReportVersion, Encounter, Observation, Patient, Condition, CreatePatientResponse, AllergyIntolerance, MedicationRequest } from "./types"
+import type { NewVitalSignsPanelFormData } from "./patient_schemas"
 
 export const patientsApi = {
   getPatients: async (search?: string, sortField?: string, sortDirection?: string, page?: number, limit?: number): Promise<Patient[]> => {
@@ -52,13 +53,19 @@ export const patientsApi = {
     return http.get<Observation[]>(`/patients/${patientFhirId}/observations`)
   },
 
-  createObservation: async (observationData: Omit<Observation, "fhir_id" | "created_at">): Promise<Observation> => {
-    return http.post<Observation>(`/encounters/${observationData.encounter_fhir_id}/observations`, {
-      patient_fhir_id: observationData.patient_fhir_id,
-      loinc_code: observationData.loinc_code,
-      code_display: observationData.code_display,
-      value_quantity: observationData.value_quantity,
-      value_unit: observationData.value_unit,
+  createVitalSignsBatch: async (encounterFhirId: string, patientFhirId: string, panelFormData: NewVitalSignsPanelFormData): Promise<Observation[]> => {
+    return http.post<Observation[]>(`/encounters/${encounterFhirId}/observations/batch`, {
+      patient_fhir_id: patientFhirId,
+      panel: {
+        heart_rate: panelFormData.heartRate ?? null,
+        body_temperature: panelFormData.bodyTemperature ?? null,
+        systolic_blood_pressure: panelFormData.systolicBloodPressure ?? null,
+        diastolic_blood_pressure: panelFormData.diastolicBloodPressure ?? null,
+        oxygen_saturation: panelFormData.oxygenSaturation ?? null,
+        respiratory_rate: panelFormData.respiratoryRate ?? null,
+        weight_kg: panelFormData.weightKg ?? null,
+        height_cm: panelFormData.heightCm ?? null,
+      },
     })
   },
 

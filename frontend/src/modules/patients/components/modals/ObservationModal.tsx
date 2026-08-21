@@ -1,13 +1,11 @@
 import { ClinicalFormModal } from "../ClinicalFormModal/ClinicalFormModal"
-import {
-  observationFormConfig,
-  type SubmittedObservationFormData,
-} from "../ClinicalFormModal/clinicalFormConfigs"
+import { vitalSignsPanelFormConfig } from "../ClinicalFormModal/clinicalFormConfigs"
+import type { NewVitalSignsPanelFormData } from "../../patient_schemas"
 
 interface ObservationModalProps {
   isOpen: boolean
   onClose: () => void
-  onSubmit: (formData: SubmittedObservationFormData) => void
+  onSubmit: (panelFormData: NewVitalSignsPanelFormData) => void
   isPending: boolean
 }
 
@@ -18,7 +16,7 @@ export const ObservationModal = ({ isOpen, onClose, onSubmit, isPending }: Obser
       onClose={onClose}
       onSubmit={onSubmit}
       isPending={isPending}
-      config={observationFormConfig}
+      config={vitalSignsPanelFormConfig}
     />
   )
 }
