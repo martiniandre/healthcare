@@ -190,13 +190,17 @@
     },
     "observation": {
       "title": "Registrar Sinais Vitais",
-      "selectMetric": "Selecione a Métrica",
-      "heartRate": "Frequência Cardíaca (bpm)",
-      "temperature": "Temperatura Corporal (°C)",
-      "bloodPressure": "Pressão Arterial Sistólica (mmHg)",
-      "value": "Valor Mensurado",
-      "valuePlaceholder": "Ex: 72, 36.5, 120",
-      "confirm": "Registrar Sinal"
+      "confirm": "Registrar Sinais Vitais",
+      "panel": {
+        "heartRate": "Frequência Cardíaca (bpm)",
+        "bodyTemperature": "Temperatura Corporal (°C)",
+        "systolicBloodPressure": "Pressão Arterial Sistólica (mmHg)",
+        "diastolicBloodPressure": "Pressão Arterial Diastólica (mmHg)",
+        "oxygenSaturation": "Saturação de Oxigênio (%)",
+        "respiratoryRate": "Frequência Respiratória (irpm)",
+        "weightKg": "Peso (kg)",
+        "heightCm": "Altura (cm)"
+      }
     },
     "report": {
       "title": "Registrar Laudo Clínico",
@@ -236,9 +240,7 @@
     "phoneFormat": "Formato de telefone inválido. Ex: (11) 98765-4321",
     "reasonMin": "O motivo deve ter no mínimo 3 caracteres",
     "practitionerReq": "Selecione o médico responsável",
-    "loincReq": "Selecione o sinal vital",
-    "valueReq": "Insira um valor numérico válido",
-    "rangeError": "Valor fora do intervalo aceitável (FC: 0-300, Temp: 30-45, PA: 0-300)",
+    "vitalSignsRange": "valor fora do intervalo clínico permitido",
     "reportCodeReq": "Selecione o tipo de exame",
     "reportTitleMin": "O título do laudo deve ter no mínimo 3 caracteres",
     "conclusionMin": "A conclusão deve ter no mínimo 5 caracteres",
