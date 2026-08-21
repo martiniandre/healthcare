@@ -3,6 +3,7 @@ package tests
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 	"time"
 
@@ -177,6 +178,141 @@ func TestCreateObservation_RepositoryFailure_ReturnsError(testingInstance *testi
 
 	assert.Error(testingInstance, createError)
 	assert.Nil(testingInstance, createdObservation)
+	assert.True(testingInstance, errors.Is(createError, errRepositoryFailure))
+}
+
+func TestCreateObservationBatch_MixedPanel_CreatesAllMetricsWithAbsentFlags(testingInstance *testing.T) {
+	heartRateValue := 78.0
+	systolicValue := 120.0
+	diastolicValue := 80.0
+
+	var capturedBatch []*observation.Observation
+	observationService := observation.NewService(&mocks.MockObservationRepository{
+		CreateObservationBatchFn: func(ctx context.Context, batch []*observation.Observation) ([]*observation.Observation, error) {
+			capturedBatch = batch
+			for index, entity := range batch {
+				entity.FHIRResourceID = fmt.Sprintf("observation-%d", index)
+			}
+			return batch, nil
+		},
+	})
+
+	createdObservations, createError := observationService.CreateObservationBatch(context.Background(), observation.CreateObservationBatchInput{
+		EncounterFHIRID:        "encounter-123",
+		PatientFHIRID:          "patient-456",
+		HeartRate:              &heartRateValue,
+		SystolicBloodPressure:  &systolicValue,
+		DiastolicBloodPressure: &diastolicValue,
+	})
+
+	assert.NoError(testingInstance, createError)
+	assert.NotNil(testingInstance, createdObservations)
+	assert.Len(testingInstance, createdObservations, observation.VitalSignPanelSize)
+
+	notPerformedCount := 0
+	for _, createdObservation := range createdObservations {
+		assert.WithinDuration(testingInstance, time.Now(), createdObservation.ObservedAt, time.Second)
+		if createdObservation.NotPerformed {
+			notPerformedCount++
+			assert.Equal(testingInstance, 0.0, createdObservation.ValueQuantity)
+		}
+	}
+	assert.Equal(testingInstance, observation.VitalSignPanelSize-3, notPerformedCount)
+	assert.Len(testingInstance, capturedBatch, observation.VitalSignPanelSize)
+}
+
+func TestCreateObservationBatch_FullyAbsentPanel_MarksEveryMetricNotPerformed(testingInstance *testing.T) {
+	observationService := observation.NewService(&mocks.MockObservationRepository{})
+
+	createdObservations, createError := observationService.CreateObservationBatch(context.Background(), observation.CreateObservationBatchInput{
+		EncounterFHIRID: "encounter-123",
+		PatientFHIRID:   "patient-456",
+	})
+
+	assert.NoError(testingInstance, createError)
+	assert.Len(testingInstance, createdObservations, observation.VitalSignPanelSize)
+	for _, createdObservation := range createdObservations {
+		assert.True(testingInstance, createdObservation.NotPerformed)
+		assert.Equal(testingInstance, 0.0, createdObservation.ValueQuantity)
+		assert.False(testingInstance, createdObservation.LoincCode == "")
+		assert.False(testingInstance, createdObservation.CodeDisplay == "")
+		assert.False(testingInstance, createdObservation.ValueUnit == "")
+	}
+}
+
+func TestCreateObservationBatch_ValueOutOfClinicalRange_RejectsWholeBatchAndSkipsRepository(testingInstance *testing.T) {
+	repositoryCalled := false
+	bodyTemperatureValue := 50.0
+	observationService := observation.NewService(&mocks.MockObservationRepository{
+		CreateObservationBatchFn: func(ctx context.Context, batch []*observation.Observation) ([]*observation.Observation, error) {
+			repositoryCalled = true
+			return batch, nil
+		},
+	})
+
+	createdObservations, createError := observationService.CreateObservationBatch(context.Background(), observation.CreateObservationBatchInput{
+		EncounterFHIRID:   "encounter-123",
+		PatientFHIRID:     "patient-456",
+		BodyTemperature:   &bodyTemperatureValue,
+	})
+
+	assert.Error(testingInstance, createError)
+	assert.Nil(testingInstance, createdObservations)
+	assert.False(testingInstance, repositoryCalled)
+	var appError apperrors.AppError
+	assert.ErrorAs(testingInstance, createError, &appError)
+}
+
+func TestCreateObservationBatch_MissingEncounterFHIRID_ReturnsInvalidArgumentAndSkipsRepository(testingInstance *testing.T) {
+	repositoryCalled := false
+	observationService := observation.NewService(&mocks.MockObservationRepository{
+		CreateObservationBatchFn: func(ctx context.Context, batch []*observation.Observation) ([]*observation.Observation, error) {
+			repositoryCalled = true
+			return batch, nil
+		},
+	})
+
+	createdObservations, createError := observationService.CreateObservationBatch(context.Background(), observation.CreateObservationBatchInput{
+		PatientFHIRID: "patient-456",
+	})
+
+	assert.Error(testingInstance, createError)
+	assert.Nil(testingInstance, createdObservations)
+	assert.False(testingInstance, repositoryCalled)
+}
+
+func TestCreateObservationBatch_MissingPatientFHIRID_ReturnsInvalidArgumentAndSkipsRepository(testingInstance *testing.T) {
+	repositoryCalled := false
+	observationService := observation.NewService(&mocks.MockObservationRepository{
+		CreateObservationBatchFn: func(ctx context.Context, batch []*observation.Observation) ([]*observation.Observation, error) {
+			repositoryCalled = true
+			return batch, nil
+		},
+	})
+
+	createdObservations, createError := observationService.CreateObservationBatch(context.Background(), observation.CreateObservationBatchInput{
+		EncounterFHIRID: "encounter-123",
+	})
+
+	assert.Error(testingInstance, createError)
+	assert.Nil(testingInstance, createdObservations)
+	assert.False(testingInstance, repositoryCalled)
+}
+
+func TestCreateObservationBatch_RepositoryFailure_ReturnsError(testingInstance *testing.T) {
+	observationService := observation.NewService(&mocks.MockObservationRepository{
+		CreateObservationBatchFn: func(ctx context.Context, batch []*observation.Observation) ([]*observation.Observation, error) {
+			return nil, errRepositoryFailure
+		},
+	})
+
+	createdObservations, createError := observationService.CreateObservationBatch(context.Background(), observation.CreateObservationBatchInput{
+		EncounterFHIRID: "encounter-123",
+		PatientFHIRID:   "patient-456",
+	})
+
+	assert.Error(testingInstance, createError)
+	assert.Nil(testingInstance, createdObservations)
 	assert.True(testingInstance, errors.Is(createError, errRepositoryFailure))
 }
 

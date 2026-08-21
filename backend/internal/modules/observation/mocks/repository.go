@@ -8,6 +8,7 @@ import (
 
 type MockObservationRepository struct {
 	CreateObservationFn          func(ctx context.Context, entity *observation.Observation) (*observation.Observation, error)
+	CreateObservationBatchFn     func(ctx context.Context, batch []*observation.Observation) ([]*observation.Observation, error)
 	GetObservationsByEncounterFn func(ctx context.Context, encounterFHIRID string) ([]*observation.Observation, error)
 	GetObservationsByPatientFn   func(ctx context.Context, patientFHIRID string) ([]*observation.Observation, error)
 	UpdateObservationFn          func(ctx context.Context, fhirResourceID string, entity *observation.Observation) (*observation.Observation, error)
@@ -19,6 +20,13 @@ func (mockRepo *MockObservationRepository) CreateObservation(ctx context.Context
 		return mockRepo.CreateObservationFn(ctx, entity)
 	}
 	return entity, nil
+}
+
+func (mockRepo *MockObservationRepository) CreateObservationBatch(ctx context.Context, batch []*observation.Observation) ([]*observation.Observation, error) {
+	if mockRepo.CreateObservationBatchFn != nil {
+		return mockRepo.CreateObservationBatchFn(ctx, batch)
+	}
+	return batch, nil
 }
 
 func (mockRepo *MockObservationRepository) GetObservationsByEncounter(ctx context.Context, encounterFHIRID string) ([]*observation.Observation, error) {

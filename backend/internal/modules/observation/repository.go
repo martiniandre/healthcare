@@ -13,6 +13,7 @@ import (
 
 type Repository interface {
 	CreateObservation(ctx context.Context, observation *Observation) (*Observation, error)
+	CreateObservationBatch(ctx context.Context, batch []*Observation) ([]*Observation, error)
 	GetObservationsByEncounter(ctx context.Context, encounterFHIRID string) ([]*Observation, error)
 	GetObservationsByPatient(ctx context.Context, patientFHIRID string) ([]*Observation, error)
 	UpdateObservation(ctx context.Context, fhirResourceID string, observation *Observation) (*Observation, error)
@@ -53,6 +54,48 @@ func (observationRepository *repository) CreateObservation(ctx context.Context, 
 	fhirID, _ := createdResource["id"].(string)
 	observation.FHIRResourceID = fhirID
 	return observation, nil
+}
+
+func (observationRepository *repository) CreateObservationBatch(ctx context.Context, batch []*Observation) ([]*Observation, error) {
+	createdObservations := make([]*Observation, 0, len(batch))
+	for _, observationEntity := range batch {
+		var fhirObservation *fhir.ObservationResource
+		if observationEntity.NotPerformed {
+			fhirObservation = fhir.NewNotPerformedObservationResource(
+				observationEntity.PatientFHIRID,
+				observationEntity.EncounterFHIRID,
+				observationEntity.LoincCode,
+				observationEntity.CodeDisplay,
+			)
+		} else {
+			fhirObservation = fhir.NewObservationResource(
+				observationEntity.PatientFHIRID,
+				observationEntity.EncounterFHIRID,
+				observationEntity.LoincCode,
+				observationEntity.CodeDisplay,
+				observationEntity.ValueQuantity,
+				observationEntity.ValueUnit,
+			)
+		}
+
+		responseBody, createErr := observationRepository.fhirClient.CreateResource(ctx, "Observation", fhirObservation)
+		if createErr != nil {
+			if healthcare.IsNotFound(createErr) {
+				return nil, apperrors.ErrObservationNotFound
+			}
+			return nil, fmt.Errorf("failed to create observation batch: %w", createErr)
+		}
+
+		var createdResource map[string]interface{}
+		if unmarshalErr := json.Unmarshal(responseBody, &createdResource); unmarshalErr != nil {
+			return nil, fmt.Errorf("failed to parse observation response: %w", unmarshalErr)
+		}
+
+		fhirID, _ := createdResource["id"].(string)
+		observationEntity.FHIRResourceID = fhirID
+		createdObservations = append(createdObservations, observationEntity)
+	}
+	return createdObservations, nil
 }
 
 func (observationRepository *repository) GetObservationsByEncounter(ctx context.Context, encounterFHIRID string) ([]*Observation, error) {
@@ -135,6 +178,8 @@ func parseObservationBundle(responseBody json.RawMessage) ([]*Observation, error
 		if resource.ValueQuantity != nil {
 			observation.ValueQuantity = resource.ValueQuantity.Value
 			observation.ValueUnit = resource.ValueQuantity.Unit
+		} else if resource.DataAbsentReason != nil {
+			observation.NotPerformed = true
 		}
 		observation.EncounterFHIRID = fhir.SplitReferenceID(resource.Encounter.Reference)
 		observation.PatientFHIRID = fhir.SplitReferenceID(resource.Subject.Reference)

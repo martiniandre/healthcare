@@ -50,8 +50,9 @@ func TestGRPCMethodPermissions(testingInstance *testing.T) {
 		"/encounter.v1.EncounterService/GetEncounter":    "ADMIN,DOCTOR,NURSE",
 		"/encounter.v1.EncounterService/GetEncounters":   "ADMIN,DOCTOR,NURSE",
 
-		"/observation.v1.ObservationService/CreateObservation": "ADMIN,DOCTOR,NURSE",
-		"/observation.v1.ObservationService/GetObservations":   "ADMIN,DOCTOR,NURSE",
+		"/observation.v1.ObservationService/CreateObservation":      "ADMIN,DOCTOR,NURSE",
+		"/observation.v1.ObservationService/CreateObservationBatch": "ADMIN,DOCTOR,NURSE",
+		"/observation.v1.ObservationService/GetObservations":        "ADMIN,DOCTOR,NURSE",
 
 		"/condition.v1.ConditionService/CreateCondition": "ADMIN,DOCTOR,NURSE",
 		"/condition.v1.ConditionService/GetConditions":   "ADMIN,DOCTOR,NURSE",
@@ -125,11 +126,12 @@ func TestHTTPRoutePermissions(testingInstance *testing.T) {
 		"POST /api/v1/patients":                "ADMIN,RECEPTION",
 		"GET /api/v1/patients/{patientFhirId}": "ADMIN,DOCTOR,NURSE,RECEPTION",
 
-		"GET /api/v1/patients/{patientFhirId}/observations":      "ADMIN,DOCTOR,NURSE",
-		"GET /api/v1/encounters/{encounterFhirId}/observations":  "ADMIN,DOCTOR,NURSE",
-		"POST /api/v1/encounters/{encounterFhirId}/observations": "ADMIN,DOCTOR,NURSE",
-		"PUT /api/v1/observations/{observationFhirId}":           "ADMIN,DOCTOR,NURSE",
-		"DELETE /api/v1/observations/{observationFhirId}":        "ADMIN,DOCTOR,NURSE",
+		"GET /api/v1/patients/{patientFhirId}/observations":            "ADMIN,DOCTOR,NURSE",
+		"GET /api/v1/encounters/{encounterFhirId}/observations":        "ADMIN,DOCTOR,NURSE",
+		"POST /api/v1/encounters/{encounterFhirId}/observations":       "ADMIN,DOCTOR,NURSE",
+		"POST /api/v1/encounters/{encounterFhirId}/observations/batch": "ADMIN,DOCTOR,NURSE",
+		"PUT /api/v1/observations/{observationFhirId}":                 "ADMIN,DOCTOR,NURSE",
+		"DELETE /api/v1/observations/{observationFhirId}":              "ADMIN,DOCTOR,NURSE",
 
 		"GET /api/v1/notifications":                        "ADMIN,DOCTOR,NURSE,PATIENT,RECEPTION",
 		"POST /api/v1/notifications/{notificationId}/read": "ADMIN,DOCTOR,NURSE,PATIENT,RECEPTION",

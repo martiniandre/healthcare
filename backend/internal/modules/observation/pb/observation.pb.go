@@ -4,6 +4,7 @@ import "context"
 
 type ObservationServiceServer interface {
 	CreateObservation(ctx context.Context, req *CreateObservationRequest) (*CreateObservationResponse, error)
+	CreateObservationBatch(ctx context.Context, req *CreateObservationBatchRequest) (*CreateObservationBatchResponse, error)
 	GetObservations(ctx context.Context, req *GetObservationsRequest) (*GetObservationsResponse, error)
 }
 
@@ -20,6 +21,27 @@ type CreateObservationResponse struct {
 	ObservationFhirId string
 }
 
+type VitalSignsPanel struct {
+	HeartRate              *float64
+	BodyTemperature        *float64
+	SystolicBloodPressure  *float64
+	DiastolicBloodPressure *float64
+	OxygenSaturation       *float64
+	RespiratoryRate        *float64
+	WeightKilograms        *float64
+	HeightCentimeters      *float64
+}
+
+type CreateObservationBatchRequest struct {
+	EncounterFhirId string
+	PatientFhirId   string
+	Panel           *VitalSignsPanel
+}
+
+type CreateObservationBatchResponse struct {
+	Observations []*Observation
+}
+
 type GetObservationsRequest struct {
 	EncounterFhirId string
 }
@@ -30,6 +52,7 @@ type Observation struct {
 	CodeDisplay   string
 	ValueQuantity float64
 	ValueUnit     string
+	NotPerformed  bool
 }
 
 type GetObservationsResponse struct {

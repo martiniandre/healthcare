@@ -37,8 +37,9 @@ var grpcMethodRoles = map[string][]role.Role{
 	"/encounter.v1.EncounterService/GetEncounter":    {role.RoleAdmin, role.RoleDoctor, role.RoleNurse},
 	"/encounter.v1.EncounterService/GetEncounters":   {role.RoleAdmin, role.RoleDoctor, role.RoleNurse},
 
-	"/observation.v1.ObservationService/CreateObservation": {role.RoleAdmin, role.RoleDoctor, role.RoleNurse},
-	"/observation.v1.ObservationService/GetObservations":   {role.RoleAdmin, role.RoleDoctor, role.RoleNurse},
+	"/observation.v1.ObservationService/CreateObservation":       {role.RoleAdmin, role.RoleDoctor, role.RoleNurse},
+	"/observation.v1.ObservationService/CreateObservationBatch":  {role.RoleAdmin, role.RoleDoctor, role.RoleNurse},
+	"/observation.v1.ObservationService/GetObservations":         {role.RoleAdmin, role.RoleDoctor, role.RoleNurse},
 
 	"/condition.v1.ConditionService/CreateCondition": {role.RoleAdmin, role.RoleDoctor, role.RoleNurse},
 	"/condition.v1.ConditionService/GetConditions":   {role.RoleAdmin, role.RoleDoctor, role.RoleNurse},
@@ -98,7 +99,8 @@ var httpRouteRoles = map[string][]role.Role{
 
 	"GET /api/v1/patients/{patientFhirId}/observations":      {role.RoleAdmin, role.RoleDoctor, role.RoleNurse},
 	"GET /api/v1/encounters/{encounterFhirId}/observations":  {role.RoleAdmin, role.RoleDoctor, role.RoleNurse},
-	"POST /api/v1/encounters/{encounterFhirId}/observations": {role.RoleAdmin, role.RoleDoctor, role.RoleNurse},
+	"POST /api/v1/encounters/{encounterFhirId}/observations":       {role.RoleAdmin, role.RoleDoctor, role.RoleNurse},
+	"POST /api/v1/encounters/{encounterFhirId}/observations/batch": {role.RoleAdmin, role.RoleDoctor, role.RoleNurse},
 	"PUT /api/v1/observations/{observationFhirId}":           {role.RoleAdmin, role.RoleDoctor, role.RoleNurse},
 	"DELETE /api/v1/observations/{observationFhirId}":        {role.RoleAdmin, role.RoleDoctor, role.RoleNurse},
 

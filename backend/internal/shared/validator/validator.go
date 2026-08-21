@@ -132,6 +132,8 @@ func IsValidObservationRange(loincCode string, value float64) bool {
 		"9279-1":  {0, 60},
 		"29463-7": {0, 500},
 		"8302-2":  {0, 250},
+		"8480-6":  {0, 300},
+		"8462-4":  {0, 300},
 	}
 	boundaries, exists := ranges[loincCode]
 	if !exists {
