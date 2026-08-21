@@ -150,7 +150,17 @@
       "display": "Métrica de Aferição",
       "code": "Código LOINC",
       "value": "Valor Clínico",
-      "date": "Data da Aferição"
+      "date": "Data da Aferição",
+      "metrics": {
+        "heartRate": "Frequência Cardíaca",
+        "bodyTemperature": "Temperatura Corporal",
+        "systolicBloodPressure": "Pressão Arterial Sistólica",
+        "diastolicBloodPressure": "Pressão Arterial Diastólica",
+        "oxygenSaturation": "Saturação de Oxigênio",
+        "respiratoryRate": "Frequência Respiratória",
+        "weightKg": "Peso",
+        "heightCm": "Altura"
+      }
     }
   },
   "modals": {

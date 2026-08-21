@@ -38,6 +38,7 @@ export interface Observation {
   code_display: string
   value_quantity: number
   value_unit: string
+  not_performed?: boolean
   created_at: string
 }
 
