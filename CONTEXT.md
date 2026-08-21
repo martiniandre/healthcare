@@ -20,6 +20,14 @@ _Avoid_: Account, login, credential
 A clinical interaction between a Patient and one or more Staff providers, created in `in-progress` status and transitioned to `finished` or `cancelled` as the visit resolves.
 _Avoid_: Appointment, visit, consultation, attendance
 
+### Appointment:
+An operational booking reserving a future time slot between a Patient and a Staff provider, managed locally with lifecycle `scheduled` → `confirmed` → `finished` or `cancelled`; it precedes and may originate an Encounter.
+_Avoid_: booking, reservation, consultation, slot, meeting
+
+### Staff Unavailability:
+A blocked time window for a Staff member during which Appointments cannot be booked (leave, training, absence).
+_Avoid_: time off, absence, vacation, day off, block
+
 ### Observation:
 A measured value or clinical finding about a Patient, identified by a LOINC code with associated value, unit, and reference range.
 _Avoid_: Vital sign, measurement, reading, vital
@@ -76,6 +84,14 @@ _Avoid_: Security, login, identity, access control
 A persisted, role-routed message about a domain event (clinical alert, operational update, system completion, or audit event) delivered in real-time via WebSocket and viewable in a prioritized in-app feed.
 _Avoid_: Alert (when used generically), message, broadcast, push, activity item
 
+### Clinical Timeline:
+A chronological, staff-facing view merging a Patient's clinical records across resource types (Encounter, Observation, Condition, MedicationRequest, DiagnosticReport, ImagingStudy, AllergyIntolerance) into a single ordered feed, derived read-only from existing FHIR data. Appointments do not appear — only clinical facts.
+_Avoid_: history, feed, activity log, journal, prontuário
+
+### Portal:
+The Patient-facing self-service surface presenting read-only views of the Patient's own clinical data (dashboard plus per-resource lists) aggregated from FHIR resources.
+_Avoid_: dashboard, patient area, my health, self-service
+
 ### OTEL:
 OpenTelemetry tracing infrastructure exporting traces via OTLP HTTP for observability across gRPC and HTTP APIs.
 _Avoid_: Tracing, monitoring, telemetry, APM
@@ -84,12 +100,12 @@ _Avoid_: Tracing, monitoring, telemetry, APM
 
 ## Architecture
 
-### Backend (Go — 16 modules)
+### Backend (Go — 18 modules)
 
 ```
 backend/
 ├── cmd/api/main.go          — Composition root
-├── proto/                   — 9 service proto files
+├── proto/                   — 13 proto files
 ├── internal/
 │   ├── api/                 — HTTP router
 │   ├── app/                 — gRPC server + interceptors
@@ -100,14 +116,17 @@ backend/
 │   │   ├── audit_logs/      — Immutable HIPAA/LGPD records
 │   │   ├── auth/            — JWT + RBAC
 │   │   ├── condition/       — FHIR Condition CRUD
-│   │   ├── diagnostic_report/ — FHIR DiagnosticReport CRUD
+│   │   ├── diagnostic_report/ — FHIR DiagnosticReport CRUD + versioning
 │   │   ├── encounter/       — FHIR Encounter CRUD
 │   │   ├── exam_analyzer/   — AI analysis (Vertex AI)
 │   │   ├── health/          — Healthcheck + readiness
 │   │   ├── imaging/         — DICOM + FHIR ImagingStudy
 │   │   ├── medication/      — FHIR MedicationRequest CRUD
+│   │   ├── notifications/   — Persisted role-routed notifications + real-time stream
 │   │   ├── observation/     — FHIR Observation CRUD
 │   │   ├── patients/        — FHIR Patient CRUD
+│   │   ├── portal/          — Patient self-service dashboard over own FHIR data
+│   │   ├── schedule/        — Appointments + Staff Unavailability (PostgreSQL)
 │   │   ├── staff/           — Employee management (PostgreSQL)
 │   │   └── telemetry/       — Real-time vitals monitoring
 │   └── shared/
@@ -126,7 +145,7 @@ backend/
 └── migrations/              — SQL migration files
 ```
 
-### Frontend (React + Vite — 8 modules)
+### Frontend (React + Vite — 11 modules)
 
 ```
 frontend/src/
@@ -137,7 +156,10 @@ frontend/src/
 │   ├── auth/                — Login, registration
 │   ├── exam_analyzer/       — AI exam upload + results
 │   ├── imaging/             — DICOM viewer + upload
+│   ├── notifications/       — Real-time notification feed
 │   ├── patients/            — Patient CRUD + clinical tabs
+│   ├── portal/              — Patient self-service dashboard
+│   ├── schedule/            — Appointment booking + staff unavailability
 │   ├── staff/               — Employee CRUD
 │   └── telemetry/           — Room vitals dashboard
 └── shared/
@@ -153,9 +175,9 @@ frontend/src/
 
 | Layer      | Framework      | Tests                          | Command              |
 |------------|----------------|--------------------------------|----------------------|
-| Backend    | Go `testing`   | 40+ service/handler tests      | `go test ./internal/...` |
-| Frontend   | Vitest         | 22 unit tests                  | `npm run test`       |
-| E2E        | Playwright     | 10 spec files (14 flows)       | `npm run e2e`        |
+| Backend    | Go `testing`   | 49 test files / 50 packages    | `go test ./internal/...` |
+| Frontend   | Vitest         | 43 unit test files             | `npm run test`       |
+| E2E        | Playwright     | 20 spec files                  | `npm run e2e`        |
 | API Docs   | swaggo         | 35 endpoints documented        | `GET /swagger/`      |
 
 ### Infrastructure
@@ -187,7 +209,7 @@ infra/
 ### Key architectural decisions
 
 - **Hexagonal (Ports & Adapters)**: Every backend module has `repository.go` (port), `service.go` (business logic), `grpc_handler.go` (inbound adapter), `register.go` (DI wiring with `Dependency` struct)
-- **FHIR-first for clinical data**: 7 of 15 backend modules use GCP Healthcare API (patients, encounter, observation, condition, allergy, medication, diagnostic_report). Only auth, staff, audit_logs, imaging metadata, and analytics use PostgreSQL.
+- **FHIR-first for clinical data**: 7 of 18 backend modules use GCP Healthcare API (patients, encounter, observation, condition, allergy, medication, diagnostic_report). Only auth, staff, audit_logs, imaging metadata, analytics, schedule (appointments + unavailability), notifications, telemetry rooms/beds, and exam analysis records use PostgreSQL.
 - **AOP security**: All gRPC endpoints protected by shared interceptors (JWT auth + RBAC + rate-limit). Endpoints not in `permissions.go` are blocked by default.
 - **Single `Register(grpcServer, dep)` pattern**: Every module follows the same wiring signature, keeping `main.go` declarative.
 - **Pre-push hook**: Runs only `go vet` + `npm run lint` (fast). Heavy checks (tests, build) run in CI.
