@@ -23,6 +23,7 @@ type Observation struct {
 	Subject           Reference        `json:"subject"`
 	Encounter         Reference        `json:"encounter"`
 	ValueQuantity     *ValueQuantity   `json:"valueQuantity,omitempty"`
+	DataAbsentReason  *CodeableConcept `json:"dataAbsentReason,omitempty"`
 	EffectiveDateTime string           `json:"effectiveDateTime,omitempty"`
 	Issued            string           `json:"issued,omitempty"`
 }

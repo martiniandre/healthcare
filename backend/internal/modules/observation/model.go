@@ -12,5 +12,6 @@ type Observation struct {
 	CodeDisplay     string
 	ValueQuantity   float64
 	ValueUnit       string
+	NotPerformed    bool
 	ObservedAt      time.Time
 }

@@ -10,6 +10,7 @@ import (
 
 type Service interface {
 	CreateObservation(ctx context.Context, input CreateObservationInput) (*Observation, error)
+	CreateObservationBatch(ctx context.Context, input CreateObservationBatchInput) ([]*Observation, error)
 	GetObservationsByEncounter(ctx context.Context, encounterFHIRID string) ([]*Observation, error)
 	GetObservationsByPatient(ctx context.Context, patientFHIRID string) ([]*Observation, error)
 	UpdateObservation(ctx context.Context, fhirResourceID string, observation *Observation) (*Observation, error)
@@ -61,6 +62,65 @@ func (observationService *service) CreateObservation(ctx context.Context, input 
 	}
 
 	return observationService.repo.CreateObservation(ctx, observation)
+}
+
+func (observationService *service) CreateObservationBatch(ctx context.Context, input CreateObservationBatchInput) ([]*Observation, error) {
+	violations := make(map[string]string)
+	if input.EncounterFHIRID == "" {
+		violations["encounter_fhir_id"] = "is required"
+	}
+	if input.PatientFHIRID == "" {
+		violations["patient_fhir_id"] = "is required"
+	}
+	if len(violations) > 0 {
+		return nil, apperrors.InvalidArgument("invalid observation batch input", violations)
+	}
+
+	metricValues := map[string]*float64{
+		"heart_rate":               input.HeartRate,
+		"body_temperature":         input.BodyTemperature,
+		"systolic_blood_pressure":  input.SystolicBloodPressure,
+		"diastolic_blood_pressure": input.DiastolicBloodPressure,
+		"oxygen_saturation":        input.OxygenSaturation,
+		"respiratory_rate":         input.RespiratoryRate,
+		"weight_kg":                input.WeightKilograms,
+		"height_cm":                input.HeightCentimeters,
+	}
+
+	for _, metricDefinition := range vitalSignMetricDefinitions {
+		metricValue := metricValues[metricDefinition.FieldKey]
+		if metricValue == nil {
+			continue
+		}
+		if !validator.IsValidObservationRange(metricDefinition.LoincCode, *metricValue) {
+			violations[metricDefinition.FieldKey] = "value out of clinical range"
+		}
+	}
+	if len(violations) > 0 {
+		return nil, apperrors.InvalidArgument("invalid observation batch input", violations)
+	}
+
+	observedAt := time.Now()
+	observationBatch := make([]*Observation, 0, len(vitalSignMetricDefinitions))
+	for _, metricDefinition := range vitalSignMetricDefinitions {
+		metricValue := metricValues[metricDefinition.FieldKey]
+		observationEntity := &Observation{
+			EncounterFHIRID: input.EncounterFHIRID,
+			PatientFHIRID:   input.PatientFHIRID,
+			LoincCode:       metricDefinition.LoincCode,
+			CodeDisplay:     metricDefinition.CodeDisplay,
+			ValueUnit:       metricDefinition.ValueUnit,
+			ObservedAt:      observedAt,
+		}
+		if metricValue != nil {
+			observationEntity.ValueQuantity = *metricValue
+		} else {
+			observationEntity.NotPerformed = true
+		}
+		observationBatch = append(observationBatch, observationEntity)
+	}
+
+	return observationService.repo.CreateObservationBatch(ctx, observationBatch)
 }
 
 func (observationService *service) GetObservationsByEncounter(ctx context.Context, encounterFHIRID string) ([]*Observation, error) {

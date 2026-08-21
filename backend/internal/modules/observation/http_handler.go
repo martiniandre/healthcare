@@ -24,6 +24,7 @@ func (handler *HTTPHandler) RegisterRoutes(mux *http.ServeMux) {
 	mux.Handle("GET /api/v1/patients/{patientFhirId}/observations", middleware.RequirePolicy("GET /api/v1/patients/{patientFhirId}/observations")(http.HandlerFunc(handler.ListObservationsByPatient)))
 	mux.Handle("GET /api/v1/encounters/{encounterFhirId}/observations", middleware.RequirePolicy("GET /api/v1/encounters/{encounterFhirId}/observations")(http.HandlerFunc(handler.ListObservationsByEncounter)))
 	mux.Handle("POST /api/v1/encounters/{encounterFhirId}/observations", middleware.RequirePolicy("POST /api/v1/encounters/{encounterFhirId}/observations")(http.HandlerFunc(handler.CreateObservation)))
+	mux.Handle("POST /api/v1/encounters/{encounterFhirId}/observations/batch", middleware.RequirePolicy("POST /api/v1/encounters/{encounterFhirId}/observations/batch")(http.HandlerFunc(handler.CreateObservationBatch)))
 	mux.Handle("PUT /api/v1/observations/{observationFhirId}", middleware.RequirePolicy("PUT /api/v1/observations/{observationFhirId}")(http.HandlerFunc(handler.UpdateObservation)))
 	mux.Handle("DELETE /api/v1/observations/{observationFhirId}", middleware.RequirePolicy("DELETE /api/v1/observations/{observationFhirId}")(http.HandlerFunc(handler.DeleteObservation)))
 }
@@ -206,19 +207,65 @@ func (handler *HTTPHandler) DeleteObservation(httpResponseWriter http.ResponseWr
 	httpResponseWriter.WriteHeader(http.StatusNoContent)
 }
 
+func (handler *HTTPHandler) CreateObservationBatch(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
+	encounterFhirID := httpRequest.PathValue("encounterFhirId")
+
+	var payload CreateObservationBatchRequest
+	if payloadDecodeErr := json.NewDecoder(httpRequest.Body).Decode(&payload); payloadDecodeErr != nil {
+		render.Error(httpResponseWriter, http.StatusBadRequest, "Payload inválido.")
+		return
+	}
+
+	input := CreateObservationBatchInput{
+		EncounterFHIRID:        encounterFhirID,
+		PatientFHIRID:          payload.PatientFhirID,
+		HeartRate:              payload.HeartRate,
+		BodyTemperature:        payload.BodyTemperature,
+		SystolicBloodPressure:  payload.SystolicBloodPressure,
+		DiastolicBloodPressure: payload.DiastolicBloodPressure,
+		OxygenSaturation:       payload.OxygenSaturation,
+		RespiratoryRate:        payload.RespiratoryRate,
+		WeightKilograms:        payload.WeightKilograms,
+		HeightCentimeters:      payload.HeightCentimeters,
+	}
+
+	createdObservations, createErr := handler.service.CreateObservationBatch(httpRequest.Context(), input)
+	if createErr != nil {
+		slog.Error("failed to create observation batch", "error", createErr, "encounter_fhir_id", encounterFhirID, "request_id", middleware.GetRequestID(httpRequest.Context()))
+		render.ErrorFromAppError(httpResponseWriter, createErr)
+		return
+	}
+
+	responseList := make([]ObservationResponse, 0, len(createdObservations))
+	for _, createdObservation := range createdObservations {
+		responseList = append(responseList, toObservationResponse(createdObservation))
+	}
+
+	render.JSON(httpResponseWriter, http.StatusCreated, responseList)
+}
+
+func toObservationResponse(observation *Observation) ObservationResponse {
+	valueQuantity := observation.ValueQuantity
+	if observation.NotPerformed {
+		valueQuantity = 0
+	}
+	return ObservationResponse{
+		FhirID:          observation.FHIRResourceID,
+		EncounterFhirID: observation.EncounterFHIRID,
+		PatientFhirID:   observation.PatientFHIRID,
+		LoincCode:       observation.LoincCode,
+		CodeDisplay:     observation.CodeDisplay,
+		ValueQuantity:   valueQuantity,
+		ValueUnit:       observation.ValueUnit,
+		NotPerformed:    observation.NotPerformed,
+		CreatedAt:       observation.ObservedAt.Format(time.RFC3339),
+	}
+}
+
 func toObservationResponseList(observationsList []*Observation) []ObservationResponse {
 	responseList := make([]ObservationResponse, 0, len(observationsList))
 	for _, observation := range observationsList {
-		responseList = append(responseList, ObservationResponse{
-			FhirID:          observation.FHIRResourceID,
-			EncounterFhirID: observation.EncounterFHIRID,
-			PatientFhirID:   observation.PatientFHIRID,
-			LoincCode:       observation.LoincCode,
-			CodeDisplay:     observation.CodeDisplay,
-			ValueQuantity:   observation.ValueQuantity,
-			ValueUnit:       observation.ValueUnit,
-			CreatedAt:       observation.ObservedAt.Format(time.RFC3339),
-		})
+		responseList = append(responseList, toObservationResponse(observation))
 	}
 	return responseList
 }
@@ -231,6 +278,7 @@ type ObservationResponse struct {
 	CodeDisplay     string  `json:"code_display"`
 	ValueQuantity   float64 `json:"value_quantity"`
 	ValueUnit       string  `json:"value_unit"`
+	NotPerformed    bool    `json:"not_performed"`
 	CreatedAt       string  `json:"created_at"`
 }
 
@@ -240,6 +288,18 @@ type CreateObservationRequest struct {
 	CodeDisplay   string  `json:"code_display"`
 	ValueQuantity float64 `json:"value_quantity"`
 	ValueUnit     string  `json:"value_unit"`
+}
+
+type CreateObservationBatchRequest struct {
+	PatientFhirID          string   `json:"patient_fhir_id"`
+	HeartRate              *float64 `json:"heart_rate"`
+	BodyTemperature        *float64 `json:"body_temperature"`
+	SystolicBloodPressure  *float64 `json:"systolic_blood_pressure"`
+	DiastolicBloodPressure *float64 `json:"diastolic_blood_pressure"`
+	OxygenSaturation       *float64 `json:"oxygen_saturation"`
+	RespiratoryRate        *float64 `json:"respiratory_rate"`
+	WeightKilograms        *float64 `json:"weight_kg"`
+	HeightCentimeters      *float64 `json:"height_cm"`
 }
 
 type CreateObservationResponse struct {

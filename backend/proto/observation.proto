@@ -6,6 +6,7 @@ option go_package = "github.com/healthcare/backend/internal/modules/observation/
 
 service ObservationService {
   rpc CreateObservation(CreateObservationRequest) returns (CreateObservationResponse);
+  rpc CreateObservationBatch(CreateObservationBatchRequest) returns (CreateObservationBatchResponse);
   rpc GetObservations(GetObservationsRequest) returns (GetObservationsResponse);
 }
 
@@ -22,6 +23,27 @@ message CreateObservationResponse {
   string observation_fhir_id = 1;
 }
 
+message VitalSignsPanel {
+  optional double heart_rate = 1;
+  optional double body_temperature = 2;
+  optional double systolic_blood_pressure = 3;
+  optional double diastolic_blood_pressure = 4;
+  optional double oxygen_saturation = 5;
+  optional double respiratory_rate = 6;
+  optional double weight_kg = 7;
+  optional double height_cm = 8;
+}
+
+message CreateObservationBatchRequest {
+  string encounter_fhir_id = 1;
+  string patient_fhir_id = 2;
+  VitalSignsPanel panel = 3;
+}
+
+message CreateObservationBatchResponse {
+  repeated Observation observations = 1;
+}
+
 message GetObservationsRequest {
   string encounter_fhir_id = 1;
 }
@@ -32,6 +54,7 @@ message Observation {
   string code_display = 3;
   double value_quantity = 4;
   string value_unit = 5;
+  bool not_performed = 6;
 }
 
 message GetObservationsResponse {

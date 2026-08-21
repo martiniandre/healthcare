@@ -47,6 +47,53 @@ func (handler *GRPCHandler) CreateObservation(ctx context.Context, req *pb.Creat
 	return &pb.CreateObservationResponse{ObservationFhirId: createdObservation.FHIRResourceID}, nil
 }
 
+func (handler *GRPCHandler) CreateObservationBatch(ctx context.Context, req *pb.CreateObservationBatchRequest) (*pb.CreateObservationBatchResponse, error) {
+	violations := make(map[string]string)
+	if req.EncounterFhirId == "" {
+		violations["encounter_fhir_id"] = "is required"
+	}
+	if req.PatientFhirId == "" {
+		violations["patient_fhir_id"] = "is required"
+	}
+	if len(violations) > 0 {
+		return nil, apperrors.ErrBadRequest.WithFields(violations)
+	}
+
+	input := CreateObservationBatchInput{
+		EncounterFHIRID: req.EncounterFhirId,
+		PatientFHIRID:   req.PatientFhirId,
+	}
+	if req.Panel != nil {
+		input.HeartRate = req.Panel.HeartRate
+		input.BodyTemperature = req.Panel.BodyTemperature
+		input.SystolicBloodPressure = req.Panel.SystolicBloodPressure
+		input.DiastolicBloodPressure = req.Panel.DiastolicBloodPressure
+		input.OxygenSaturation = req.Panel.OxygenSaturation
+		input.RespiratoryRate = req.Panel.RespiratoryRate
+		input.WeightKilograms = req.Panel.WeightKilograms
+		input.HeightCentimeters = req.Panel.HeightCentimeters
+	}
+
+	createdObservations, batchErr := handler.service.CreateObservationBatch(ctx, input)
+	if batchErr != nil {
+		return nil, apperrors.ToGRPCStatus(batchErr)
+	}
+
+	pbObservations := make([]*pb.Observation, 0, len(createdObservations))
+	for _, observation := range createdObservations {
+		pbObservations = append(pbObservations, &pb.Observation{
+			FhirId:        observation.FHIRResourceID,
+			LoincCode:     observation.LoincCode,
+			CodeDisplay:   observation.CodeDisplay,
+			ValueQuantity: observation.ValueQuantity,
+			ValueUnit:     observation.ValueUnit,
+			NotPerformed:  observation.NotPerformed,
+		})
+	}
+
+	return &pb.CreateObservationBatchResponse{Observations: pbObservations}, nil
+}
+
 func (handler *GRPCHandler) GetObservations(ctx context.Context, req *pb.GetObservationsRequest) (*pb.GetObservationsResponse, error) {
 	if req.EncounterFhirId == "" {
 		return nil, apperrors.ErrBadRequest.WithFields(map[string]string{"encounter_fhir_id": "is required"})
@@ -65,6 +112,7 @@ func (handler *GRPCHandler) GetObservations(ctx context.Context, req *pb.GetObse
 			CodeDisplay:   observation.CodeDisplay,
 			ValueQuantity: observation.ValueQuantity,
 			ValueUnit:     observation.ValueUnit,
+			NotPerformed:  observation.NotPerformed,
 		})
 	}
 
