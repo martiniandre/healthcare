@@ -1,7 +1,12 @@
 {
   "title": "HealthCare",
   "subtitle": "Consola Clínica v1.0",
-  "menuHeader": "Menú Principal",
+  "groups": {
+    "care": "Atención al Paciente",
+    "intelligence": "Diagnóstico y Análisis",
+    "administration": "Administración",
+    "patientAccess": "Mi Acceso"
+  },
   "patients": "Pacientes",
   "dashboard": "Dashboard Clínico",
   "portal": "Mi Portal",
@@ -13,6 +18,7 @@
   "schedule": "Agenda",
   "auditLogs": "Registros de Auditoría",
   "settings": "Configuraciones",
+  "restricted": "Restringido",
   "comingSoon": "Pronto",
   "logout": "Salir",
   "closeMenu": "Cerrar menú"

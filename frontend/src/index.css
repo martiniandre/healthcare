@@ -37,6 +37,12 @@
   --animate-pulse-glow: pulseGlow 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   --animate-fade-in: fadeIn 0.25s ease-out;
   --animate-toast-slide-in: toastSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  --animate-ecg-trace: ecgTrace 2.4s linear infinite;
+
+  @keyframes ecgTrace {
+    from { stroke-dashoffset: 0; }
+    to { stroke-dashoffset: -96; }
+  }
 
   @keyframes pulseGlow {
     0%, 100% { opacity: 0.4; }

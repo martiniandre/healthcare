@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test"
-import { loginAsDoctor } from "./helpers"
+import { loginAsDoctor, loginAsPatient } from "./helpers"
 
 test.describe("Sidebar Navigation Module", () => {
   test.beforeEach(async ({ page }) => {
@@ -13,6 +13,22 @@ test.describe("Sidebar Navigation Module", () => {
     await expect(page.getByRole("button", { name: "Analytics" })).toBeVisible()
     await expect(page.getByRole("button", { name: "Gestão de Equipes" })).toBeVisible()
     await expect(page.getByRole("button", { name: "Sair" })).toBeVisible()
+  })
+
+  test("should organize navigation links into topic and feature groups", async ({ page }) => {
+    await expect(page.getByText("Assistência ao Paciente")).toBeVisible()
+    await expect(page.getByText("Diagnóstico & Insights")).toBeVisible()
+    await expect(page.getByText("Administração")).toBeVisible()
+
+    await expect(page.getByText("Assistência ao Paciente")).toHaveCount(1)
+    await expect(page.getByText("Diagnóstico & Insights")).toHaveCount(1)
+    await expect(page.getByText("Administração")).toHaveCount(1)
+  })
+
+  test("should hide restricted administration features from non-admin staff", async ({ page }) => {
+    await expect(page.getByRole("button", { name: "Logs de Auditoria" })).toHaveCount(0)
+    await expect(page.getByRole("button", { name: "Configurações" })).toBeVisible()
+    await expect(page.getByRole("button", { name: "Configurações" })).toBeDisabled()
   })
 
   test("should navigate through all sidebar links and update URL correctly", async ({ page }) => {
@@ -37,5 +53,22 @@ test.describe("Sidebar Navigation Module", () => {
 
     const analyticsButton = page.getByRole("button", { name: "Analytics" })
     await expect(analyticsButton).toBeVisible()
+    await expect(analyticsButton).toHaveAttribute("aria-current", "page")
+  })
+})
+
+test.describe("Patient Sidebar Navigation Module", () => {
+  test.beforeEach(async ({ page }) => {
+    await loginAsPatient(page)
+  })
+
+  test("should show only the patient access group", async ({ page }) => {
+    await expect(page.getByText("Meu Acesso")).toBeVisible()
+    await expect(page.getByRole("button", { name: "Meu Portal" })).toBeVisible()
+
+    await expect(page.getByText("Assistência ao Paciente")).toHaveCount(0)
+    await expect(page.getByText("Diagnóstico & Insights")).toHaveCount(0)
+    await expect(page.getByText("Administração")).toHaveCount(0)
+    await expect(page.getByRole("button", { name: "Pacientes" })).toHaveCount(0)
   })
 })

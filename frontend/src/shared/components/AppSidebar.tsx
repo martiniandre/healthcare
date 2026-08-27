@@ -1,21 +1,10 @@
+import { useMemo } from "react"
 import { useNavigate, useLocation } from "react-router-dom"
 import { useTranslation } from "react-i18next"
+import { LogOut, X } from "lucide-react"
 import { useAuthStore } from "../store/auth_store"
 import { useLayoutStore } from "../store/layout_store"
-import { Activity, Users, BarChart3, Settings, LogOut, X, Sparkles, History, UserRound, LayoutDashboard, CalendarClock } from "lucide-react"
-
-const navigationItems = [
-  { key: "patients", icon: Users, path: "/", staffOnly: true },
-  { key: "dashboard", icon: LayoutDashboard, path: "/dashboard", staffOnly: true },
-  { key: "portal", icon: UserRound, path: "/portal", patientOnly: true },
-  { key: "schedule", icon: CalendarClock, path: "/schedule", staffOnly: true },
-  { key: "telemetry", icon: Activity, path: "/telemetry", staffOnly: true },
-  { key: "examAnalyzer", icon: Sparkles, path: "/exam-analyzer", staffOnly: true },
-  { key: "analytics", icon: BarChart3, path: "/analytics", staffOnly: true },
-  { key: "staffManagement", icon: Users, path: "/staff", staffOnly: true },
-  { key: "auditLogs", icon: History, path: "/audit-logs", adminOnly: true, staffOnly: true },
-  { key: "settings", icon: Settings, path: "/settings", disabled: true, staffOnly: true },
-]
+import { getVisibleNavigationGroups, isNavigationItemActive } from "../navigation/navigationFilter"
 
 export const AppSidebar = () => {
   const { t } = useTranslation("sidebar")
@@ -23,6 +12,8 @@ export const AppSidebar = () => {
   const location = useLocation()
   const { email, logout, role } = useAuthStore()
   const { isMobileSidebarOpen, closeMobileSidebar } = useLayoutStore()
+
+  const visibleNavigationGroups = useMemo(() => getVisibleNavigationGroups(role), [role])
 
   return (
     <>
@@ -40,8 +31,21 @@ export const AppSidebar = () => {
       >
         <div className="px-5 py-5 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="bg-primary/8 p-2.5 rounded-xl border border-primary/10">
-              <Activity className="w-5 h-5 text-primary" />
+            <div className="relative w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center overflow-hidden">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="w-5 h-5 text-white animate-ecg-trace"
+              >
+                <polyline
+                  points="1,12 5,12 7.5,6 10.5,18 13,12 16,12 23,12"
+                  style={{ strokeDasharray: "20 6" }}
+                />
+              </svg>
             </div>
             <div>
               <h1 className="text-sm font-display font-bold tracking-tight text-gray-900 leading-none">
@@ -61,63 +65,79 @@ export const AppSidebar = () => {
 
         <div className="h-px bg-border mx-4" />
 
-        <nav className="flex-1 px-3 py-5 flex flex-col gap-1">
-          <span className="text-[9px] font-black text-muted/60 uppercase tracking-[0.15em] px-3 mb-3">
-            {t("menuHeader")}
-          </span>
-          {navigationItems
-            .filter((item) => {
-              if (item.patientOnly) return role === "PATIENT"
-              if (item.staffOnly) return role !== "PATIENT"
-              return true
-            })
-            .filter((item) => !item.adminOnly || role === "ADMIN")
-            .map((item) => {
-              const isActive = location.pathname === item.path ||
-                (item.path !== "/" && location.pathname.startsWith(item.path))
-              const isHomeActive = item.path === "/" && (
-                location.pathname === "/" || location.pathname.startsWith("/patients")
-              )
-              const isCurrentlyActive = isActive || isHomeActive
+        <nav className="flex-1 min-h-0 overflow-y-auto px-3 py-4 flex flex-col gap-5">
+          {visibleNavigationGroups.map((navigationGroup, groupIndex) => (
+            <section key={navigationGroup.key} className="flex flex-col gap-1">
+              <div className="px-3 mb-1.5 flex items-center gap-2">
+                <span className="font-mono text-[10px] font-semibold text-primary/70 tabular-nums">
+                  {String(groupIndex + 1).padStart(2, "0")}
+                </span>
+                <span className="text-[9px] font-black uppercase tracking-[0.18em] text-gray-400">
+                  {t(navigationGroup.key)}
+                </span>
+                <span className="flex-1 h-px bg-gradient-to-r from-border to-transparent" />
+              </div>
 
-              return (
-                <button
-                  key={item.path}
-                  onClick={() => {
-                    if (!item.disabled) {
-                      navigate(item.path)
-                      closeMobileSidebar()
-                    }
-                  }}
-                  disabled={item.disabled}
-                  aria-current={!item.disabled && isCurrentlyActive ? "page" : undefined}
-                  className={`w-full text-left flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-semibold transition-all duration-200 ${
-                    item.disabled
-                      ? "text-gray-300 cursor-not-allowed"
-                      : isCurrentlyActive
-                        ? "bg-primary/8 text-primary"
-                        : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
-                  }`}
-                >
-                <item.icon className="w-[18px] h-[18px] shrink-0" />
-                {t(`${item.key}`)}
-                {item.disabled && (
-                  <span className="ml-auto text-[8px] bg-gray-100 text-gray-400 px-1.5 py-0.5 rounded font-bold uppercase">
-                    {t("comingSoon")}
-                  </span>
-                )}
-              </button>
-            )
-          })}
+              {navigationGroup.items.map((navigationItem) => {
+                const isCurrentlyActive = isNavigationItemActive(navigationItem, location.pathname)
+                const isInteractive = !navigationItem.disabled
+
+                return (
+                  <button
+                    key={navigationItem.path}
+                    onClick={() => {
+                      if (isInteractive) {
+                        navigate(navigationItem.path)
+                        closeMobileSidebar()
+                      }
+                    }}
+                    disabled={!isInteractive}
+                    aria-current={isInteractive && isCurrentlyActive ? "page" : undefined}
+                    className={`group relative w-full text-left flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] transition-all duration-200 ${
+                      isInteractive
+                        ? isCurrentlyActive
+                          ? "bg-primary/10 text-primary font-semibold"
+                          : "text-gray-500 hover:text-gray-900 hover:bg-gray-100/80"
+                        : "text-gray-300 cursor-not-allowed"
+                    }`}
+                  >
+                    {isInteractive && isCurrentlyActive && (
+                      <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-4 rounded-full bg-primary" />
+                    )}
+                    <navigationItem.icon
+                      className={`w-[18px] h-[18px] shrink-0 transition-colors duration-200 ${
+                        isInteractive
+                          ? isCurrentlyActive
+                            ? "text-primary"
+                            : "text-gray-400 group-hover:text-gray-600"
+                          : "text-gray-300"
+                      }`}
+                    />
+                    <span className="truncate">{t(navigationItem.key)}</span>
+                    {navigationItem.disabled && (
+                      <span className="ml-auto shrink-0 text-[8px] bg-gray-100 text-gray-400 px-1.5 py-0.5 rounded font-bold uppercase">
+                        {t("comingSoon")}
+                      </span>
+                    )}
+                    {navigationItem.adminOnly && !navigationItem.disabled && (
+                      <span className="ml-auto shrink-0 text-[8px] bg-secondary/10 text-secondary px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">
+                        {t("restricted")}
+                      </span>
+                    )}
+                  </button>
+                )
+              })}
+            </section>
+          ))}
         </nav>
 
-        <div className="px-3 pb-3">
+        <div className="px-3 pb-3 pt-1">
           <button
             onClick={() => {
               logout()
               closeMobileSidebar()
             }}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-semibold text-red-400 hover:text-red-600 hover:bg-red-50 transition-all duration-200"
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-semibold text-red-400 hover:text-red-600 hover:bg-red-50 transition-all duration-200"
           >
             <LogOut className="w-[18px] h-[18px] shrink-0" />
             {t("logout")}
@@ -131,7 +151,7 @@ export const AppSidebar = () => {
               FHIR R4 · gRPC-Web
             </span>
           </div>
-          <span className="text-[9px] text-gray-300 font-mono">
+          <span className="text-[9px] text-gray-300 font-mono truncate">
             {email ? email.split("@")[0] : ""}
           </span>
         </div>

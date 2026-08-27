@@ -1,7 +1,12 @@
 {
   "title": "HealthCare",
   "subtitle": "Clinical Console v1.0",
-  "menuHeader": "Main Menu",
+  "groups": {
+    "care": "Patient Care",
+    "intelligence": "Diagnostics & Intelligence",
+    "administration": "Administration",
+    "patientAccess": "My Access"
+  },
   "patients": "Patients",
   "dashboard": "Clinical Dashboard",
   "portal": "My Portal",
@@ -13,6 +18,7 @@
   "schedule": "Schedule",
   "auditLogs": "Audit Logs",
   "settings": "Settings",
+  "restricted": "Restricted",
   "comingSoon": "Soon",
   "logout": "Logout",
   "closeMenu": "Close menu"
