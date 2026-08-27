@@ -62,15 +62,15 @@ export const MaskedInput = React.forwardRef<HTMLInputElement, MaskedInputProps>(
         <input
           ref={reference}
           className={cn(
-            "w-full bg-gray-50 border border-border rounded-lg px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-colors",
-            errorText && "border-red-300 focus:border-red-500 focus:ring-red-200",
+            "flex w-full h-10 rounded-lg border border-input bg-surface px-3.5 text-sm text-foreground shadow-sm transition-colors placeholder:text-muted-foreground/70 focus-visible:outline-none focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-50",
+            errorText && "border-danger/40 focus-visible:border-danger focus-visible:ring-danger/20",
             className
           )}
           onChange={handleInputChange}
           {...elementProperties}
         />
         {errorText && (
-          <span className="text-xs text-red-500 font-medium px-1">
+          <span className="text-xs text-danger font-medium px-1">
             {errorText}
           </span>
         )}

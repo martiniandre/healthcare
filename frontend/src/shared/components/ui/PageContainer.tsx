@@ -30,7 +30,7 @@ export const PageTitle = ({ icon, title, description, actions }: PageTitleProps)
   return (
     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       <div>
-        <h2 className="text-xl font-display font-bold text-gray-900 tracking-tight leading-none flex items-center gap-2">
+        <h2 className="text-xl font-display font-bold text-foreground tracking-tight leading-none flex items-center gap-2">
           {icon}
           {title}
         </h2>

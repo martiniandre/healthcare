@@ -1,56 +1,115 @@
 @import "tailwindcss";
 
 @theme {
-  --color-background: #f7f8fa;
+  /* ===== Surfaces & background ===== */
+  --color-background: #f4f6fb;
   --color-surface: #ffffff;
   --color-card: #ffffff;
-  --color-primary: #2563eb;
-  --color-secondary: #0d9488;
-  --color-accent: #3b82f6;
-  --color-muted: #6b7280;
-  --color-border: #e5e7eb;
-  --color-success: #16a34a;
-  --color-warning: #d97706;
-  --color-danger: #dc2626;
-
-  --color-foreground: #1f2937;
-  --color-background-foreground: #1f2937;
-  --color-surface-foreground: #1f2937;
-  --color-card-foreground: #1f2937;
   --color-popover: #ffffff;
-  --color-popover-foreground: #1f2937;
+  --color-sheet: #ffffff;
+
+  /* ===== Foreground ===== */
+  --color-foreground: #0e1b2e;
+  --color-background-foreground: #0e1b2e;
+  --color-surface-foreground: #0e1b2e;
+  --color-card-foreground: #0e1b2e;
+  --color-popover-foreground: #0e1b2e;
+  --color-sheet-foreground: #0e1b2e;
+
+  /* ===== Brand — refined clinical blue ===== */
+  --color-primary: #2f5bd9;
+  --color-primary-hover: #274bc0;
+  --color-primary-soft: #eef2fe;
   --color-primary-foreground: #ffffff;
+
+  /* ===== Secondary — calm teal ===== */
+  --color-secondary: #0e8f7f;
+  --color-secondary-hover: #0b7669;
+  --color-secondary-soft: #e8f7f3;
   --color-secondary-foreground: #ffffff;
+
+  /* ===== Accent ===== */
+  --color-accent: #0e9fd8;
   --color-accent-foreground: #ffffff;
-  --color-muted-foreground: #6b7280;
+
+  /* ===== Muted ===== */
+  --color-muted: #64748b;
+  --color-muted-soft: #eef1f6;
+  --color-muted-foreground: #5b6b82;
+
+  /* ===== Semantic ===== */
+  --color-success: #158457;
+  --color-success-soft: #e6f6ef;
   --color-success-foreground: #ffffff;
+  --color-warning: #b7791f;
+  --color-warning-soft: #fdf3e0;
   --color-warning-foreground: #ffffff;
+  --color-danger: #d64545;
+  --color-danger-soft: #fdecec;
   --color-danger-foreground: #ffffff;
-  --color-input: #e5e7eb;
-  --color-ring: #2563eb;
+  --color-info: #2f5bd9;
+  --color-info-soft: #eef2fe;
 
-  --default-border-color: #e5e7eb;
+  /* ===== Borders & inputs ===== */
+  --color-border: #dfe4ee;
+  --color-border-strong: #c8d0de;
+  --color-input: #d9dfea;
+  --color-ring: #2f5bd9;
 
-  --font-sans: "Poppins", "Outfit", "system-ui", "sans-serif";
-  --font-display: "Poppins", "Outfit", "system-ui", "sans-serif";
+  --default-border-color: #dfe4ee;
 
+  /* ===== Radius ===== */
+  --radius-md: 0.625rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.25rem;
+
+  /* ===== Typography ===== */
+  --font-sans: "Manrope", "System UI", sans-serif;
+  --font-display: "Sora", "Manrope", sans-serif;
+  --font-mono: "JetBrains Mono", "SFMono-Regular", monospace;
+
+  /* ===== Elevation ===== */
+  --shadow-card: 0 1px 2px rgba(14, 27, 46, 0.04), 0 1px 3px rgba(14, 27, 46, 0.06);
+  --shadow-popover: 0 6px 20px rgba(14, 27, 46, 0.1), 0 2px 6px rgba(14, 27, 46, 0.04);
+  --shadow-dialog: 0 24px 64px rgba(14, 27, 46, 0.22);
+
+  /* ===== Motion ===== */
+  --animate-fade-in: fadeIn 0.3s ease-out;
+  --animate-fade-up: fadeUp 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-scale-in: scaleIn 0.18s ease-out;
   --animate-pulse-glow: pulseGlow 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-  --animate-fade-in: fadeIn 0.25s ease-out;
-  --animate-toast-slide-in: toastSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-
-  @keyframes pulseGlow {
-    0%, 100% { opacity: 0.4; }
-    50% { opacity: 1; }
-  }
+  --animate-toast-slide-in: toastSlideIn 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  --animate-shimmer: shimmer 1.6s linear infinite;
 
   @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(4px); }
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(8px); }
     to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes scaleIn {
+    from { opacity: 0; transform: scale(0.97); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  @keyframes pulseGlow {
+    0%, 100% { opacity: 0.45; }
+    50% { opacity: 1; }
   }
 
   @keyframes toastSlideIn {
     from { transform: translateX(100%); opacity: 0; }
     to { transform: translateX(0); opacity: 1; }
+  }
+
+  @keyframes shimmer {
+    from { background-position: -200% 0; }
+    to { background-position: 200% 0; }
   }
 }
 
@@ -61,38 +120,62 @@
     border-color: var(--color-border);
   }
 
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
-    font-family: "Poppins", "Outfit", sans-serif;
+    font-family: "Manrope", sans-serif;
+    font-size: 0.875rem;
+    line-height: 1.5;
     overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: "Sora", sans-serif;
+    letter-spacing: -0.015em;
   }
 
   :focus-visible {
     outline: 2px solid var(--color-ring);
     outline-offset: 2px;
   }
+
+  ::selection {
+    background-color: var(--color-primary-soft);
+    color: var(--color-primary-hover);
+  }
 }
 
-.clinical-glass {
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-}
+@layer utilities {
+  .clinical-glass {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-card);
+  }
 
-.glow-cyan {
-  box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.1);
-}
+  .glow-cyan {
+    box-shadow: 0 0 0 1px rgba(47, 91, 217, 0.12), 0 8px 24px rgba(47, 91, 217, 0.08);
+  }
 
-.glow-amethyst {
-  box-shadow: 0 0 0 1px rgba(13, 148, 136, 0.1);
+  .glow-amethyst {
+    box-shadow: 0 0 0 1px rgba(14, 143, 127, 0.12), 0 8px 24px rgba(14, 143, 127, 0.08);
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
 }
 
 ::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+  width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
@@ -100,10 +183,14 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #d1d5db;
+  background: #c3cbd9;
   border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #9ca3af;
+  background: #9aa7bd;
+  border: 2px solid transparent;
+  background-clip: content-box;
 }

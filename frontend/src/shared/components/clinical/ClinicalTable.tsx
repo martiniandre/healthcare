@@ -41,7 +41,7 @@ export function ClinicalTable<T>({
   return (
     <Card className="flex flex-col gap-5 min-h-[450px]">
       <div className="flex items-center justify-between border-b border-border pb-4">
-        <h3 className="font-extrabold text-gray-900 text-md flex items-center gap-2">
+        <h3 className="font-extrabold text-foreground text-md flex items-center gap-2">
           {icon}
           {title}
         </h3>
@@ -58,11 +58,11 @@ export function ClinicalTable<T>({
           <Table className="w-full text-left border-collapse">
             <TableHeader>
               {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id} className="border-b border-border bg-gray-50/80">
+                <TableRow key={headerGroup.id} className="border-b border-border bg-muted-soft/80">
                   {headerGroup.headers.map((header) => (
                     <TableHead
                       key={header.id}
-                      className={`py-3.5 px-4 text-xs font-black text-gray-400 uppercase tracking-wider${header.column.getCanSort() ? " cursor-pointer select-none" : ""}`}
+                      className={`py-3.5 px-4 text-xs font-black text-muted-foreground/70 uppercase tracking-wider${header.column.getCanSort() ? " cursor-pointer select-none" : ""}`}
                       onClick={header.column.getToggleSortingHandler()}
                     >
                       <div className="flex items-center gap-1">
@@ -77,7 +77,7 @@ export function ClinicalTable<T>({
             </TableHeader>
             <TableBody>
               {table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id} className="border-b border-border/60 hover:bg-gray-50 transition-colors duration-300">
+                <TableRow key={row.id} className="border-b border-border/60 hover:bg-muted-soft transition-colors duration-300">
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id} className="py-4 px-4 align-top">
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}

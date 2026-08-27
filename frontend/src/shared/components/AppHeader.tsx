@@ -5,6 +5,8 @@ import { useLayoutStore } from "../store/layout_store"
 import { Menu, ShieldCheck, WifiOff } from "lucide-react"
 import { LanguageSwitcher } from "./LanguageSwitcher"
 import { NotificationBell } from "../../modules/notifications/components/NotificationBell"
+import { Button } from "./ui/Button"
+import { Badge } from "./ui/Badge"
 
 export const AppHeader = () => {
   const { t } = useTranslation("header")
@@ -34,19 +36,21 @@ export const AppHeader = () => {
 
   return (
     <header className="w-full border-b border-border bg-white/80 backdrop-blur-sm sticky top-0 z-50 px-4 md:px-6 py-2.5 flex items-center justify-end gap-3">
-      <button
+      <Button
         onClick={toggleMobileSidebar}
         aria-label={t("openMenu")}
-        className="mr-auto p-2 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-50 transition-colors md:hidden"
+        size="sm"
+        variantType="ghost"
+        className="mr-auto p-2 md:hidden"
       >
         <Menu className="w-5 h-5" />
-      </button>
+      </Button>
 
       {!isOnline && (
-        <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-50 border border-red-200 text-red-600 text-[10px] font-bold animate-pulse select-none mr-2">
-          <WifiOff className="w-3.5 h-3.5 text-red-500" />
-          <span>{t("offlineStatus")}</span>
-        </div>
+        <Badge variant="destructive" className="mr-2 gap-1.5 animate-pulse">
+          <WifiOff className="w-3.5 h-3.5" />
+          {t("offlineStatus")}
+        </Badge>
       )}
 
       <LanguageSwitcher />
@@ -60,7 +64,7 @@ export const AppHeader = () => {
           {email ? email.charAt(0).toUpperCase() : "U"}
         </div>
         <div className="hidden sm:flex flex-col items-start">
-          <span className="text-xs font-semibold text-gray-800 leading-tight">
+          <span className="text-xs font-semibold text-foreground leading-tight">
             {email || t("defaultUserEmail")}
           </span>
           <div className="flex items-center gap-1">

@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next"
 import { useAuthStore } from "../store/auth_store"
 import { useLayoutStore } from "../store/layout_store"
 import { Activity, Users, BarChart3, Settings, LogOut, X, Sparkles, History, UserRound, LayoutDashboard, CalendarClock } from "lucide-react"
+import { Button } from "./ui/Button"
 
 const navigationItems = [
   { key: "patients", icon: Users, path: "/", staffOnly: true },
@@ -44,19 +45,21 @@ export const AppSidebar = () => {
               <Activity className="w-5 h-5 text-primary" />
             </div>
             <div>
-              <h1 className="text-sm font-display font-bold tracking-tight text-gray-900 leading-none">
+              <h1 className="text-sm font-display font-bold tracking-tight text-foreground leading-none">
                 {t("title")}
               </h1>
               <span className="text-[10px] text-muted font-medium">{t("subtitle")}</span>
             </div>
           </div>
-          <button
+          <Button
             onClick={closeMobileSidebar}
             aria-label={t("closeMenu")}
-            className="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-50 md:hidden"
+            size="sm"
+            variantType="ghost"
+            className="p-1.5 md:hidden"
           >
             <X className="w-4 h-4" />
-          </button>
+          </Button>
         </div>
 
         <div className="h-px bg-border mx-4" />
@@ -93,16 +96,16 @@ export const AppSidebar = () => {
                   aria-current={!item.disabled && isCurrentlyActive ? "page" : undefined}
                   className={`w-full text-left flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-semibold transition-all duration-200 ${
                     item.disabled
-                      ? "text-gray-300 cursor-not-allowed"
+                      ? "text-muted-foreground/40 cursor-not-allowed"
                       : isCurrentlyActive
                         ? "bg-primary/8 text-primary"
-                        : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted-soft"
                   }`}
                 >
                 <item.icon className="w-[18px] h-[18px] shrink-0" />
                 {t(`${item.key}`)}
                 {item.disabled && (
-                  <span className="ml-auto text-[8px] bg-gray-100 text-gray-400 px-1.5 py-0.5 rounded font-bold uppercase">
+                  <span className="ml-auto text-[8px] bg-muted-soft text-muted-foreground/70 px-1.5 py-0.5 rounded font-bold uppercase">
                     {t("comingSoon")}
                   </span>
                 )}
@@ -117,7 +120,7 @@ export const AppSidebar = () => {
               logout()
               closeMobileSidebar()
             }}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-semibold text-red-400 hover:text-red-600 hover:bg-red-50 transition-all duration-200"
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-semibold text-danger/80 hover:text-danger hover:bg-danger/10 transition-all duration-200"
           >
             <LogOut className="w-[18px] h-[18px] shrink-0" />
             {t("logout")}
@@ -131,7 +134,7 @@ export const AppSidebar = () => {
               FHIR R4 · gRPC-Web
             </span>
           </div>
-          <span className="text-[9px] text-gray-300 font-mono">
+          <span className="text-[9px] text-muted-foreground/40 font-mono">
             {email ? email.split("@")[0] : ""}
           </span>
         </div>

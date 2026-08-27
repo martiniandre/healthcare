@@ -35,7 +35,7 @@ describe('Button', () => {
   it('should apply danger variant', () => {
     render(<Button variantType="danger">Danger</Button>)
     const button = screen.getByRole('button')
-    expect(button.className).toContain('bg-red-50')
+    expect(button.className).toContain('bg-danger-soft')
   })
 
   it('should be disabled while loading', () => {

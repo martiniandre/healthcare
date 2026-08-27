@@ -32,19 +32,19 @@ export const ToastContainer = () => {
             </div>
 
             <div className="flex-1 min-w-0">
-              <span className="text-[13px] font-bold text-gray-900 block">
+              <span className="text-[13px] font-bold text-foreground block">
                 {toastItem.type === "success" && "Sucesso"}
                 {toastItem.type === "error" && "Erro"}
                 {toastItem.type === "info" && "Aviso"}
               </span>
-              <p className="text-xs text-gray-600 mt-0.5 leading-relaxed break-words">
+              <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed break-words">
                 {toastItem.message}
               </p>
             </div>
 
             <button
               onClick={handleDismiss}
-              className="flex-shrink-0 p-0.5 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
+              className="flex-shrink-0 p-0.5 rounded-md text-muted-foreground/70 hover:text-muted-foreground hover:bg-muted-soft transition-colors cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>

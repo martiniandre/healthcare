@@ -16,13 +16,13 @@ export const EmptyState = ({
   className = "",
 }: EmptyStateProps) => {
   return (
-    <div className={`flex flex-col items-center justify-center p-8 text-center bg-gray-50/50 rounded-xl border border-dashed border-gray-200 ${className}`}>
-      <div className="bg-gray-100 p-4 rounded-full mb-4">
-        <Icon className="w-8 h-8 text-gray-400" />
+    <div className={`flex flex-col items-center justify-center p-8 text-center bg-muted-soft/40 rounded-xl border border-dashed border-border-strong ${className}`}>
+      <div className="bg-muted-soft p-4 rounded-full mb-4">
+        <Icon className="w-8 h-8 text-muted-foreground/70" />
       </div>
-      <h3 className="text-sm font-bold text-gray-900">{title}</h3>
+      <h3 className="text-sm font-bold text-foreground">{title}</h3>
       {description && (
-        <p className="text-xs text-gray-500 mt-1 max-w-sm">{description}</p>
+        <p className="text-xs text-muted-foreground mt-1 max-w-sm">{description}</p>
       )}
       {action && <div className="mt-4">{action}</div>}
     </div>

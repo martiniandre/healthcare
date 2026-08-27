@@ -43,12 +43,12 @@ export const LanguageSwitcher = () => {
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-50 border border-border hover:bg-gray-100 hover:border-gray-300 transition-all duration-200 text-xs font-semibold text-gray-700 hover:text-gray-900 select-none shadow-sm cursor-pointer"
+        className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted-soft border border-border hover:bg-muted-soft hover:border-border-strong transition-all duration-200 text-xs font-semibold text-foreground/85 hover:text-foreground select-none shadow-sm cursor-pointer"
       >
-        <Globe className="w-3.5 h-3.5 text-gray-400" />
+        <Globe className="w-3.5 h-3.5 text-muted-foreground/70" />
         <span className="text-[14px] leading-none shrink-0">{activeLanguage.flag}</span>
         <span className="hidden sm:inline">{activeLanguage.label}</span>
-        <ChevronDown className={`w-3 h-3 text-gray-400 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`} />
+        <ChevronDown className={`w-3 h-3 text-muted-foreground/70 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`} />
       </button>
 
       {isOpen && (
@@ -61,7 +61,7 @@ export const LanguageSwitcher = () => {
                 key={option.code}
                 onClick={() => handleLanguageChange(option.code)}
                 className={`w-full flex items-center justify-between px-3 py-2 text-left text-xs font-medium transition-all duration-150 hover:bg-primary/5 cursor-pointer ${
-                  isSelected ? "text-primary bg-primary/4 font-semibold" : "text-gray-600 hover:text-gray-900"
+                  isSelected ? "text-primary bg-primary/4 font-semibold" : "text-muted-foreground hover:text-foreground"
                 }`}
               >
                 <div className="flex items-center gap-2">
