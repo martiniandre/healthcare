@@ -173,13 +173,13 @@ func (handler *HTTPHandler) ListAppointments(httpResponseWriter http.ResponseWri
 //	@Failure		500	{object}	map[string]string
 //	@Router			/appointments/my [get]
 func (handler *HTTPHandler) ListMyAppointments(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
-	patientFHIRID, ok := httpRequest.Context().Value(ctxkeys.UserIDKey).(string)
-	if !ok || patientFHIRID == "" {
+	authenticatedUserID, ok := httpRequest.Context().Value(ctxkeys.UserIDKey).(string)
+	if !ok || authenticatedUserID == "" {
 		render.Error(httpResponseWriter, http.StatusUnauthorized, "Usuário não autenticado.")
 		return
 	}
 
-	appointments, listErr := handler.service.ListAppointmentsByPatient(httpRequest.Context(), patientFHIRID)
+	appointments, listErr := handler.service.ListMyAppointments(httpRequest.Context(), authenticatedUserID)
 	if listErr != nil {
 		render.ErrorFromAppError(httpResponseWriter, listErr)
 		return

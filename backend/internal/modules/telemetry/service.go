@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/healthcare/backend/internal/shared/apperrors"
 	"github.com/healthcare/backend/internal/shared/eventbus"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type Service interface {
@@ -45,7 +46,7 @@ func (telemetryService *service) UnlockRoom(ctx context.Context, input UnlockRoo
 		return nil, err
 	}
 
-	if room.Passcode != input.Passcode {
+	if bcrypt.CompareHashAndPassword([]byte(room.Passcode), []byte(input.Passcode)) != nil {
 		return nil, apperrors.ErrInvalidPasscode
 	}
 

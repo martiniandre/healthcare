@@ -35,7 +35,14 @@ func (handler *HTTPHandler) extractPatientFHIRID(httpResponseWriter http.Respons
 		render.Error(httpResponseWriter, http.StatusUnauthorized, "Usuário não autenticado.")
 		return ""
 	}
-	return userID
+
+	patientFHIRID, resolveError := handler.service.ResolvePatientFHIRID(httpRequest.Context(), userID)
+	if resolveError != nil {
+		render.Error(httpResponseWriter, http.StatusForbidden, "Nenhum prontuário vinculado a este usuário.")
+		return ""
+	}
+
+	return patientFHIRID
 }
 
 func (handler *HTTPHandler) GetDashboard(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {

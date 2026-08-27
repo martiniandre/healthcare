@@ -15,7 +15,7 @@ import (
 func TestService_UploadDICOMStream_Success(testingInstance *testing.T) {
 	mockRepository := mocks.NewMockRepository()
 	storageClient := storage.NewStorageClient()
-	imagingService := imaging.NewService(mockRepository, storageClient, nil, "test-bucket")
+	imagingService := imaging.NewService(mockRepository, storageClient, nil, "test-bucket", nil)
 	contextParam := context.Background()
 
 	validDICOMBytes := make([]byte, 200)
@@ -42,7 +42,7 @@ func TestService_UploadDICOMStream_Success(testingInstance *testing.T) {
 func TestService_UploadDICOMStream_InvalidMagicBytes(testingInstance *testing.T) {
 	mockRepository := mocks.NewMockRepository()
 	storageClient := storage.NewStorageClient()
-	imagingService := imaging.NewService(mockRepository, storageClient, nil, "test-bucket")
+	imagingService := imaging.NewService(mockRepository, storageClient, nil, "test-bucket", nil)
 	contextParam := context.Background()
 
 	invalidDICOMBytes := make([]byte, 200)
@@ -62,7 +62,7 @@ func TestService_UploadDICOMStream_InvalidMagicBytes(testingInstance *testing.T)
 func TestService_UploadDICOMStream_TooSmall(testingInstance *testing.T) {
 	mockRepository := mocks.NewMockRepository()
 	storageClient := storage.NewStorageClient()
-	imagingService := imaging.NewService(mockRepository, storageClient, nil, "test-bucket")
+	imagingService := imaging.NewService(mockRepository, storageClient, nil, "test-bucket", nil)
 	contextParam := context.Background()
 
 	tooSmallBytes := []byte("too-small")
@@ -81,7 +81,7 @@ func TestService_UploadDICOMStream_TooSmall(testingInstance *testing.T) {
 func TestService_UploadDICOMStream_InvalidInput(testingInstance *testing.T) {
 	mockRepository := mocks.NewMockRepository()
 	storageClient := storage.NewStorageClient()
-	imagingService := imaging.NewService(mockRepository, storageClient, nil, "test-bucket")
+	imagingService := imaging.NewService(mockRepository, storageClient, nil, "test-bucket", nil)
 	contextParam := context.Background()
 
 	streamReader := bytes.NewReader([]byte("anything"))
@@ -102,7 +102,7 @@ func TestService_UploadDICOMStream_InvalidInput(testingInstance *testing.T) {
 func TestService_GetImagingStudy_NotFound(testingInstance *testing.T) {
 	mockRepository := mocks.NewMockRepository()
 	storageClient := storage.NewStorageClient()
-	imagingService := imaging.NewService(mockRepository, storageClient, nil, "test-bucket")
+	imagingService := imaging.NewService(mockRepository, storageClient, nil, "test-bucket", nil)
 	contextParam := context.Background()
 
 	study, queryError := imagingService.GetImagingStudy(contextParam, "no-such-uuid")
@@ -118,7 +118,7 @@ func TestService_GetImagingStudy_NotFound(testingInstance *testing.T) {
 func TestService_GetDownloadURL(testingInstance *testing.T) {
 	mockRepository := mocks.NewMockRepository()
 	storageClient := storage.NewStorageClient()
-	imagingService := imaging.NewService(mockRepository, storageClient, nil, "test-bucket")
+	imagingService := imaging.NewService(mockRepository, storageClient, nil, "test-bucket", nil)
 	contextParam := context.Background()
 
 	validDICOMBytes := make([]byte, 200)

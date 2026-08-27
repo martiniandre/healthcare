@@ -47,6 +47,10 @@ func (mockRepo *mockSubscriberRepository) GetUserIDsByResource(ctx context.Conte
 	return nil, nil
 }
 
+func (mockRepo *mockSubscriberRepository) GetRecipientUserIDs(ctx context.Context, notificationID uuid.UUID) ([]uuid.UUID, error) {
+	return mockRepo.createdRecipients, nil
+}
+
 func TestSubscribeByRoleHandler_PersistsReportReadyNotificationForPatients(testingInstance *testing.T) {
 	patientID := uuid.New()
 	mockRepository := &mockSubscriberRepository{

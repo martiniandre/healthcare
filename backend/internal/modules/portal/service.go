@@ -8,6 +8,7 @@ import (
 var ErrPatientNotFound = errors.New("patient not found")
 
 type Service interface {
+	ResolvePatientFHIRID(ctx context.Context, userID string) (string, error)
 	GetDashboard(ctx context.Context, fhirResourceID string) (*PortalDashboard, error)
 	GetEncounters(ctx context.Context, fhirResourceID string) ([]PortalEncounter, error)
 	GetObservations(ctx context.Context, fhirResourceID string) ([]PortalObservation, error)
@@ -23,6 +24,10 @@ type service struct {
 
 func NewService(repo Repository) Service {
 	return &service{repo: repo}
+}
+
+func (portalService *service) ResolvePatientFHIRID(ctx context.Context, userID string) (string, error) {
+	return portalService.repo.ResolvePatientFHIRID(ctx, userID)
 }
 
 func (portalService *service) GetDashboard(ctx context.Context, fhirResourceID string) (*PortalDashboard, error) {
