@@ -6,7 +6,12 @@ test.describe("Sidebar Navigation Module", () => {
     await loginAsDoctor(page)
   })
 
-  test("should display all navigation links in the sidebar", async ({ page }) => {
+  test("should display all navigation links grouped by topics in the sidebar", async ({ page }) => {
+    const sidebar = page.locator("aside")
+    await expect(sidebar.getByText("Assistência Clínica")).toBeVisible()
+    await expect(sidebar.getByText("Diagnóstico")).toBeVisible()
+    await expect(sidebar.getByText("Operações")).toBeVisible()
+    await expect(sidebar.getByText("Sistema")).toBeVisible()
     await expect(page.getByRole("button", { name: "Pacientes" })).toBeVisible()
     await expect(page.getByRole("button", { name: "Telemetria UTI" })).toBeVisible()
     await expect(page.getByRole("button", { name: "Análise de Exames" })).toBeVisible()

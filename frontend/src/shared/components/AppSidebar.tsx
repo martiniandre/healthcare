@@ -2,19 +2,60 @@ import { useNavigate, useLocation } from "react-router-dom"
 import { useTranslation } from "react-i18next"
 import { useAuthStore } from "../store/auth_store"
 import { useLayoutStore } from "../store/layout_store"
-import { Activity, Users, BarChart3, Settings, LogOut, X, Sparkles, History, UserRound, LayoutDashboard, CalendarClock } from "lucide-react"
+import type { ComponentType } from "react"
+import { Activity, Users, BarChart3, Settings, LogOut, X, Sparkles, History, UserRound, LayoutDashboard, CalendarClock, Stethoscope } from "lucide-react"
 
-const navigationItems = [
-  { key: "patients", icon: Users, path: "/", staffOnly: true },
-  { key: "dashboard", icon: LayoutDashboard, path: "/dashboard", staffOnly: true },
-  { key: "portal", icon: UserRound, path: "/portal", patientOnly: true },
-  { key: "schedule", icon: CalendarClock, path: "/schedule", staffOnly: true },
-  { key: "telemetry", icon: Activity, path: "/telemetry", staffOnly: true },
-  { key: "examAnalyzer", icon: Sparkles, path: "/exam-analyzer", staffOnly: true },
-  { key: "analytics", icon: BarChart3, path: "/analytics", staffOnly: true },
-  { key: "staffManagement", icon: Users, path: "/staff", staffOnly: true },
-  { key: "auditLogs", icon: History, path: "/audit-logs", adminOnly: true, staffOnly: true },
-  { key: "settings", icon: Settings, path: "/settings", disabled: true, staffOnly: true },
+interface NavigationItem {
+  key: string
+  icon: ComponentType<{ className?: string }>
+  path: string
+  staffOnly?: boolean
+  patientOnly?: boolean
+  adminOnly?: boolean
+  disabled?: boolean
+}
+
+interface NavigationGroup {
+  key: string
+  items: NavigationItem[]
+}
+
+const navigationGroups: NavigationGroup[] = [
+  {
+    key: "topics.clinical",
+    items: [
+      { key: "patients", icon: Users, path: "/", staffOnly: true },
+      { key: "dashboard", icon: LayoutDashboard, path: "/dashboard", staffOnly: true },
+      { key: "schedule", icon: CalendarClock, path: "/schedule", staffOnly: true },
+    ],
+  },
+  {
+    key: "topics.diagnostics",
+    items: [
+      { key: "telemetry", icon: Activity, path: "/telemetry", staffOnly: true },
+      { key: "examAnalyzer", icon: Sparkles, path: "/exam-analyzer", staffOnly: true },
+    ],
+  },
+  {
+    key: "topics.operations",
+    items: [
+      { key: "analytics", icon: BarChart3, path: "/analytics", staffOnly: true },
+      { key: "staffManagement", icon: Stethoscope, path: "/staff", staffOnly: true },
+      { key: "auditLogs", icon: History, path: "/audit-logs", adminOnly: true, staffOnly: true },
+    ],
+  },
+  {
+    key: "topics.system",
+    items: [
+      { key: "settings", icon: Settings, path: "/settings", disabled: true, staffOnly: true },
+    ],
+  },
+  {
+    key: "topics.patient",
+    items: [
+      { key: "portal", icon: UserRound, path: "/portal", patientOnly: true },
+    ],
+  },
 ]
 
 export const AppSidebar = () => {
@@ -23,6 +64,36 @@ export const AppSidebar = () => {
   const location = useLocation()
   const { email, logout, role } = useAuthStore()
   const { isMobileSidebarOpen, closeMobileSidebar } = useLayoutStore()
+
+  const isItemVisible = (item: NavigationItem) => {
+    if (item.patientOnly) return role === "PATIENT"
+    if (item.staffOnly) return role !== "PATIENT"
+    return true
+  }
+
+  const isItemAccessible = (item: NavigationItem) => !item.adminOnly || role === "ADMIN"
+
+  const isItemActive = (item: NavigationItem) => {
+    const isPathActive =
+      location.pathname === item.path || (item.path !== "/" && location.pathname.startsWith(item.path))
+    const isPatientsHomeActive =
+      item.path === "/" && (location.pathname === "/" || location.pathname.startsWith("/patients"))
+    return isPathActive || isPatientsHomeActive
+  }
+
+  const visibleGroups = navigationGroups
+    .map((group) => ({
+      ...group,
+      items: group.items.filter((item) => isItemVisible(item) && isItemAccessible(item)),
+    }))
+    .filter((group) => group.items.length > 0)
+
+  const handleNavigate = (path: string, isDisabled?: boolean) => {
+    if (!isDisabled) {
+      navigate(path)
+      closeMobileSidebar()
+    }
+  }
 
   return (
     <>
@@ -61,54 +132,67 @@ export const AppSidebar = () => {
 
         <div className="h-px bg-border mx-4" />
 
-        <nav className="flex-1 px-3 py-5 flex flex-col gap-1">
-          <span className="text-[9px] font-black text-muted/60 uppercase tracking-[0.15em] px-3 mb-3">
-            {t("menuHeader")}
-          </span>
-          {navigationItems
-            .filter((item) => {
-              if (item.patientOnly) return role === "PATIENT"
-              if (item.staffOnly) return role !== "PATIENT"
-              return true
-            })
-            .filter((item) => !item.adminOnly || role === "ADMIN")
-            .map((item) => {
-              const isActive = location.pathname === item.path ||
-                (item.path !== "/" && location.pathname.startsWith(item.path))
-              const isHomeActive = item.path === "/" && (
-                location.pathname === "/" || location.pathname.startsWith("/patients")
-              )
-              const isCurrentlyActive = isActive || isHomeActive
-
-              return (
-                <button
-                  key={item.path}
-                  onClick={() => {
-                    if (!item.disabled) {
-                      navigate(item.path)
-                      closeMobileSidebar()
-                    }
-                  }}
-                  disabled={item.disabled}
-                  aria-current={!item.disabled && isCurrentlyActive ? "page" : undefined}
-                  className={`w-full text-left flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-semibold transition-all duration-200 ${
-                    item.disabled
-                      ? "text-gray-300 cursor-not-allowed"
-                      : isCurrentlyActive
-                        ? "bg-primary/8 text-primary"
-                        : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
-                  }`}
-                >
-                <item.icon className="w-[18px] h-[18px] shrink-0" />
-                {t(`${item.key}`)}
-                {item.disabled && (
-                  <span className="ml-auto text-[8px] bg-gray-100 text-gray-400 px-1.5 py-0.5 rounded font-bold uppercase">
-                    {t("comingSoon")}
-                  </span>
-                )}
-              </button>
-            )
-          })}
+        <nav className="flex-1 overflow-y-auto px-3 py-5 flex flex-col">
+          {visibleGroups.map((group, groupIndex) => (
+            <section
+              key={group.key}
+              aria-label={t(group.key)}
+              className={`flex flex-col gap-1 ${
+                groupIndex > 0 ? "mt-3 border-t border-border/70 pt-4" : ""
+              }`}
+            >
+              <div className="mb-1.5 flex items-center gap-2.5 px-3">
+                <span className="h-px w-2.5 bg-primary/25" aria-hidden="true" />
+                <h2 className="text-[10px] font-bold uppercase tracking-[0.16em] text-gray-400">
+                  {t(group.key)}
+                </h2>
+              </div>
+              {group.items.map((item) => {
+                const isActive = isItemActive(item)
+                return (
+                  <button
+                    key={item.path}
+                    onClick={() => handleNavigate(item.path, item.disabled)}
+                    disabled={item.disabled}
+                    aria-current={!item.disabled && isActive ? "page" : undefined}
+                    className={`group relative flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-[13px] font-medium transition-all duration-200 ${
+                      item.disabled
+                        ? "cursor-not-allowed text-gray-300"
+                        : isActive
+                          ? "bg-primary/8 font-semibold text-primary"
+                          : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                    }`}
+                  >
+                    <span
+                      aria-hidden="true"
+                      className={`absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full transition-colors duration-200 ${
+                        !item.disabled && isActive
+                          ? "bg-primary"
+                          : "bg-transparent group-hover:bg-primary/40"
+                      }`}
+                    />
+                    <span
+                      className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md border transition-colors duration-200 ${
+                        item.disabled
+                          ? "border-transparent bg-gray-100/70 text-gray-300"
+                          : isActive
+                            ? "border-primary/15 bg-primary/10 text-primary"
+                            : "border-transparent bg-gray-100/80 text-gray-500 group-hover:bg-gray-200/70 group-hover:text-gray-700"
+                      }`}
+                    >
+                      <item.icon className="h-4 w-4" />
+                    </span>
+                    <span className="truncate">{t(item.key)}</span>
+                    {item.disabled && (
+                      <span className="ml-auto shrink-0 rounded bg-gray-100 px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wide text-gray-400">
+                        {t("comingSoon")}
+                      </span>
+                    )}
+                  </button>
+                )
+              })}
+            </section>
+          ))}
         </nav>
 
         <div className="px-3 pb-3">
