@@ -20,6 +20,7 @@ RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 WORKDIR /app
 
 COPY --from=builder /app/api /app/api
+COPY --from=builder /app/migrations /app/migrations
 
 USER appuser
 
