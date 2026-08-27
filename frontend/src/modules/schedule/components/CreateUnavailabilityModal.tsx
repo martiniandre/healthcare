@@ -2,6 +2,8 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useTranslation } from "react-i18next"
 import { Input } from "../../../shared/components/ui/Input"
+import { Label } from "../../../shared/components/ui/Label"
+import { Textarea } from "../../../shared/components/ui/Textarea"
 import { Button } from "../../../shared/components/ui/Button"
 import {
   Dialog,
@@ -82,36 +84,35 @@ export const CreateUnavailabilityModal = ({
         <form onSubmit={handleFormSubmit} className="flex flex-col gap-4 text-left mt-4">
           <div className="grid grid-cols-3 gap-3">
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-semibold text-gray-600">
+              <Label>
                 {t("unavailability.modal.date")}
-              </label>
+              </Label>
               <Input type="date" errorText={errors.date?.message} {...register("date")} />
             </div>
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-semibold text-gray-600">
+              <Label>
                 {t("unavailability.modal.startTime")}
-              </label>
+              </Label>
               <Input type="time" step={900} errorText={errors.startTime?.message} {...register("startTime")} />
             </div>
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-semibold text-gray-600">
+              <Label>
                 {t("unavailability.modal.endTime")}
-              </label>
+              </Label>
               <Input type="time" step={900} errorText={errors.endTime?.message} {...register("endTime")} />
             </div>
           </div>
 
           <div className="flex flex-col gap-1">
-            <label className="text-xs font-semibold text-gray-600">
+            <Label>
               {t("unavailability.modal.reason")}
-            </label>
-            <textarea
-              className="flex min-h-[80px] w-full rounded-lg border border-border bg-transparent px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+            </Label>
+            <Textarea
               placeholder={t("unavailability.modal.reasonPlaceholder")}
               {...register("reason")}
             />
             {errors.reason?.message && (
-              <span className="text-xs text-red-500 font-medium px-1 mt-1">
+              <span className="text-xs text-danger font-medium px-1 mt-1">
                 {errors.reason.message}
               </span>
             )}

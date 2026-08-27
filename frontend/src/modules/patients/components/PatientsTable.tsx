@@ -8,9 +8,9 @@ import {
   TableHead,
   TableRow,
   TableCell,
-} from "../../../shared/components/ui/Table"
-import { Button } from "../../../shared/components/ui/Button"
-import { Skeleton } from "../../../shared/components/ui/Skeleton"
+  Button,
+  Skeleton,
+} from "../../../shared/components/ui"
 import type { Patient } from "../queries"
 
 export type SortDirection = "asc" | "desc"
@@ -48,25 +48,25 @@ export const PatientsTable = ({
   }
 
   return (
-    <div className="bg-white border border-border rounded-xl overflow-hidden">
+    <div className="bg-card border border-border rounded-xl overflow-hidden">
       <div className="overflow-x-auto w-full">
         <Table className="min-w-[650px] md:min-w-0">
           <TableHeader>
             <TableRow>
               <TableHead
-                className="cursor-pointer hover:text-gray-700 transition-colors select-none"
+                className="cursor-pointer hover:text-foreground transition-colors select-none"
                 onClick={() => onSort("full_name")}
               >
                 {t("table.patient")}{sortIndicator("full_name")}
               </TableHead>
               <TableHead
-                className="cursor-pointer hover:text-gray-700 transition-colors select-none"
+                className="cursor-pointer hover:text-foreground transition-colors select-none"
                 onClick={() => onSort("document_id")}
               >
                 {t("table.document")}{sortIndicator("document_id")}
               </TableHead>
               <TableHead
-                className="cursor-pointer hover:text-gray-700 transition-colors select-none"
+                className="cursor-pointer hover:text-foreground transition-colors select-none"
                 onClick={() => onSort("birth_date")}
               >
                 {t("table.birthDate")}{sortIndicator("birth_date")}
@@ -108,42 +108,44 @@ export const PatientsTable = ({
                 >
                   <TableCell>
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-primary/6 flex items-center justify-center shrink-0 group-hover:bg-primary/10 transition-colors">
+                      <div className="w-8 h-8 rounded-lg bg-primary-soft flex items-center justify-center shrink-0 group-hover:bg-primary/10 transition-colors">
                         <User className="w-4 h-4 text-primary/60 group-hover:text-primary transition-colors" />
                       </div>
                       <div className="min-w-0">
-                        <span className="text-[13px] font-semibold text-gray-800 block truncate group-hover:text-primary transition-colors">
+                        <span className="text-[13px] font-semibold text-foreground block truncate group-hover:text-primary transition-colors">
                           {patient.full_name}
                         </span>
-                        <span className="text-[10px] text-gray-400 font-mono block mt-0.5">
+                        <span className="text-[10px] text-muted-foreground/70 font-mono block mt-0.5">
                           {patient.fhir_resource_id}
                         </span>
                       </div>
                     </div>
                   </TableCell>
                   <TableCell>
-                    <span className="text-xs font-mono text-gray-600">
+                    <span className="text-xs font-mono text-muted-foreground">
                       {patient.document_id}
                     </span>
                   </TableCell>
                   <TableCell>
-                    <span className="text-xs text-gray-500">
+                    <span className="text-xs text-muted-foreground">
                       {patient.birth_date}
                     </span>
                   </TableCell>
                   <TableCell>
-                    <span className="text-xs text-gray-500">
+                    <span className="text-xs text-muted-foreground">
                       {patient.phone_number}
                     </span>
                   </TableCell>
                   <TableCell className="text-right">
-                    <button
+                    <Button
+                      variantType="ghost"
+                      size="sm"
                       onClick={() => navigate(`/patients/${patient.fhir_resource_id}`)}
-                      className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-primary hover:text-primary/80 px-3 py-1.5 rounded-md hover:bg-primary/5 transition-all"
+                      className="gap-1.5 text-[11px] font-semibold text-primary hover:text-primary/80 px-3 py-1.5 rounded-md hover:bg-primary-soft transition-all"
                     >
                       {t("table.medicalRecord")}
                       <ArrowRight className="w-3 h-3 transition-transform group-hover:translate-x-0.5" />
-                    </button>
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))
@@ -152,14 +154,14 @@ export const PatientsTable = ({
         </Table>
       </div>
       {totalPages > 1 && (
-        <div className="flex items-center justify-between border-t border-border px-6 py-4 bg-gray-50/50">
-          <span className="text-xs text-gray-500 font-semibold">
+        <div className="flex items-center justify-between border-t border-border px-6 py-4 bg-muted-soft/50">
+          <span className="text-xs text-muted-foreground font-semibold">
             {t("pagination.pageInfo", { currentPage, totalPages, total: totalPatients })}
           </span>
           <div className="flex gap-2">
             <Button
               variantType="outline"
-              className="px-3 py-1.5 text-xs font-bold"
+              size="sm"
               disabled={currentPage === 1}
               onClick={() => onPageChange(Math.max(currentPage - 1, 1))}
             >
@@ -167,7 +169,7 @@ export const PatientsTable = ({
             </Button>
             <Button
               variantType="outline"
-              className="px-3 py-1.5 text-xs font-bold"
+              size="sm"
               disabled={currentPage === totalPages}
               onClick={() => onPageChange(Math.min(currentPage + 1, totalPages))}
             >

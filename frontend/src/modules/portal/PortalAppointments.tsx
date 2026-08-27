@@ -1,14 +1,16 @@
 import { useTranslation } from "react-i18next"
 import { useMyAppointmentsQuery } from "../schedule/queries"
 import { Card } from "../../shared/components/ui/Card"
+import { Badge } from "../../shared/components/ui/Badge"
+import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from "../../shared/components/ui/Table"
 import { Loader2 } from "lucide-react"
 import { formatDate, formatTime } from "../../shared/utils/dates"
 
-const statusBadgeClassNames: Record<string, string> = {
-  scheduled: "bg-blue-100 text-blue-700",
-  confirmed: "bg-emerald-100 text-emerald-700",
-  cancelled: "bg-gray-200 text-gray-500",
-  finished: "bg-violet-100 text-violet-700",
+const statusBadgeVariant: Record<string, "secondary" | "success" | "muted" | "info" | "warning"> = {
+  scheduled: "info",
+  confirmed: "success",
+  cancelled: "muted",
+  finished: "muted",
 }
 
 export const PortalAppointments = () => {
@@ -26,42 +28,42 @@ export const PortalAppointments = () => {
   if (!appointments || appointments.length === 0) {
     return (
       <Card className="py-16 text-center">
-        <p className="text-sm text-gray-500">{t("portal.empty")}</p>
+        <p className="text-sm text-muted-foreground">{t("portal.empty")}</p>
       </Card>
     )
   }
 
   return (
-    <div className="bg-white border border-border rounded-xl overflow-hidden">
+    <div className="bg-surface border border-border rounded-xl overflow-hidden">
       <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="bg-gray-50 border-b border-border">
-              <th className="text-left p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">{t("portal.date")}</th>
-              <th className="text-left p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">{t("portal.time")}</th>
-              <th className="text-left p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">{t("portal.reason")}</th>
-              <th className="text-left p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">{t("portal.status")}</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border">
+        <Table className="w-full text-sm">
+          <TableHeader>
+            <TableRow className="bg-muted-soft border-b border-border">
+              <TableHead className="text-left p-4 text-xs font-bold uppercase tracking-wider">{t("portal.date")}</TableHead>
+              <TableHead className="text-left p-4 text-xs font-bold uppercase tracking-wider">{t("portal.time")}</TableHead>
+              <TableHead className="text-left p-4 text-xs font-bold uppercase tracking-wider">{t("portal.reason")}</TableHead>
+              <TableHead className="text-left p-4 text-xs font-bold uppercase tracking-wider">{t("portal.status")}</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody className="divide-y divide-border">
             {appointments.map((appointment) => (
-              <tr key={appointment.id} className="hover:bg-gray-50">
-                <td className="p-4 text-gray-900 font-medium whitespace-nowrap">
+              <TableRow key={appointment.id} className="hover:bg-muted-soft">
+                <TableCell className="p-4 text-foreground font-medium whitespace-nowrap">
                   {formatDate(appointment.starts_at)}
-                </td>
-                <td className="p-4 font-mono text-gray-700 whitespace-nowrap">
+                </TableCell>
+                <TableCell className="p-4 font-mono text-foreground whitespace-nowrap">
                   {formatTime(appointment.starts_at)}
-                </td>
-                <td className="p-4 text-gray-700">{appointment.reason || "-"}</td>
-                <td className="p-4">
-                  <span className={`text-xs font-bold px-2 py-1 rounded-full capitalize ${statusBadgeClassNames[appointment.status] ?? "bg-gray-100 text-gray-500"}`}>
+                </TableCell>
+                <TableCell className="p-4 text-foreground">{appointment.reason || "-"}</TableCell>
+                <TableCell className="p-4">
+                  <Badge variant={statusBadgeVariant[appointment.status] ?? "secondary"} className="capitalize">
                     {t(`status.${appointment.status}`)}
-                  </span>
-                </td>
-              </tr>
+                  </Badge>
+                </TableCell>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
     </div>
   )

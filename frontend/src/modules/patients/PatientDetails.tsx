@@ -13,8 +13,7 @@ import { EncounterSelectionDialog } from "./components/EncounterSelectionDialog"
 import { ExamAnalyzerModal } from "./components/modals/ExamAnalyzerModal"
 import { Can } from "../../shared/auth/AbilityContext"
 import { PatientPageLayout } from "./components/PatientPageLayout"
-import { Card } from "../../shared/components/ui/Card"
-import { Button } from "../../shared/components/ui/Button"
+import { Card, Button } from "../../shared/components/ui"
 import {
   History,
   Image as ImageIcon,
@@ -43,7 +42,7 @@ const TabFallback = () => (
   <Card className="flex items-center justify-center min-h-[450px]">
     <div className="flex flex-col items-center gap-2">
       <Loader2 className="w-8 h-8 text-primary animate-spin" />
-      <span className="text-sm text-gray-500 font-medium">Carregando componente...</span>
+      <span className="text-sm text-muted-foreground font-medium">Carregando componente...</span>
     </div>
   </Card>
 )
@@ -86,7 +85,7 @@ export const PatientDetails = () => {
   if (isPatientError) {
     return (
       <div className="text-center py-16">
-        <span className="text-sm text-red-500 font-medium">{t("details.loadError")}</span>
+        <span className="text-sm text-danger font-medium">{t("details.loadError")}</span>
       </div>
     )
   }
@@ -94,71 +93,75 @@ export const PatientDetails = () => {
   if (isPatientLoading || !patient) {
     return (
       <div className="text-center py-16">
-        <span className="text-sm text-muted">{t("details.loadingDetails")}</span>
+        <span className="text-sm text-muted-foreground">{t("details.loadingDetails")}</span>
       </div>
     )
   }
 
   const sidebarTabs = (
     <>
-      <button
+      <Button
+        variantType="ghost"
         onClick={() => setActiveTab(PatientTab.Encounters)}
-        className={`w-full text-left flex items-center gap-3 px-4 py-3 rounded-lg text-xs font-extrabold transition-all duration-300 ${
+        className={`w-full justify-start gap-3 px-4 py-3 h-auto rounded-lg text-xs font-extrabold transition-all duration-300 ${
           resolvedActiveTab === PatientTab.Encounters
-            ? "bg-primary/8 text-primary"
-            : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
+            ? "bg-primary-soft text-primary hover:bg-primary-soft"
+            : "text-muted-foreground hover:text-foreground hover:bg-muted-soft"
         }`}
       >
         <History className="w-4 h-4 shrink-0" />
         {t("details.encounters")}
-        <span className="ml-auto text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded font-black">
+        <span className="ml-auto text-[10px] bg-muted-soft text-muted-foreground px-2 py-0.5 rounded font-black">
           {encounters.length}
         </span>
-      </button>
+      </Button>
 
       {canReadConditions && (
-        <button
+        <Button
+          variantType="ghost"
           onClick={() => setActiveTab(PatientTab.Conditions)}
-          className={`w-full text-left flex items-center gap-3 px-4 py-3 rounded-lg text-xs font-extrabold transition-all duration-300 ${
+          className={`w-full justify-start gap-3 px-4 py-3 h-auto rounded-lg text-xs font-extrabold transition-all duration-300 ${
             resolvedActiveTab === PatientTab.Conditions
-              ? "bg-primary/8 text-primary"
-              : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
+              ? "bg-primary-soft text-primary hover:bg-primary-soft"
+              : "text-muted-foreground hover:text-foreground hover:bg-muted-soft"
           }`}
         >
           <Activity className="w-4 h-4 shrink-0" />
           {t("details.conditions")}
-        </button>
+        </Button>
       )}
 
       {canReadAllergies && (
-        <button
+        <Button
+          variantType="ghost"
           onClick={() => setActiveTab(PatientTab.Allergies)}
-          className={`w-full text-left flex items-center gap-3 px-4 py-3 rounded-lg text-xs font-extrabold transition-all duration-300 ${
+          className={`w-full justify-start gap-3 px-4 py-3 h-auto rounded-lg text-xs font-extrabold transition-all duration-300 ${
             resolvedActiveTab === PatientTab.Allergies
-              ? "bg-primary/8 text-primary"
-              : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
+              ? "bg-primary-soft text-primary hover:bg-primary-soft"
+              : "text-muted-foreground hover:text-foreground hover:bg-muted-soft"
           }`}
         >
           <ShieldAlert className="w-4 h-4 shrink-0" />
           {t("details.allergies")}
-        </button>
+        </Button>
       )}
 
       {canReadStudies && (
-        <button
+        <Button
+          variantType="ghost"
           onClick={() => setActiveTab(PatientTab.Pacs)}
-          className={`w-full text-left flex items-center gap-3 px-4 py-3 rounded-lg text-xs font-extrabold transition-all duration-300 ${
+          className={`w-full justify-start gap-3 px-4 py-3 h-auto rounded-lg text-xs font-extrabold transition-all duration-300 ${
             resolvedActiveTab === PatientTab.Pacs
-              ? "bg-primary/8 text-primary"
-              : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
+              ? "bg-primary-soft text-primary hover:bg-primary-soft"
+              : "text-muted-foreground hover:text-foreground hover:bg-muted-soft"
           }`}
         >
           <ImageIcon className="w-4 h-4 shrink-0" />
           {t("details.pacs")}
-          <span className="ml-auto text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded font-black">
+          <span className="ml-auto text-[10px] bg-muted-soft text-muted-foreground px-2 py-0.5 rounded font-black">
             {studies.length}
           </span>
-        </button>
+        </Button>
       )}
     </>
   )
@@ -170,7 +173,7 @@ export const PatientDetails = () => {
         onBack={() => navigate("/")}
         sidebarTop={
           <>
-            <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-3 text-left">
+            <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest px-3 text-left">
               {t("details.clinicalResources")}
             </span>
             {sidebarTabs}
@@ -180,7 +183,7 @@ export const PatientDetails = () => {
           <Can I={Action.Create} a={Feature.ExamAnalysis}>
             <Button
               onClick={() => setIsExamModalOpen(true)}
-              className="gap-2 shrink-0 self-start xl:self-auto bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20 hover:border-primary/40 font-bold"
+              className="gap-2 shrink-0 self-start xl:self-auto bg-primary-soft text-primary hover:bg-primary/20 border border-primary/20 hover:border-primary/40 font-bold"
             >
               <Sparkles className="w-4 h-4 text-primary" />
               Analisar Exame com IA

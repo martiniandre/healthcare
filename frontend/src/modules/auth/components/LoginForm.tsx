@@ -6,6 +6,7 @@ import { useAuthStore } from "../../../shared/store/auth_store"
 import { Card } from "../../../shared/components/ui/Card"
 import { Input } from "../../../shared/components/ui/Input"
 import { Button } from "../../../shared/components/ui/Button"
+import { Label } from "../../../shared/components/ui/Label"
 import { Alert, AlertDescription } from "../../../shared/components/ui/Alert"
 import { getLoginFormSchema, type LoginFormData } from "../auth_schemas"
 import { Eye, EyeOff, KeyRound, Mail, ShieldAlert } from "lucide-react"
@@ -48,7 +49,7 @@ export const LoginForm = () => {
 
   return (
     <Card glowingType="cyan" className="p-8">
-      <h2 className="text-lg font-bold text-gray-800 mb-6">{t("authTitle")}</h2>
+      <h2 className="text-lg font-bold text-foreground mb-6">{t("authTitle")}</h2>
 
       {generalError && (
         <Alert variant="destructive" className="mb-6">
@@ -61,10 +62,10 @@ export const LoginForm = () => {
 
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5" noValidate>
         <div className="flex flex-col gap-1 text-left">
-          <label className="text-xs font-semibold text-gray-600 flex items-center gap-1.5 mb-1">
+          <Label className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5 mb-1">
             <Mail className="w-3.5 h-3.5 text-primary" />
             {t("emailLabel")}
-          </label>
+          </Label>
           <Input
             type="email"
             placeholder={t("emailPlaceholder")}
@@ -76,10 +77,10 @@ export const LoginForm = () => {
         </div>
 
         <div className="flex flex-col gap-1 text-left">
-          <label className="text-xs font-semibold text-gray-600 flex items-center gap-1.5 mb-1">
+          <Label className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5 mb-1">
             <KeyRound className="w-3.5 h-3.5 text-primary" />
             {t("passwordLabel")}
-          </label>
+          </Label>
           <div className="relative">
             <Input
               type={isPasswordVisible ? "text" : "password"}
@@ -89,14 +90,16 @@ export const LoginForm = () => {
               className="pr-10"
               {...register("password")}
             />
-            <button
+            <Button
               type="button"
+              variantType="ghost"
+              size="sm"
               onClick={() => setIsPasswordVisible((visible) => !visible)}
               aria-label={isPasswordVisible ? t("hidePassword") : t("showPassword")}
-              className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600 transition-colors"
+              className="absolute right-1.5 top-1 h-8 w-8 p-0 shadow-none text-muted-foreground hover:text-foreground"
             >
               {isPasswordVisible ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-            </button>
+            </Button>
           </div>
         </div>
 

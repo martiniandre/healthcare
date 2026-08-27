@@ -2,6 +2,8 @@ import { useTranslation } from "react-i18next"
 import { CalendarX2 } from "lucide-react"
 import { usePatientQuery } from "../../patients/queries"
 import { formatTime } from "../../../shared/utils/dates"
+import { Badge } from "../../../shared/components/ui/Badge"
+import { Button } from "../../../shared/components/ui/Button"
 import type { Appointment } from "../types"
 
 interface AppointmentCardProps {
@@ -9,11 +11,11 @@ interface AppointmentCardProps {
   onCancel: (appointment: Appointment) => void
 }
 
-const statusBadgeClassNames: Record<string, string> = {
-  scheduled: "bg-blue-50 text-blue-700 border-blue-200",
-  confirmed: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  cancelled: "bg-gray-100 text-gray-500 border-gray-200",
-  finished: "bg-violet-50 text-violet-700 border-violet-200",
+const statusBadgeVariants: Record<string, "info" | "success" | "muted" | "secondary"> = {
+  scheduled: "info",
+  confirmed: "success",
+  cancelled: "muted",
+  finished: "secondary",
 }
 
 export const AppointmentCard = ({ appointment, onCancel }: AppointmentCardProps) => {
@@ -23,31 +25,34 @@ export const AppointmentCard = ({ appointment, onCancel }: AppointmentCardProps)
   const canCancel = appointment.status === "scheduled" || appointment.status === "confirmed"
 
   return (
-    <div className={`bg-white border border-border rounded-xl p-4 flex flex-col gap-2 ${appointment.status === "cancelled" ? "opacity-60" : ""}`}>
+    <div className={`bg-surface border border-border rounded-xl p-4 flex flex-col gap-2 ${appointment.status === "cancelled" ? "opacity-60" : ""}`}>
       <div className="flex items-center justify-between gap-2">
-        <span className="font-mono text-xs font-bold text-gray-800">
+        <span className="font-mono text-xs font-bold text-foreground">
           {formatTime(appointment.starts_at)} — {formatTime(appointment.ends_at)}
         </span>
-        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border capitalize ${statusBadgeClassNames[appointment.status] ?? "bg-gray-100 text-gray-500 border-gray-200"}`}>
+        <Badge variant={statusBadgeVariants[appointment.status] ?? "muted"} className="capitalize">
           {t(`status.${appointment.status}`)}
-        </span>
+        </Badge>
       </div>
       <div className="flex flex-col gap-0.5">
-        <span className="text-sm font-bold text-gray-900">
+        <span className="text-sm font-bold text-foreground">
           {patient?.full_name ?? appointment.patient_fhir_id}
         </span>
-        <span className="text-xs text-gray-500 truncate">
+        <span className="text-xs text-muted-foreground truncate">
           {appointment.reason || t("cards.noReason")}
         </span>
       </div>
       {canCancel && (
-        <button
+        <Button
+          type="button"
+          variantType="danger"
+          size="sm"
           onClick={() => onCancel(appointment)}
-          className="mt-1 self-start inline-flex items-center gap-1.5 text-xs font-semibold text-red-500 hover:text-red-700"
+          className="mt-1 self-start"
         >
           <CalendarX2 className="w-3.5 h-3.5" />
           {t("cards.cancelAppointment")}
-        </button>
+        </Button>
       )}
     </div>
   )

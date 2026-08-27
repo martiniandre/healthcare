@@ -2,6 +2,7 @@ import { useState, useRef } from "react"
 import { useTranslation } from "react-i18next"
 import { ArrowLeft, UploadCloud } from "lucide-react"
 import { Button } from "../../shared/components/ui/Button"
+import { Input } from "../../shared/components/ui/Input"
 import { DicomViewport } from "./components/DicomViewport"
 import { ImagingStudyDetails } from "./components/ImagingStudyDetails"
 import { ImagingUploadProgress } from "./components/ImagingUploadProgress"
@@ -69,7 +70,7 @@ export const ImagingWorkspace = ({ studyId, onBack }: ImagingWorkspaceProps) => 
   if (isStudyError) {
     return (
       <div className="text-center py-16">
-        <span className="text-sm text-red-500 font-medium">{t("loadError")}</span>
+        <span className="text-sm text-danger font-medium">{t("loadError")}</span>
       </div>
     )
   }
@@ -91,7 +92,7 @@ export const ImagingWorkspace = ({ studyId, onBack }: ImagingWorkspaceProps) => 
             {t("backToRecord")}
           </Button>
           <div className="text-left">
-            <h2 className="text-xl font-display font-bold text-gray-900 leading-none">
+            <h2 className="text-xl font-display font-bold text-foreground leading-none">
               {t("titleConsole")}
             </h2>
             <span className="text-xs text-muted mt-1.5 block">
@@ -101,18 +102,19 @@ export const ImagingWorkspace = ({ studyId, onBack }: ImagingWorkspaceProps) => 
         </div>
 
         <div className="flex items-center gap-2">
-          <input
-            type="file"
-            accept=".dcm"
-            ref={fileInputReference}
-            onChange={handleFileChange}
-            className="hidden"
-          />
+          <div className="hidden">
+            <Input
+              type="file"
+              accept=".dcm"
+              ref={fileInputReference}
+              onChange={handleFileChange}
+            />
+          </div>
           <Button
             variantType="outline"
             onClick={handleButtonClick}
             disabled={uploadImagingStudyMutation.isPending || uploadState.percentage !== null}
-            className="px-3.5 gap-2 border-primary/20 text-primary hover:bg-primary/5"
+            className="px-3.5 gap-2 border-primary/20 text-primary hover:bg-primary-soft"
           >
             <UploadCloud className="w-4 h-4" />
             {t("uploadDcm")}

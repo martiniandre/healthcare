@@ -1,8 +1,10 @@
 import { useState, useRef } from "react"
 import { useTranslation } from "react-i18next"
-import { UploadCloud, CheckSquare, Square, FileText, X } from "lucide-react"
+import { UploadCloud, FileText, X } from "lucide-react"
 import { Button } from "../../../shared/components/ui/Button"
 import { Card } from "../../../shared/components/ui/Card"
+import { Label } from "../../../shared/components/ui/Label"
+import { Checkbox } from "../../../shared/components/ui/Checkbox"
 
 interface FileUploaderProperties {
   onUpload: (file: File, consent: boolean, anonymize: boolean) => void
@@ -83,8 +85,8 @@ export const FileUploader = ({ onUpload, isPending, uploadProgress }: FileUpload
   }
 
   return (
-    <Card glowingType="cyan" className="p-6 bg-white border border-border rounded-xl">
-      <h3 className="text-base font-bold text-gray-900 mb-2">
+    <Card glowingType="cyan" className="p-6 bg-surface border border-border rounded-xl">
+      <h3 className="text-base font-bold text-foreground mb-2">
         {t("uploader.title")}
       </h3>
       <span className="text-xs text-muted block mb-5 leading-normal">
@@ -92,14 +94,14 @@ export const FileUploader = ({ onUpload, isPending, uploadProgress }: FileUpload
       </span>
 
       <form onSubmit={handleFormSubmit} className="flex flex-col gap-5">
-        <label
+        <Label
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
-          className={`border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center gap-3 cursor-pointer transition-all duration-300 ${
+          className={`border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center gap-3 cursor-pointer transition-all duration-300 mb-0 ${
             isDragActive
-              ? "border-primary bg-primary/5 scale-[1.01]"
-              : "border-gray-200 hover:border-primary/50 hover:bg-gray-50/50"
+              ? "border-primary bg-primary-soft scale-[1.01]"
+              : "border-border-strong hover:border-primary/50 hover:bg-muted-soft"
           }`}
         >
           <input
@@ -110,32 +112,32 @@ export const FileUploader = ({ onUpload, isPending, uploadProgress }: FileUpload
             accept="image/*,.pdf"
           />
 
-          <div className="w-12 h-12 rounded-full bg-primary/8 flex items-center justify-center">
+          <div className="w-12 h-12 rounded-full bg-primary-soft flex items-center justify-center">
             <UploadCloud className="w-6 h-6 text-primary" />
           </div>
 
           <div className="text-center">
-            <span className="text-sm font-semibold text-gray-800 block">
+            <span className="text-sm font-semibold text-foreground block">
               {t("uploader.selectFile")}
             </span>
             <span className="text-[11px] text-muted block mt-1">
               {t("uploader.fileGuidelines")}
             </span>
           </div>
-        </label>
+        </Label>
 
         {uploaderState.error && (
-          <div className="text-xs font-semibold text-red-500 bg-red-50 border border-red-200 rounded-lg p-3 text-center">
+          <div className="text-xs font-semibold text-danger bg-danger-soft border border-danger/20 rounded-lg p-3 text-center">
             {uploaderState.error}
           </div>
         )}
 
         {uploaderState.file && (
-          <div className="flex items-center justify-between p-3.5 bg-gray-50 border border-border/80 rounded-lg animate-fade-in">
+          <div className="flex items-center justify-between p-3.5 bg-muted-soft border border-border/80 rounded-lg animate-fade-in">
             <div className="flex items-center gap-3 min-w-0">
               <FileText className="w-5 h-5 text-primary shrink-0" />
               <div className="min-w-0">
-                <span className="text-xs font-semibold text-gray-800 block truncate">
+                <span className="text-xs font-semibold text-foreground block truncate">
                   {uploaderState.file.name}
                 </span>
                 <span className="text-[10px] text-muted block mt-0.5">
@@ -143,64 +145,50 @@ export const FileUploader = ({ onUpload, isPending, uploadProgress }: FileUpload
                 </span>
               </div>
             </div>
-            <button
+            <Button
               type="button"
+              variantType="ghost"
+              size="sm"
               onClick={handleClearFile}
-              className="p-1 rounded-md text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all cursor-pointer"
+              className="p-1 h-auto w-auto shadow-none text-muted-foreground hover:text-danger hover:bg-danger-soft transition-all cursor-pointer rounded-md"
             >
               <X className="w-4 h-4" />
-            </button>
+            </Button>
           </div>
         )}
 
         <div className="flex flex-col gap-3">
-          <label className="flex items-start gap-3 cursor-pointer select-none group">
-            <input
-              type="checkbox"
+          <Label className="flex items-start gap-3 cursor-pointer select-none group mb-0">
+            <Checkbox
               checked={uploaderState.consentChecked}
-              onChange={(event) => setUploaderState((prev) => ({ ...prev, consentChecked: event.target.checked }))}
-              className="sr-only"
+              onCheckedChange={(checked) => setUploaderState((prev) => ({ ...prev, consentChecked: checked === true }))}
+              className="mt-0.5"
             />
-            <div className="mt-0.5 text-primary">
-              {uploaderState.consentChecked ? (
-                <CheckSquare className="w-4.5 h-4.5 group-hover:scale-105 transition-transform" />
-              ) : (
-                <Square className="w-4.5 h-4.5 text-gray-400 group-hover:scale-105 transition-transform" />
-              )}
-            </div>
             <div className="flex-1 text-left">
-              <span className="text-xs font-semibold text-gray-700 block">
+              <span className="text-xs font-semibold text-foreground block">
                 {t("uploader.consentTitle")}
               </span>
               <span className="text-[10px] text-muted block mt-0.5 leading-normal">
                 {t("uploader.consentDesc")}
               </span>
             </div>
-          </label>
+          </Label>
 
-          <label className="flex items-start gap-3 cursor-pointer select-none group">
-            <input
-              type="checkbox"
+          <Label className="flex items-start gap-3 cursor-pointer select-none group mb-0">
+            <Checkbox
               checked={uploaderState.anonymizeChecked}
-              onChange={(event) => setUploaderState((prev) => ({ ...prev, anonymizeChecked: event.target.checked }))}
-              className="sr-only"
+              onCheckedChange={(checked) => setUploaderState((prev) => ({ ...prev, anonymizeChecked: checked === true }))}
+              className="mt-0.5"
             />
-            <div className="mt-0.5 text-secondary">
-              {uploaderState.anonymizeChecked ? (
-                <CheckSquare className="w-4.5 h-4.5 group-hover:scale-105 transition-transform" />
-              ) : (
-                <Square className="w-4.5 h-4.5 text-gray-400 group-hover:scale-105 transition-transform" />
-              )}
-            </div>
             <div className="flex-1 text-left">
-              <span className="text-xs font-semibold text-gray-700 block">
+              <span className="text-xs font-semibold text-foreground block">
                 {t("uploader.anonymizeTitle")}
               </span>
               <span className="text-[10px] text-muted block mt-0.5 leading-normal">
                 {t("uploader.anonymizeDesc")}
               </span>
             </div>
-          </label>
+          </Label>
         </div>
 
         {uploadProgress !== null && (
@@ -209,7 +197,7 @@ export const FileUploader = ({ onUpload, isPending, uploadProgress }: FileUpload
               <span>{t("uploader.uploading")}</span>
               <span>{uploadProgress}%</span>
             </div>
-            <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+            <div className="w-full h-1.5 bg-muted-soft rounded-full overflow-hidden">
               <div
                 className="h-full bg-primary transition-all duration-300"
                 style={{ width: `${uploadProgress}%` }}

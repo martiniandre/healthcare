@@ -23,8 +23,9 @@ test.describe("Audit Logs Management Module", () => {
   })
 
   test("should filter audit logs by status dropdown", async ({ page }) => {
-    const statusSelect = page.locator("select").nth(1)
-    await statusSelect.selectOption("FAILURE")
+    const statusSelect = page.getByRole("combobox").nth(1)
+    await statusSelect.click()
+    await page.getByRole("listbox").getByText("Falha", { exact: true }).click()
     await expect(page.getByRole("table").getByText("usuario.invalido@test.com")).toBeVisible()
   })
 })

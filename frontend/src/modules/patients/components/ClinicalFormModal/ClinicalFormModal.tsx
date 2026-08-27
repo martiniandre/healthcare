@@ -2,21 +2,7 @@ import { Controller, useForm, type DefaultValues, type FieldPath, type Resolver,
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useTranslation } from "react-i18next"
 import type { z } from "zod"
-import { Button } from "../../../../shared/components/ui/Button"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "../../../../shared/components/ui/Dialog"
-import { Input } from "../../../../shared/components/ui/Input"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../../../../shared/components/ui/Select"
+import { Button, Dialog, DialogContent, DialogHeader, DialogTitle, Input, Label, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Textarea } from "../../../../shared/components/ui"
 
 export interface ClinicalFormOption {
   value: string
@@ -122,8 +108,8 @@ export function ClinicalFormModal<FormData extends Record<string, unknown>>({
               )
             } else if (field.kind === "textarea") {
               fieldControl = (
-                <textarea
-                  className="w-full h-24 px-3 py-2 text-sm border border-border rounded-lg outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all resize-none"
+                <Textarea
+                  className="h-24 resize-none"
                   placeholder={field.placeholderKey ? t(field.placeholderKey) : undefined}
                   {...register(field.name)}
                 />
@@ -144,10 +130,10 @@ export function ClinicalFormModal<FormData extends Record<string, unknown>>({
             }
             return (
               <div className="flex flex-col gap-1" key={field.name}>
-                <label className="text-xs font-semibold text-gray-600">{t(field.labelKey)}</label>
+                <Label className="text-xs mb-0">{t(field.labelKey)}</Label>
                 {fieldControl}
                 {errorMessage && (field.kind === "select" || field.kind === "textarea") && (
-                  <span className="text-xs text-red-500 font-medium px-1 mt-1">{errorMessage as string}</span>
+                  <span className="text-xs text-danger font-medium px-1 mt-1">{errorMessage as string}</span>
                 )}
               </div>
             )

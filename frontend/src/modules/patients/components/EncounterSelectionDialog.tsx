@@ -5,7 +5,8 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "../../../shared/components/ui/Dialog"
+  Button,
+} from "../../../shared/components/ui"
 import type { Encounter } from "../types"
 import { formatDateTime } from "../../../shared/utils/dates"
 
@@ -44,30 +45,32 @@ export function EncounterSelectionDialog({
         </DialogHeader>
         <div className="flex flex-col gap-2 overflow-y-auto pr-1 mt-2">
           {encounters.length === 0 ? (
-            <div className="text-center py-8 text-sm text-gray-400 font-medium">
+            <div className="text-center py-8 text-sm text-muted-foreground/70 font-medium">
               {t("details.encountersCard.empty")}
             </div>
           ) : (
             encounters.map((encounter) => (
-              <button
+              <Button
                 key={encounter.fhir_id}
+                type="button"
+                variantType="outline"
                 onClick={() => handleSelect(encounter.fhir_id)}
-                className="w-full text-left flex items-center justify-between gap-3 px-4 py-3 rounded-lg border border-border hover:border-primary/30 hover:bg-gray-50 text-gray-700 transition-all duration-200"
+                className="w-full justify-between gap-3 px-4 py-3 h-auto rounded-lg hover:border-primary/30 hover:bg-muted-soft text-foreground transition-all duration-200"
               >
                 <div className="flex flex-col gap-0.5 min-w-0">
                   <span className="text-sm font-bold truncate">
                     {encounter.reason_display}
                   </span>
                   <div className="flex items-center gap-2">
-                    <span className="text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded font-bold uppercase tracking-wider">
+                    <span className="text-[10px] bg-muted-soft text-muted-foreground px-2 py-0.5 rounded font-bold uppercase tracking-wider">
                       {encounter.status}
                     </span>
-                    <span className="text-[11px] text-gray-400 font-semibold">
+                    <span className="text-[11px] text-muted-foreground/70 font-semibold">
                       {formatDateTime(encounter.created_at)}
                     </span>
                   </div>
                 </div>
-              </button>
+              </Button>
             ))
           )}
         </div>

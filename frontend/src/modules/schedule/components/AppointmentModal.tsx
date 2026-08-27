@@ -4,6 +4,8 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useTranslation } from "react-i18next"
 import { isAxiosError } from "axios"
 import { Input } from "../../../shared/components/ui/Input"
+import { Label } from "../../../shared/components/ui/Label"
+import { Textarea } from "../../../shared/components/ui/Textarea"
 import {
   Select,
   SelectTrigger,
@@ -118,14 +120,14 @@ export const AppointmentModal = ({
         </DialogHeader>
         <form onSubmit={handleFormSubmit} className="flex flex-col gap-4 text-left mt-4">
           {conflictMessage && (
-            <div className="text-xs font-semibold text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+            <div className="text-xs font-semibold text-danger bg-danger-soft border border-danger/20 rounded-lg px-3 py-2">
               {conflictMessage}
             </div>
           )}
           <div className="flex flex-col gap-1">
-            <label className="text-xs font-semibold text-gray-600">
+            <Label>
               {t("modals.create.patient")}
-            </label>
+            </Label>
             <Input
               type="text"
               value={patientSearch}
@@ -152,16 +154,16 @@ export const AppointmentModal = ({
               )}
             />
             {errors.patientFhirId?.message && (
-              <span className="text-xs text-red-500 font-medium px-1 mt-1">
+              <span className="text-xs text-danger font-medium px-1 mt-1">
                 {errors.patientFhirId.message}
               </span>
             )}
           </div>
 
           <div className="flex flex-col gap-1">
-            <label className="text-xs font-semibold text-gray-600">
+            <Label>
               {t("modals.create.staff")}
-            </label>
+            </Label>
             <Controller
               control={control}
               name="staffId"
@@ -181,7 +183,7 @@ export const AppointmentModal = ({
               )}
             />
             {errors.staffId?.message && (
-              <span className="text-xs text-red-500 font-medium px-1 mt-1">
+              <span className="text-xs text-danger font-medium px-1 mt-1">
                 {errors.staffId.message}
               </span>
             )}
@@ -189,36 +191,35 @@ export const AppointmentModal = ({
 
           <div className="grid grid-cols-3 gap-3">
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-semibold text-gray-600">
+              <Label>
                 {t("modals.create.date")}
-              </label>
+              </Label>
               <Input type="date" errorText={errors.date?.message} {...register("date")} />
             </div>
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-semibold text-gray-600">
+              <Label>
                 {t("modals.create.startTime")}
-              </label>
+              </Label>
               <Input type="time" step={900} errorText={errors.startTime?.message} {...register("startTime")} />
             </div>
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-semibold text-gray-600">
+              <Label>
                 {t("modals.create.endTime")}
-              </label>
+              </Label>
               <Input type="time" step={900} errorText={errors.endTime?.message} {...register("endTime")} />
             </div>
           </div>
 
           <div className="flex flex-col gap-1">
-            <label className="text-xs font-semibold text-gray-600">
+            <Label>
               {t("modals.create.reason")}
-            </label>
-            <textarea
-              className="flex min-h-[80px] w-full rounded-lg border border-border bg-transparent px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+            </Label>
+            <Textarea
               placeholder={t("modals.create.reasonPlaceholder")}
               {...register("reason")}
             />
             {errors.reason?.message && (
-              <span className="text-xs text-red-500 font-medium px-1 mt-1">
+              <span className="text-xs text-danger font-medium px-1 mt-1">
                 {errors.reason.message}
               </span>
             )}

@@ -1,4 +1,5 @@
 import { useSearchParams } from "react-router-dom"
+import { Button } from "../../shared/components/ui/Button"
 import { usePortalDashboardQuery } from "./queries"
 import { PortalDashboardOverview } from "./PortalDashboardOverview"
 import { PortalEncounters } from "./PortalEncounters"
@@ -58,7 +59,7 @@ export const PortalPage = () => {
       <div className="flex-1 p-4 sm:p-6 md:p-8 flex items-center justify-center">
         <div className="flex flex-col items-center gap-2">
           <Loader2 className="w-8 h-8 text-primary animate-spin" />
-          <span className="text-sm text-gray-500 font-medium">Carregando portal...</span>
+          <span className="text-sm text-muted-foreground font-medium">Carregando portal...</span>
         </div>
       </div>
     )
@@ -68,39 +69,38 @@ export const PortalPage = () => {
 
   return (
     <div className="flex-1 p-4 sm:p-6 md:p-8 flex flex-col gap-4 md:gap-6 max-w-7xl mx-auto w-full">
-      <div className="bg-white border border-border p-4 sm:p-6 rounded-xl">
+      <div className="bg-surface border border-border p-4 sm:p-6 rounded-xl">
         <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center">
+          <div className="w-14 h-14 rounded-full bg-primary-soft flex items-center justify-center">
             <span className="text-xl font-bold text-primary">
               {patientName.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()}
             </span>
           </div>
           <div>
-            <h1 className="text-xl font-display font-bold text-gray-900">{patientName}</h1>
-            <p className="text-sm text-gray-500">Portal do Paciente</p>
+            <h1 className="text-xl font-display font-bold text-foreground">{patientName}</h1>
+            <p className="text-sm text-muted-foreground">Portal do Paciente</p>
           </div>
         </div>
       </div>
 
       <div className="flex flex-col md:flex-row gap-6 items-start">
-        <div className="w-full md:w-56 shrink-0 bg-white border border-border p-4 rounded-xl flex flex-col gap-4">
-          <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-3 text-left">
+        <div className="w-full md:w-56 shrink-0 bg-surface border border-border p-4 rounded-xl flex flex-col gap-4">
+          <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest px-3 text-left">
             Navegação
           </span>
           <div className="flex flex-col gap-2">
             {sidebarItems.map((item) => (
-              <button
+              <Button
                 key={item.key}
                 onClick={() => setActiveTab(item.key)}
-                className={`w-full text-left flex items-center gap-3 px-4 py-3 rounded-lg text-xs font-extrabold transition-all duration-300 ${
-                  activeTab === item.key
-                    ? "bg-primary/8 text-primary"
-                    : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
+                variantType={activeTab === item.key ? "primary" : "ghost"}
+                className={`w-full justify-start gap-3 px-4 py-3 text-xs font-extrabold transition-all duration-300 h-auto shadow-none ${
+                  activeTab === item.key ? "" : "text-muted-foreground hover:text-foreground"
                 }`}
               >
                 {item.icon}
                 {item.label}
-              </button>
+              </Button>
             ))}
           </div>
         </div>
