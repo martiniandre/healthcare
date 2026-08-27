@@ -1,7 +1,13 @@
 {
   "title": "HealthCare",
   "subtitle": "Clinical Console v1.0",
-  "menuHeader": "Main Menu",
+  "topics": {
+    "clinical": "Clinical Care",
+    "diagnostics": "Diagnostics",
+    "operations": "Operations",
+    "system": "System",
+    "patient": "My Health"
+  },
   "patients": "Patients",
   "dashboard": "Clinical Dashboard",
   "portal": "My Portal",

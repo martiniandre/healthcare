@@ -1,7 +1,13 @@
 {
   "title": "HealthCare",
   "subtitle": "Consola Clínica v1.0",
-  "menuHeader": "Menú Principal",
+  "topics": {
+    "clinical": "Atención Clínica",
+    "diagnostics": "Diagnóstico",
+    "operations": "Operaciones",
+    "system": "Sistema",
+    "patient": "Mi Salud"
+  },
   "patients": "Pacientes",
   "dashboard": "Dashboard Clínico",
   "portal": "Mi Portal",
