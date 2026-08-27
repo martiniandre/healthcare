@@ -1,25 +1,22 @@
 import { useState } from "react"
-import { ShieldAlert, Plus, CheckCircle } from "lucide-react"
+import { ShieldAlert, Plus } from "lucide-react"
 import { useTranslation } from "react-i18next"
-import { createColumnHelper, type ColumnDef } from "@tanstack/react-table"
 import { Can, Action, Feature } from "../../../shared/auth/AbilityContext"
 import { Button } from "../../../shared/components/ui/Button"
 import { ClinicalTable } from "../../../shared/components/clinical/ClinicalTable"
 import { AllergyModal } from "./modals/AllergyModal"
+import { useClinicalAllergiesColumns } from "./useClinicalAllergiesColumns"
 import { usePatientAllergiesQuery, useCreateAllergyMutation } from "../queries"
 import { toast } from "../../../shared/store/toast_store"
-import { formatDateTime } from "../../../shared/utils/dates"
-import type { AllergyIntolerance } from "../types"
 
 interface ClinicalAllergiesProps {
   patientId: string
 }
 
-const columnHelper = createColumnHelper<AllergyIntolerance>()
-
 export default function ClinicalAllergies({ patientId }: ClinicalAllergiesProps) {
   const { t } = useTranslation("patients")
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const columns = useClinicalAllergiesColumns()
   const { data: allergies = [] } = usePatientAllergiesQuery(patientId)
   const createAllergyMutation = useCreateAllergyMutation()
 
@@ -37,42 +34,6 @@ export default function ClinicalAllergies({ patientId }: ClinicalAllergiesProps)
       toast.error(t("toast.allergyError"))
     }
   }
-
-  const columns = [
-    columnHelper.accessor("allergen_code", {
-      header: t("details.allergiesCard.code"),
-      cell: (info) => (
-        <span className="text-xs font-mono font-bold text-gray-700 bg-amber-50 border border-amber-100 px-2 py-1 rounded-md">
-          {info.getValue()}
-        </span>
-      ),
-    }),
-    columnHelper.accessor("allergen_display", {
-      header: t("details.allergiesCard.allergen"),
-      cell: (info) => <span className="text-sm font-bold text-gray-800 block">{info.getValue()}</span>,
-    }),
-    columnHelper.accessor("reaction", {
-      header: t("details.allergiesCard.reaction"),
-      cell: (info) => <span className="text-sm font-semibold text-red-600 block">{info.getValue()}</span>,
-    }),
-    columnHelper.accessor("clinical_status", {
-      header: t("details.allergiesCard.status"),
-      cell: (info) => (
-        <span className="text-[9px] bg-emerald-50 border border-emerald-100 text-emerald-600 px-2 py-0.5 rounded font-bold uppercase inline-flex items-center gap-1">
-          <CheckCircle className="w-3 h-3" />
-          {info.getValue()}
-        </span>
-      ),
-    }),
-    columnHelper.accessor("created_at", {
-      header: t("details.allergiesCard.date"),
-      cell: (info) => (
-        <span className="text-xs text-gray-500 font-semibold block">
-          {formatDateTime(info.getValue())}
-        </span>
-      ),
-    }),
-  ] as ColumnDef<AllergyIntolerance>[]
 
   return (
     <>
