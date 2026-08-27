@@ -12,10 +12,11 @@ type MockNotificationRepository struct {
 	Notifications []*notifications.Notification
 	Recipients    map[uuid.UUID][]uuid.UUID
 	UsersByRole   map[string][]uuid.UUID
-	UnreadCount   int32
-	CreateError   error
-	MarkReadError error
-	GetUsersError error
+	UnreadCount     int32
+	CreateError     error
+	MarkReadError   error
+	GetUsersError   error
+	GetRecipientsError error
 }
 
 func NewMockNotificationRepository() *MockNotificationRepository {
@@ -75,4 +76,11 @@ func (mockRepo *MockNotificationRepository) GetUserIDsByRole(ctx context.Context
 
 func (mockRepo *MockNotificationRepository) GetUserIDsByResource(ctx context.Context, resourceType, resourceID string) ([]uuid.UUID, error) {
 	return nil, nil
+}
+
+func (mockRepo *MockNotificationRepository) GetRecipientUserIDs(ctx context.Context, notificationID uuid.UUID) ([]uuid.UUID, error) {
+	if mockRepo.GetRecipientsError != nil {
+		return nil, mockRepo.GetRecipientsError
+	}
+	return mockRepo.Recipients[notificationID], nil
 }

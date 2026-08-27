@@ -1,6 +1,9 @@
 package auth
 
 import (
+	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"sync"
 	"time"
@@ -9,11 +12,26 @@ import (
 )
 
 var (
-	jwtSecret      []byte
-	jwtInitOnce    sync.Once
-	jwtInitErr     error
-	tokenBlacklist sync.Map
+	jwtSecret       []byte
+	jwtInitOnce     sync.Once
+	jwtInitErr      error
+	tokenBlacklist  sync.Map
+	revocationStore RevocationStore
 )
+
+type RevocationStore interface {
+	Revoke(ctx context.Context, tokenDigest string, expiresAt time.Time) error
+	IsRevoked(ctx context.Context, tokenDigest string) (bool, error)
+}
+
+func SetRevocationStore(store RevocationStore) {
+	revocationStore = store
+}
+
+func digestToken(tokenString string) string {
+	tokenDigest := sha256.Sum256([]byte(tokenString))
+	return hex.EncodeToString(tokenDigest[:])
+}
 
 func InitJWT(secretKey string) error {
 	jwtInitOnce.Do(func() {
@@ -74,25 +92,44 @@ func RevokeToken(tokenString string) {
 	if parseError != nil {
 		return
 	}
-	if claims, ok := token.Claims.(jwt.MapClaims); ok {
-		if exp, ok := claims["exp"].(float64); ok {
-			tokenBlacklist.Store(tokenString, int64(exp))
-		}
+	claims, claimsOk := token.Claims.(jwt.MapClaims)
+	if !claimsOk {
+		return
+	}
+	exp, expOk := claims["exp"].(float64)
+	if !expOk {
+		return
+	}
+
+	tokenDigest := digestToken(tokenString)
+	tokenBlacklist.Store(tokenDigest, int64(exp))
+
+	if revocationStore != nil {
+		_ = revocationStore.Revoke(context.Background(), tokenDigest, time.Unix(int64(exp), 0))
 	}
 }
 
 func isTokenRevoked(tokenString string) bool {
-	expValue, loaded := tokenBlacklist.Load(tokenString)
-	if !loaded {
+	tokenDigest := digestToken(tokenString)
+
+	expValue, loaded := tokenBlacklist.Load(tokenDigest)
+	if loaded {
+		if exp, ok := expValue.(int64); ok {
+			if time.Now().Unix() > exp {
+				tokenBlacklist.Delete(tokenDigest)
+			} else {
+				return true
+			}
+		}
+	}
+
+	if revocationStore == nil {
 		return false
 	}
-	exp, ok := expValue.(int64)
-	if !ok {
+
+	revoked, storeError := revocationStore.IsRevoked(context.Background(), tokenDigest)
+	if storeError != nil {
 		return false
 	}
-	if time.Now().Unix() > exp {
-		tokenBlacklist.Delete(tokenString)
-		return false
-	}
-	return true
+	return revoked
 }

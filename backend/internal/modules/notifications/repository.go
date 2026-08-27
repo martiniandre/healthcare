@@ -16,6 +16,7 @@ type Repository interface {
 	GetUnreadCount(ctx context.Context, userID uuid.UUID) (int32, error)
 	GetUserIDsByRole(ctx context.Context, roles []role.Role) ([]uuid.UUID, error)
 	GetUserIDsByResource(ctx context.Context, resourceType, resourceID string) ([]uuid.UUID, error)
+	GetRecipientUserIDs(ctx context.Context, notificationID uuid.UUID) ([]uuid.UUID, error)
 }
 
 type repository struct {
@@ -164,10 +165,9 @@ func (notificationRepository *repository) GetUserIDsByRole(ctx context.Context, 
 func (notificationRepository *repository) GetUserIDsByResource(ctx context.Context, resourceType, resourceID string) ([]uuid.UUID, error) {
 	switch resourceType {
 	case "room":
-		query := `SELECT u.id FROM users u
-			INNER JOIN employees e ON e.user_id = u.id
-			WHERE u.is_active = true`
-		rows, err := notificationRepository.db.Query(ctx, query)
+		clinicalRoles := []string{string(role.RoleDoctor), string(role.RoleNurse), string(role.RoleAdmin)}
+		query := `SELECT id FROM users WHERE role = ANY($1) AND is_active = true`
+		rows, err := notificationRepository.db.Query(ctx, query, clinicalRoles)
 		if err != nil {
 			return nil, err
 		}
@@ -186,4 +186,25 @@ func (notificationRepository *repository) GetUserIDsByResource(ctx context.Conte
 	default:
 		return nil, nil
 	}
+}
+
+func (notificationRepository *repository) GetRecipientUserIDs(ctx context.Context, notificationID uuid.UUID) ([]uuid.UUID, error) {
+	query := `SELECT user_id FROM notification_recipients WHERE notification_id = $1`
+	rows, err := notificationRepository.db.Query(ctx, query, notificationID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	userIDs := make([]uuid.UUID, 0)
+	for rows.Next() {
+		var userID uuid.UUID
+		err := rows.Scan(&userID)
+		if err != nil {
+			return nil, err
+		}
+		userIDs = append(userIDs, userID)
+	}
+
+	return userIDs, nil
 }

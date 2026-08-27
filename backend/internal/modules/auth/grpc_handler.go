@@ -71,7 +71,7 @@ func (handler *GRPCHandler) Register(ctx context.Context, req *pb.RegisterReques
 		return nil, apperrors.ErrBadRequest.WithFields(violations)
 	}
 
-	user, registerError := handler.service.Register(ctx, req.Email, req.Password, req.FullName, req.Role)
+	user, registerError := handler.service.Register(ctx, req.Email, req.Password, req.FullName, string(role.RolePatient))
 	if registerError != nil {
 		if errors.Is(registerError, ErrUserExists) {
 			return nil, apperrors.ErrUserAlreadyExists.ToGRPC()

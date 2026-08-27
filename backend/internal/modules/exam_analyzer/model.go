@@ -13,7 +13,7 @@ type ExamAnalysis struct {
 	PatientFhirID    *string         `db:"patient_fhir_id"  json:"patient_fhir_id,omitempty"`
 	ExamType         *string         `db:"exam_type"        json:"exam_type,omitempty"`
 	FileName         string          `db:"file_name"        json:"file_name"`
-	FilePath         string          `db:"file_path"        json:"file_path"`
+	FilePath         string          `db:"file_path"        json:"-"`
 	Status           string          `db:"status"           json:"status"`
 	AnalysisResponse json.RawMessage `db:"analysis_response" json:"analysis_response"`
 	ConsentGiven     bool            `db:"consent_given"    json:"consent_given"`

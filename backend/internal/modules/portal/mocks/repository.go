@@ -21,6 +21,7 @@ type MockPortalRepository struct {
 	MedicationsErr  error
 	ReportsErr      error
 	ImagingErr      error
+	PatientLink     map[string]string
 }
 
 func NewMockPortalRepository() *MockPortalRepository {
@@ -32,7 +33,16 @@ func NewMockPortalRepository() *MockPortalRepository {
 		Medications:  make(map[string][]portal.PortalMedication),
 		Reports:      make(map[string][]portal.PortalReport),
 		Imaging:      make(map[string][]portal.PortalImaging),
+		PatientLink:  make(map[string]string),
 	}
+}
+
+func (mockRepository *MockPortalRepository) ResolvePatientFHIRID(ctx context.Context, userID string) (string, error) {
+	patientFHIRID, exists := mockRepository.PatientLink[userID]
+	if !exists {
+		return "", portal.ErrPatientLinkNotFound
+	}
+	return patientFHIRID, nil
 }
 
 func (mockRepository *MockPortalRepository) GetPatient(ctx context.Context, fhirResourceID string) (*portal.PatientInfo, error) {

@@ -4,6 +4,8 @@ import (
 	"context"
 	"testing"
 
+	"golang.org/x/crypto/bcrypt"
+
 	"github.com/google/uuid"
 	"github.com/healthcare/backend/internal/modules/telemetry"
 	"github.com/healthcare/backend/internal/modules/telemetry/mocks"
@@ -165,10 +167,12 @@ func TestTelemetryService_UnlockRoom(testingInstance *testing.T) {
 	contextParam := context.Background()
 
 	roomID := uuid.New()
+	hashedPasscode, hashError := bcrypt.GenerateFromPassword([]byte("4321"), bcrypt.MinCost)
+	assert.NoError(testingInstance, hashError)
 	mockRepository.Rooms[roomID] = &telemetry.Room{
 		ID:          roomID,
 		Name:        "Sala Vermelha",
-		Passcode:    "4321",
+		Passcode:    string(hashedPasscode),
 		Description: "UTI",
 	}
 

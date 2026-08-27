@@ -133,10 +133,10 @@ func TestSubscribeAndBroadcast(testingInstance *testing.T) {
 	notificationService := notifications.NewService(mockRepository)
 	contextParam := context.Background()
 
-	sub := notificationService.Subscribe(contextParam)
+	userID := uuid.New()
+	sub := notificationService.Subscribe(contextParam, userID)
 	defer notificationService.Unsubscribe(sub)
 
-	userID := uuid.New()
 	createdNotification, createError := notificationService.CreateNotification(
 		contextParam,
 		notifications.NotificationTypeSystem,
@@ -153,4 +153,70 @@ func TestSubscribeAndBroadcast(testingInstance *testing.T) {
 
 	receivedNotification := <-sub.Channel()
 	assert.Equal(testingInstance, createdNotification.ID, receivedNotification.ID)
+}
+
+func TestBroadcastDoesNotDeliverToNonRecipients(testingInstance *testing.T) {
+	mockRepository := mocks.NewMockNotificationRepository()
+	notificationService := notifications.NewService(mockRepository)
+	contextParam := context.Background()
+
+	recipientUserID := uuid.New()
+	outsiderUserID := uuid.New()
+
+	recipientSubscription := notificationService.Subscribe(contextParam, recipientUserID)
+	defer notificationService.Unsubscribe(recipientSubscription)
+	outsiderSubscription := notificationService.Subscribe(contextParam, outsiderUserID)
+	defer notificationService.Unsubscribe(outsiderSubscription)
+
+	createdNotification, createError := notificationService.CreateNotification(
+		contextParam,
+		notifications.NotificationTypeTelemetryAlert,
+		"Clinical Alert",
+		"Paciente X apresenta condição crítica",
+		nil,
+		"bed",
+		uuid.New().String(),
+		[]uuid.UUID{recipientUserID},
+	)
+
+	assert.NoError(testingInstance, createError)
+
+	receivedNotification := <-recipientSubscription.Channel()
+	assert.Equal(testingInstance, createdNotification.ID, receivedNotification.ID)
+
+	select {
+	case leakedNotification := <-outsiderSubscription.Channel():
+		assert.Fail(testingInstance, "non-recipient subscriber received a notification", leakedNotification.Title)
+	default:
+	}
+}
+
+func TestBroadcastFailsClosedWhenRecipientLookupFails(testingInstance *testing.T) {
+	mockRepository := mocks.NewMockNotificationRepository()
+	mockRepository.GetRecipientsError = assert.AnError
+	notificationService := notifications.NewService(mockRepository)
+	contextParam := context.Background()
+
+	userID := uuid.New()
+	sub := notificationService.Subscribe(contextParam, userID)
+	defer notificationService.Unsubscribe(sub)
+
+	_, createError := notificationService.CreateNotification(
+		contextParam,
+		notifications.NotificationTypeSystem,
+		"Failing Lookup",
+		"Test body",
+		nil,
+		"",
+		"",
+		[]uuid.UUID{userID},
+	)
+
+	assert.NoError(testingInstance, createError)
+
+	select {
+	case leakedNotification := <-sub.Channel():
+		assert.Fail(testingInstance, "notification delivered despite recipient lookup failure", leakedNotification.Title)
+	default:
+	}
 }

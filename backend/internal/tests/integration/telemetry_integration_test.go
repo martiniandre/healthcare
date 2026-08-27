@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"testing"
 
+	"golang.org/x/crypto/bcrypt"
+
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -73,9 +75,13 @@ func seedTelemetryRoomAndBed(t *testing.T, db *pgxpool.Pool) (uuid.UUID, uuid.UU
 	ctx := context.Background()
 	roomID := uuid.New()
 	bedID := uuid.New()
+	hashedPasscode, hashError := bcrypt.GenerateFromPassword([]byte("1234"), bcrypt.MinCost)
+	if hashError != nil {
+		t.Fatalf("failed to hash telemetry passcode: %v", hashError)
+	}
 	if _, err := db.Exec(ctx, `
 		INSERT INTO telemetry_rooms (id, name, passcode, description)
-		VALUES ($1, 'Sala Teste', '1234', 'Quarto de teste')`, roomID); err != nil {
+		VALUES ($1, 'Sala Teste', $2, 'Quarto de teste')`, roomID, string(hashedPasscode)); err != nil {
 		t.Fatalf("failed to seed telemetry room: %v", err)
 	}
 	if _, err := db.Exec(ctx, `

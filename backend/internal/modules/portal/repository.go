@@ -3,15 +3,20 @@ package portal
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/url"
 	"strings"
 
 	"github.com/healthcare/backend/internal/shared/fhir"
 	"github.com/healthcare/backend/internal/shared/healthcare"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+var ErrPatientLinkNotFound = errors.New("no fhir patient linked to authenticated user")
+
 type Repository interface {
+	ResolvePatientFHIRID(ctx context.Context, userID string) (string, error)
 	GetPatient(ctx context.Context, fhirResourceID string) (*PatientInfo, error)
 	GetEncountersByPatient(ctx context.Context, patientFHIRID string) ([]PortalEncounter, error)
 	GetObservationsByPatient(ctx context.Context, patientFHIRID string) ([]PortalObservation, error)
@@ -23,10 +28,21 @@ type Repository interface {
 
 type repository struct {
 	fhirClient healthcare.FHIRClient
+	db         *pgxpool.Pool
 }
 
-func NewRepository(fhirClient healthcare.FHIRClient) Repository {
-	return &repository{fhirClient: fhirClient}
+func NewRepository(fhirClient healthcare.FHIRClient, db *pgxpool.Pool) Repository {
+	return &repository{fhirClient: fhirClient, db: db}
+}
+
+func (portalRepository *repository) ResolvePatientFHIRID(ctx context.Context, userID string) (string, error) {
+	query := `SELECT patient_fhir_id FROM patient_user_links WHERE user_id = $1`
+	var patientFHIRID string
+	err := portalRepository.db.QueryRow(ctx, query, userID).Scan(&patientFHIRID)
+	if err != nil {
+		return "", ErrPatientLinkNotFound
+	}
+	return patientFHIRID, nil
 }
 
 func (portalRepository *repository) GetPatient(ctx context.Context, fhirResourceID string) (*PatientInfo, error) {

@@ -17,6 +17,7 @@ type MockRepository struct {
 	ListAppointmentsByStaffOnDateFunc func(ctx context.Context, staffID uuid.UUID, date time.Time) ([]*Appointment, error)
 	ListAppointmentsByStaffInRangeFunc func(ctx context.Context, staffID uuid.UUID, startDate time.Time, endDate time.Time) ([]*Appointment, error)
 	ResolveActiveEmployeeIDByEmailFunc func(ctx context.Context, email string) (*uuid.UUID, error)
+	ResolvePatientFHIRIDByUserIDFunc  func(ctx context.Context, userID string) (string, error)
 	FindIdempotencyKeyFunc            func(ctx context.Context, idempotencyKey string) (*IdempotencyKey, error)
 	SaveIdempotencyKeyFunc            func(ctx context.Context, key *IdempotencyKey) error
 }
@@ -76,6 +77,13 @@ func (mock *MockRepository) ResolveActiveEmployeeIDByEmail(ctx context.Context, 
 		return mock.ResolveActiveEmployeeIDByEmailFunc(ctx, email)
 	}
 	return nil, apperrors.ErrPermissionDenied
+}
+
+func (mock *MockRepository) ResolvePatientFHIRIDByUserID(ctx context.Context, userID string) (string, error) {
+	if mock.ResolvePatientFHIRIDByUserIDFunc != nil {
+		return mock.ResolvePatientFHIRIDByUserIDFunc(ctx, userID)
+	}
+	return "", apperrors.ErrPatientNotFound
 }
 
 func (mock *MockRepository) FindIdempotencyKey(ctx context.Context, idempotencyKey string) (*IdempotencyKey, error) {

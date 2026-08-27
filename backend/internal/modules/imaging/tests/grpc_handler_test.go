@@ -42,7 +42,7 @@ func (mockStream *mockUploadDICOMServer) Send(response *pb.UploadDICOMResponse) 
 func TestGRPCHandler_UploadDICOM_ProgressTracking(testingInstance *testing.T) {
 	mockRepository := mocks.NewMockRepository()
 	storageClient := storage.NewStorageClient()
-	imagingService := imaging.NewService(mockRepository, storageClient, nil, "test-bucket")
+	imagingService := imaging.NewService(mockRepository, storageClient, nil, "test-bucket", nil)
 	grpcHandler := imaging.NewGRPCHandler(imagingService)
 
 	validDICOMBytes := make([]byte, 200)

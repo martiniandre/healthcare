@@ -6,17 +6,22 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"regexp"
 	"strings"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/healthcare/backend/internal/modules/audit_logs"
 	"github.com/healthcare/backend/internal/shared/apperrors"
+	"github.com/healthcare/backend/internal/shared/ctxkeys"
 	"github.com/healthcare/backend/internal/shared/storage"
 	"github.com/healthcare/backend/internal/shared/validator"
 	"github.com/redis/go-redis/v9"
 )
 
 const MaxDICOMUploadBytes int64 = 2 << 30
+
+var unsafeObjectPathChars = regexp.MustCompile(`[^A-Za-z0-9-.]`)
 
 type Service interface {
 	UploadDICOMStream(ctx context.Context, input UploadDICOMInput, streamReader io.Reader) (*ImagingStudy, error)
@@ -30,14 +35,16 @@ type service struct {
 	storageClient storage.StorageClient
 	redisClient   *redis.Client
 	bucketName    string
+	auditService  audit_logs.Service
 }
 
-func NewService(dbRepository Repository, storageClient storage.StorageClient, redisClient *redis.Client, bucketName string) Service {
+func NewService(dbRepository Repository, storageClient storage.StorageClient, redisClient *redis.Client, bucketName string, auditService audit_logs.Service) Service {
 	return &service{
 		dbRepository:  dbRepository,
 		storageClient: storageClient,
 		redisClient:   redisClient,
 		bucketName:    bucketName,
+		auditService:  auditService,
 	}
 }
 
@@ -70,7 +77,8 @@ func (serviceInstance *service) UploadDICOMStream(ctx context.Context, input Upl
 	boundedReader := &uploadLimitReader{reader: reconstructedReader, remainingBytes: MaxDICOMUploadBytes}
 
 	studyID := uuid.New()
-	objectPath := fmt.Sprintf("dicom/staging/%s/%s.dcm", input.PatientFhirID, studyID.String())
+	sanitizedPatientFhirID := unsafeObjectPathChars.ReplaceAllString(input.PatientFhirID, "_")
+	objectPath := fmt.Sprintf("dicom/staging/%s/%s.dcm", sanitizedPatientFhirID, studyID.String())
 
 	gcsStagingURL, uploadError := serviceInstance.storageClient.Upload(ctx, serviceInstance.bucketName, objectPath, boundedReader)
 	if uploadError != nil {
@@ -111,7 +119,7 @@ type uploadLimitReader struct {
 
 func (reader *uploadLimitReader) Read(buffer []byte) (int, error) {
 	if reader.remainingBytes <= 0 {
-		return 0, apperrors.ErrRateLimitExceeded
+		return 0, apperrors.ErrPayloadTooLarge
 	}
 	if int64(len(buffer)) > reader.remainingBytes {
 		buffer = buffer[:int(reader.remainingBytes)]
@@ -119,7 +127,7 @@ func (reader *uploadLimitReader) Read(buffer []byte) (int, error) {
 	bytesRead, readError := reader.reader.Read(buffer)
 	reader.remainingBytes -= int64(bytesRead)
 	if readError == nil && reader.remainingBytes == 0 {
-		return bytesRead, apperrors.ErrRateLimitExceeded
+		return bytesRead, apperrors.ErrPayloadTooLarge
 	}
 	return bytesRead, readError
 }
@@ -158,8 +166,36 @@ func (serviceInstance *service) GetDownloadURL(ctx context.Context, studyID stri
 		return "", time.Time{}, fmt.Errorf("failed to generate presigned url: %w", presignError)
 	}
 
+	serviceInstance.auditDownloadURLIssuance(ctx, parsedStudyID)
+
 	expiresAt := time.Now().Add(expirationDuration)
 	return downloadURL, expiresAt, nil
+}
+
+func (serviceInstance *service) auditDownloadURLIssuance(ctx context.Context, studyID uuid.UUID) {
+	if serviceInstance.auditService == nil {
+		return
+	}
+
+	callerUserID, _ := ctx.Value(ctxkeys.UserIDKey).(string)
+	callerRole, _ := ctx.Value(ctxkeys.RoleKey).(string)
+	correlationID, _ := ctx.Value(ctxkeys.RequestIDKey).(string)
+
+	go func() {
+		_, auditError := serviceInstance.auditService.CreateResourceAuditLog(context.Background(), audit_logs.ResourceAuditLog{
+			CorrelationID: correlationID,
+			CallerUserID:  callerUserID,
+			CallerRole:    callerRole,
+			Method:        "imaging.GetDICOMDownloadURL",
+			AccessGranted: true,
+			ResourceType:  "imaging_study",
+			ResourceID:    studyID.String(),
+			Action:        "download_url_issued",
+		})
+		if auditError != nil {
+			fmt.Printf("failed to persist imaging download audit log: %v\n", auditError)
+		}
+	}()
 }
 
 func validateUploadDICOMInput(input UploadDICOMInput) map[string]string {

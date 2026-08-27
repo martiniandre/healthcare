@@ -14,6 +14,7 @@ type Dependency struct {
 
 func Register(grpcServer *grpc.Server, dep Dependency) Service {
 	repo := NewRepository(dep.DB)
+	SetRevocationStore(repo)
 	svc := NewService(repo, dep.EventBus)
 	handler := NewGRPCHandler(svc)
 	authpb.RegisterAuthServiceServer(grpcServer, handler)

@@ -21,6 +21,14 @@ type fakePortalService struct {
 	reports      []portal.PortalReport
 	imaging      []portal.PortalImaging
 	serviceErr   error
+	resolveErr   error
+}
+
+func (fakeService *fakePortalService) ResolvePatientFHIRID(ctx context.Context, userID string) (string, error) {
+	if fakeService.resolveErr != nil {
+		return "", fakeService.resolveErr
+	}
+	return "patient-fhir-id", nil
 }
 
 func (fakeService *fakePortalService) GetDashboard(ctx context.Context, fhirResourceID string) (*portal.PortalDashboard, error) {
@@ -92,6 +100,16 @@ func TestPortalHTTPHandler_GetDashboard_ServiceErrorReturnsInternalServerError(t
 	handler.GetDashboard(responseRecorder, buildAuthenticatedPortalRequest())
 
 	require.Equal(testingInstance, http.StatusInternalServerError, responseRecorder.Code)
+}
+
+func TestPortalHTTPHandler_GetDashboard_UnlinkedPatientReturnsForbidden(testingInstance *testing.T) {
+	fakeService := &fakePortalService{resolveErr: portal.ErrPatientLinkNotFound}
+	handler := portal.NewHTTPHandler(fakeService)
+	responseRecorder := httptest.NewRecorder()
+
+	handler.GetDashboard(responseRecorder, buildAuthenticatedPortalRequest())
+
+	require.Equal(testingInstance, http.StatusForbidden, responseRecorder.Code)
 }
 
 func TestPortalHTTPHandler_GetEncounters_ReturnsEncounters(testingInstance *testing.T) {

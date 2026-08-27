@@ -121,15 +121,19 @@ func main() {
 	diagnosticReportService := diagnostic_report.Register(applicationServer.GRPCServer, diagnostic_report.Dependency{FHIRClient: fhirClient, EventBus: eventBus, DB: databasePool, AuditService: auditLogsService})
 	storageClient, storageClientErr := storage.NewGCSClient(mainContext)
 	if storageClientErr != nil {
+		if appConfig.AppEnv == "production" {
+			slog.Error("Failed to initialize GCS client in production, refusing to start with dummy storage", "error", storageClientErr)
+			os.Exit(1)
+		}
 		slog.Warn("Failed to initialize GCS client, falling back to dummy", "error", storageClientErr)
 		storageClient = storage.NewStorageClient()
 	}
-	imagingService := imaging.Register(applicationServer.GRPCServer, imaging.Dependency{DB: databasePool, Storage: storageClient, Redis: redisClient, BucketName: appConfig.GCSBucketName})
+	imagingService := imaging.Register(applicationServer.GRPCServer, imaging.Dependency{DB: databasePool, Storage: storageClient, Redis: redisClient, BucketName: appConfig.GCSBucketName, AuditService: auditLogsService})
 	telemetryService := telemetry.Register(applicationServer.GRPCServer, telemetry.Dependency{DB: databasePool, EventBus: eventBus})
 	telemetrySimulator := telemetry.StartSimulator(mainContext, databasePool, eventBus)
 	health.Register(applicationServer.GRPCServer, health.Dependency{DB: databasePool, Redis: redisClient})
 	analyticsHTTPHandler := analytics.Register(analytics.Dependency{DB: databasePool, FHIRClient: fhirClient})
-	portalHTTPHandler := portal.Register(portal.Dependency{FHIRClient: fhirClient})
+	portalHTTPHandler := portal.Register(portal.Dependency{FHIRClient: fhirClient, DB: databasePool})
 	_, notificationsHTTPHandler := notifications.Register(notifications.Dependency{DB: databasePool, EventBus: eventBus})
 	scheduleHTTPHandler := schedule.Register(schedule.Dependency{DB: databasePool, EventBus: eventBus, AuditService: auditLogsService})
 
@@ -140,6 +144,7 @@ func main() {
 	go imagingWorker.Start(mainContext)
 
 	secureCookies := appConfig.AppEnv != "development" && appConfig.AppEnv != "test"
+	swaggerEnabled := appConfig.AppEnv == "development" || appConfig.AppEnv == "test"
 
 	authHTTPHandler := auth.NewHTTPHandler(authService, secureCookies)
 	patientsHTTPHandler := patients.NewHTTPHandler(patientsService)
@@ -158,6 +163,7 @@ func main() {
 
 	router := api.NewRouter(
 		secureCookies,
+		swaggerEnabled,
 		authHTTPHandler,
 		patientsHTTPHandler,
 		encounterHTTPHandler,

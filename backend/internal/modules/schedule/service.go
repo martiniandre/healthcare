@@ -20,6 +20,7 @@ type Service interface {
 	CancelAppointment(ctx context.Context, appointmentID uuid.UUID) (*Appointment, error)
 	GetAppointment(ctx context.Context, appointmentID uuid.UUID) (*Appointment, error)
 	ListAppointmentsByPatient(ctx context.Context, patientFHIRID string) ([]*Appointment, error)
+	ListMyAppointments(ctx context.Context, authenticatedUserID string) ([]*Appointment, error)
 	ListAppointmentsByStaffOnDate(ctx context.Context, staffID uuid.UUID, date time.Time) ([]*Appointment, error)
 	ListAppointmentsByStaffInRange(ctx context.Context, staffID uuid.UUID, startDate time.Time, endDate time.Time) ([]*Appointment, error)
 }
@@ -164,6 +165,19 @@ func (appointmentService *service) ListAppointmentsByPatient(ctx context.Context
 	if patientFHIRID == "" {
 		return nil, apperrors.InvalidArgument("invalid appointment filter", map[string]string{"patient_fhir_id": "is required"})
 	}
+	return appointmentService.repo.ListAppointmentsByPatient(ctx, patientFHIRID)
+}
+
+func (appointmentService *service) ListMyAppointments(ctx context.Context, authenticatedUserID string) ([]*Appointment, error) {
+	if authenticatedUserID == "" {
+		return nil, apperrors.ErrUserNotFound
+	}
+
+	patientFHIRID, resolveErr := appointmentService.repo.ResolvePatientFHIRIDByUserID(ctx, authenticatedUserID)
+	if resolveErr != nil {
+		return nil, resolveErr
+	}
+
 	return appointmentService.repo.ListAppointmentsByPatient(ctx, patientFHIRID)
 }
 

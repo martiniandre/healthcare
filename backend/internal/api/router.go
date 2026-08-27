@@ -13,16 +13,19 @@ type RouteRegisterer interface {
 	RegisterRoutes(mux *http.ServeMux)
 }
 
-func NewRouter(secureCookies bool, registerers ...RouteRegisterer) http.Handler {
+func NewRouter(secureCookies bool, swaggerEnabled bool, registerers ...RouteRegisterer) http.Handler {
 	httpServeMux := http.NewServeMux()
 
-	httpServeMux.Handle("GET /swagger/", httpSwagger.Handler())
+	if swaggerEnabled {
+		httpServeMux.Handle("GET /swagger/", httpSwagger.Handler())
+	}
 
 	for _, registerer := range registerers {
 		registerer.RegisterRoutes(httpServeMux)
 	}
 
 	handlerPipeline := middleware.CORS(secureCookies)(httpServeMux)
+	handlerPipeline = middleware.RateLimit(handlerPipeline)
 	handlerPipeline = middleware.APIPrefixRewrite(handlerPipeline)
 	handlerPipeline = middleware.Recovery(handlerPipeline)
 	handlerPipeline = middleware.RequestID(handlerPipeline)
