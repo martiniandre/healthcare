@@ -26,6 +26,7 @@ type Config struct {
 	GCPDICOMStore        string
 	GCPVertexModel       string
 	GCSBucketName        string
+	StorageRoot          string
 	FHIRBaseURL          string
 }
 
@@ -52,6 +53,7 @@ func Load() (*Config, error) {
 		GCPDICOMStore:        getEnv("GCP_DICOM_STORE_ID", "default-dicom"),
 		GCPVertexModel:       getEnv("GCP_VERTEX_MODEL", "gemini-2.0-flash-001"),
 		GCSBucketName:        getEnv("GCS_BUCKET_NAME", "default-bucket"),
+		StorageRoot:          getEnv("STORAGE_ROOT", "dev"),
 		FHIRBaseURL:          getEnv("FHIR_BASE_URL", ""),
 	}
 
