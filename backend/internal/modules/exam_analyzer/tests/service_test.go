@@ -9,6 +9,7 @@ import (
 
 	"github.com/healthcare/backend/internal/modules/exam_analyzer"
 	"github.com/healthcare/backend/internal/modules/exam_analyzer/mocks"
+	"github.com/healthcare/backend/internal/shared/storage"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -25,7 +26,7 @@ func stringsContainsProbabilisticLanguage(text string) bool {
 
 func TestService_AnalyzeExamFile_InsufficientData(testingInstance *testing.T) {
 	mockRepository := mocks.NewMockExamAnalysisRepository()
-	serviceInstance := exam_analyzer.NewService(mockRepository, "", "", "")
+	serviceInstance := exam_analyzer.NewService(mockRepository, storage.NewStorageClient("test-bucket", "test"), "", "", "")
 	contextParam := context.Background()
 
 	temporaryDirectory := testingInstance.TempDir()
@@ -34,7 +35,10 @@ func TestService_AnalyzeExamFile_InsufficientData(testingInstance *testing.T) {
 	writeError := os.WriteFile(temporaryFilePath, make([]byte, 100), 0644)
 	assert.NoError(testingInstance, writeError)
 
-	analysisResponse, statusResult, err := serviceInstance.AnalyzeExamFile(contextParam, temporaryFilePath, "low_res_exam.png")
+	fileBytes, readBytesError := os.ReadFile(temporaryFilePath)
+	assert.NoError(testingInstance, readBytesError)
+
+	analysisResponse, statusResult, err := serviceInstance.AnalyzeExamFile(contextParam, "low_res_exam.png", fileBytes)
 
 	assert.NoError(testingInstance, err)
 	assert.Equal(testingInstance, "insufficient_data", statusResult)
@@ -43,7 +47,7 @@ func TestService_AnalyzeExamFile_InsufficientData(testingInstance *testing.T) {
 
 func TestService_AnalyzeExamFile_Simulation_Xray(testingInstance *testing.T) {
 	mockRepository := mocks.NewMockExamAnalysisRepository()
-	serviceInstance := exam_analyzer.NewService(mockRepository, "", "", "")
+	serviceInstance := exam_analyzer.NewService(mockRepository, storage.NewStorageClient("test-bucket", "test"), "", "", "")
 	contextParam := context.Background()
 
 	temporaryDirectory := testingInstance.TempDir()
@@ -52,7 +56,10 @@ func TestService_AnalyzeExamFile_Simulation_Xray(testingInstance *testing.T) {
 	writeError := os.WriteFile(temporaryFilePath, make([]byte, 6000), 0644)
 	assert.NoError(testingInstance, writeError)
 
-	analysisResponse, statusResult, err := serviceInstance.AnalyzeExamFile(contextParam, temporaryFilePath, "rx_chest.png")
+	fileBytes, readBytesError := os.ReadFile(temporaryFilePath)
+	assert.NoError(testingInstance, readBytesError)
+
+	analysisResponse, statusResult, err := serviceInstance.AnalyzeExamFile(contextParam, "rx_chest.png", fileBytes)
 
 	assert.NoError(testingInstance, err)
 	assert.Equal(testingInstance, "completed", statusResult)
@@ -71,7 +78,7 @@ func TestService_AnalyzeExamFile_Simulation_Xray(testingInstance *testing.T) {
 
 func TestService_AnalyzeExamFile_Simulation_Pdf(testingInstance *testing.T) {
 	mockRepository := mocks.NewMockExamAnalysisRepository()
-	serviceInstance := exam_analyzer.NewService(mockRepository, "", "", "")
+	serviceInstance := exam_analyzer.NewService(mockRepository, storage.NewStorageClient("test-bucket", "test"), "", "", "")
 	contextParam := context.Background()
 
 	temporaryDirectory := testingInstance.TempDir()
@@ -80,7 +87,10 @@ func TestService_AnalyzeExamFile_Simulation_Pdf(testingInstance *testing.T) {
 	writeError := os.WriteFile(temporaryFilePath, make([]byte, 6000), 0644)
 	assert.NoError(testingInstance, writeError)
 
-	analysisResponse, statusResult, err := serviceInstance.AnalyzeExamFile(contextParam, temporaryFilePath, "blood_test.pdf")
+	fileBytes, readBytesError := os.ReadFile(temporaryFilePath)
+	assert.NoError(testingInstance, readBytesError)
+
+	analysisResponse, statusResult, err := serviceInstance.AnalyzeExamFile(contextParam, "blood_test.pdf", fileBytes)
 
 	assert.NoError(testingInstance, err)
 	assert.Equal(testingInstance, "completed", statusResult)

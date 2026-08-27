@@ -49,7 +49,7 @@ A prescription or order for a medication to be administered to a Patient.
 _Avoid_: Prescription, drug order, medication order, Rx
 
 ### ImagingStudy:
-A DICOM imaging study whose metadata is stored in PostgreSQL and pixel data in GCS, with a FHIR ImagingStudy resource in the Healthcare API.
+A DICOM imaging study whose metadata is stored in PostgreSQL and pixel data in object storage (GCS), with a FHIR ImagingStudy resource in the Healthcare API.
 _Avoid_: DICOM study, image, scan, radiology study
 
 ### Telemetry:
@@ -59,6 +59,10 @@ _Avoid_: Monitoring, vitals, patient tracking, remote monitoring
 ### ExamAnalysis:
 An AI-powered analysis of a medical exam, processed asynchronously via Vertex AI (Gemini), with consent and anonymization controls.
 _Avoid_: AI analysis, exam review, automated diagnosis, AI diagnosis
+
+### Storage Object:
+A clinical file (DICOM study, exam image, PDF) stored durably in object storage (GCS), located by its owning record's UUID and a file extension; only metadata lives in PostgreSQL.
+_Avoid_: upload, blob, file, artifact, asset
 
 ### AuditLog:
 An immutable record of system access and operations, persisted for HIPAA/LGPD compliance.

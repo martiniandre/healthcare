@@ -28,7 +28,7 @@ func NewRepository(dbPool *pgxpool.Pool) Repository {
 
 func (repo *repository) CreateImagingStudy(ctx context.Context, study *ImagingStudy) error {
 	queryStatement := `
-		INSERT INTO imaging_studies (id, patient_fhir_id, title, modality, gcs_path, study_instance_uid, status, created_at, updated_at)
+		INSERT INTO imaging_studies (id, patient_fhir_id, title, modality, file_name, study_instance_uid, status, created_at, updated_at)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 	`
 	_, executionError := repo.dbPool.Exec(
@@ -38,7 +38,7 @@ func (repo *repository) CreateImagingStudy(ctx context.Context, study *ImagingSt
 		study.PatientFhirID,
 		study.Title,
 		study.Modality,
-		study.GCSPath,
+		study.FileName,
 		study.StudyInstanceUID,
 		study.Status,
 		study.CreatedAt,
@@ -49,7 +49,7 @@ func (repo *repository) CreateImagingStudy(ctx context.Context, study *ImagingSt
 
 func (repo *repository) GetImagingStudy(ctx context.Context, id uuid.UUID) (*ImagingStudy, error) {
 	queryStatement := `
-		SELECT id, patient_fhir_id, title, modality, gcs_path, study_instance_uid, status, created_at, updated_at
+		SELECT id, patient_fhir_id, title, modality, file_name, study_instance_uid, status, created_at, updated_at
 		FROM imaging_studies
 		WHERE id = $1
 	`
@@ -61,7 +61,7 @@ func (repo *repository) GetImagingStudy(ctx context.Context, id uuid.UUID) (*Ima
 		&study.PatientFhirID,
 		&study.Title,
 		&study.Modality,
-		&study.GCSPath,
+		&study.FileName,
 		&study.StudyInstanceUID,
 		&study.Status,
 		&study.CreatedAt,
@@ -78,7 +78,7 @@ func (repo *repository) GetImagingStudy(ctx context.Context, id uuid.UUID) (*Ima
 
 func (repo *repository) ListImagingStudiesByPatient(ctx context.Context, patientFhirID string) ([]*ImagingStudy, error) {
 	queryStatement := `
-		SELECT id, patient_fhir_id, title, modality, gcs_path, study_instance_uid, status, created_at, updated_at
+		SELECT id, patient_fhir_id, title, modality, file_name, study_instance_uid, status, created_at, updated_at
 		FROM imaging_studies
 		WHERE patient_fhir_id = $1
 		ORDER BY created_at DESC
@@ -97,7 +97,7 @@ func (repo *repository) ListImagingStudiesByPatient(ctx context.Context, patient
 			&study.PatientFhirID,
 			&study.Title,
 			&study.Modality,
-			&study.GCSPath,
+			&study.FileName,
 			&study.StudyInstanceUID,
 			&study.Status,
 			&study.CreatedAt,
@@ -117,7 +117,7 @@ func (repo *repository) ListImagingStudiesByPatient(ctx context.Context, patient
 func (repo *repository) UpdateImagingStudy(ctx context.Context, study *ImagingStudy) error {
 	queryStatement := `
 		UPDATE imaging_studies
-		SET patient_fhir_id = $2, title = $3, modality = $4, gcs_path = $5, study_instance_uid = $6, status = $7, updated_at = $8
+		SET patient_fhir_id = $2, title = $3, modality = $4, file_name = $5, study_instance_uid = $6, status = $7, updated_at = $8
 		WHERE id = $1
 	`
 	_, executionError := repo.dbPool.Exec(
@@ -127,7 +127,7 @@ func (repo *repository) UpdateImagingStudy(ctx context.Context, study *ImagingSt
 		study.PatientFhirID,
 		study.Title,
 		study.Modality,
-		study.GCSPath,
+		study.FileName,
 		study.StudyInstanceUID,
 		study.Status,
 		study.UpdatedAt,

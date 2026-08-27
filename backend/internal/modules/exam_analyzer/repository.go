@@ -31,9 +31,9 @@ func NewRepository(databasePool *pgxpool.Pool) Repository {
 func (repo *repository) CreateAnalysis(ctx context.Context, analysis *ExamAnalysis) error {
 	queryStatement := `
 		INSERT INTO exam_analyses (
-			id, user_id, patient_fhir_id, exam_type, file_name, file_path, status, 
+			id, user_id, patient_fhir_id, exam_type, file_name, status, 
 			analysis_response, consent_given, anonymized, created_at, updated_at
-		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
 	`
 	_, executionError := repo.databasePool.Exec(
 		ctx,
@@ -43,7 +43,6 @@ func (repo *repository) CreateAnalysis(ctx context.Context, analysis *ExamAnalys
 		analysis.PatientFhirID,
 		analysis.ExamType,
 		analysis.FileName,
-		analysis.FilePath,
 		analysis.Status,
 		analysis.AnalysisResponse,
 		analysis.ConsentGiven,
@@ -57,7 +56,7 @@ func (repo *repository) CreateAnalysis(ctx context.Context, analysis *ExamAnalys
 func (repo *repository) GetAnalysis(ctx context.Context, id uuid.UUID) (*ExamAnalysis, error) {
 	queryStatement := `
 		SELECT 
-			id, user_id, patient_fhir_id, exam_type, file_name, file_path, status, 
+			id, user_id, patient_fhir_id, exam_type, file_name, status, 
 			analysis_response, consent_given, anonymized, created_at, updated_at
 		FROM exam_analyses
 		WHERE id = $1
@@ -71,7 +70,6 @@ func (repo *repository) GetAnalysis(ctx context.Context, id uuid.UUID) (*ExamAna
 		&analysis.PatientFhirID,
 		&analysis.ExamType,
 		&analysis.FileName,
-		&analysis.FilePath,
 		&analysis.Status,
 		&analysis.AnalysisResponse,
 		&analysis.ConsentGiven,
@@ -96,7 +94,7 @@ func (repo *repository) ListAnalyses(ctx context.Context, patientFhirID *string)
 	if patientFhirID != nil && *patientFhirID != "" {
 		queryStatement = `
 			SELECT 
-				id, user_id, patient_fhir_id, exam_type, file_name, file_path, status, 
+				id, user_id, patient_fhir_id, exam_type, file_name, status, 
 				analysis_response, consent_given, anonymized, created_at, updated_at
 			FROM exam_analyses
 			WHERE patient_fhir_id = $1
@@ -106,7 +104,7 @@ func (repo *repository) ListAnalyses(ctx context.Context, patientFhirID *string)
 	} else {
 		queryStatement = `
 			SELECT 
-				id, user_id, patient_fhir_id, exam_type, file_name, file_path, status, 
+				id, user_id, patient_fhir_id, exam_type, file_name, status, 
 				analysis_response, consent_given, anonymized, created_at, updated_at
 			FROM exam_analyses
 			ORDER BY created_at DESC
@@ -128,7 +126,6 @@ func (repo *repository) ListAnalyses(ctx context.Context, patientFhirID *string)
 			&analysis.PatientFhirID,
 			&analysis.ExamType,
 			&analysis.FileName,
-			&analysis.FilePath,
 			&analysis.Status,
 			&analysis.AnalysisResponse,
 			&analysis.ConsentGiven,
@@ -151,8 +148,8 @@ func (repo *repository) ListAnalyses(ctx context.Context, patientFhirID *string)
 func (repo *repository) UpdateAnalysis(ctx context.Context, analysis *ExamAnalysis) error {
 	queryStatement := `
 		UPDATE exam_analyses
-		SET user_id = $2, patient_fhir_id = $3, exam_type = $4, file_name = $5, file_path = $6, 
-			status = $7, analysis_response = $8, consent_given = $9, anonymized = $10, updated_at = $11
+		SET user_id = $2, patient_fhir_id = $3, exam_type = $4, file_name = $5, 
+			status = $6, analysis_response = $7, consent_given = $8, anonymized = $9, updated_at = $10
 		WHERE id = $1
 	`
 	_, executionError := repo.databasePool.Exec(
@@ -163,7 +160,6 @@ func (repo *repository) UpdateAnalysis(ctx context.Context, analysis *ExamAnalys
 		analysis.PatientFhirID,
 		analysis.ExamType,
 		analysis.FileName,
-		analysis.FilePath,
 		analysis.Status,
 		analysis.AnalysisResponse,
 		analysis.ConsentGiven,

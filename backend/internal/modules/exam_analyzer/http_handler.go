@@ -2,10 +2,8 @@ package exam_analyzer
 
 import (
 	"encoding/json"
-	"io"
 	"log/slog"
 	"net/http"
-	"os"
 	"path/filepath"
 	"strings"
 	"time"
@@ -118,13 +116,6 @@ func (handler *HTTPHandler) CreateAnalysis(httpResponseWriter http.ResponseWrite
 	}
 	defer file.Close()
 
-	uploadDirectory := filepath.Join("tmp", "exam_uploads")
-	if makeDirErr := os.MkdirAll(uploadDirectory, 0755); makeDirErr != nil {
-		slog.Error("failed to create upload directory", "error", makeDirErr, "path", uploadDirectory, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.Error(httpResponseWriter, http.StatusInternalServerError, "Erro ao inicializar pasta temporária de uploads.")
-		return
-	}
-
 	analysisID := uuid.New()
 	fileExtension := strings.ToLower(filepath.Ext(fileHeader.Filename))
 	if fileExtension != ".png" && fileExtension != ".jpg" && fileExtension != ".jpeg" && fileExtension != ".pdf" {
@@ -132,21 +123,9 @@ func (handler *HTTPHandler) CreateAnalysis(httpResponseWriter http.ResponseWrite
 		return
 	}
 
-	savedFileName := analysisID.String() + fileExtension
-
-	destinationPath := filepath.Join(uploadDirectory, analysisID.String()+fileExtension)
-	destinationFile, createErr := os.Create(destinationPath)
-	if createErr != nil {
-		slog.Error("failed to create destination file", "error", createErr, "path", destinationPath, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.Error(httpResponseWriter, http.StatusInternalServerError, "Falha ao criar arquivo no destino temporário.")
-		return
-	}
-	defer destinationFile.Close()
-
-	if _, copyErr := io.Copy(destinationFile, file); copyErr != nil {
-		slog.Error("failed to write file to disk", "error", copyErr, "path", destinationPath, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.Error(httpResponseWriter, http.StatusInternalServerError, "Falha ao gravar arquivo em disco.")
-		return
+	sanitizedFileName := unsafeExamPathChars.ReplaceAllString(strings.TrimSpace(filepath.Base(fileHeader.Filename)), "_")
+	if sanitizedFileName == "" {
+		sanitizedFileName = analysisID.String() + fileExtension
 	}
 
 	userIDStr, _ := httpRequest.Context().Value(ctxkeys.UserIDKey).(string)
@@ -169,8 +148,7 @@ func (handler *HTTPHandler) CreateAnalysis(httpResponseWriter http.ResponseWrite
 		UserID:           parsedUserID,
 		PatientFhirID:    targetPatient,
 		ExamType:         nil,
-		FileName:         savedFileName,
-		FilePath:         destinationPath,
+		FileName:         sanitizedFileName,
 		Status:           "pending",
 		AnalysisResponse: json.RawMessage(defaultResponse),
 		ConsentGiven:     true,
@@ -179,7 +157,7 @@ func (handler *HTTPHandler) CreateAnalysis(httpResponseWriter http.ResponseWrite
 		UpdatedAt:        time.Now(),
 	}
 
-	if saveErr := handler.repository.CreateAnalysis(httpRequest.Context(), newAnalysisRecord); saveErr != nil {
+	if saveErr := handler.service.CreateAnalysis(httpRequest.Context(), newAnalysisRecord, file); saveErr != nil {
 		slog.Error("failed to save analysis metadata", "error", saveErr, "analysis_id", analysisID, "request_id", middleware.GetRequestID(httpRequest.Context()))
 		render.Error(httpResponseWriter, http.StatusInternalServerError, "Falha ao salvar metadados da análise.")
 		return
@@ -283,20 +261,7 @@ func (handler *HTTPHandler) DeleteAnalysis(httpResponseWriter http.ResponseWrite
 		return
 	}
 
-	analysisRecord, fetchErr := handler.repository.GetAnalysis(httpRequest.Context(), analysisID)
-	if fetchErr != nil {
-		slog.Error("analysis not found for deletion", "error", fetchErr, "analysis_id", analysisIDRaw, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.Error(httpResponseWriter, http.StatusNotFound, "Análise de exame não encontrada para exclusão.")
-		return
-	}
-
-	if analysisRecord.FilePath != "deleted" {
-		if _, statErr := os.Stat(analysisRecord.FilePath); statErr == nil {
-			_ = os.Remove(analysisRecord.FilePath)
-		}
-	}
-
-	if deleteErr := handler.repository.DeleteAnalysis(httpRequest.Context(), analysisID); deleteErr != nil {
+	if deleteErr := handler.service.DeleteAnalysis(httpRequest.Context(), analysisID); deleteErr != nil {
 		slog.Error("failed to delete analysis", "error", deleteErr, "analysis_id", analysisIDRaw, "request_id", middleware.GetRequestID(httpRequest.Context()))
 		render.Error(httpResponseWriter, http.StatusInternalServerError, "Falha ao remover análise de exame do banco de dados.")
 		return

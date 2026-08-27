@@ -119,16 +119,16 @@ func main() {
 	medicationService := medication.Register(applicationServer.GRPCServer, medication.Dependency{FHIRClient: fhirClient})
 	auditLogsService := audit_logs.Register(applicationServer.GRPCServer, audit_logs.Dependency{DB: databasePool})
 	diagnosticReportService := diagnostic_report.Register(applicationServer.GRPCServer, diagnostic_report.Dependency{FHIRClient: fhirClient, EventBus: eventBus, DB: databasePool, AuditService: auditLogsService})
-	storageClient, storageClientErr := storage.NewGCSClient(mainContext)
+	storageClient, storageClientErr := storage.NewGCSClient(mainContext, appConfig.GCSBucketName, appConfig.StorageRoot)
 	if storageClientErr != nil {
 		if appConfig.AppEnv == "production" {
 			slog.Error("Failed to initialize GCS client in production, refusing to start with dummy storage", "error", storageClientErr)
 			os.Exit(1)
 		}
 		slog.Warn("Failed to initialize GCS client, falling back to dummy", "error", storageClientErr)
-		storageClient = storage.NewStorageClient()
+		storageClient = storage.NewStorageClient(appConfig.GCSBucketName, appConfig.StorageRoot)
 	}
-	imagingService := imaging.Register(applicationServer.GRPCServer, imaging.Dependency{DB: databasePool, Storage: storageClient, Redis: redisClient, BucketName: appConfig.GCSBucketName, AuditService: auditLogsService})
+	imagingService := imaging.Register(applicationServer.GRPCServer, imaging.Dependency{DB: databasePool, Storage: storageClient, Redis: redisClient, AuditService: auditLogsService})
 	telemetryService := telemetry.Register(applicationServer.GRPCServer, telemetry.Dependency{DB: databasePool, EventBus: eventBus})
 	telemetrySimulator := telemetry.StartSimulator(mainContext, databasePool, eventBus)
 	health.Register(applicationServer.GRPCServer, health.Dependency{DB: databasePool, Redis: redisClient})
@@ -137,7 +137,7 @@ func main() {
 	_, notificationsHTTPHandler := notifications.Register(notifications.Dependency{DB: databasePool, EventBus: eventBus})
 	scheduleHTTPHandler := schedule.Register(schedule.Dependency{DB: databasePool, EventBus: eventBus, AuditService: auditLogsService})
 
-	examAnalyzerRepo, examAnalyzerSvc, examAnalyzerWorker := exam_analyzer.Register(applicationServer.GRPCServer, exam_analyzer.Dependency{DB: databasePool, ProjectID: appConfig.GCPProjectID, LocationID: appConfig.GCPLocationID, VertexModel: appConfig.GCPVertexModel, EventBus: eventBus})
+	examAnalyzerRepo, examAnalyzerSvc, examAnalyzerWorker := exam_analyzer.Register(applicationServer.GRPCServer, exam_analyzer.Dependency{DB: databasePool, Storage: storageClient, ProjectID: appConfig.GCPProjectID, LocationID: appConfig.GCPLocationID, VertexModel: appConfig.GCPVertexModel, EventBus: eventBus})
 	go examAnalyzerWorker.Start(mainContext)
 
 	imagingWorker := imaging.NewWorker(imaging.NewRepository(databasePool), redisClient, fhirClient)

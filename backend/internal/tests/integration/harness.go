@@ -170,12 +170,11 @@ func newTestServer(t *testing.T) *testServer {
 		DB:           environment.pool,
 		AuditService: auditLogsService,
 	})
-	storageClient := storage.NewStorageClient()
+	storageClient := storage.NewStorageClient("integration-test-bucket", "integration-test")
 	imagingService := imaging.Register(grpcServer, imaging.Dependency{
 		DB:           environment.pool,
 		Storage:      storageClient,
 		Redis:        environment.redisClient,
-		BucketName:   "integration-test-bucket",
 		AuditService: auditLogsService,
 	})
 	telemetryService := telemetry.Register(grpcServer, telemetry.Dependency{DB: environment.pool, EventBus: eventBus})
@@ -184,7 +183,7 @@ func newTestServer(t *testing.T) *testServer {
 	portalHTTPHandler := portal.Register(portal.Dependency{FHIRClient: fhirClient, DB: environment.pool})
 	_, notificationsHTTPHandler := notifications.Register(notifications.Dependency{DB: environment.pool, EventBus: eventBus})
 	scheduleHTTPHandler := schedule.Register(schedule.Dependency{DB: environment.pool, EventBus: eventBus, AuditService: auditLogsService})
-	examAnalyzerRepository, examAnalyzerService, examAnalyzerWorker := exam_analyzer.Register(grpcServer, exam_analyzer.Dependency{DB: environment.pool, EventBus: eventBus})
+	examAnalyzerRepository, examAnalyzerService, examAnalyzerWorker := exam_analyzer.Register(grpcServer, exam_analyzer.Dependency{DB: environment.pool, Storage: storageClient, EventBus: eventBus})
 
 	secureCookies := false
 	middleware.ResetRateLimits()

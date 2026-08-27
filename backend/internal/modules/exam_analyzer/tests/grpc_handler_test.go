@@ -9,12 +9,13 @@ import (
 	"github.com/healthcare/backend/internal/modules/exam_analyzer"
 	"github.com/healthcare/backend/internal/modules/exam_analyzer/mocks"
 	"github.com/healthcare/backend/internal/modules/exam_analyzer/pb"
+	"github.com/healthcare/backend/internal/shared/storage"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestGRPCHandler_ListAnalyses(testingInstance *testing.T) {
 	mockRepository := mocks.NewMockExamAnalysisRepository()
-	serviceInstance := exam_analyzer.NewService(mockRepository, "", "", "")
+	serviceInstance := exam_analyzer.NewService(mockRepository, storage.NewStorageClient("test-bucket", "test"), "", "", "")
 	grpcHandler := exam_analyzer.NewGRPCHandler(serviceInstance)
 
 	analysisID := uuid.New()
@@ -40,7 +41,7 @@ func TestGRPCHandler_ListAnalyses(testingInstance *testing.T) {
 
 func TestGRPCHandler_ListAnalyses_WithPatientFilter(testingInstance *testing.T) {
 	mockRepository := mocks.NewMockExamAnalysisRepository()
-	serviceInstance := exam_analyzer.NewService(mockRepository, "", "", "")
+	serviceInstance := exam_analyzer.NewService(mockRepository, storage.NewStorageClient("test-bucket", "test"), "", "", "")
 	grpcHandler := exam_analyzer.NewGRPCHandler(serviceInstance)
 
 	patientFhirID := "patient-123"
@@ -77,7 +78,7 @@ func TestGRPCHandler_ListAnalyses_WithPatientFilter(testingInstance *testing.T) 
 
 func TestGRPCHandler_GetAnalysis(testingInstance *testing.T) {
 	mockRepository := mocks.NewMockExamAnalysisRepository()
-	serviceInstance := exam_analyzer.NewService(mockRepository, "", "", "")
+	serviceInstance := exam_analyzer.NewService(mockRepository, storage.NewStorageClient("test-bucket", "test"), "", "", "")
 	grpcHandler := exam_analyzer.NewGRPCHandler(serviceInstance)
 
 	analysisID := uuid.New()
@@ -103,7 +104,7 @@ func TestGRPCHandler_GetAnalysis(testingInstance *testing.T) {
 
 func TestGRPCHandler_GetAnalysis_NotFound(testingInstance *testing.T) {
 	mockRepository := mocks.NewMockExamAnalysisRepository()
-	serviceInstance := exam_analyzer.NewService(mockRepository, "", "", "")
+	serviceInstance := exam_analyzer.NewService(mockRepository, storage.NewStorageClient("test-bucket", "test"), "", "", "")
 	grpcHandler := exam_analyzer.NewGRPCHandler(serviceInstance)
 
 	response, err := grpcHandler.GetAnalysis(context.Background(), &pb.GetAnalysisRequest{
@@ -116,7 +117,7 @@ func TestGRPCHandler_GetAnalysis_NotFound(testingInstance *testing.T) {
 
 func TestGRPCHandler_GetAnalysis_InvalidID(testingInstance *testing.T) {
 	mockRepository := mocks.NewMockExamAnalysisRepository()
-	serviceInstance := exam_analyzer.NewService(mockRepository, "", "", "")
+	serviceInstance := exam_analyzer.NewService(mockRepository, storage.NewStorageClient("test-bucket", "test"), "", "", "")
 	grpcHandler := exam_analyzer.NewGRPCHandler(serviceInstance)
 
 	response, err := grpcHandler.GetAnalysis(context.Background(), &pb.GetAnalysisRequest{
@@ -129,7 +130,7 @@ func TestGRPCHandler_GetAnalysis_InvalidID(testingInstance *testing.T) {
 
 func TestGRPCHandler_DeleteAnalysis(testingInstance *testing.T) {
 	mockRepository := mocks.NewMockExamAnalysisRepository()
-	serviceInstance := exam_analyzer.NewService(mockRepository, "", "", "")
+	serviceInstance := exam_analyzer.NewService(mockRepository, storage.NewStorageClient("test-bucket", "test"), "", "", "")
 	grpcHandler := exam_analyzer.NewGRPCHandler(serviceInstance)
 
 	analysisID := uuid.New()
@@ -153,7 +154,7 @@ func TestGRPCHandler_DeleteAnalysis(testingInstance *testing.T) {
 
 func TestGRPCHandler_DeleteAnalysis_InvalidID(testingInstance *testing.T) {
 	mockRepository := mocks.NewMockExamAnalysisRepository()
-	serviceInstance := exam_analyzer.NewService(mockRepository, "", "", "")
+	serviceInstance := exam_analyzer.NewService(mockRepository, storage.NewStorageClient("test-bucket", "test"), "", "", "")
 	grpcHandler := exam_analyzer.NewGRPCHandler(serviceInstance)
 
 	response, err := grpcHandler.DeleteAnalysis(context.Background(), &pb.DeleteAnalysisRequest{
