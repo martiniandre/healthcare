@@ -1,17 +1,13 @@
 import { useState } from "react"
-import { Activity, Heart, Plus } from "lucide-react"
+import { Heart, Plus } from "lucide-react"
 import { useTranslation } from "react-i18next"
-import { createColumnHelper, type ColumnDef } from "@tanstack/react-table"
 import { Can, Action, Feature } from "../../../shared/auth/AbilityContext"
 import { Button } from "../../../shared/components/ui/Button"
 import { ClinicalTable } from "../../../shared/components/clinical/ClinicalTable"
 import { ObservationModal } from "./modals/ObservationModal"
-import { findVitalSignDisplay } from "./vitalSignDisplay"
-import { VitalSignValueDisplay } from "./VitalSignValueDisplay"
+import { useVitalSignsColumns } from "./useVitalSignsColumns"
 import { useObservationsQuery, useCreateVitalSignsPanelMutation } from "../queries"
 import { toast } from "../../../shared/store/toast_store"
-import { formatDateTime } from "../../../shared/utils/dates"
-import type { Observation } from "../types"
 import type { NewVitalSignsPanelFormData } from "../patient_schemas"
 
 interface VitalSignsProps {
@@ -19,11 +15,10 @@ interface VitalSignsProps {
   encounterId: string
 }
 
-const columnHelper = createColumnHelper<Observation>()
-
 export default function VitalSigns({ patientId, encounterId }: VitalSignsProps) {
   const { t } = useTranslation("patients")
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const columns = useVitalSignsColumns()
   const { data: observations = [] } = useObservationsQuery(encounterId)
   const createVitalSignsPanelMutation = useCreateVitalSignsPanelMutation()
 
@@ -40,50 +35,6 @@ export default function VitalSigns({ patientId, encounterId }: VitalSignsProps) 
       toast.error(t("toast.observationError"))
     }
   }
-
-  const columns = [
-    columnHelper.accessor("code_display", {
-      header: t("details.vitalsCard.display"),
-      cell: (info) => {
-        const observation = info.row.original
-        const displayMetadata = findVitalSignDisplay(observation.loinc_code)
-        const IconComponent = displayMetadata?.IconComponent ?? Activity
-        return (
-          <div className="flex items-center gap-3">
-            <div className={`p-2 rounded-lg border ${displayMetadata?.iconClassName ?? "bg-blue-50 border-blue-100 text-blue-600"}`}>
-              <IconComponent className="w-4 h-4" />
-            </div>
-            <span className="text-sm font-bold text-gray-800 block">
-              {displayMetadata?.labelKey ? t(displayMetadata.labelKey) : info.getValue()}
-            </span>
-          </div>
-        )
-      },
-    }),
-    columnHelper.accessor("loinc_code", {
-      header: t("details.vitalsCard.code"),
-      cell: (info) => <span className="text-xs font-mono text-gray-500">{info.getValue()}</span>,
-    }),
-    columnHelper.accessor("value_quantity", {
-      header: t("details.vitalsCard.value"),
-      cell: (info) => {
-        const observation = info.row.original
-        return (
-          <VitalSignValueDisplay
-            notPerformed={observation.not_performed}
-            valueQuantity={info.getValue()}
-            valueUnit={observation.value_unit}
-          />
-        )
-      },
-    }),
-    columnHelper.accessor("created_at", {
-      header: t("details.vitalsCard.date"),
-      cell: (info) => (
-        <span className="text-xs text-gray-500 font-semibold">{formatDateTime(info.getValue())}</span>
-      ),
-    }),
-  ] as ColumnDef<Observation>[]
 
   return (
     <>

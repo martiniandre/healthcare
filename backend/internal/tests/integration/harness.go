@@ -2,6 +2,7 @@ package integration
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"net/url"
 	"os"
@@ -101,6 +102,12 @@ func (environment *testEnvironment) ensure(t *testing.T) {
 				t.Logf("integration tests skipped: cannot connect to test database: %v", connectError)
 				return
 			}
+		}
+
+		if resetError := resetTestSchemaIfStale(pool, testDatabaseURL); resetError != nil {
+			t.Logf("integration tests skipped: failed to reset stale test schema: %v", resetError)
+			pool.Close()
+			return
 		}
 
 		if migrationError := migrations.RunFromSource(migrationsSourcePath, testDatabaseURL); migrationError != nil {
@@ -216,6 +223,22 @@ func newTestServer(t *testing.T) *testServer {
 		fhir:       fhirClient,
 		grpcServer: grpcServer,
 	}
+}
+
+func resetTestSchemaIfStale(pool *pgxpool.Pool, testDatabaseURL string) error {
+	parsedTestURL, parseError := url.Parse(testDatabaseURL)
+	if parseError != nil {
+		return parseError
+	}
+	databaseName := strings.TrimPrefix(parsedTestURL.Path, "/")
+	if !strings.HasSuffix(databaseName, "test") {
+		return fmt.Errorf("refusing to reset schema of non-test database %q", databaseName)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	_, execError := pool.Exec(ctx, "DROP SCHEMA public CASCADE; CREATE SCHEMA public;")
+	return execError
 }
 
 func seedTestUsers(t *testing.T, pool *pgxpool.Pool) {
