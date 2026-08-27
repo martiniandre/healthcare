@@ -159,11 +159,18 @@ func (handler *HTTPHandler) StreamNotifications(httpResponseWriter http.Response
 		return
 	}
 
+	userIDString, _ := authenticatedContext.Value(ctxkeys.UserIDKey).(string)
+	authenticatedUserID, parseError := uuid.Parse(userIDString)
+	if parseError != nil {
+		render.Error(httpResponseWriter, http.StatusBadRequest, "invalid user ID")
+		return
+	}
+
 	httpResponseWriter.Header().Set("Content-Type", "text/event-stream")
 	httpResponseWriter.Header().Set("Cache-Control", "no-cache")
 	httpResponseWriter.Header().Set("Connection", "keep-alive")
 
-	notificationChannel := handler.service.Subscribe(authenticatedContext)
+	notificationChannel := handler.service.Subscribe(authenticatedContext, authenticatedUserID)
 	defer handler.service.Unsubscribe(notificationChannel)
 
 	httpResponseWriter.Write([]byte(": connected\n\n"))

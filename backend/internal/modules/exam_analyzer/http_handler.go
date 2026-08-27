@@ -7,11 +7,13 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/healthcare/backend/internal/api/middleware"
 	"github.com/healthcare/backend/internal/api/render"
+	"github.com/healthcare/backend/internal/shared/apperrors"
 	"github.com/healthcare/backend/internal/shared/ctxkeys"
 )
 
@@ -74,9 +76,11 @@ func (handler *HTTPHandler) ListAnalyses(httpResponseWriter http.ResponseWriter,
 //	@Param			patientFhirId	formData	string	false	"Patient FHIR ID"
 //	@Param			consent			formData	string	true	"Patient consent (must be 'true')"
 //	@Param			anonymize		formData	string	false	"Anonymize file (true/false)"
+//	@Param			acknowledgeExternalProcessing	formData	string	false	"Required true when anonymize is false"
 //	@Param			file			formData	file	true	"Medical exam file"
 //	@Success		201				{object}	ExamAnalysisResponse
 //	@Failure		400				{object}	map[string]string
+//	@Failure		422				{object}	map[string]string
 //	@Failure		500				{object}	map[string]string
 //	@Router			/exam-analyses [post]
 func (handler *HTTPHandler) CreateAnalysis(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
@@ -95,6 +99,11 @@ func (handler *HTTPHandler) CreateAnalysis(httpResponseWriter http.ResponseWrite
 
 	anonymizeValue := httpRequest.FormValue("anonymize")
 	isAnonymized := anonymizeValue == "true"
+
+	if !isAnonymized && httpRequest.FormValue("acknowledgeExternalProcessing") != "true" {
+		render.ErrorFromAppError(httpResponseWriter, apperrors.ErrDeidentificationRequired)
+		return
+	}
 
 	patientFhirID := httpRequest.FormValue("patientFhirId")
 	var targetPatient *string
@@ -117,12 +126,13 @@ func (handler *HTTPHandler) CreateAnalysis(httpResponseWriter http.ResponseWrite
 	}
 
 	analysisID := uuid.New()
-	fileExtension := filepath.Ext(fileHeader.Filename)
-
-	savedFileName := fileHeader.Filename
-	if isAnonymized {
-		savedFileName = "anonymized_" + analysisID.String() + fileExtension
+	fileExtension := strings.ToLower(filepath.Ext(fileHeader.Filename))
+	if fileExtension != ".png" && fileExtension != ".jpg" && fileExtension != ".jpeg" && fileExtension != ".pdf" {
+		render.Error(httpResponseWriter, http.StatusBadRequest, "Formato de arquivo não suportado. Envie PNG, JPG ou PDF.")
+		return
 	}
+
+	savedFileName := analysisID.String() + fileExtension
 
 	destinationPath := filepath.Join(uploadDirectory, analysisID.String()+fileExtension)
 	destinationFile, createErr := os.Create(destinationPath)

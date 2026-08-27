@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/healthcare/backend/internal/api"
+	"github.com/healthcare/backend/internal/api/middleware"
 	"github.com/healthcare/backend/internal/modules/allergy"
 	"github.com/healthcare/backend/internal/modules/analytics"
 	"github.com/healthcare/backend/internal/modules/audit_logs"
@@ -164,23 +165,26 @@ func newTestServer(t *testing.T) *testServer {
 	})
 	storageClient := storage.NewStorageClient()
 	imagingService := imaging.Register(grpcServer, imaging.Dependency{
-		DB:         environment.pool,
-		Storage:    storageClient,
-		Redis:      environment.redisClient,
-		BucketName: "integration-test-bucket",
+		DB:           environment.pool,
+		Storage:      storageClient,
+		Redis:        environment.redisClient,
+		BucketName:   "integration-test-bucket",
+		AuditService: auditLogsService,
 	})
 	telemetryService := telemetry.Register(grpcServer, telemetry.Dependency{DB: environment.pool, EventBus: eventBus})
 	health.Register(grpcServer, health.Dependency{DB: environment.pool, Redis: environment.redisClient})
 	analyticsHTTPHandler := analytics.Register(analytics.Dependency{DB: environment.pool, FHIRClient: fhirClient})
-	portalHTTPHandler := portal.Register(portal.Dependency{FHIRClient: fhirClient})
+	portalHTTPHandler := portal.Register(portal.Dependency{FHIRClient: fhirClient, DB: environment.pool})
 	_, notificationsHTTPHandler := notifications.Register(notifications.Dependency{DB: environment.pool, EventBus: eventBus})
 	scheduleHTTPHandler := schedule.Register(schedule.Dependency{DB: environment.pool, EventBus: eventBus, AuditService: auditLogsService})
 	examAnalyzerRepository, examAnalyzerService, examAnalyzerWorker := exam_analyzer.Register(grpcServer, exam_analyzer.Dependency{DB: environment.pool, EventBus: eventBus})
 
 	secureCookies := false
+	middleware.ResetRateLimits()
 
 	router := api.NewRouter(
 		secureCookies,
+		true,
 		auth.NewHTTPHandler(authService, secureCookies),
 		patients.NewHTTPHandler(patientsService),
 		encounter.NewHTTPHandler(encounterService),
@@ -266,6 +270,15 @@ func seedPortalPatientIdentity(t *testing.T, pool *pgxpool.Pool, fhirClient *inM
 	if _, seedError := fhirClient.CreateResource(ctx, "Patient", patientResource); seedError != nil {
 		t.Fatalf("failed to seed portal patient: %v", seedError)
 	}
+
+	_, linkError := pool.Exec(ctx, `
+		INSERT INTO patient_user_links (user_id, patient_fhir_id)
+		VALUES ($1, $2)
+		ON CONFLICT (user_id) DO UPDATE SET patient_fhir_id = EXCLUDED.patient_fhir_id`,
+		patientUserID, patientUserID.String())
+	if linkError != nil {
+		t.Fatalf("failed to seed patient user link: %v", linkError)
+	}
 }
 
 func resetTestData(t *testing.T, pool *pgxpool.Pool) {
@@ -285,6 +298,8 @@ func resetTestData(t *testing.T, pool *pgxpool.Pool) {
 		"telemetry_beds",
 		"exam_analyses",
 		"exam_analyses_audit_logs",
+		"patient_user_links",
+		"revoked_tokens",
 	}
 
 	_, truncateError := pool.Exec(ctx, "TRUNCATE "+strings.Join(appTables, ", ")+" RESTART IDENTITY CASCADE")

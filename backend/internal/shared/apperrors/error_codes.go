@@ -163,6 +163,18 @@ var (
 		Message:  "invalid dicom file structure or preamble signature",
 	}
 
+	ErrDeidentificationRequired = AppError{
+		GRPCCode: codes.FailedPrecondition,
+		HTTPCode: http.StatusUnprocessableEntity,
+		Message:  "external AI processing requires de-identified content or explicit acknowledgment of external transmission",
+	}
+
+	ErrPayloadTooLarge = AppError{
+		GRPCCode: codes.ResourceExhausted,
+		HTTPCode: http.StatusRequestEntityTooLarge,
+		Message:  "uploaded file exceeds the maximum allowed size",
+	}
+
 	ErrRateLimitExceeded = AppError{
 		GRPCCode: codes.ResourceExhausted,
 		HTTPCode: http.StatusTooManyRequests,

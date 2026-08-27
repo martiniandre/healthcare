@@ -12,7 +12,7 @@ func TestAuditLogsRecordAppointmentActions(t *testing.T) {
 
 	receptionClient := loginAs(t, serverURL, "recepcao@hospital.com", "secret123")
 	doctorEmployeeID := seedDoctorEmployee(t, testServer.db)
-	tomorrowStartsAt := time.Now().Add(24 * time.Hour).Truncate(time.Second)
+	tomorrowStartsAt := alignToValidSlot(time.Now().Add(24 * time.Hour))
 
 	createResponse := receptionClient.Post(t, "/api/v1/appointments", map[string]interface{}{
 		"patient_fhir_id": "patient-1",

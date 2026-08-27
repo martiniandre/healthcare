@@ -2,6 +2,7 @@ package integration
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"testing"
 )
@@ -60,8 +61,18 @@ func TestDoctorCannotAccessPatientPortal(t *testing.T) {
 func seedPortalEncounterForPatient(t *testing.T, testServer *testServer) {
 	t.Helper()
 	ctx := context.Background()
+
+	var patientFHIRID string
+	if queryError := testServer.db.QueryRow(ctx, `
+		SELECT l.patient_fhir_id
+		FROM patient_user_links l
+		JOIN users u ON u.id = l.user_id
+		WHERE u.email = 'paciente@mail.com'`).Scan(&patientFHIRID); queryError != nil {
+		t.Fatalf("failed to resolve linked patient fhir id: %v", queryError)
+	}
+
 	_, err := testServer.fhir.CreateResource(ctx, "Encounter", map[string]interface{}{
-		"subject": map[string]string{"reference": "Patient/portal-patient"},
+		"subject": map[string]string{"reference": fmt.Sprintf("Patient/%s", patientFHIRID)},
 		"status":  "planned",
 		"period": map[string]string{
 			"start": "2026-09-01T09:00:00Z",

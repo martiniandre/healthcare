@@ -27,15 +27,18 @@ var notificationPriorityDefaults = map[NotificationType]NotificationPriority{
 
 type Subscriber interface {
 	ID() string
+	UserID() uuid.UUID
 	Channel() chan *Notification
 }
 
 type subscriber struct {
 	id      string
+	userID  uuid.UUID
 	channel chan *Notification
 }
 
 func (sub *subscriber) ID() string                  { return sub.id }
+func (sub *subscriber) UserID() uuid.UUID           { return sub.userID }
 func (sub *subscriber) Channel() chan *Notification { return sub.channel }
 
 type Service interface {
@@ -44,7 +47,7 @@ type Service interface {
 	ListNotifications(ctx context.Context, userID uuid.UUID, limit, offset int32) ([]*Notification, int32, error)
 	MarkRead(ctx context.Context, notificationID, userID uuid.UUID) error
 	GetUnreadCount(ctx context.Context, userID uuid.UUID) (int32, error)
-	Subscribe(ctx context.Context) Subscriber
+	Subscribe(ctx context.Context, userID uuid.UUID) Subscriber
 	Unsubscribe(sub Subscriber)
 }
 
@@ -129,9 +132,10 @@ func (notificationService *service) GetUnreadCount(ctx context.Context, userID u
 	return notificationService.repo.GetUnreadCount(ctx, userID)
 }
 
-func (notificationService *service) Subscribe(ctx context.Context) Subscriber {
+func (notificationService *service) Subscribe(ctx context.Context, userID uuid.UUID) Subscriber {
 	sub := &subscriber{
 		id:      uuid.New().String(),
+		userID:  userID,
 		channel: make(chan *Notification, 100),
 	}
 
@@ -158,10 +162,23 @@ func (notificationService *service) Unsubscribe(sub Subscriber) {
 }
 
 func (notificationService *service) broadcast(notification *Notification) {
+	recipientUserIDs, recipientError := notificationService.repo.GetRecipientUserIDs(context.Background(), notification.ID)
+	if recipientError != nil {
+		return
+	}
+
+	recipientSet := make(map[uuid.UUID]struct{}, len(recipientUserIDs))
+	for _, recipientUserID := range recipientUserIDs {
+		recipientSet[recipientUserID] = struct{}{}
+	}
+
 	notificationService.subscribersMu.RLock()
 	defer notificationService.subscribersMu.RUnlock()
 
 	for _, sub := range notificationService.subscribers {
+		if _, isRecipient := recipientSet[sub.UserID()]; !isRecipient {
+			continue
+		}
 		select {
 		case sub.Channel() <- notification:
 		default:

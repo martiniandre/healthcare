@@ -24,6 +24,10 @@ type Service interface {
 	Me(ctx context.Context, userID string) (*User, error)
 }
 
+type PatientLinkWriter interface {
+	CreatePatientLink(ctx context.Context, userID uuid.UUID) error
+}
+
 type service struct {
 	repo     Repository
 	eventBus eventbus.Bus
@@ -63,6 +67,14 @@ func (authService *service) Register(ctx context.Context, email, password, fullN
 	err = authService.repo.CreateUser(ctx, user)
 	if err != nil {
 		return nil, err
+	}
+
+	if parsedRole == role.RolePatient {
+		if linkWriter, canWriteLinks := authService.repo.(PatientLinkWriter); canWriteLinks {
+			if linkError := linkWriter.CreatePatientLink(ctx, user.ID); linkError != nil {
+				return nil, linkError
+			}
+		}
 	}
 
 	return user, nil

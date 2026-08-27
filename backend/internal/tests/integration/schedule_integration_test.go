@@ -41,8 +41,8 @@ func TestAppointmentLifecycleAndOverlapConflict(t *testing.T) {
 	overlapResponse := receptionClient.Post(t, "/api/v1/appointments", map[string]interface{}{
 		"patient_fhir_id": "patient-2",
 		"staff_id":        doctorEmployeeID.String(),
-		"starts_at":       tomorrowStartsAt.Add(15 * time.Minute).Format(time.RFC3339),
-		"ends_at":         tomorrowEndsAt.Add(15 * time.Minute).Format(time.RFC3339),
+		"starts_at":       tomorrowStartsAt.Format(time.RFC3339),
+		"ends_at":         tomorrowEndsAt.Format(time.RFC3339),
 		"reason":          "Consulta com conflito",
 	})
 	requireStatusCode(t, overlapResponse, http.StatusConflict)

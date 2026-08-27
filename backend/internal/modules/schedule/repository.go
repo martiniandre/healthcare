@@ -21,6 +21,7 @@ type Repository interface {
 	ListAppointmentsByStaffOnDate(ctx context.Context, staffID uuid.UUID, date time.Time) ([]*Appointment, error)
 	ListAppointmentsByStaffInRange(ctx context.Context, staffID uuid.UUID, startDate time.Time, endDate time.Time) ([]*Appointment, error)
 	ResolveActiveEmployeeIDByEmail(ctx context.Context, email string) (*uuid.UUID, error)
+	ResolvePatientFHIRIDByUserID(ctx context.Context, userID string) (string, error)
 	FindIdempotencyKey(ctx context.Context, idempotencyKey string) (*IdempotencyKey, error)
 	SaveIdempotencyKey(ctx context.Context, idempotencyKey *IdempotencyKey) error
 }
@@ -244,6 +245,16 @@ func (appointmentRepository *repository) RescheduleAppointment(ctx context.Conte
 
 func (appointmentRepository *repository) ResolveActiveEmployeeIDByEmail(ctx context.Context, email string) (*uuid.UUID, error) {
 	return resolveActiveEmployeeIDByEmail(ctx, appointmentRepository.dbPool, email)
+}
+
+func (appointmentRepository *repository) ResolvePatientFHIRIDByUserID(ctx context.Context, userID string) (string, error) {
+	query := `SELECT patient_fhir_id FROM patient_user_links WHERE user_id = $1`
+	var patientFHIRID string
+	scanErr := appointmentRepository.dbPool.QueryRow(ctx, query, userID).Scan(&patientFHIRID)
+	if scanErr != nil {
+		return "", apperrors.ErrPatientNotFound
+	}
+	return patientFHIRID, nil
 }
 
 func (appointmentRepository *repository) queryAppointments(ctx context.Context, query string, queryArgs ...interface{}) ([]*Appointment, error) {
