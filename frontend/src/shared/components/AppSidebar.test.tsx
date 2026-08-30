@@ -5,12 +5,17 @@ import { useAuthStore } from "../store/auth_store"
 import { useLayoutStore } from "../store/layout_store"
 
 const mockTranslateFunction = (key: string) => key
+const mockChangeLanguage = vi.fn()
 const mockNavigate = vi.fn()
 const mockLocation = { pathname: "/", search: "", hash: "", state: null, key: "default" }
 
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({
     t: mockTranslateFunction,
+    i18n: {
+      language: "en-US",
+      changeLanguage: mockChangeLanguage,
+    },
   }),
 }))
 
@@ -65,6 +70,7 @@ describe("AppSidebar", () => {
     expect(screen.getByRole("button", { name: "analytics" })).toBeInTheDocument()
     expect(screen.getByRole("button", { name: "staffManagement" })).toBeInTheDocument()
     expect(screen.getByRole("button", { name: "appearance" })).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "English" })).toBeInTheDocument()
 
     expect(screen.queryByRole("button", { name: "portal" })).not.toBeInTheDocument()
     expect(screen.queryByRole("button", { name: "auditLogs" })).not.toBeInTheDocument()

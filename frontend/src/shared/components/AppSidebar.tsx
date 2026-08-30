@@ -4,6 +4,7 @@ import { useAuthStore } from "../store/auth_store"
 import { useLayoutStore } from "../store/layout_store"
 import type { ComponentType } from "react"
 import { Activity, Users, BarChart3, LogOut, X, Sparkles, History, UserRound, LayoutDashboard, CalendarClock, Stethoscope, Sun, Moon } from "lucide-react"
+import { LanguageSwitcher } from "./LanguageSwitcher"
 
 interface NavigationItem {
   key: string
@@ -176,7 +177,8 @@ export const AppSidebar = () => {
           ))}
         </nav>
 
-        <div className="px-3 pt-3 border-t border-border/70">
+        <div className="px-3 pt-3 border-t border-border/70 flex flex-col gap-1">
+          <LanguageSwitcher sidebarLayout />
           <button
             onClick={toggleTheme}
             aria-pressed={isDarkTheme}
