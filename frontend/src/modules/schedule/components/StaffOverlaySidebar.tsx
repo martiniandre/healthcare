@@ -11,7 +11,7 @@ export const StaffOverlaySidebar = ({ staffMembers, selectedStaffIds, onToggleSt
   const { t } = useTranslation("schedule")
 
   return (
-    <div className="bg-white border border-border rounded-xl p-4 flex flex-col gap-2">
+    <div className="bg-card border border-border rounded-xl p-4 flex flex-col gap-2">
       <span className="text-xs font-semibold text-gray-600">{t("calendar.staffFilters")}</span>
       {staffMembers.length === 0 ? (
         <p className="text-sm text-gray-400">{t("emptyState.noStaff")}</p>

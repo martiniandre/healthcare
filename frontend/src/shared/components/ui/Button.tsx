@@ -17,9 +17,9 @@ export const Button = React.forwardRef<HTMLButtonElement, ClinicalButtonProperti
           "px-4 py-2 rounded-lg font-semibold transition-all duration-200 active:scale-[0.97] disabled:opacity-50 disabled:pointer-events-none cursor-pointer text-sm flex items-center justify-center gap-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
           variantType === "primary" && "bg-primary text-white hover:bg-primary/90",
           variantType === "secondary" && "bg-secondary text-white hover:bg-secondary/90",
-          variantType === "outline" && "border border-border text-gray-600 hover:bg-gray-50 hover:border-gray-300",
-          variantType === "danger" && "bg-red-50 border border-red-200 text-red-600 hover:bg-red-100",
-          variantType === "ghost" && "text-gray-600 hover:bg-gray-100 hover:text-gray-900",
+          variantType === "outline" && "border border-border text-gray-600 hover:bg-gray-50 hover:border-gray-300 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:border-gray-600",
+          variantType === "danger" && "bg-red-50 border border-red-200 text-red-600 hover:bg-red-100 dark:bg-red-500/10 dark:border-red-500/30 dark:text-red-400 dark:hover:bg-red-500/20",
+          variantType === "ghost" && "text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-gray-100",
           className
         )}
         aria-busy={isLoading}

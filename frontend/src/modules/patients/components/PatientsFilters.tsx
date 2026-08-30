@@ -12,7 +12,7 @@ export const PatientsFilters = ({ searchTerm, onSearchChange, resultsCount }: Pa
 
   return (
     <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-      <div className="flex-1 flex items-center gap-2.5 bg-white border border-border rounded-lg px-4 py-2.5">
+      <div className="flex-1 flex items-center gap-2.5 bg-card border border-border rounded-lg px-4 py-2.5">
         <Search className="w-4 h-4 text-gray-400 shrink-0" />
         <input
           type="text"
@@ -31,7 +31,7 @@ export const PatientsFilters = ({ searchTerm, onSearchChange, resultsCount }: Pa
         )}
       </div>
 
-      <div className="flex items-center justify-center sm:justify-start gap-1.5 bg-white border border-border rounded-lg px-3 py-2.5 shrink-0">
+      <div className="flex items-center justify-center sm:justify-start gap-1.5 bg-card border border-border rounded-lg px-3 py-2.5 shrink-0">
         <Filter className="w-3.5 h-3.5 text-gray-400" />
         <span className="text-[11px] text-muted font-medium">
           {t("filterResults", { count: resultsCount })}

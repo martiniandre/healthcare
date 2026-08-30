@@ -42,7 +42,7 @@ export const TelemetryBedList = ({ beds, selectedBedId, setSelectedBedId }: Tele
                     ? "bg-primary/5 border-primary" 
                     : bedItem.status === BedStatus.Danger
                       ? "bg-red-50 border-red-200 hover:border-red-300"
-                      : "bg-white border-border hover:border-gray-300"
+                      : "bg-card border-border hover:border-gray-300"
                 }`}
               >
                 <div className="flex items-center justify-between">

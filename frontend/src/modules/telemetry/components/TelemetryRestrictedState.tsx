@@ -48,7 +48,7 @@ export const TelemetryRestrictedState = ({
               placeholder={t("passcodePlaceholder")}
               value={passcodeInput}
               onChange={(event) => setPasscodeInput(event.target.value)}
-              className="w-full bg-white border border-border rounded-lg pl-9 pr-4 py-2.5 text-xs text-gray-800 focus:outline-none focus:border-primary/50 transition-all duration-200 font-mono"
+              className="w-full bg-card border border-border rounded-lg pl-9 pr-4 py-2.5 text-xs text-gray-800 focus:outline-none focus:border-primary/50 transition-all duration-200 font-mono"
               required
             />
           </div>

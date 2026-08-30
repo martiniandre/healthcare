@@ -32,7 +32,7 @@ export const AnalysisHistory = ({
   })
 
   return (
-    <div className="w-full md:w-[320px] shrink-0 flex flex-col gap-4 bg-white border border-border rounded-xl p-4 h-fit md:max-h-[calc(100vh-120px)] md:sticky md:top-6">
+    <div className="w-full md:w-[320px] shrink-0 flex flex-col gap-4 bg-card border border-border rounded-xl p-4 h-fit md:max-h-[calc(100vh-120px)] md:sticky md:top-6">
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2">
           <Database className="w-4 h-4 text-primary" />
@@ -81,7 +81,7 @@ export const AnalysisHistory = ({
                 onClick={() => onSelect(item)}
                 className={`flex items-start justify-between gap-3 p-3 rounded-lg border transition-all duration-200 cursor-pointer select-none group ${isCurrentlySelected
                   ? "bg-primary/5 border-primary/30 shadow-sm"
-                  : "bg-white border-border/80 hover:bg-gray-50/50 hover:border-gray-300"
+                  : "bg-card border-border/80 hover:bg-gray-50/50 hover:border-gray-300"
                   }`}
               >
                 <div className="min-w-0 flex-1 flex flex-col gap-1 text-left">

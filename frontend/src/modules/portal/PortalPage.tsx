@@ -68,7 +68,7 @@ export const PortalPage = () => {
 
   return (
     <div className="flex-1 p-4 sm:p-6 md:p-8 flex flex-col gap-4 md:gap-6 max-w-7xl mx-auto w-full">
-      <div className="bg-white border border-border p-4 sm:p-6 rounded-xl">
+      <div className="bg-card border border-border p-4 sm:p-6 rounded-xl">
         <div className="flex items-center gap-4">
           <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center">
             <span className="text-xl font-bold text-primary">
@@ -83,7 +83,7 @@ export const PortalPage = () => {
       </div>
 
       <div className="flex flex-col md:flex-row gap-6 items-start">
-        <div className="w-full md:w-56 shrink-0 bg-white border border-border p-4 rounded-xl flex flex-col gap-4">
+        <div className="w-full md:w-56 shrink-0 bg-card border border-border p-4 rounded-xl flex flex-col gap-4">
           <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-3 text-left">
             Navegação
           </span>

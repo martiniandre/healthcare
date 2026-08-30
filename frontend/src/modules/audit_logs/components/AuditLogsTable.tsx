@@ -40,7 +40,7 @@ export const AuditLogsTable = ({
   const { t } = useTranslation("auditLogs")
 
   return (
-    <div className="overflow-x-auto border border-border rounded-xl w-full bg-white">
+    <div className="overflow-x-auto border border-border rounded-xl w-full bg-card">
       <Table className="min-w-[800px]">
         <TableHeader>
           <TableRow className="hover:bg-transparent">
@@ -140,7 +140,7 @@ export const AuditLogsTable = ({
                   {isExpanded && (
                     <TableRow className="bg-gray-50/50 hover:bg-gray-50/50">
                       <TableCell colSpan={7} className="p-4 border-t border-border">
-                        <div className="flex flex-col gap-2 bg-white p-3 rounded-lg border border-border text-xs font-mono text-gray-700 overflow-x-auto max-w-full">
+                        <div className="flex flex-col gap-2 bg-card p-3 rounded-lg border border-border text-xs font-mono text-gray-700 overflow-x-auto max-w-full">
                           <div className="flex flex-col gap-1">
                             <span className="font-bold text-gray-500 uppercase text-[9px] tracking-wider">
                               {t("logId")}

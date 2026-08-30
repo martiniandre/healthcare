@@ -52,7 +52,7 @@ export const LanguageSwitcher = () => {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-1.5 w-40 rounded-xl border border-border/80 bg-white/90 backdrop-blur-md shadow-lg py-1.5 z-50 animate-fade-in flex flex-col">
+        <div className="absolute right-0 mt-1.5 w-40 rounded-xl border border-border/80 bg-card/90 backdrop-blur-md shadow-lg py-1.5 z-50 animate-fade-in flex flex-col">
           {languageOptions.map((option) => {
             const isSelected = option.code === i18n.language
 

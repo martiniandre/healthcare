@@ -45,7 +45,7 @@ export const PortalMedications = () => {
       {medications.map((medication) => (
         <div
           key={medication.fhir_resource_id}
-          className="bg-white border border-border rounded-xl p-5"
+          className="bg-card border border-border rounded-xl p-5"
         >
           <div className="flex items-start justify-between mb-2">
             <div>

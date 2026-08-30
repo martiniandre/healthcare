@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next"
 import { useAuthStore } from "../store/auth_store"
 import { useLayoutStore } from "../store/layout_store"
 import type { ComponentType } from "react"
-import { Activity, Users, BarChart3, Settings, LogOut, X, Sparkles, History, UserRound, LayoutDashboard, CalendarClock, Stethoscope } from "lucide-react"
+import { Activity, Users, BarChart3, LogOut, X, Sparkles, History, UserRound, LayoutDashboard, CalendarClock, Stethoscope, Sun, Moon } from "lucide-react"
 
 interface NavigationItem {
   key: string
@@ -12,7 +12,6 @@ interface NavigationItem {
   staffOnly?: boolean
   patientOnly?: boolean
   adminOnly?: boolean
-  disabled?: boolean
 }
 
 interface NavigationGroup {
@@ -45,12 +44,6 @@ const navigationGroups: NavigationGroup[] = [
     ],
   },
   {
-    key: "topics.system",
-    items: [
-      { key: "settings", icon: Settings, path: "/settings", disabled: true, staffOnly: true },
-    ],
-  },
-  {
     key: "topics.patient",
     items: [
       { key: "portal", icon: UserRound, path: "/portal", patientOnly: true },
@@ -63,7 +56,7 @@ export const AppSidebar = () => {
   const navigate = useNavigate()
   const location = useLocation()
   const { email, logout, role } = useAuthStore()
-  const { isMobileSidebarOpen, closeMobileSidebar } = useLayoutStore()
+  const { isMobileSidebarOpen, closeMobileSidebar, theme, toggleTheme } = useLayoutStore()
 
   const isItemVisible = (item: NavigationItem) => {
     if (item.patientOnly) return role === "PATIENT"
@@ -88,12 +81,12 @@ export const AppSidebar = () => {
     }))
     .filter((group) => group.items.length > 0)
 
-  const handleNavigate = (path: string, isDisabled?: boolean) => {
-    if (!isDisabled) {
-      navigate(path)
-      closeMobileSidebar()
-    }
+  const handleNavigate = (path: string) => {
+    navigate(path)
+    closeMobileSidebar()
   }
+
+  const isDarkTheme = theme === "dark"
 
   return (
     <>
@@ -105,7 +98,7 @@ export const AppSidebar = () => {
       )}
 
       <aside
-        className={`w-[240px] shrink-0 h-screen fixed md:sticky top-0 left-0 bg-white border-r border-border flex flex-col z-50 transition-transform duration-300 md:translate-x-0 ${
+        className={`w-[240px] shrink-0 h-screen fixed md:sticky top-0 left-0 bg-card border-r border-border flex flex-col z-50 transition-transform duration-300 md:translate-x-0 ${
           isMobileSidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -152,42 +145,30 @@ export const AppSidebar = () => {
                 return (
                   <button
                     key={item.path}
-                    onClick={() => handleNavigate(item.path, item.disabled)}
-                    disabled={item.disabled}
-                    aria-current={!item.disabled && isActive ? "page" : undefined}
+                    onClick={() => handleNavigate(item.path)}
+                    aria-current={isActive ? "page" : undefined}
                     className={`group relative flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-[13px] font-medium transition-all duration-200 ${
-                      item.disabled
-                        ? "cursor-not-allowed text-gray-300"
-                        : isActive
-                          ? "bg-primary/8 font-semibold text-primary"
-                          : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                      isActive
+                        ? "bg-primary/8 font-semibold text-primary"
+                        : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                     }`}
                   >
                     <span
                       aria-hidden="true"
                       className={`absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full transition-colors duration-200 ${
-                        !item.disabled && isActive
-                          ? "bg-primary"
-                          : "bg-transparent group-hover:bg-primary/40"
+                        isActive ? "bg-primary" : "bg-transparent group-hover:bg-primary/40"
                       }`}
                     />
                     <span
                       className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md border transition-colors duration-200 ${
-                        item.disabled
-                          ? "border-transparent bg-gray-100/70 text-gray-300"
-                          : isActive
-                            ? "border-primary/15 bg-primary/10 text-primary"
-                            : "border-transparent bg-gray-100/80 text-gray-500 group-hover:bg-gray-200/70 group-hover:text-gray-700"
+                        isActive
+                          ? "border-primary/15 bg-primary/10 text-primary"
+                          : "border-transparent bg-gray-100/80 text-gray-500 group-hover:bg-gray-200/70 group-hover:text-gray-700"
                       }`}
                     >
                       <item.icon className="h-4 w-4" />
                     </span>
                     <span className="truncate">{t(item.key)}</span>
-                    {item.disabled && (
-                      <span className="ml-auto shrink-0 rounded bg-gray-100 px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wide text-gray-400">
-                        {t("comingSoon")}
-                      </span>
-                    )}
                   </button>
                 )
               })}
@@ -195,7 +176,20 @@ export const AppSidebar = () => {
           ))}
         </nav>
 
-        <div className="px-3 pb-3">
+        <div className="px-3 pt-3 border-t border-border/70">
+          <button
+            onClick={toggleTheme}
+            aria-pressed={isDarkTheme}
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-all duration-200"
+          >
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-transparent bg-gray-100/80 text-gray-500 transition-colors duration-200">
+              {isDarkTheme ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            </span>
+            <span className="truncate">{t("appearance")}</span>
+          </button>
+        </div>
+
+        <div className="px-3 mt-1 pb-3">
           <button
             onClick={() => {
               logout()

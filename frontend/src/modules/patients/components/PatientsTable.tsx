@@ -48,7 +48,7 @@ export const PatientsTable = ({
   }
 
   return (
-    <div className="bg-white border border-border rounded-xl overflow-hidden">
+    <div className="bg-card border border-border rounded-xl overflow-hidden">
       <div className="overflow-x-auto w-full">
         <Table className="min-w-[650px] md:min-w-0">
           <TableHeader>

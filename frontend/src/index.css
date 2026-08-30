@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --color-background: #f7f8fa;
   --color-surface: #ffffff;
@@ -76,9 +78,45 @@
   }
 }
 
+.dark {
+  --color-background: #0b1120;
+  --color-surface: #0f172a;
+  --color-card: #111a2e;
+  --color-popover: #111a2e;
+  --color-foreground: #e2e8f0;
+  --color-background-foreground: #e2e8f0;
+  --color-surface-foreground: #e2e8f0;
+  --color-card-foreground: #e2e8f0;
+  --color-popover-foreground: #e2e8f0;
+  --color-muted: #94a3b8;
+  --color-muted-foreground: #94a3b8;
+  --color-border: #243049;
+  --color-input: #243049;
+  --color-primary: #3b82f6;
+  --color-secondary: #2dd4bf;
+  --color-accent: #60a5fa;
+  --color-ring: #3b82f6;
+  --color-success: #4ade80;
+  --color-warning: #fbbf24;
+  --color-danger: #f87171;
+
+  --color-gray-50: #0f1522;
+  --color-gray-100: #162033;
+  --color-gray-200: #1e2a41;
+  --color-gray-300: #4b5a75;
+  --color-gray-400: #64748b;
+  --color-gray-500: #94a3b8;
+  --color-gray-600: #b6c2d6;
+  --color-gray-700: #cfd8e8;
+  --color-gray-800: #e2e8f0;
+  --color-gray-900: #eef2f8;
+
+  --default-border-color: #243049;
+}
+
 .clinical-glass {
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
   border-radius: 12px;
 }
 

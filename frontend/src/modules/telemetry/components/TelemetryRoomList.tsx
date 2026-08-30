@@ -38,7 +38,7 @@ export const TelemetryRoomList = ({
             className={`p-4 cursor-pointer text-left transition-all duration-200 border relative ${
               isSelected 
                 ? "border-primary bg-primary/5 shadow-sm" 
-                : "border-border hover:border-gray-300 bg-white"
+                : "border-border hover:border-gray-300 bg-card"
             }`}
           >
             <div className="flex items-center justify-between">

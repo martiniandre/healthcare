@@ -26,7 +26,7 @@ export const StaffFilters = ({
           placeholder={t("searchPlaceholder")}
           value={searchQuery === " " ? "" : searchQuery}
           onChange={(event) => onSearchChange(event.target.value)}
-          className="w-full bg-white border border-border rounded-lg pl-9 pr-4 py-2 text-xs text-gray-800 placeholder-gray-400 focus:outline-none focus:border-primary/50 transition-all duration-200"
+          className="w-full bg-card border border-border rounded-lg pl-9 pr-4 py-2 text-xs text-gray-800 placeholder-gray-400 focus:outline-none focus:border-primary/50 transition-all duration-200"
         />
       </div>
 
@@ -50,7 +50,7 @@ export const StaffFilters = ({
               className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 border ${
                 filterRole === roleOption
                   ? "bg-primary/5 text-primary border-primary"
-                  : "bg-white text-gray-500 border-border hover:bg-gray-50 hover:text-gray-900"
+                  : "bg-card text-gray-500 border-border hover:bg-gray-50 hover:text-gray-900"
               }`}
             >
               {getRoleLabel(roleOption)}

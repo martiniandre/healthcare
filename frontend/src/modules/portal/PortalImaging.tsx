@@ -29,7 +29,7 @@ export const PortalImaging = () => {
       {imagingStudies.map((study) => (
         <div
           key={study.fhir_resource_id}
-          className="bg-white border border-border rounded-xl p-5"
+          className="bg-card border border-border rounded-xl p-5"
         >
           <div className="flex items-start justify-between mb-3">
             <span className="text-xs font-bold px-2 py-0.5 rounded bg-gray-100 text-gray-600 uppercase">
