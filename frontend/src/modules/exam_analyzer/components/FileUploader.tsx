@@ -83,7 +83,7 @@ export const FileUploader = ({ onUpload, isPending, uploadProgress }: FileUpload
   }
 
   return (
-    <Card glowingType="cyan" className="p-6 bg-white border border-border rounded-xl">
+    <Card glowingType="cyan" className="p-6 bg-card border border-border rounded-xl">
       <h3 className="text-base font-bold text-gray-900 mb-2">
         {t("uploader.title")}
       </h3>

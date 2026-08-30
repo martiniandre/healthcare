@@ -35,7 +35,7 @@ export const PortalObservations = () => {
         return (
           <div
             key={observation.fhir_resource_id}
-            className="bg-white border border-border rounded-xl p-5"
+            className="bg-card border border-border rounded-xl p-5"
           >
             <p className="text-xs text-gray-500 font-medium mb-1">
               {displayMetadata?.labelKey ? t(displayMetadata.labelKey) : observation.code_display}

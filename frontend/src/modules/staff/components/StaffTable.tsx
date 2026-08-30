@@ -32,7 +32,7 @@ export const StaffTable = ({ isLoading, filteredStaff }: StaffTableProps) => {
   }
 
   return (
-    <div className="overflow-x-auto border border-border rounded-xl w-full bg-white">
+    <div className="overflow-x-auto border border-border rounded-xl w-full bg-card">
       <Table className="min-w-[700px] md:min-w-0">
         <TableHeader>
           <TableRow className="hover:bg-transparent">
