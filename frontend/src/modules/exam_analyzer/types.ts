@@ -40,7 +40,6 @@ export interface ExamAnalysis {
   patient_fhir_id?: string
   exam_type?: string
   file_name: string
-  file_path: string
   status: ExamAnalysisStatus
   analysis_response: MedicalAnalysisResponse | { status: typeof ExamAnalysisStatus.INSUFFICIENT_DATA; message: string }
   consent_given: boolean

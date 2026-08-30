@@ -78,7 +78,7 @@ func (handler *HTTPHandler) UploadPatientStudy(httpResponseWriter http.ResponseW
 	title := httpRequest.FormValue("title")
 	modality := httpRequest.FormValue("modality")
 
-	file, _, fileErr := httpRequest.FormFile("file")
+	file, fileHeader, fileErr := httpRequest.FormFile("file")
 	if fileErr != nil {
 		render.Error(httpResponseWriter, http.StatusBadRequest, "Arquivo DICOM ausente.")
 		return
@@ -89,6 +89,7 @@ func (handler *HTTPHandler) UploadPatientStudy(httpResponseWriter http.ResponseW
 		PatientFhirID: patientFhirID,
 		Title:         title,
 		Modality:      modality,
+		FileName:      fileHeader.Filename,
 	}, file)
 	if createErr != nil {
 		slog.Error("failed to upload DICOM study", "error", createErr, "patient_fhir_id", patientFhirID, "request_id", middleware.GetRequestID(httpRequest.Context()))

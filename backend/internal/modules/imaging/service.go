@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"path/filepath"
 	"regexp"
 	"strings"
 	"time"
@@ -23,6 +24,14 @@ const MaxDICOMUploadBytes int64 = 2 << 30
 
 var unsafeObjectPathChars = regexp.MustCompile(`[^A-Za-z0-9-.]`)
 
+func sanitizeLeafName(rawName string) string {
+	baseName := strings.TrimSpace(filepath.Base(rawName))
+	if baseName == "" || baseName == "." || baseName == string(filepath.Separator) {
+		return ""
+	}
+	return unsafeObjectPathChars.ReplaceAllString(baseName, "_")
+}
+
 type Service interface {
 	UploadDICOMStream(ctx context.Context, input UploadDICOMInput, streamReader io.Reader) (*ImagingStudy, error)
 	GetImagingStudy(ctx context.Context, studyID string) (*ImagingStudy, error)
@@ -34,16 +43,14 @@ type service struct {
 	dbRepository  Repository
 	storageClient storage.StorageClient
 	redisClient   *redis.Client
-	bucketName    string
 	auditService  audit_logs.Service
 }
 
-func NewService(dbRepository Repository, storageClient storage.StorageClient, redisClient *redis.Client, bucketName string, auditService audit_logs.Service) Service {
+func NewService(dbRepository Repository, storageClient storage.StorageClient, redisClient *redis.Client, auditService audit_logs.Service) Service {
 	return &service{
 		dbRepository:  dbRepository,
 		storageClient: storageClient,
 		redisClient:   redisClient,
-		bucketName:    bucketName,
 		auditService:  auditService,
 	}
 }
@@ -78,11 +85,21 @@ func (serviceInstance *service) UploadDICOMStream(ctx context.Context, input Upl
 
 	studyID := uuid.New()
 	sanitizedPatientFhirID := unsafeObjectPathChars.ReplaceAllString(input.PatientFhirID, "_")
-	objectPath := fmt.Sprintf("dicom/staging/%s/%s.dcm", sanitizedPatientFhirID, studyID.String())
+	sanitizedFileName := sanitizeLeafName(input.FileName)
+	studyExtension := filepath.Ext(sanitizedFileName)
+	if studyExtension == "" {
+		studyExtension = ".dcm"
+	}
+	studyFileName := studyID.String() + studyExtension
+	key := fmt.Sprintf("pacs/%s/%s", sanitizedPatientFhirID, studyFileName)
 
-	gcsStagingURL, uploadError := serviceInstance.storageClient.Upload(ctx, serviceInstance.bucketName, objectPath, boundedReader)
+	uploadError := serviceInstance.storageClient.Upload(ctx, key, boundedReader, "application/dicom")
 	if uploadError != nil {
 		return nil, fmt.Errorf("failed to upload dicom to storage: %w", uploadError)
+	}
+
+	if sanitizedFileName == "" {
+		sanitizedFileName = studyFileName
 	}
 
 	study := &ImagingStudy{
@@ -90,7 +107,7 @@ func (serviceInstance *service) UploadDICOMStream(ctx context.Context, input Upl
 		PatientFhirID:    input.PatientFhirID,
 		Title:            input.Title,
 		Modality:         input.Modality,
-		GCSPath:          gcsStagingURL,
+		FileName:         sanitizedFileName,
 		StudyInstanceUID: "",
 		Status:           ImagingStudyStatusPending,
 		CreatedAt:        time.Now(),
@@ -161,7 +178,8 @@ func (serviceInstance *service) GetDownloadURL(ctx context.Context, studyID stri
 	}
 
 	expirationDuration := 15 * time.Minute
-	downloadURL, presignError := serviceInstance.storageClient.GetPresignedURL(ctx, serviceInstance.bucketName, study.GCSPath, expirationDuration)
+	studyKey := serviceInstance.buildStorageKey(study)
+	downloadURL, presignError := serviceInstance.storageClient.GetPresignedURL(ctx, studyKey, expirationDuration)
 	if presignError != nil {
 		return "", time.Time{}, fmt.Errorf("failed to generate presigned url: %w", presignError)
 	}
@@ -170,6 +188,15 @@ func (serviceInstance *service) GetDownloadURL(ctx context.Context, studyID stri
 
 	expiresAt := time.Now().Add(expirationDuration)
 	return downloadURL, expiresAt, nil
+}
+
+func (serviceInstance *service) buildStorageKey(study *ImagingStudy) string {
+	studyExtension := filepath.Ext(study.FileName)
+	if studyExtension == "" {
+		studyExtension = ".dcm"
+	}
+	sanitizedPatientFhirID := unsafeObjectPathChars.ReplaceAllString(study.PatientFhirID, "_")
+	return fmt.Sprintf("pacs/%s/%s%s", sanitizedPatientFhirID, study.ID.String(), studyExtension)
 }
 
 func (serviceInstance *service) auditDownloadURLIssuance(ctx context.Context, studyID uuid.UUID) {

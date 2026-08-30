@@ -11,7 +11,7 @@ type ImagingStudy struct {
 	PatientFhirID    string    `db:"patient_fhir_id"`
 	Title            string    `db:"title"`
 	Modality         string    `db:"modality"`
-	GCSPath          string    `db:"gcs_path"`
+	FileName         string    `db:"file_name"`
 	StudyInstanceUID string    `db:"study_instance_uid"`
 	Status           string    `db:"status"`
 	CreatedAt        time.Time `db:"created_at"`

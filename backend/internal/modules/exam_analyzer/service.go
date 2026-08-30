@@ -9,31 +9,32 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
-	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/google/uuid"
-	"github.com/healthcare/backend/internal/shared/apperrors"
+	"github.com/healthcare/backend/internal/shared/storage"
 	"golang.org/x/oauth2/google"
 )
 
 type Service interface {
-	AnalyzeExamFile(ctx context.Context, filePath string, fileName string) (*MedicalAnalysisResponse, string, error)
+	CreateAnalysis(ctx context.Context, analysis *ExamAnalysis, fileContent io.Reader) error
+	AnalyzeExamFile(ctx context.Context, fileName string, fileBytes []byte) (*MedicalAnalysisResponse, string, error)
 	ListAnalyses(ctx context.Context, patientFhirID *string) ([]*ExamAnalysis, error)
 	GetAnalysis(ctx context.Context, id uuid.UUID) (*ExamAnalysis, error)
 	DeleteAnalysis(ctx context.Context, id uuid.UUID) error
 }
 
 type service struct {
-	repository  Repository
-	projectID   string
-	locationID  string
-	vertexModel string
-	httpClient  *http.Client
+	repository    Repository
+	storageClient storage.StorageClient
+	projectID     string
+	locationID    string
+	vertexModel   string
+	httpClient    *http.Client
 }
 
-func NewService(repository Repository, projectID, locationID, vertexModel string) Service {
+func NewService(repository Repository, storageClient storage.StorageClient, projectID, locationID, vertexModel string) Service {
 	ctx := context.Background()
 	googleHTTPClient, err := google.DefaultClient(ctx, "https://www.googleapis.com/auth/cloud-platform")
 	if err != nil {
@@ -42,34 +43,47 @@ func NewService(repository Repository, projectID, locationID, vertexModel string
 	}
 
 	return &service{
-		repository:  repository,
-		projectID:   projectID,
-		locationID:  locationID,
-		vertexModel: vertexModel,
-		httpClient:  googleHTTPClient,
+		repository:    repository,
+		storageClient: storageClient,
+		projectID:     projectID,
+		locationID:    locationID,
+		vertexModel:   vertexModel,
+		httpClient:    googleHTTPClient,
 	}
 }
 
-func (svc *service) AnalyzeExamFile(ctx context.Context, filePath string, fileName string) (*MedicalAnalysisResponse, string, error) {
-	fileInfo, err := os.Stat(filePath)
-	if err != nil {
-		return nil, "error", fmt.Errorf("failed to read file info: %w", apperrors.ErrInternalServer)
+func (svc *service) CreateAnalysis(ctx context.Context, analysis *ExamAnalysis, fileContent io.Reader) error {
+	objectKey := buildExamStorageKey(analysis.ID, patientIDOrDefault(analysis.PatientFhirID), analysis.FileName)
+	if uploadError := svc.storageClient.Upload(ctx, objectKey, fileContent, examContentType(analysis.FileName)); uploadError != nil {
+		return fmt.Errorf("failed to upload exam file to storage: %w", uploadError)
+	}
+
+	if persistError := svc.repository.CreateAnalysis(ctx, analysis); persistError != nil {
+		_ = svc.storageClient.Delete(ctx, objectKey)
+		return persistError
+	}
+	return nil
+}
+
+func (svc *service) AnalyzeExamFile(ctx context.Context, fileName string, fileBytes []byte) (*MedicalAnalysisResponse, string, error) {
+	if len(fileBytes) < 5000 {
+		return nil, "insufficient_data", nil
 	}
 
 	normalizedName := strings.ToLower(fileName)
-	if fileInfo.Size() < 5000 || strings.Contains(normalizedName, "low_res") || strings.Contains(normalizedName, "blurred") || strings.Contains(normalizedName, "cropped") || strings.Contains(normalizedName, "corrompido") {
+	if strings.Contains(normalizedName, "low_res") || strings.Contains(normalizedName, "blurred") || strings.Contains(normalizedName, "cropped") || strings.Contains(normalizedName, "corrompido") {
 		return nil, "insufficient_data", nil
 	}
 
 	if svc.projectID != "" {
-		analysisResponse, parseErr := svc.callVertexAI(ctx, filePath, fileName)
+		analysisResponse, parseErr := svc.callVertexAI(ctx, fileName, fileBytes)
 		if parseErr == nil {
 			return analysisResponse, "completed", nil
 		}
 		slog.Error("Vertex AI call failed. Falling back to heuristic simulator.", "error", parseErr, "fileName", fileName)
 	}
 
-	simulatedResponse := svc.runHeuristicSimulation(fileName, filePath)
+	simulatedResponse := svc.runHeuristicSimulation(fileName)
 	return simulatedResponse, "completed", nil
 }
 
@@ -82,14 +96,21 @@ func (svc *service) GetAnalysis(ctx context.Context, id uuid.UUID) (*ExamAnalysi
 }
 
 func (svc *service) DeleteAnalysis(ctx context.Context, id uuid.UUID) error {
+	analysisRecord, fetchErr := svc.repository.GetAnalysis(ctx, id)
+	if fetchErr != nil {
+		return fetchErr
+	}
+
+	objectKey := buildExamStorageKey(id, patientIDOrDefault(analysisRecord.PatientFhirID), analysisRecord.FileName)
+	if deleteErr := svc.storageClient.Delete(ctx, objectKey); deleteErr != nil {
+		return fmt.Errorf("failed to delete exam object from storage: %w", deleteErr)
+	}
+
 	return svc.repository.DeleteAnalysis(ctx, id)
 }
 
-func (svc *service) callVertexAI(ctx context.Context, filePath string, fileName string) (*MedicalAnalysisResponse, error) {
-	fileBytes, err := os.ReadFile(filePath)
-	if err != nil {
-		return nil, err
-	}
+func (svc *service) callVertexAI(ctx context.Context, fileName string, fileBytes []byte) (*MedicalAnalysisResponse, error) {
+	base64Data := base64.StdEncoding.EncodeToString(fileBytes)
 
 	mimeType := "image/png"
 	if strings.HasSuffix(strings.ToLower(fileName), ".pdf") {
@@ -97,8 +118,6 @@ func (svc *service) callVertexAI(ctx context.Context, filePath string, fileName 
 	} else if strings.HasSuffix(strings.ToLower(fileName), ".jpg") || strings.HasSuffix(strings.ToLower(fileName), ".jpeg") {
 		mimeType = "image/jpeg"
 	}
-
-	base64Data := base64.StdEncoding.EncodeToString(fileBytes)
 
 	promptText := `Analyze the provided medical exam (image or PDF document).
 Provide a structured clinical support analysis in Portuguese.
@@ -206,7 +225,7 @@ Target JSON schema:
 	return &finalResponse, nil
 }
 
-func (svc *service) runHeuristicSimulation(fileName string, filePath string) *MedicalAnalysisResponse {
+func (svc *service) runHeuristicSimulation(fileName string) *MedicalAnalysisResponse {
 	normalizedName := strings.ToLower(fileName)
 	fileExtension := strings.ToLower(filepath.Ext(fileName))
 
