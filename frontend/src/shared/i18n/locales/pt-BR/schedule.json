@@ -54,7 +54,9 @@
     "createSuccess": "Agendamento criado com sucesso!",
     "createError": "Falha ao criar agendamento.",
     "cancelSuccess": "Agendamento cancelado com sucesso!",
-    "cancelError": "Falha ao cancelar agendamento."
+    "cancelError": "Falha ao cancelar agendamento.",
+    "rescheduleSuccess": "Agendamento reagendado com sucesso!",
+    "rescheduleError": "Falha ao reagendar agendamento."
   },
   "portal": {
     "date": "Data",

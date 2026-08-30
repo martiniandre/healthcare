@@ -21,6 +21,11 @@ export interface CreateAppointmentPayload {
   idempotency_key: string
 }
 
+export interface RescheduleAppointmentPayload {
+  starts_at: string
+  ends_at: string
+}
+
 export const AppointmentStatusLabel = {
   scheduled: "scheduled",
   confirmed: "confirmed",

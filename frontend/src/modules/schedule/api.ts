@@ -2,6 +2,7 @@ import { http } from "../../shared/utils/http"
 import type {
   Appointment,
   CreateAppointmentPayload,
+  RescheduleAppointmentPayload,
   StaffUnavailability,
   CreateUnavailabilityPayload,
 } from "./types"
@@ -36,6 +37,10 @@ export const scheduleApi = {
 
   cancelAppointment: async (appointmentId: string): Promise<Appointment> => {
     return http.post<Appointment>(`/appointments/${appointmentId}/cancel`)
+  },
+
+  rescheduleAppointment: async (appointmentId: string, payload: RescheduleAppointmentPayload): Promise<Appointment> => {
+    return http.put<Appointment>(`/appointments/${appointmentId}`, payload)
   },
 
   createUnavailability: async (payload: CreateUnavailabilityPayload): Promise<StaffUnavailability> => {

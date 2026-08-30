@@ -4,6 +4,7 @@ vi.mock("../../shared/utils/http", () => ({
   http: {
     get: vi.fn(),
     post: vi.fn(),
+    put: vi.fn(),
     delete: vi.fn(),
   },
 }))
@@ -68,6 +69,18 @@ describe("scheduleApi", () => {
     await scheduleApi.cancelAppointment("appointment-1")
 
     expect(http.post).toHaveBeenCalledWith("/appointments/appointment-1/cancel")
+  })
+
+  it("should reschedule an appointment", async () => {
+    vi.mocked(http.put).mockResolvedValue({ id: "appointment-1", status: "confirmed" })
+    const payload = {
+      starts_at: "2026-09-02T10:00:00Z",
+      ends_at: "2026-09-02T10:30:00Z",
+    }
+
+    await scheduleApi.rescheduleAppointment("appointment-1", payload)
+
+    expect(http.put).toHaveBeenCalledWith("/appointments/appointment-1", payload)
   })
 
   it("should create an unavailability window", async () => {

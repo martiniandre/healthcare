@@ -18,6 +18,7 @@ import (
 type Service interface {
 	CreateAppointment(ctx context.Context, input CreateAppointmentInput) (*Appointment, error)
 	CancelAppointment(ctx context.Context, appointmentID uuid.UUID) (*Appointment, error)
+	RescheduleAppointment(ctx context.Context, appointmentID uuid.UUID, startsAt time.Time, endsAt time.Time) (*Appointment, error)
 	GetAppointment(ctx context.Context, appointmentID uuid.UUID) (*Appointment, error)
 	ListAppointmentsByPatient(ctx context.Context, patientFHIRID string) ([]*Appointment, error)
 	ListMyAppointments(ctx context.Context, authenticatedUserID string) ([]*Appointment, error)
@@ -155,6 +156,52 @@ func (appointmentService *service) CancelAppointment(ctx context.Context, appoin
 	appointmentService.recordAppointmentAudit(ctx, "cancel", currentAppointment, cancelledAppointment)
 
 	return cancelledAppointment, nil
+}
+
+func (appointmentService *service) RescheduleAppointment(ctx context.Context, appointmentID uuid.UUID, startsAt time.Time, endsAt time.Time) (*Appointment, error) {
+	if appointmentID == uuid.Nil {
+		return nil, apperrors.InvalidArgument("invalid appointment input", map[string]string{"appointment_id": "is required"})
+	}
+
+	currentAppointment, getErr := appointmentService.repo.GetAppointmentByID(ctx, appointmentID)
+	if getErr != nil {
+		return nil, getErr
+	}
+	if currentAppointment.Status == AppointmentStatusCancelled {
+		return nil, apperrors.ErrAppointmentInvalidTransition
+	}
+	if currentAppointment.Status == AppointmentStatusFinished {
+		return nil, apperrors.ErrAppointmentInvalidTransition
+	}
+
+	fieldViolations := make(map[string]string)
+	if startsAt.IsZero() {
+		fieldViolations["starts_at"] = "is required"
+	} else if !startsAt.After(time.Now()) {
+		fieldViolations["starts_at"] = "must be in the future"
+	} else if !isAlignedToAllowedSlotStart(startsAt) {
+		fieldViolations["starts_at"] = "must start at an allowed slot time (:00, :30 or :45)"
+	}
+	if endsAt.IsZero() {
+		fieldViolations["ends_at"] = "is required"
+	} else if !endsAt.After(startsAt) {
+		fieldViolations["ends_at"] = "must be after starts_at"
+	} else if !startsAt.IsZero() && !isAllowedAppointmentDuration(startsAt, endsAt) {
+		fieldViolations["ends_at"] = appointmentDurationViolationDescription()
+	}
+	if len(fieldViolations) > 0 {
+		return nil, apperrors.InvalidArgument("invalid appointment input", fieldViolations)
+	}
+
+	rescheduledAppointment, rescheduleErr := appointmentService.repo.RescheduleAppointment(ctx, appointmentID, startsAt, endsAt)
+	if rescheduleErr != nil {
+		return nil, rescheduleErr
+	}
+
+	appointmentService.publishAppointmentEvent(ctx, "appointment.rescheduled", rescheduledAppointment)
+	appointmentService.recordAppointmentAudit(ctx, "reschedule", currentAppointment, rescheduledAppointment)
+
+	return rescheduledAppointment, nil
 }
 
 func (appointmentService *service) GetAppointment(ctx context.Context, appointmentID uuid.UUID) (*Appointment, error) {

@@ -30,6 +30,7 @@ func (handler *HTTPHandler) RegisterRoutes(mux *http.ServeMux) {
 	mux.Handle("GET /api/v1/appointments/my", middleware.RequirePolicy("GET /api/v1/appointments/my")(http.HandlerFunc(handler.ListMyAppointments)))
 	mux.Handle("GET /api/v1/appointments/{appointmentId}", middleware.RequirePolicy("GET /api/v1/appointments/{appointmentId}")(http.HandlerFunc(handler.GetAppointment)))
 	mux.Handle("POST /api/v1/appointments/{appointmentId}/cancel", middleware.RequirePolicy("POST /api/v1/appointments/{appointmentId}/cancel")(http.HandlerFunc(handler.CancelAppointment)))
+	mux.Handle("PUT /api/v1/appointments/{appointmentId}", middleware.RequirePolicy("PUT /api/v1/appointments/{appointmentId}")(http.HandlerFunc(handler.RescheduleAppointment)))
 }
 
 // CreateAppointment godoc
@@ -241,6 +242,58 @@ func (handler *HTTPHandler) CancelAppointment(httpResponseWriter http.ResponseWr
 	}
 
 	render.JSON(httpResponseWriter, http.StatusOK, toAppointmentResponse(cancelledAppointment))
+}
+
+// RescheduleAppointment godoc
+//
+//	@Summary		Reschedule an appointment
+//	@Description	Moves an existing appointment to a new time slot
+//	@Tags			appointments
+//	@Accept			json
+//	@Produce		json
+//	@Param			appointmentId	path	string						true	"Appointment UUID"
+//	@Param			body			body	RescheduleAppointmentRequest	true	"New appointment time"
+//	@Success		200				{object}	AppointmentResponse
+//	@Failure		400				{object}	map[string]string
+//	@Failure		404				{object}	map[string]string
+//	@Failure		409				{object}	map[string]string
+//	@Router			/appointments/{appointmentId} [put]
+func (handler *HTTPHandler) RescheduleAppointment(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
+	appointmentID, idParseErr := uuid.Parse(httpRequest.PathValue("appointmentId"))
+	if idParseErr != nil {
+		render.Error(httpResponseWriter, http.StatusBadRequest, "appointmentId inválido.")
+		return
+	}
+
+	var payload RescheduleAppointmentRequest
+	if payloadDecodeErr := json.NewDecoder(httpRequest.Body).Decode(&payload); payloadDecodeErr != nil {
+		render.Error(httpResponseWriter, http.StatusBadRequest, "Payload inválido.")
+		return
+	}
+
+	startsAt, startsParseErr := time.Parse(time.RFC3339, payload.StartsAt)
+	if startsParseErr != nil {
+		render.Error(httpResponseWriter, http.StatusBadRequest, "starts_at inválido.")
+		return
+	}
+	endsAt, endsParseErr := time.Parse(time.RFC3339, payload.EndsAt)
+	if endsParseErr != nil {
+		render.Error(httpResponseWriter, http.StatusBadRequest, "ends_at inválido.")
+		return
+	}
+
+	rescheduledAppointment, rescheduleErr := handler.service.RescheduleAppointment(httpRequest.Context(), appointmentID, startsAt, endsAt)
+	if rescheduleErr != nil {
+		render.ErrorFromAppError(httpResponseWriter, rescheduleErr)
+		return
+	}
+
+	render.JSON(httpResponseWriter, http.StatusOK, toAppointmentResponse(rescheduledAppointment))
+}
+
+type RescheduleAppointmentRequest struct {
+	StartsAt string `json:"starts_at"`
+	EndsAt   string `json:"ends_at"`
 }
 
 type CreateAppointmentRequest struct {

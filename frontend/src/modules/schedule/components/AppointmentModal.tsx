@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useForm, Controller } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useTranslation } from "react-i18next"
@@ -31,6 +31,7 @@ interface AppointmentModalProps {
   isPending: boolean
   defaultStaffId?: string
   defaultDate?: string
+  defaultStartTime?: string
 }
 
 const formatLocalDateTime = (dateValue: string, timeValue: string): string => {
@@ -44,6 +45,7 @@ export const AppointmentModal = ({
   isPending,
   defaultStaffId,
   defaultDate,
+  defaultStartTime,
 }: AppointmentModalProps) => {
   const { t } = useTranslation("schedule")
   const { data: staffMembers = [] } = useStaffListQuery()
@@ -81,6 +83,19 @@ export const AppointmentModal = ({
     reset()
     onClose()
   }
+
+  useEffect(() => {
+    if (isOpen) {
+      reset({
+        patientFhirId: "",
+        staffId: defaultStaffId ?? "",
+        date: defaultDate ?? "",
+        startTime: defaultStartTime ?? "",
+        endTime: "",
+        reason: "",
+      })
+    }
+  }, [isOpen, defaultStaffId, defaultDate, defaultStartTime, reset])
 
   if (!isOpen) {
     return null

@@ -1,6 +1,10 @@
 import { useQuery, useQueries, useMutation, useQueryClient } from "@tanstack/react-query"
 import { scheduleApi } from "./api"
-import type { CreateAppointmentPayload, CreateUnavailabilityPayload } from "./types"
+import type {
+  CreateAppointmentPayload,
+  CreateUnavailabilityPayload,
+  RescheduleAppointmentPayload,
+} from "./types"
 
 export const scheduleQueryKeys = {
   all: ["schedule"] as const,
@@ -74,6 +78,22 @@ export const useCancelAppointmentMutation = () => {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (appointmentId: string) => scheduleApi.cancelAppointment(appointmentId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: scheduleQueryKeys.appointments() })
+    },
+  })
+}
+
+export interface RescheduleAppointmentVariables {
+  appointmentId: string
+  payload: RescheduleAppointmentPayload
+}
+
+export const useRescheduleAppointmentMutation = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (variables: RescheduleAppointmentVariables) =>
+      scheduleApi.rescheduleAppointment(variables.appointmentId, variables.payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: scheduleQueryKeys.appointments() })
     },
