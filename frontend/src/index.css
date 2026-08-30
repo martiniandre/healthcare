@@ -145,3 +145,196 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #9ca3af;
 }
+
+/* ==========================================================================
+   Schedule Calendar (FullCalendar) — Editorial Clinical Agenda
+   Scoped under .schedule-calendar-container so nothing leaks to other views
+   ========================================================================== */
+.schedule-calendar-container .fc {
+  --fc-border-color: #e9edf2;
+  --fc-today-bg-color: #f0fdfa;
+  --fc-event-bg-color: transparent;
+  --fc-event-border-color: transparent;
+  --fc-event-text-color: inherit;
+  --fc-more-link-bg-color: transparent;
+  --sc-ink: #1e293b;
+  --sc-muted: #64748b;
+  --sc-primary: #2563eb;
+  --sc-teal: #0d9488;
+  font-family: "Poppins", "Outfit", sans-serif;
+  color: var(--sc-ink);
+}
+
+.schedule-calendar-container .fc a {
+  color: inherit;
+}
+
+/* Toolbar — refined, quiet controls */
+.schedule-calendar-container .fc-toolbar {
+  margin-bottom: 0.9rem;
+}
+.schedule-calendar-container .fc-toolbar-title {
+  font-family: "Poppins", sans-serif;
+  font-weight: 700;
+  font-size: 1.02rem;
+  letter-spacing: -0.01em;
+  color: var(--sc-ink);
+  text-transform: capitalize;
+}
+.schedule-calendar-container .fc-toolbar-chunk:first-child .fc-button-group {
+  border: 1px solid #e9edf2;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+.schedule-calendar-container .fc-button {
+  border: 0;
+  background: transparent;
+  color: var(--sc-ink);
+  font-family: "Poppins", sans-serif;
+  font-weight: 600;
+  font-size: 0.82rem;
+  text-transform: capitalize;
+  box-shadow: none;
+  padding: 0.42em 0.75em;
+  border-radius: 0;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.schedule-calendar-container .fc-button:hover {
+  background: #f1f5f9;
+  color: var(--sc-primary);
+}
+.schedule-calendar-container .fc-button:focus {
+  box-shadow: none;
+}
+.schedule-calendar-container .fc-button-primary:not(:disabled).fc-button-active,
+.schedule-calendar-container .fc-button-primary:not(:disabled):active {
+  background: #eff6ff;
+  color: var(--sc-primary);
+}
+.schedule-calendar-container .fc-today-button {
+  border: 1px solid #dbeafe !important;
+  background: #eff6ff !important;
+  color: var(--sc-primary) !important;
+  border-radius: 10px !important;
+  margin-left: 0.55rem;
+  padding: 0.42em 0.9em;
+  font-weight: 600;
+}
+.schedule-calendar-container .fc-today-button:hover {
+  background: #dbeafe !important;
+}
+.schedule-calendar-container .fc-today-button:disabled {
+  opacity: 0.55;
+  background: #f1f5f9 !important;
+  color: #94a3b8 !important;
+  border-color: #e9edf2 !important;
+}
+
+/* Grid shell */
+.schedule-calendar-container .fc-scrollgrid {
+  border: 1px solid #eaedf1;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03) inset;
+}
+.schedule-calendar-container .fc-scrollgrid-section > td {
+  border-color: #e9edf2;
+}
+.schedule-calendar-container .fc-scrollgrid-section-header > td {
+  border: 0;
+}
+
+/* Day-of-week header row */
+.schedule-calendar-container .fc-col-header {
+  background: #f8fafc;
+}
+.schedule-calendar-container .fc-col-header-cell {
+  border-color: #e9edf2 !important;
+  padding: 0.45rem 0;
+}
+.schedule-calendar-container .fc-col-header-cell-cushion {
+  font-family: "Poppins", sans-serif;
+  font-size: 0.64rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--sc-muted);
+  padding: 0;
+}
+
+/* Day cells */
+.schedule-calendar-container .fc-daygrid-day {
+  border-color: #e9edf2 !important;
+}
+.schedule-calendar-container .fc-daygrid-day-top {
+  padding: 0.35rem 0.5rem 0.15rem;
+}
+.schedule-calendar-container .fc-daygrid-day-number {
+  font-family: "Poppins", sans-serif;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #475569;
+  width: 1.75rem;
+  height: 1.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  padding: 0;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.schedule-calendar-container .fc-daygrid-day:hover .fc-daygrid-day-number:not(.fc-day-today .fc-daygrid-day-number) {
+  background: #f1f5f9;
+}
+.schedule-calendar-container .fc-day-today {
+  background: #f0fdfa !important;
+}
+.schedule-calendar-container .fc-day-today .fc-daygrid-day-number {
+  background: var(--sc-teal);
+  color: #fff;
+  font-weight: 700;
+  box-shadow: 0 5px 12px -5px rgba(13, 148, 136, 0.65);
+}
+.schedule-calendar-container .fc-day-other {
+  background: #fcfcfd;
+}
+.schedule-calendar-container .fc-day-other .fc-daygrid-day-number {
+  color: #cbd5e1;
+}
+
+/* Events — the custom chip owns the visual, hovering lifts the ticket */
+.schedule-calendar-container .fc-daygrid-event {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  border-radius: 8px;
+  margin: 2px 4px;
+  padding: 0;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.schedule-calendar-container .fc-daygrid-event:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 16px -10px rgba(15, 23, 42, 0.45);
+}
+
+/* +N more link */
+.schedule-calendar-container .fc-daygrid-more-link {
+  font-family: "Poppins", sans-serif;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--sc-primary);
+  padding: 0.15rem 0.45rem 0.3rem;
+}
+.schedule-calendar-container .fc-daygrid-more-link:hover {
+  color: #1e40af;
+  text-decoration: none;
+}
+
+/* Appointment ticket chip (rendered by ScheduleEventChip) */
+.schedule-calendar-container .schedule-event-ticket {
+  border-width: 1px;
+  border-style: solid;
+}

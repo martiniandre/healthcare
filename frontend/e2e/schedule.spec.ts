@@ -25,10 +25,10 @@ test.describe("Appointment Scheduling Module", () => {
     await expect(page.getByRole("heading", { name: "Agenda", exact: true })).toBeVisible()
     await expect(page.getByRole("button", { name: "Novo Agendamento" })).toBeVisible()
     await expect(page.getByText("Profissionais")).toBeVisible()
-    await expect(page.locator(".fc-daygrid-body")).toBeVisible()
+    await expect(page.locator(".fc-timegrid-body")).toBeVisible()
   })
 
-  test("should book an appointment and show it as a chip on the month calendar", async ({ page }) => {
+  test("should book an appointment and show it as a chip on the week calendar", async ({ page }) => {
     await page.goto("/schedule")
     await page.getByRole("button", { name: "Novo Agendamento" }).click()
 

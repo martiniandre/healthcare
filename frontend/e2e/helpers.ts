@@ -1163,6 +1163,51 @@ export const mockScheduleAPI = async (
       })
     }
   })
+
+  await pageInstance.route("**/api/v1/appointments/*", async (networkRoute) => {
+    const httpRequest = networkRoute.request()
+    if (httpRequest.method() !== "PUT") {
+      await networkRoute.continue()
+      return
+    }
+    const requestURL = new URL(httpRequest.url())
+    const urlParts = requestURL.pathname.split("/")
+    const appointmentId = urlParts[urlParts.length - 1]
+    const submittedJSON = httpRequest.postDataJSON()
+
+    const matchedAppointment = currentAppointments.find((appointment) => appointment.id === appointmentId)
+    if (matchedAppointment) {
+      const newStart = new Date(submittedJSON.starts_at)
+      const newEnd = new Date(submittedJSON.ends_at)
+      const slotDurationMinutes = (newEnd.getTime() - newStart.getTime()) / 60000
+      const isAllowedSlotDuration = allowedSlotDurationsMinutes.includes(slotDurationMinutes)
+      const isAlignedSlotStart =
+        allowedStartMinutes.includes(newStart.getMinutes()) && newStart.getSeconds() === 0
+
+      if (!isAllowedSlotDuration || !isAlignedSlotStart) {
+        await networkRoute.fulfill({
+          status: 400,
+          contentType: "application/json",
+          body: JSON.stringify({ error: "appointment slot must be 30 or 45 minutes and start aligned to a valid slot time" }),
+        })
+        return
+      }
+
+      matchedAppointment.starts_at = submittedJSON.starts_at
+      matchedAppointment.ends_at = submittedJSON.ends_at
+      await networkRoute.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ ...matchedAppointment, version: Number(matchedAppointment.version) + 1 }),
+      })
+    } else {
+      await networkRoute.fulfill({
+        status: 404,
+        contentType: "application/json",
+        body: JSON.stringify({ error: "Appointment not found." }),
+      })
+    }
+  })
 }
 
 export const mockPortalAPI = async (pageInstance: Page): Promise<void> => {

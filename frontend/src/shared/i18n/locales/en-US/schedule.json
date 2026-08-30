@@ -54,7 +54,9 @@
     "createSuccess": "Appointment created successfully!",
     "createError": "Failed to create appointment.",
     "cancelSuccess": "Appointment cancelled successfully!",
-    "cancelError": "Failed to cancel appointment."
+    "cancelError": "Failed to cancel appointment.",
+    "rescheduleSuccess": "Appointment rescheduled successfully!",
+    "rescheduleError": "Failed to reschedule appointment."
   },
   "portal": {
     "date": "Date",

@@ -54,7 +54,9 @@
     "createSuccess": "Â¡Cita creada con Ã©xito!",
     "createError": "Error al crear la cita.",
     "cancelSuccess": "Â¡Cita cancelada con Ã©xito!",
-    "cancelError": "Error al cancelar la cita."
+    "cancelError": "Error al cancelar la cita.",
+    "rescheduleSuccess": "Â¡Cita reprogramada con Ã©xito!",
+    "rescheduleError": "Error al reprogramar la cita."
   },
   "portal": {
     "date": "Fecha",

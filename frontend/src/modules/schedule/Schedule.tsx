@@ -10,10 +10,12 @@ import { UnavailabilityCard } from "./components/UnavailabilityCard"
 import { CreateUnavailabilityModal } from "./components/CreateUnavailabilityModal"
 import { DeleteUnavailabilityModal } from "./components/DeleteUnavailabilityModal"
 import { StaffOverlaySidebar } from "./components/StaffOverlaySidebar"
-import { ScheduleMonthCalendar } from "./components/ScheduleMonthCalendar"
+import { ScheduleCalendar, type ScheduleViewMode } from "./components/ScheduleCalendar"
+import { ScheduleViewToggle } from "./components/ScheduleViewToggle"
 import {
   useCreateAppointmentMutation,
   useCancelAppointmentMutation,
+  useRescheduleAppointmentMutation,
   useStaffUnavailabilityQuery,
   useCreateUnavailabilityMutation,
   useDeleteUnavailabilityMutation,
@@ -32,12 +34,27 @@ const todayDate = (): string => {
   return `${year}-${month}-${day}`
 }
 
+const toLocalDateString = (dateValue: Date): string => {
+  const year = dateValue.getFullYear()
+  const month = String(dateValue.getMonth() + 1).padStart(2, "0")
+  const day = String(dateValue.getDate()).padStart(2, "0")
+  return `${year}-${month}-${day}`
+}
+
+const toLocalTimeString = (dateValue: Date): string => {
+  const hour = String(dateValue.getHours()).padStart(2, "0")
+  const minute = String(dateValue.getMinutes()).padStart(2, "0")
+  return `${hour}:${minute}`
+}
+
 export const Schedule = () => {
   const { t } = useTranslation("schedule")
   const { data: staffMembers = [] } = useStaffListQuery()
 
   const [selectedStaffIds, setSelectedStaffIds] = useState<string[] | null>(null)
   const [visibleRange, setVisibleRange] = useState({ startDate: todayDate(), endDate: todayDate() })
+  const [viewMode, setViewMode] = useState<ScheduleViewMode>("week")
+  const [createDefaults, setCreateDefaults] = useState<{ date: string; startTime: string } | null>(null)
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [appointmentToCancel, setAppointmentToCancel] = useState<Appointment | null>(null)
   const [isCreateUnavailabilityOpen, setIsCreateUnavailabilityOpen] = useState(false)
@@ -85,6 +102,7 @@ export const Schedule = () => {
 
   const createAppointmentMutation = useCreateAppointmentMutation()
   const cancelAppointmentMutation = useCancelAppointmentMutation()
+  const rescheduleAppointmentMutation = useRescheduleAppointmentMutation()
   const createUnavailabilityMutation = useCreateUnavailabilityMutation()
   const deleteUnavailabilityMutation = useDeleteUnavailabilityMutation()
 
@@ -120,6 +138,38 @@ export const Schedule = () => {
         toast.error(t("toasts.cancelError"))
       },
     })
+  }
+
+  const handleCalendarSlotClick = (clickedStart: Date) => {
+    const dateString = toLocalDateString(clickedStart)
+    const timeString = toLocalTimeString(clickedStart)
+    setCreateDefaults({ date: dateString, startTime: timeString })
+    setIsCreateModalOpen(true)
+  }
+
+  const handleNewAppointmentButton = () => {
+    setCreateDefaults(null)
+    setIsCreateModalOpen(true)
+  }
+
+  const handleRescheduleAppointment = (appointment: Appointment, newStart: Date, newEnd: Date) => {
+    rescheduleAppointmentMutation.mutate(
+      {
+        appointmentId: appointment.id,
+        payload: {
+          starts_at: newStart.toISOString(),
+          ends_at: newEnd.toISOString(),
+        },
+      },
+      {
+        onSuccess: () => {
+          toast.success(t("toasts.rescheduleSuccess"))
+        },
+        onError: () => {
+          toast.error(t("toasts.rescheduleError"))
+        },
+      }
+    )
   }
 
   const handleCreateUnavailability = async (payload: CreateUnavailabilityPayload) => {
@@ -161,7 +211,7 @@ export const Schedule = () => {
             <CalendarOff className="w-4 h-4" />
             {t("unavailability.createButton")}
           </Button>
-          <Button onClick={() => setIsCreateModalOpen(true)} disabled={!focusedStaffId}>
+          <Button onClick={handleNewAppointmentButton} disabled={!focusedStaffId}>
             <CalendarPlus className="w-4 h-4" />
             {t("newAppointment")}
           </Button>
@@ -185,16 +235,24 @@ export const Schedule = () => {
               <Loader2 className="w-6 h-6 text-primary animate-spin" />
             </div>
           ) : (
-            <ScheduleMonthCalendar
-              events={calendarEvents}
-              onVisibleRangeChange={(rangeStart, rangeEnd) =>
-                setVisibleRange((previousRange) =>
-                  previousRange.startDate === rangeStart && previousRange.endDate === rangeEnd
-                    ? previousRange
-                    : { startDate: rangeStart, endDate: rangeEnd }
-                )
-              }
-            />
+            <>
+              <div className="flex justify-end">
+                <ScheduleViewToggle value={viewMode} onChange={setViewMode} />
+              </div>
+              <ScheduleCalendar
+                events={calendarEvents}
+                viewMode={viewMode}
+                onVisibleRangeChange={(rangeStart, rangeEnd) =>
+                  setVisibleRange((previousRange) =>
+                    previousRange.startDate === rangeStart && previousRange.endDate === rangeEnd
+                      ? previousRange
+                      : { startDate: rangeStart, endDate: rangeEnd }
+                  )
+                }
+                onCreateStart={handleCalendarSlotClick}
+                onReschedule={handleRescheduleAppointment}
+              />
+            </>
           )}
 
           {upcomingUnavailabilityWindows.length > 0 && (
@@ -223,7 +281,8 @@ export const Schedule = () => {
         onSubmit={handleCreateAppointment}
         isPending={createAppointmentMutation.isPending}
         defaultStaffId={focusedStaffId}
-        defaultDate={todayDate()}
+        defaultDate={createDefaults?.date ?? todayDate()}
+        defaultStartTime={createDefaults?.startTime}
       />
 
       <CancelAppointmentModal
