@@ -15,13 +15,40 @@ func TestExamFileExtension(t *testing.T) {
 	}{
 		{name: "png extension", fileName: "chest_xray.png", expected: ".png"},
 		{name: "uppercase pdf extension", fileName: "result.PDF", expected: ".pdf"},
+		{name: "jpg extension", fileName: "photo.jpg", expected: ".jpg"},
+		{name: "jpeg extension", fileName: "photo.jpeg", expected: ".jpeg"},
 		{name: "missing extension defaults to png", fileName: "scan", expected: ".png"},
+		{name: "unsupported extension defaults to png", fileName: "payload.sh", expected: ".png"},
 	}
 
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {
 			if result := examFileExtension(testCase.fileName); result != testCase.expected {
 				t.Fatalf("expected %q, got %q", testCase.expected, result)
+			}
+		})
+	}
+}
+
+func TestIsSupportedExamExtension(t *testing.T) {
+	testCases := []struct {
+		name     string
+		fileName string
+		expected bool
+	}{
+		{name: "png supported", fileName: "chest_xray.png", expected: true},
+		{name: "uppercase pdf supported", fileName: "result.PDF", expected: true},
+		{name: "jpg supported", fileName: "photo.jpg", expected: true},
+		{name: "jpeg supported", fileName: "photo.jpeg", expected: true},
+		{name: "unsupported extension rejected", fileName: "payload.sh", expected: false},
+		{name: "missing extension rejected", fileName: "scan", expected: false},
+		{name: "dotfile rejected", fileName: ".bashrc", expected: false},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			if result := isSupportedExamExtension(testCase.fileName); result != testCase.expected {
+				t.Fatalf("expected %v, got %v", testCase.expected, result)
 			}
 		})
 	}

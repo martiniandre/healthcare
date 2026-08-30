@@ -117,15 +117,14 @@ func (handler *HTTPHandler) CreateAnalysis(httpResponseWriter http.ResponseWrite
 	defer file.Close()
 
 	analysisID := uuid.New()
-	fileExtension := strings.ToLower(filepath.Ext(fileHeader.Filename))
-	if fileExtension != ".png" && fileExtension != ".jpg" && fileExtension != ".jpeg" && fileExtension != ".pdf" {
+	if !isSupportedExamExtension(fileHeader.Filename) {
 		render.Error(httpResponseWriter, http.StatusBadRequest, "Formato de arquivo não suportado. Envie PNG, JPG ou PDF.")
 		return
 	}
 
 	sanitizedFileName := unsafeExamPathChars.ReplaceAllString(strings.TrimSpace(filepath.Base(fileHeader.Filename)), "_")
 	if sanitizedFileName == "" {
-		sanitizedFileName = analysisID.String() + fileExtension
+		sanitizedFileName = analysisID.String() + examFileExtension(fileHeader.Filename)
 	}
 
 	userIDStr, _ := httpRequest.Context().Value(ctxkeys.UserIDKey).(string)

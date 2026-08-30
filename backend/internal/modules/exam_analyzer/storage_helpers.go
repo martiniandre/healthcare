@@ -11,6 +11,13 @@ import (
 
 var unsafeExamPathChars = regexp.MustCompile(`[^A-Za-z0-9-.]`)
 
+var supportedExamExtensions = map[string]bool{
+	".png":  true,
+	".jpg":  true,
+	".jpeg": true,
+	".pdf":  true,
+}
+
 func patientIDOrDefault(patientFhirID *string) string {
 	if patientFhirID == nil || strings.TrimSpace(*patientFhirID) == "" {
 		return "unspecified"
@@ -18,9 +25,13 @@ func patientIDOrDefault(patientFhirID *string) string {
 	return *patientFhirID
 }
 
+func isSupportedExamExtension(fileName string) bool {
+	return supportedExamExtensions[strings.ToLower(filepath.Ext(fileName))]
+}
+
 func examFileExtension(fileName string) string {
-	extension := filepath.Ext(strings.ToLower(fileName))
-	if extension == "" {
+	extension := strings.ToLower(filepath.Ext(fileName))
+	if !supportedExamExtensions[extension] {
 		return ".png"
 	}
 	return extension
