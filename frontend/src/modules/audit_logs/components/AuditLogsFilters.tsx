@@ -45,7 +45,7 @@ export const AuditLogsFilters = ({
             placeholder={t("filterEmailPlaceholder")}
             value={userEmail}
             onChange={(event) => onUserEmailChange(event.target.value)}
-            className="w-full bg-white border border-border rounded-lg pl-9 pr-4 py-2 text-xs text-gray-800 placeholder-gray-400 focus:outline-none focus:border-primary/50 transition-all duration-200 h-9"
+            className="w-full bg-card border border-border rounded-lg pl-9 pr-4 py-2 text-xs text-gray-800 placeholder-gray-400 focus:outline-none focus:border-primary/50 transition-all duration-200 h-9"
           />
         </div>
 
@@ -53,7 +53,7 @@ export const AuditLogsFilters = ({
           <select
             value={filterAction}
             onChange={(event) => onFilterActionChange(event.target.value)}
-            className="w-full bg-white border border-border rounded-lg px-3 py-2 text-xs text-gray-800 focus:outline-none focus:border-primary/50 transition-all duration-200 h-9 cursor-pointer"
+            className="w-full bg-card border border-border rounded-lg px-3 py-2 text-xs text-gray-800 focus:outline-none focus:border-primary/50 transition-all duration-200 h-9 cursor-pointer"
           >
             <option value="All">{t("filterAllActions")}</option>
             <option value="LOGIN">{t("actionLogin")}</option>
@@ -66,7 +66,7 @@ export const AuditLogsFilters = ({
           <select
             value={filterStatus}
             onChange={(event) => onFilterStatusChange(event.target.value)}
-            className="w-full bg-white border border-border rounded-lg px-3 py-2 text-xs text-gray-800 focus:outline-none focus:border-primary/50 transition-all duration-200 h-9 cursor-pointer"
+            className="w-full bg-card border border-border rounded-lg px-3 py-2 text-xs text-gray-800 focus:outline-none focus:border-primary/50 transition-all duration-200 h-9 cursor-pointer"
           >
             <option value="All">{t("filterAllStatuses")}</option>
             <option value="SUCCESS">{t("statusSuccess")}</option>
@@ -79,7 +79,7 @@ export const AuditLogsFilters = ({
             type="date"
             value={startDate}
             onChange={(event) => onStartDateChange(event.target.value)}
-            className="w-full bg-white border border-border rounded-lg px-3 py-2 text-xs text-gray-800 focus:outline-none focus:border-primary/50 transition-all duration-200 h-9 cursor-pointer"
+            className="w-full bg-card border border-border rounded-lg px-3 py-2 text-xs text-gray-800 focus:outline-none focus:border-primary/50 transition-all duration-200 h-9 cursor-pointer"
           />
         </div>
 
@@ -88,7 +88,7 @@ export const AuditLogsFilters = ({
             type="date"
             value={endDate}
             onChange={(event) => onEndDateChange(event.target.value)}
-            className="w-full bg-white border border-border rounded-lg px-3 py-2 text-xs text-gray-800 focus:outline-none focus:border-primary/50 transition-all duration-200 h-9 cursor-pointer"
+            className="w-full bg-card border border-border rounded-lg px-3 py-2 text-xs text-gray-800 focus:outline-none focus:border-primary/50 transition-all duration-200 h-9 cursor-pointer"
           />
         </div>
       </div>

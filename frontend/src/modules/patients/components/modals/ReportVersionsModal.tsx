@@ -70,7 +70,7 @@ export const ReportVersionsModal = ({
                   </p>
                 )}
                 {versionEntry.snapshot?.conclusion && (
-                  <p className="text-xs text-gray-600 leading-relaxed bg-white border border-border p-3 rounded-lg mt-2">
+                  <p className="text-xs text-gray-600 leading-relaxed bg-card border border-border p-3 rounded-lg mt-2">
                     {versionEntry.snapshot.conclusion}
                   </p>
                 )}

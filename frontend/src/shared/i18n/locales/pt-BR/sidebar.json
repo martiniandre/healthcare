@@ -5,9 +5,9 @@
     "clinical": "Assistência Clínica",
     "diagnostics": "Diagnóstico",
     "operations": "Operações",
-    "system": "Sistema",
     "patient": "Minha Saúde"
   },
+  "appearance": "Aparência",
   "patients": "Pacientes",
   "dashboard": "Dashboard Clínico",
   "portal": "Meu Portal",
@@ -18,8 +18,6 @@
   "staffManagement": "Gestão de Equipes",
   "schedule": "Agenda",
   "auditLogs": "Logs de Auditoria",
-  "settings": "Configurações",
-  "comingSoon": "Em breve",
   "logout": "Sair",
   "closeMenu": "Fechar menu"
 }

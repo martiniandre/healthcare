@@ -33,7 +33,7 @@ export const AppHeader = () => {
   }
 
   return (
-    <header className="w-full border-b border-border bg-white/80 backdrop-blur-sm sticky top-0 z-50 px-4 md:px-6 py-2.5 flex items-center justify-end gap-3">
+    <header className="w-full border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-50 px-4 md:px-6 py-2.5 flex items-center justify-end gap-3">
       <button
         onClick={toggleMobileSidebar}
         aria-label={t("openMenu")}

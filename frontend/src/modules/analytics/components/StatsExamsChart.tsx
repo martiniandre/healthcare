@@ -74,7 +74,7 @@ export const StatsExamsChart = ({
                 className={`flex items-center justify-between p-2.5 rounded-lg border transition-all duration-200 ${
                   selectedModality === item.modality 
                     ? "bg-gray-50 border-gray-300" 
-                    : "bg-white border-transparent"
+                    : "bg-card border-transparent"
                 }`}
               >
                 <div className="flex items-center gap-2.5">

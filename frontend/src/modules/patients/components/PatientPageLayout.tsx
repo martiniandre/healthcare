@@ -34,7 +34,7 @@ export function PatientPageLayout({
       </div>
 
       <div className="flex flex-col md:flex-row gap-6 items-start mt-2">
-        <div className="w-full md:w-64 shrink-0 bg-white border border-border p-4 rounded-xl flex flex-col gap-4">
+        <div className="w-full md:w-64 shrink-0 bg-card border border-border p-4 rounded-xl flex flex-col gap-4">
           {sidebarTop}
         </div>
 

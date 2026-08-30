@@ -47,7 +47,7 @@ export const PortalReports = () => {
       {reports.map((report) => (
         <div
           key={report.fhir_resource_id}
-          className="bg-white border border-border rounded-xl p-5"
+          className="bg-card border border-border rounded-xl p-5"
         >
           <div className="flex items-start justify-between mb-2">
             <div>

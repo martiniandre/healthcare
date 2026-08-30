@@ -11,12 +11,12 @@ test.describe("Sidebar Navigation Module", () => {
     await expect(sidebar.getByText("Assistência Clínica")).toBeVisible()
     await expect(sidebar.getByText("Diagnóstico")).toBeVisible()
     await expect(sidebar.getByText("Operações")).toBeVisible()
-    await expect(sidebar.getByText("Sistema")).toBeVisible()
     await expect(page.getByRole("button", { name: "Pacientes" })).toBeVisible()
     await expect(page.getByRole("button", { name: "Telemetria UTI" })).toBeVisible()
     await expect(page.getByRole("button", { name: "Análise de Exames" })).toBeVisible()
     await expect(page.getByRole("button", { name: "Analytics" })).toBeVisible()
     await expect(page.getByRole("button", { name: "Gestão de Equipes" })).toBeVisible()
+    await expect(page.getByRole("button", { name: "Aparência" })).toBeVisible()
     await expect(page.getByRole("button", { name: "Sair" })).toBeVisible()
   })
 

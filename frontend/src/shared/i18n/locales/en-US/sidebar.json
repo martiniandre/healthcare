@@ -5,9 +5,9 @@
     "clinical": "Clinical Care",
     "diagnostics": "Diagnostics",
     "operations": "Operations",
-    "system": "System",
     "patient": "My Health"
   },
+  "appearance": "Appearance",
   "patients": "Patients",
   "dashboard": "Clinical Dashboard",
   "portal": "My Portal",
@@ -18,8 +18,6 @@
   "staffManagement": "Staff Management",
   "schedule": "Schedule",
   "auditLogs": "Audit Logs",
-  "settings": "Settings",
-  "comingSoon": "Soon",
   "logout": "Logout",
   "closeMenu": "Close menu"
 }

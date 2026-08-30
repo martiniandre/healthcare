@@ -27,7 +27,7 @@ export const ScheduleMonthCalendar = ({ events, onVisibleRangeChange }: Schedule
   }, [])
 
   return (
-    <div className="bg-white border border-border rounded-xl p-4 schedule-calendar-container">
+    <div className="bg-card border border-border rounded-xl p-4 schedule-calendar-container">
       <FullCalendar
         plugins={[dayGridPlugin, interactionPlugin]}
         initialView="dayGridMonth"

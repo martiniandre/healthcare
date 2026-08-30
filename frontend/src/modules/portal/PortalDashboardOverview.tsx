@@ -43,7 +43,7 @@ export const PortalDashboardOverview = ({ dashboard }: PortalDashboardOverviewPr
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="bg-white border border-border rounded-xl p-6">
+      <div className="bg-card border border-border rounded-xl p-6">
         <h2 className="text-lg font-bold text-gray-900 mb-1">
           Olá, {dashboard.patient_info.full_name.split(" ")[0]}!
         </h2>
@@ -67,7 +67,7 @@ export const PortalDashboardOverview = ({ dashboard }: PortalDashboardOverviewPr
       </div>
 
       {dashboard.upcoming_encounters.length > 0 && (
-        <div className="bg-white border border-border rounded-xl p-6">
+        <div className="bg-card border border-border rounded-xl p-6">
           <h3 className="text-sm font-bold text-gray-900 mb-4">Próximas Consultas</h3>
           <div className="space-y-3">
             {dashboard.upcoming_encounters.slice(0, 5).map((encounter) => (
@@ -93,7 +93,7 @@ export const PortalDashboardOverview = ({ dashboard }: PortalDashboardOverviewPr
       )}
 
       {dashboard.recent_observations.length > 0 && (
-        <div className="bg-white border border-border rounded-xl p-6">
+        <div className="bg-card border border-border rounded-xl p-6">
           <h3 className="text-sm font-bold text-gray-900 mb-4">Últimos Sinais Vitais</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {dashboard.recent_observations.slice(0, 8).map((observation) => {

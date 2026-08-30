@@ -5,12 +5,17 @@ import { useAuthStore } from "../store/auth_store"
 import { useLayoutStore } from "../store/layout_store"
 
 const mockTranslateFunction = (key: string) => key
+const mockChangeLanguage = vi.fn()
 const mockNavigate = vi.fn()
 const mockLocation = { pathname: "/", search: "", hash: "", state: null, key: "default" }
 
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({
     t: mockTranslateFunction,
+    i18n: {
+      language: "en-US",
+      changeLanguage: mockChangeLanguage,
+    },
   }),
 }))
 
@@ -34,6 +39,7 @@ vi.mock("../services/api", () => ({
 
 describe("AppSidebar", () => {
   beforeEach(() => {
+    window.localStorage.clear()
     mockNavigate.mockReset()
     mockLocation.pathname = "/"
     useAuthStore.setState({
@@ -44,7 +50,7 @@ describe("AppSidebar", () => {
       fullName: "Dr. Test",
       isActive: true,
     })
-    useLayoutStore.setState({ isMobileSidebarOpen: false })
+    useLayoutStore.setState({ isMobileSidebarOpen: false, theme: "light" })
   })
 
   it("should render navigation grouped by clinical topics for staff roles", () => {
@@ -53,7 +59,7 @@ describe("AppSidebar", () => {
     expect(screen.getByRole("heading", { name: "topics.clinical" })).toBeInTheDocument()
     expect(screen.getByRole("heading", { name: "topics.diagnostics" })).toBeInTheDocument()
     expect(screen.getByRole("heading", { name: "topics.operations" })).toBeInTheDocument()
-    expect(screen.getByRole("heading", { name: "topics.system" })).toBeInTheDocument()
+    expect(screen.queryByRole("heading", { name: "topics.system" })).not.toBeInTheDocument()
     expect(screen.queryByRole("heading", { name: "topics.patient" })).not.toBeInTheDocument()
 
     expect(screen.getByRole("button", { name: "patients" })).toBeInTheDocument()
@@ -63,10 +69,12 @@ describe("AppSidebar", () => {
     expect(screen.getByRole("button", { name: "examAnalyzer" })).toBeInTheDocument()
     expect(screen.getByRole("button", { name: "analytics" })).toBeInTheDocument()
     expect(screen.getByRole("button", { name: "staffManagement" })).toBeInTheDocument()
-    expect(screen.getByRole("button", { name: /settings/ })).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "appearance" })).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "English" })).toBeInTheDocument()
 
     expect(screen.queryByRole("button", { name: "portal" })).not.toBeInTheDocument()
     expect(screen.queryByRole("button", { name: "auditLogs" })).not.toBeInTheDocument()
+    expect(screen.queryByRole("button", { name: "settings" })).not.toBeInTheDocument()
   })
 
   it("should show audit logs topic item only for admin users", () => {
@@ -90,7 +98,6 @@ describe("AppSidebar", () => {
     expect(screen.queryByRole("heading", { name: "topics.clinical" })).not.toBeInTheDocument()
     expect(screen.queryByRole("heading", { name: "topics.diagnostics" })).not.toBeInTheDocument()
     expect(screen.queryByRole("heading", { name: "topics.operations" })).not.toBeInTheDocument()
-    expect(screen.queryByRole("heading", { name: "topics.system" })).not.toBeInTheDocument()
     expect(screen.queryByRole("button", { name: "patients" })).not.toBeInTheDocument()
     expect(screen.queryByRole("button", { name: "settings" })).not.toBeInTheDocument()
   })
@@ -112,13 +119,18 @@ describe("AppSidebar", () => {
     expect(useLayoutStore.getState().isMobileSidebarOpen).toBe(false)
   })
 
-  it("should not navigate when clicking a disabled item", () => {
+  it("should toggle the dark theme via the appearance control", () => {
     render(<AppSidebar />)
 
-    const settingsButton = screen.getByRole("button", { name: /settings/ })
-    expect(settingsButton).toBeDisabled()
-    fireEvent.click(settingsButton)
-    expect(mockNavigate).not.toHaveBeenCalledWith("/settings")
+    const appearanceToggle = screen.getByRole("button", { name: "appearance" })
+    expect(appearanceToggle).toHaveAttribute("aria-pressed", "false")
+    expect(useLayoutStore.getState().theme).toBe("light")
+
+    fireEvent.click(appearanceToggle)
+
+    expect(useLayoutStore.getState().theme).toBe("dark")
+    expect(appearanceToggle).toHaveAttribute("aria-pressed", "true")
+    expect(window.localStorage.getItem("healthcare.theme")).toBe("dark")
   })
 
   it("should logout and close the sidebar", async () => {

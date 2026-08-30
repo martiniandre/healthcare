@@ -49,7 +49,7 @@ export const PortalConditions = () => {
       {conditions.map((condition) => (
         <div
           key={condition.fhir_resource_id}
-          className="bg-white border border-border rounded-xl p-5 flex items-start justify-between"
+          className="bg-card border border-border rounded-xl p-5 flex items-start justify-between"
         >
           <div>
             <p className="text-sm font-bold text-gray-900">{condition.code_display}</p>

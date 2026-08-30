@@ -10,7 +10,7 @@ export const PatientsMetricsGrid = ({ totalPatients }: PatientsMetricsGridProps)
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-      <div className="bg-white border border-border rounded-xl p-4 flex items-center gap-4">
+      <div className="bg-card border border-border rounded-xl p-4 flex items-center gap-4">
         <div className="w-10 h-10 rounded-lg bg-primary/8 flex items-center justify-center shrink-0">
           <Users className="w-5 h-5 text-primary" />
         </div>
@@ -24,7 +24,7 @@ export const PatientsMetricsGrid = ({ totalPatients }: PatientsMetricsGridProps)
         </div>
       </div>
 
-      <div className="bg-white border border-border rounded-xl p-4 flex items-center gap-4">
+      <div className="bg-card border border-border rounded-xl p-4 flex items-center gap-4">
         <div className="w-10 h-10 rounded-lg bg-secondary/8 flex items-center justify-center shrink-0">
           <Activity className="w-5 h-5 text-secondary" />
         </div>
@@ -36,7 +36,7 @@ export const PatientsMetricsGrid = ({ totalPatients }: PatientsMetricsGridProps)
         </div>
       </div>
 
-      <div className="bg-white border border-border rounded-xl p-4 flex items-center gap-4">
+      <div className="bg-card border border-border rounded-xl p-4 flex items-center gap-4">
         <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
           <Database className="w-5 h-5 text-blue-500" />
         </div>

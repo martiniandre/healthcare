@@ -181,7 +181,7 @@ export const Schedule = () => {
 
         <div className="flex flex-col gap-4 min-w-0">
           {rangeQueriesLoading && effectiveSelectedStaffIds.length > 0 ? (
-            <div className="flex items-center justify-center py-16 bg-white border border-border rounded-xl">
+            <div className="flex items-center justify-center py-16 bg-card border border-border rounded-xl">
               <Loader2 className="w-6 h-6 text-primary animate-spin" />
             </div>
           ) : (

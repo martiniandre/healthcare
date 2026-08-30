@@ -12,7 +12,7 @@ export const AnalysisCard = ({ activeAnalysis }: AnalysisCardProperties) => {
 
   if (!activeAnalysis) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center border border-dashed border-gray-200 rounded-xl p-16 text-center bg-white min-h-[300px]">
+      <div className="flex-1 flex flex-col items-center justify-center border border-dashed border-gray-200 rounded-xl p-16 text-center bg-card min-h-[300px]">
         <div className="w-12 h-12 rounded-xl bg-gray-50 flex items-center justify-center mb-4 border border-border">
           <HelpCircle className="w-6 h-6 text-gray-300" />
         </div>
@@ -28,7 +28,7 @@ export const AnalysisCard = ({ activeAnalysis }: AnalysisCardProperties) => {
 
   if (activeAnalysis.status === ExamAnalysisStatus.PENDING || activeAnalysis.status === ExamAnalysisStatus.PROCESSING) {
     return (
-      <Card glowingType="amethyst" className="flex-1 flex flex-col items-center justify-center p-16 text-center bg-white min-h-[300px] animate-pulse">
+      <Card glowingType="amethyst" className="flex-1 flex flex-col items-center justify-center p-16 text-center bg-card min-h-[300px] animate-pulse">
         <div className="w-12 h-12 rounded-xl bg-secondary/8 flex items-center justify-center mb-4 animate-spin">
           <Clock className="w-6 h-6 text-secondary" />
         </div>
@@ -44,7 +44,7 @@ export const AnalysisCard = ({ activeAnalysis }: AnalysisCardProperties) => {
 
   if (activeAnalysis.status === ExamAnalysisStatus.FAILED) {
     return (
-      <Card glowingType="none" className="flex-1 flex flex-col items-center justify-center p-16 text-center bg-white min-h-[300px]">
+      <Card glowingType="none" className="flex-1 flex flex-col items-center justify-center p-16 text-center bg-card min-h-[300px]">
         <div className="w-12 h-12 rounded-xl bg-red-50 flex items-center justify-center mb-4 border border-red-100">
           <ShieldAlert className="w-6 h-6 text-danger" />
         </div>
@@ -75,7 +75,7 @@ export const AnalysisCard = ({ activeAnalysis }: AnalysisCardProperties) => {
             <p className="text-xs text-gray-600 mt-2 leading-relaxed">
               {insufficientMessage}
             </p>
-            <div className="mt-4 p-3.5 bg-white border border-red-100 rounded-lg">
+            <div className="mt-4 p-3.5 bg-card border border-red-100 rounded-lg">
               <span className="text-[11px] font-bold text-gray-800 block">
                 {t("card.possibleCauses")}
               </span>
@@ -100,7 +100,7 @@ export const AnalysisCard = ({ activeAnalysis }: AnalysisCardProperties) => {
 
   return (
     <div className="flex-1 flex flex-col gap-6 animate-fade-in">
-      <Card glowingType="cyan" className="p-6 bg-white border border-border rounded-xl">
+      <Card glowingType="cyan" className="p-6 bg-card border border-border rounded-xl">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/80 pb-4 mb-4">
           <div>
             <div className="flex items-center gap-2">
@@ -236,7 +236,7 @@ export const AnalysisCard = ({ activeAnalysis }: AnalysisCardProperties) => {
                 <div className="flex flex-col gap-2">
                   {analysisPayload.recommendation.nextSteps.map((stepItem, index) => (
                     <div key={index} className="flex items-start gap-2.5 p-2 bg-gray-50 rounded border border-border/50">
-                      <div className="w-4.5 h-4.5 rounded bg-white border border-border flex items-center justify-center text-[10px] font-bold text-gray-500 shrink-0 select-none">
+                      <div className="w-4.5 h-4.5 rounded bg-card border border-border flex items-center justify-center text-[10px] font-bold text-gray-500 shrink-0 select-none">
                         {index + 1}
                       </div>
                       <span className="text-xs text-gray-600 leading-normal">{stepItem}</span>

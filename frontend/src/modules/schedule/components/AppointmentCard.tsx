@@ -23,7 +23,7 @@ export const AppointmentCard = ({ appointment, onCancel }: AppointmentCardProps)
   const canCancel = appointment.status === "scheduled" || appointment.status === "confirmed"
 
   return (
-    <div className={`bg-white border border-border rounded-xl p-4 flex flex-col gap-2 ${appointment.status === "cancelled" ? "opacity-60" : ""}`}>
+    <div className={`bg-card border border-border rounded-xl p-4 flex flex-col gap-2 ${appointment.status === "cancelled" ? "opacity-60" : ""}`}>
       <div className="flex items-center justify-between gap-2">
         <span className="font-mono text-xs font-bold text-gray-800">
           {formatTime(appointment.starts_at)} — {formatTime(appointment.ends_at)}

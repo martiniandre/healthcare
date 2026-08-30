@@ -130,7 +130,7 @@ const ClinicalDashboardError = ({ onRetry }: ClinicalDashboardErrorProps) => {
 
   return (
     <PageContainer className="flex items-center justify-center select-none">
-      <div className="text-center p-8 bg-white border border-red-100 shadow-xl rounded-2xl max-w-md w-full flex flex-col items-center gap-4">
+      <div className="text-center p-8 bg-card border border-red-100 shadow-xl rounded-2xl max-w-md w-full flex flex-col items-center gap-4">
         <div className="bg-red-50 p-4 rounded-full">
           <Activity className="w-10 h-10 text-red-500 animate-bounce" />
         </div>
