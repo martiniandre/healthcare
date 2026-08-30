@@ -57,7 +57,12 @@ func (svc *service) CreateAnalysis(ctx context.Context, analysis *ExamAnalysis, 
 	if uploadError := svc.storageClient.Upload(ctx, objectKey, fileContent, examContentType(analysis.FileName)); uploadError != nil {
 		return fmt.Errorf("failed to upload exam file to storage: %w", uploadError)
 	}
-	return svc.repository.CreateAnalysis(ctx, analysis)
+
+	if persistError := svc.repository.CreateAnalysis(ctx, analysis); persistError != nil {
+		_ = svc.storageClient.Delete(ctx, objectKey)
+		return persistError
+	}
+	return nil
 }
 
 func (svc *service) AnalyzeExamFile(ctx context.Context, fileName string, fileBytes []byte) (*MedicalAnalysisResponse, string, error) {
