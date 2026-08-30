@@ -10,16 +10,15 @@ import (
 )
 
 type Dependency struct {
-	DB          *pgxpool.Pool
-	Storage     storage.StorageClient
-	Redis       *redis.Client
-	BucketName  string
+	DB           *pgxpool.Pool
+	Storage      storage.StorageClient
+	Redis        *redis.Client
 	AuditService audit_logs.Service
 }
 
 func Register(grpcServer *grpc.Server, dep Dependency) Service {
 	repo := NewRepository(dep.DB)
-	svc := NewService(repo, dep.Storage, dep.Redis, dep.BucketName, dep.AuditService)
+	svc := NewService(repo, dep.Storage, dep.Redis, dep.AuditService)
 	handler := NewGRPCHandler(svc)
 	pb.RegisterImagingServiceServer(grpcServer, handler)
 	return svc
