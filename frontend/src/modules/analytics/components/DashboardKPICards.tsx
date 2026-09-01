@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next"
 import { Card } from "../../../shared/components/ui/Card"
 import { Users, Clock, Activity, ArrowUpRight, Stethoscope, FileText } from "lucide-react"
 
@@ -20,11 +21,13 @@ export const DashboardKPICards = ({
   examsToday,
   newDiagnosesToday,
 }: DashboardKPICardsProps) => {
+  const { t } = useTranslation("analytics")
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
       <Card className="p-4 flex items-center justify-between border border-border">
         <div className="text-left">
-          <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block">Consultas hoje</span>
+          <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block">{t("dashboard.kpi.consultationsToday")}</span>
           <span className="text-2xl font-black text-gray-900 mt-1 block">{consultationsToday}</span>
           <span className="text-[10px] text-emerald-600 font-bold flex items-center gap-1 mt-1.5">
             <ArrowUpRight className="w-3.5 h-3.5" />
@@ -37,7 +40,7 @@ export const DashboardKPICards = ({
       </Card>
 
       <Card className="p-4 flex flex-col items-start justify-between border border-border">
-        <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Taxa de ocupação</span>
+        <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">{t("dashboard.kpi.occupancyRate")}</span>
         <div className="w-full mt-2">
           <span className="text-2xl font-black text-gray-900">{occupancyRate.toFixed(1)}%</span>
           <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
@@ -51,11 +54,11 @@ export const DashboardKPICards = ({
 
       <Card className="p-4 flex items-center justify-between border border-border">
         <div className="text-left">
-          <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block">Tempo médio de espera</span>
+          <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block">{t("dashboard.kpi.avgWaitTime")}</span>
           <span className="text-2xl font-black text-gray-900 mt-1 block">{avgWaitTimeMinutes.toFixed(0)} min</span>
           <span className="text-[10px] text-amber-600 font-bold flex items-center gap-1 mt-1.5">
             <Clock className="w-3.5 h-3.5" />
-            Por departamento
+            {t("dashboard.kpi.byDepartment")}
           </span>
         </div>
         <div className="bg-amber-50 p-3 rounded-xl">
@@ -65,11 +68,11 @@ export const DashboardKPICards = ({
 
       <Card className="p-4 flex items-center justify-between border border-border">
         <div className="text-left">
-          <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block">Pacientes ativos</span>
+          <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block">{t("dashboard.kpi.activePatients")}</span>
           <span className="text-2xl font-black text-gray-900 mt-1 block">{activePatients}</span>
           <span className="text-[10px] text-emerald-600 font-bold flex items-center gap-1 mt-1.5">
             <Users className="w-3.5 h-3.5" />
-            Em atendimento
+            {t("dashboard.kpi.inCare")}
           </span>
         </div>
         <div className="bg-emerald-50 p-3 rounded-xl">
@@ -79,11 +82,11 @@ export const DashboardKPICards = ({
 
       <Card className="p-4 flex items-center justify-between border border-border">
         <div className="text-left">
-          <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block">Exames hoje</span>
+          <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block">{t("dashboard.kpi.examsToday")}</span>
           <span className="text-2xl font-black text-gray-900 mt-1 block">{examsToday}</span>
           <span className="text-[10px] text-purple-600 font-bold flex items-center gap-1 mt-1.5">
             <Activity className="w-3.5 h-3.5" />
-            Realizados
+            {t("dashboard.kpi.performed")}
           </span>
         </div>
         <div className="bg-purple-50 p-3 rounded-xl">
@@ -93,11 +96,11 @@ export const DashboardKPICards = ({
 
       <Card className="p-4 flex items-center justify-between border border-border">
         <div className="text-left">
-          <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block">Novos diagnósticos</span>
+          <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block">{t("dashboard.kpi.newDiagnoses")}</span>
           <span className="text-2xl font-black text-gray-900 mt-1 block">{newDiagnosesToday}</span>
           <span className="text-[10px] text-sky-600 font-bold flex items-center gap-1 mt-1.5">
             <FileText className="w-3.5 h-3.5" />
-            Últimos 30 dias
+            {t("dashboard.kpi.last30Days")}
           </span>
         </div>
         <div className="bg-sky-50 p-3 rounded-xl">
