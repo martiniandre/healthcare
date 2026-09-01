@@ -11,7 +11,7 @@ var publicGRPCMethods = map[string]bool{
 }
 
 var grpcMethodRoles = map[string][]role.Role{
-	"/audit_logs.v1.AuditLogsService/CreateAuditLog": {role.RoleAdmin, role.RoleDoctor, role.RoleNurse, role.RoleReception, role.RolePatient},
+	"/audit_logs.v1.AuditLogsService/CreateAuditLog": {role.RoleAdmin},
 	"/audit_logs.v1.AuditLogsService/ListAuditLogs":  {role.RoleAdmin},
 
 	"/telemetry.v1.TelemetryService/GetRooms":           {role.RoleAdmin, role.RoleDoctor, role.RoleNurse, role.RoleReception},
@@ -37,9 +37,9 @@ var grpcMethodRoles = map[string][]role.Role{
 	"/encounter.v1.EncounterService/GetEncounter":    {role.RoleAdmin, role.RoleDoctor, role.RoleNurse},
 	"/encounter.v1.EncounterService/GetEncounters":   {role.RoleAdmin, role.RoleDoctor, role.RoleNurse},
 
-	"/observation.v1.ObservationService/CreateObservation":       {role.RoleAdmin, role.RoleDoctor, role.RoleNurse},
-	"/observation.v1.ObservationService/CreateObservationBatch":  {role.RoleAdmin, role.RoleDoctor, role.RoleNurse},
-	"/observation.v1.ObservationService/GetObservations":         {role.RoleAdmin, role.RoleDoctor, role.RoleNurse},
+	"/observation.v1.ObservationService/CreateObservation":      {role.RoleAdmin, role.RoleDoctor, role.RoleNurse},
+	"/observation.v1.ObservationService/CreateObservationBatch": {role.RoleAdmin, role.RoleDoctor, role.RoleNurse},
+	"/observation.v1.ObservationService/GetObservations":        {role.RoleAdmin, role.RoleDoctor, role.RoleNurse},
 
 	"/condition.v1.ConditionService/CreateCondition": {role.RoleAdmin, role.RoleDoctor, role.RoleNurse},
 	"/condition.v1.ConditionService/GetConditions":   {role.RoleAdmin, role.RoleDoctor, role.RoleNurse},
@@ -98,12 +98,12 @@ var httpRouteRoles = map[string][]role.Role{
 	"POST /api/v1/patients":                {role.RoleAdmin, role.RoleReception},
 	"GET /api/v1/patients/{patientFhirId}": {role.RoleAdmin, role.RoleDoctor, role.RoleNurse, role.RoleReception},
 
-	"GET /api/v1/patients/{patientFhirId}/observations":      {role.RoleAdmin, role.RoleDoctor, role.RoleNurse},
-	"GET /api/v1/encounters/{encounterFhirId}/observations":  {role.RoleAdmin, role.RoleDoctor, role.RoleNurse},
+	"GET /api/v1/patients/{patientFhirId}/observations":            {role.RoleAdmin, role.RoleDoctor, role.RoleNurse},
+	"GET /api/v1/encounters/{encounterFhirId}/observations":        {role.RoleAdmin, role.RoleDoctor, role.RoleNurse},
 	"POST /api/v1/encounters/{encounterFhirId}/observations":       {role.RoleAdmin, role.RoleDoctor, role.RoleNurse},
 	"POST /api/v1/encounters/{encounterFhirId}/observations/batch": {role.RoleAdmin, role.RoleDoctor, role.RoleNurse},
-	"PUT /api/v1/observations/{observationFhirId}":           {role.RoleAdmin, role.RoleDoctor, role.RoleNurse},
-	"DELETE /api/v1/observations/{observationFhirId}":        {role.RoleAdmin, role.RoleDoctor, role.RoleNurse},
+	"PUT /api/v1/observations/{observationFhirId}":                 {role.RoleAdmin, role.RoleDoctor, role.RoleNurse},
+	"DELETE /api/v1/observations/{observationFhirId}":              {role.RoleAdmin, role.RoleDoctor, role.RoleNurse},
 
 	"GET /api/v1/notifications":                        {role.RoleAdmin, role.RoleDoctor, role.RoleNurse, role.RoleReception, role.RolePatient},
 	"POST /api/v1/notifications/{notificationId}/read": {role.RoleAdmin, role.RoleDoctor, role.RoleNurse, role.RoleReception, role.RolePatient},
@@ -140,7 +140,7 @@ var httpRouteRoles = map[string][]role.Role{
 	"DELETE /api/v1/patients/{patientFhirId}/conditions/{conditionFhirId}": {role.RoleAdmin, role.RoleDoctor, role.RoleNurse},
 
 	"GET /api/v1/audit-logs":  {role.RoleAdmin},
-	"POST /api/v1/audit-logs": {role.RoleAdmin, role.RoleDoctor, role.RoleNurse, role.RoleReception, role.RolePatient},
+	"POST /api/v1/audit-logs": {role.RoleAdmin},
 
 	"GET /api/v1/patients/{patientFhirId}/allergies":                    {role.RoleAdmin, role.RoleDoctor, role.RoleNurse},
 	"POST /api/v1/patients/{patientFhirId}/allergies":                   {role.RoleAdmin, role.RoleDoctor, role.RoleNurse},

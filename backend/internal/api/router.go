@@ -5,8 +5,8 @@ import (
 
 	httpSwagger "github.com/swaggo/http-swagger"
 
-	"github.com/healthcare/backend/internal/api/middleware"
 	_ "github.com/healthcare/backend/cmd/api/docs"
+	"github.com/healthcare/backend/internal/api/middleware"
 )
 
 type RouteRegisterer interface {
@@ -29,6 +29,7 @@ func NewRouter(secureCookies bool, swaggerEnabled bool, registerers ...RouteRegi
 	handlerPipeline = middleware.APIPrefixRewrite(handlerPipeline)
 	handlerPipeline = middleware.Recovery(handlerPipeline)
 	handlerPipeline = middleware.RequestID(handlerPipeline)
+	handlerPipeline = middleware.AuditTrail(handlerPipeline)
 	handlerPipeline = middleware.Logger(handlerPipeline)
 
 	return handlerPipeline
