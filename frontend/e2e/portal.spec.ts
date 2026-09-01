@@ -15,7 +15,7 @@ test.describe("Patient Portal Module", () => {
           {
             id: "appt-1",
             patient_fhir_id: "fhir-pat-1",
-            staff_id: "fhir-emp-1",
+            staff_id: "emp-1",
             starts_at: "2026-08-15T09:00:00Z",
             ends_at: "2026-08-15T09:30:00Z",
             status: "scheduled",
@@ -26,7 +26,7 @@ test.describe("Patient Portal Module", () => {
           {
             id: "appt-2",
             patient_fhir_id: "fhir-pat-1",
-            staff_id: "fhir-emp-1",
+            staff_id: "emp-1",
             starts_at: "2026-08-20T14:00:00Z",
             ends_at: "2026-08-20T14:30:00Z",
             status: "confirmed",

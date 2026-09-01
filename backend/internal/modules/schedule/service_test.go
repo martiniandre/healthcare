@@ -128,7 +128,7 @@ func TestCreateAppointment_RejectsArbitraryDuration(t *testing.T) {
 func TestCreateAppointment_RejectsUnalignedStart(t *testing.T) {
 	repositoryMock := &MockRepository{}
 	appointmentService := NewService(repositoryMock, nil, nil)
-	unalignedStart := futureAlignedSlotStart(15)
+	unalignedStart := futureAlignedSlotStart(7)
 
 	_, createErr := appointmentService.CreateAppointment(context.Background(), CreateAppointmentInput{
 		PatientFHIRID: "patient-123",

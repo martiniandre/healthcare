@@ -17,7 +17,7 @@ const seedAppointmentsInCurrentWeek = (): Record<string, unknown>[] => {
     {
       id: "seed-appt-1",
       patient_fhir_id: "fhir-pat-1",
-      staff_id: "fhir-emp-1",
+      staff_id: "emp-1",
       starts_at: `${today}T10:00:00Z`,
       ends_at: `${today}T10:30:00Z`,
       status: "scheduled",
@@ -28,7 +28,7 @@ const seedAppointmentsInCurrentWeek = (): Record<string, unknown>[] => {
     {
       id: "seed-appt-2",
       patient_fhir_id: "fhir-pat-2",
-      staff_id: "fhir-emp-1",
+      staff_id: "emp-1",
       starts_at: `${tomorrow}T14:00:00Z`,
       ends_at: `${tomorrow}T14:30:00Z`,
       status: "confirmed",
@@ -39,7 +39,7 @@ const seedAppointmentsInCurrentWeek = (): Record<string, unknown>[] => {
     {
       id: "seed-appt-cancelled",
       patient_fhir_id: "fhir-pat-2",
-      staff_id: "fhir-emp-1",
+      staff_id: "emp-1",
       starts_at: `${today}T15:00:00Z`,
       ends_at: `${today}T15:30:00Z`,
       status: "cancelled",
@@ -127,7 +127,7 @@ test.describe("Schedule Calendar", () => {
     const busyDayAppointments = Array.from({ length: 5 }, (_, appointmentIndex) => ({
       id: `busy-appt-${appointmentIndex}`,
       patient_fhir_id: "fhir-pat-1",
-      staff_id: "fhir-emp-1",
+      staff_id: "emp-1",
       starts_at: `${today}T${String(9 + appointmentIndex).padStart(2, "0")}:00:00Z`,
       ends_at: `${today}T${String(9 + appointmentIndex).padStart(2, "0")}:30:00Z`,
       status: "scheduled",

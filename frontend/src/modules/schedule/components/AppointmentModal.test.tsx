@@ -30,7 +30,7 @@ const mockedUseStaffListQuery = vi.mocked(useStaffListQuery)
 const mockedUsePatientsQuery = vi.mocked(usePatientsQuery)
 
 const staffFixture = [
-  { id: "emp-1", fullName: "Dr. André Silva", role: "DOCTOR", fhirResourceId: "fhir-staff-1" },
+  { id: "emp-1", fullName: "Dr. André Silva", role: "DOCTOR" },
 ]
 const patientsFixture = [
   { patient_id: "pat-1", fhir_resource_id: "fhir-pat-1", full_name: "Guilherme de Souza Araujo" },
@@ -57,9 +57,12 @@ const fillPatientAndStaff = async () => {
 }
 
 const fillTimes = (startValue: string, endValue: string) => {
-  const timeInputs = document.querySelectorAll('input[type="time"]')
-  fireEvent.change(timeInputs[0], { target: { value: startValue } })
-  fireEvent.change(timeInputs[1], { target: { value: endValue } })
+  fireEvent.change(screen.getByRole("combobox", { name: "modals.create.startTime" }), {
+    target: { value: startValue },
+  })
+  fireEvent.change(screen.getByRole("combobox", { name: "modals.create.endTime" }), {
+    target: { value: endValue },
+  })
 }
 
 const renderModal = (overrides: {
@@ -67,6 +70,7 @@ const renderModal = (overrides: {
   isPending?: boolean
   defaultStaffId?: string
   defaultDate?: string
+  defaultStartTime?: string
 } = {}) => {
   const onSubmit = overrides.onSubmit ?? vi.fn().mockResolvedValue(undefined)
   render(
@@ -77,6 +81,7 @@ const renderModal = (overrides: {
       isPending={overrides.isPending ?? false}
       defaultStaffId={overrides.defaultStaffId}
       defaultDate={overrides.defaultDate}
+      defaultStartTime={overrides.defaultStartTime}
     />
   )
   return onSubmit
@@ -109,7 +114,7 @@ describe("AppointmentModal", () => {
     const submittedPayload = (onSubmit as ReturnType<typeof vi.fn>).mock.calls[0][0]
     expect(submittedPayload).toMatchObject({
       patient_fhir_id: "fhir-pat-1",
-      staff_id: "fhir-staff-1",
+      staff_id: "emp-1",
       reason: "",
       idempotency_key: "fixed-idempotency-key",
     })
@@ -133,7 +138,7 @@ describe("AppointmentModal", () => {
     const submittedPayload = (onSubmit as ReturnType<typeof vi.fn>).mock.calls[0][0]
     expect(submittedPayload).toMatchObject({
       patient_fhir_id: "fhir-pat-1",
-      staff_id: "fhir-staff-1",
+      staff_id: "emp-1",
       reason: "Consulta de rotina",
       idempotency_key: "fixed-idempotency-key",
     })
@@ -149,6 +154,22 @@ describe("AppointmentModal", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "modals.create.confirm" }))
     expect(await screen.findByText("errors.conflict")).toBeDefined()
+  })
+
+  it("should prefill the start time from defaultStartTime", () => {
+    renderModal({ defaultDate: "2027-05-20", defaultStartTime: "09:15" })
+    const startTimeSelect = screen.getByRole("combobox", { name: "modals.create.startTime" }) as HTMLSelectElement
+    expect(startTimeSelect.value).toBe("09:15")
+  })
+
+  it("should block past dates on the appointment date input", () => {
+    render(
+      <AppointmentModal isOpen onClose={vi.fn()} onSubmit={vi.fn()} isPending={false} defaultDate="2027-05-20" />
+    )
+    const dateInput = document.querySelector('input[type="date"]') as HTMLInputElement
+    const now = new Date()
+    const expectedMin = `${String(now.getFullYear()).padStart(4, "0")}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`
+    expect(dateInput.min).toBe(expectedMin)
   })
 
   it("should render nothing when closed", () => {

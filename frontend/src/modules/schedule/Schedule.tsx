@@ -61,7 +61,7 @@ export const Schedule = () => {
   const [unavailabilityToDelete, setUnavailabilityToDelete] = useState<StaffUnavailability | null>(null)
 
   const staffMemberOptions = useMemo(
-    () => staffMembers.filter((staffMember) => staffMember.fhirResourceId),
+    () => staffMembers.filter((staffMember) => staffMember.id),
     [staffMembers]
   )
 
@@ -69,7 +69,7 @@ export const Schedule = () => {
     if (selectedStaffIds !== null) {
       return selectedStaffIds
     }
-    const defaultSelectedStaffId = staffMemberOptions[0]?.fhirResourceId
+    const defaultSelectedStaffId = staffMemberOptions[0]?.id
     return defaultSelectedStaffId ? [defaultSelectedStaffId] : []
   }, [selectedStaffIds, staffMemberOptions])
 
@@ -221,7 +221,7 @@ export const Schedule = () => {
       <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-4 items-start">
         <StaffOverlaySidebar
           staffMembers={staffMemberOptions.map((staffMember) => ({
-            id: staffMember.fhirResourceId,
+            id: staffMember.id,
             fullName: staffMember.fullName,
             role: staffMember.role,
           }))}

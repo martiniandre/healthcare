@@ -14,6 +14,7 @@
   },
   "cards": {
     "noReason": "No reason provided",
+    "unknownPatient": "Unidentified patient",
     "cancelAppointment": "Cancel appointment"
   },
   "emptyState": {
@@ -35,6 +36,8 @@
       "date": "Date",
       "startTime": "Start",
       "endTime": "End",
+      "selectStartTime": "Select start time",
+      "selectEndTime": "Select end time",
       "reason": "Reason",
       "reasonPlaceholder": "Appointment reason...",
       "cancel": "Cancel",
@@ -74,7 +77,8 @@
     "reasonMax": "The reason must be at most 500 characters.",
     "dateFuture": "The appointment date must be today or a future date.",
     "endAfterStart": "The end time must be after the start time.",
-    "startTimeAligned": "The appointment start time must be aligned to a valid slot time (:00, :30 or :45).",
+    "startTimeAligned": "The appointment start time must be aligned to a valid slot time (:00, :15, :30 or :45).",
+    "startTimePast": "The appointment start time cannot be in the past.",
     "slotDuration": "The appointment duration must be 30 or 45 minutes."
   },
   "unavailability": {
@@ -87,6 +91,8 @@
       "date": "Date",
       "startTime": "Start",
       "endTime": "End",
+      "selectStartTime": "Select start time",
+      "selectEndTime": "Select end time",
       "reason": "Reason",
       "reasonPlaceholder": "Reason for unavailability...",
       "cancel": "Cancel",

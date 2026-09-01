@@ -102,14 +102,29 @@ const buildVitalSignMetricField = (
 }
 
 export const getNewVitalSignsPanelSchema = (translateFunction: (key: string) => string) =>
-  z.object(
-    Object.fromEntries(
-      vitalSignMetricDefinitions.map((metricDefinition) => [
-        metricDefinition.formFieldName,
-        buildVitalSignMetricField(metricDefinition, translateFunction),
-      ])
+  z
+    .object(
+      Object.fromEntries(
+        vitalSignMetricDefinitions.map((metricDefinition) => [
+          metricDefinition.formFieldName,
+          buildVitalSignMetricField(metricDefinition, translateFunction),
+        ])
+      )
     )
-  ) as unknown as z.ZodType<NewVitalSignsPanelFormData>
+    .superRefine((values, context) => {
+      const panelValues = values as unknown as NewVitalSignsPanelFormData
+      const hasMeasuredMetric = vitalSignMetricDefinitions.some((metricDefinition) => {
+        const metricValue = panelValues[metricDefinition.formFieldName]
+        return typeof metricValue === "number" && Number.isFinite(metricValue)
+      })
+      if (!hasMeasuredMetric) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["heartRate"],
+          message: translateFunction("validation.vitalSignsAtLeastOne"),
+        })
+      }
+    }) as unknown as z.ZodType<NewVitalSignsPanelFormData>
 
 export const getNewReportSchema = (translateFunction: (key: string) => string) => z.object({
   reportCode: z.string().min(1, translateFunction("validation.reportCodeReq")).max(10, translateFunction("validation.maxLength")),

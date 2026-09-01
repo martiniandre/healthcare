@@ -1035,7 +1035,7 @@ export const mockScheduleAPI = async (
 ): Promise<void> => {
   const currentAppointments: Record<string, unknown>[] = [...initialAppointments]
   const allowedSlotDurationsMinutes = [30, 45]
-  const allowedStartMinutes = [0, 30, 45]
+  const allowedStartMinutes = [0, 15, 30, 45]
 
   const hasTimeOverlap = (
     firstStart: Date,

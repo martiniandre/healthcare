@@ -20,11 +20,11 @@ export const Stats = () => {
   const { data: analyticsData, isLoading, isError, refetch } = useStatsQuery()
 
   const examModalitiesWithCalculatedAngles = useMemo(() => {
-    if (!analyticsData?.examModalitiesData) {
+    if (!analyticsData?.exam_modalities) {
       return []
     }
     let cumulativePercentage = 0
-    return analyticsData.examModalitiesData.map((item) => {
+    return analyticsData.exam_modalities.map((item) => {
       const currentItemAngle = cumulativePercentage * 3.6
       cumulativePercentage += item.percentage
       return {
@@ -36,23 +36,23 @@ export const Stats = () => {
   }, [analyticsData])
 
   const maxWeeklyConsultationCount = useMemo(() => {
-    if (!analyticsData?.consultationsWeeklyData || analyticsData.consultationsWeeklyData.length === 0) {
+    if (!analyticsData?.weekly_consultations || analyticsData.weekly_consultations.length === 0) {
       return 50
     }
-    const counts = analyticsData.consultationsWeeklyData.map((item) => item.count)
+    const counts = analyticsData.weekly_consultations.map((item) => item.count)
     const peak = Math.max(...counts)
     return peak === 0 ? 50 : peak * 1.2
   }, [analyticsData])
 
   const weeklyChartSummary = useMemo(() => {
-    if (!analyticsData?.consultationsWeeklyData || analyticsData.consultationsWeeklyData.length === 0) {
+    if (!analyticsData?.weekly_consultations || analyticsData.weekly_consultations.length === 0) {
       return { min: 0, average: 0, peak: 0 }
     }
-    const counts = analyticsData.consultationsWeeklyData.map((item) => item.count)
+    const counts = analyticsData.weekly_consultations.map((item) => item.count)
     const total = counts.reduce((sum, val) => sum + val, 0)
     const min = Math.min(...counts)
     const peak = Math.max(...counts)
-    const average = Math.round(total / analyticsData.consultationsWeeklyData.length)
+    const average = Math.round(total / analyticsData.weekly_consultations.length)
     return { min, average, peak }
   }, [analyticsData])
 
@@ -65,10 +65,10 @@ export const Stats = () => {
   }
 
   const hasAnyData =
-    analyticsData.totalRegisteredPatients > 0 ||
-    (analyticsData.examModalitiesData && analyticsData.examModalitiesData.length > 0) ||
-    (analyticsData.consultationsWeeklyData && analyticsData.consultationsWeeklyData.length > 0) ||
-    (analyticsData.pathologies && analyticsData.pathologies.length > 0)
+    analyticsData.total_patients > 0 ||
+    (analyticsData.exam_modalities && analyticsData.exam_modalities.length > 0) ||
+    (analyticsData.weekly_consultations && analyticsData.weekly_consultations.length > 0) ||
+    (analyticsData.pathology_cases && analyticsData.pathology_cases.length > 0)
 
   if (!hasAnyData) {
     return (
@@ -82,28 +82,37 @@ export const Stats = () => {
     )
   }
 
+  const activeConsultationsTotal = analyticsData.weekly_consultations.reduce(
+    (sum, item) => sum + item.count,
+    0,
+  )
+  const totalStudiesCount = analyticsData.exam_modalities.reduce(
+    (sum, item) => sum + item.count,
+    0,
+  )
+
   return (
     <PageContainer className="select-none">
       <StatsHeader />
 
       <StatsMetricsGrid 
-        totalRegisteredPatients={analyticsData.totalRegisteredPatients}
-        fhirComplianceRate={analyticsData.fhirComplianceRate}
-        averageServiceDurationMinutes={analyticsData.averageServiceDurationMinutes}
-        activeConsultationsTotal={analyticsData.activeConsultationsTotal}
+        totalRegisteredPatients={analyticsData.total_patients}
+        fhirComplianceRate={analyticsData.fhir_compliance_rate}
+        averageServiceDurationMinutes={analyticsData.avg_service_duration_minutes}
+        activeConsultationsTotal={activeConsultationsTotal}
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <StatsExamsChart 
-          totalStudiesCount={analyticsData.totalStudiesCount}
-          examModalitiesData={analyticsData.examModalitiesData}
+          totalStudiesCount={totalStudiesCount}
+          examModalitiesData={analyticsData.exam_modalities}
           selectedModality={selectedModality}
           setSelectedModality={setSelectedModality}
           examModalitiesWithCalculatedAngles={examModalitiesWithCalculatedAngles}
         />
 
         <StatsConsultationsChart 
-          consultationsWeeklyData={analyticsData.consultationsWeeklyData}
+          consultationsWeeklyData={analyticsData.weekly_consultations}
           maxWeeklyConsultationCount={maxWeeklyConsultationCount}
           weeklyChartSummary={weeklyChartSummary}
           hoveredBarIndex={hoveredBarIndex}
@@ -111,7 +120,7 @@ export const Stats = () => {
         />
       </div>
 
-      <StatsEpidemiologyTable pathologies={analyticsData.pathologies} />
+      <StatsEpidemiologyTable pathologies={analyticsData.pathology_cases} />
     </PageContainer>
   )
 }

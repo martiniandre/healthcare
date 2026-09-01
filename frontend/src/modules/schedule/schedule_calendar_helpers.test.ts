@@ -54,10 +54,10 @@ describe("appointmentsToCalendarEvents", () => {
     expect(events[0].id).toBe("a2")
   })
 
-  it("falls back to the patient fhir id when no reason is provided", () => {
+  it("keeps the event title empty when no reason is provided", () => {
     const events = appointmentsToCalendarEvents([buildAppointment({ reason: "" })], "#2563eb")
 
-    expect(events[0].title).toBe("fhir-pat-1")
+    expect(events[0].title).toBe("")
   })
 })
 

@@ -39,7 +39,7 @@ describe("ClinicalFormModal with the vital signs panel config", () => {
     })
   })
 
-  it("should accept submitting an entirely empty panel", async () => {
+  it("should block submission until at least one metric is measured", async () => {
     const onSubmit = vi.fn()
     render(
       <ClinicalFormModal
@@ -51,8 +51,12 @@ describe("ClinicalFormModal with the vital signs panel config", () => {
       />
     )
     fireEvent.click(screen.getByRole("button", { name: "modals.observation.confirm" }))
-    await waitFor(() => expect(onSubmit).toHaveBeenCalled())
-    expect(onSubmit.mock.calls[0][0]).toEqual({})
+    await waitFor(() => expect(onSubmit).not.toHaveBeenCalled())
+    expect(
+      await screen.findByText(
+        /Informe pelo menos um sinal vital|Record at least one vital sign|Registra al menos un signo vital/
+      )
+    ).toBeInTheDocument()
   })
 
   it("should block submission when a metric leaves its clinical range", async () => {

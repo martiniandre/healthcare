@@ -1,6 +1,6 @@
 {
   "title": "Agenda",
-  "subtitle": "GestiÃ³n de citas y horarios",
+  "subtitle": "Gestión de citas y horarios",
   "newAppointment": "Nueva Cita",
   "selectStaff": "Profesional",
   "selectStaffPlaceholder": "Seleccione un profesional",
@@ -14,6 +14,7 @@
   },
   "cards": {
     "noReason": "Sin motivo informado",
+    "unknownPatient": "Paciente no identificado",
     "cancelAppointment": "Cancelar cita"
   },
   "emptyState": {
@@ -35,6 +36,8 @@
       "date": "Fecha",
       "startTime": "Inicio",
       "endTime": "Fin",
+      "selectStartTime": "Seleccione la hora de inicio",
+      "selectEndTime": "Seleccione la hora de fin",
       "reason": "Motivo",
       "reasonPlaceholder": "Motivo de la consulta...",
       "cancel": "Cancelar",
@@ -42,20 +45,20 @@
     },
     "cancel": {
       "title": "Cancelar Cita",
-      "description": "Â¿EstÃ¡ seguro de que desea cancelar esta cita?",
+      "description": "¿Está seguro de que desea cancelar esta cita?",
       "back": "Volver",
-      "confirm": "Confirmar CancelaciÃ³n"
+      "confirm": "Confirmar Cancelación"
     }
   },
   "errors": {
     "conflict": "Conflicto de horario: ya existe una cita en este intervalo para este profesional. Elija otro horario."
   },
   "toasts": {
-    "createSuccess": "Â¡Cita creada con Ã©xito!",
+    "createSuccess": "¡Cita creada con éxito!",
     "createError": "Error al crear la cita.",
-    "cancelSuccess": "Â¡Cita cancelada con Ã©xito!",
+    "cancelSuccess": "¡Cita cancelada con éxito!",
     "cancelError": "Error al cancelar la cita.",
-    "rescheduleSuccess": "Â¡Cita reprogramada con Ã©xito!",
+    "rescheduleSuccess": "¡Cita reprogramada con éxito!",
     "rescheduleError": "Error al reprogramar la cita."
   },
   "portal": {
@@ -71,11 +74,41 @@
     "dateRequired": "Ingrese la fecha.",
     "startTimeRequired": "Ingrese la hora de inicio.",
     "endTimeRequired": "Ingrese la hora de fin.",
-    "reasonMax": "El motivo debe tener como mÃ¡ximo 500 caracteres.",
+    "reasonMax": "El motivo debe tener como máximo 500 caracteres.",
     "dateFuture": "La fecha de la cita debe ser hoy o una fecha futura.",
     "endAfterStart": "La hora de fin debe ser posterior al inicio.",
-    "startTimeAligned": "La hora de inicio de la cita debe estar alineada a un horario vÃ¡lido (:00, :30 o :45).",
-    "slotDuration": "La duraciÃ³n de la cita debe ser de 30 o 45 minutos."
+    "startTimeAligned": "La hora de inicio de la cita debe estar alineada a un horario válido (:00, :15, :30 o :45).",
+    "startTimePast": "La hora de inicio de la cita no puede estar en el pasado.",
+    "slotDuration": "La duración de la cita debe ser de 30 o 45 minutos."
+  },
+  "unavailability": {
+    "badge": "No disponible",
+    "delete": "Quitar período",
+    "createButton": "Bloquear Período",
+    "blockedPeriodsTitle": "Períodos bloqueados",
+    "modal": {
+      "title": "Bloquear Período de Indisponibilidad",
+      "date": "Fecha",
+      "startTime": "Inicio",
+      "endTime": "Fin",
+      "selectStartTime": "Seleccione la hora de inicio",
+      "selectEndTime": "Seleccione la hora de fin",
+      "reason": "Motivo",
+      "reasonPlaceholder": "Motivo de la indisponibilidad...",
+      "cancel": "Cancelar",
+      "confirm": "Bloquear"
+    },
+    "deleteModal": {
+      "title": "Quitar Período de Indisponibilidad",
+      "description": "¿Está seguro de que desea quitar este período de indisponibilidad?",
+      "back": "Volver",
+      "confirm": "Confirmar Eliminación"
+    },
+    "toasts": {
+      "createSuccess": "¡Período de indisponibilidad bloqueado con éxito!",
+      "createError": "Error al bloquear el período de indisponibilidad.",
+      "deleteSuccess": "¡Período de indisponibilidad quitado con éxito!",
+      "deleteError": "Error al quitar el período de indisponibilidad."
+    }
   }
 }
-

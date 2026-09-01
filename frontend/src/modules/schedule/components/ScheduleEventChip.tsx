@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next"
 import { usePatientQuery } from "../../patients/queries"
 import type { Appointment } from "../types"
 
@@ -19,8 +20,9 @@ const tintedBackground = (hexColor: string, alpha: number): string => {
 }
 
 export const ScheduleEventChip = ({ appointment, staffColor }: ScheduleEventChipProps) => {
+  const { t } = useTranslation("schedule")
   const { data: patient } = usePatientQuery(appointment.patient_fhir_id)
-  const patientLabel = patient?.full_name ?? appointment.patient_fhir_id
+  const patientLabel = patient?.full_name ?? t("cards.unknownPatient")
 
   return (
     <div

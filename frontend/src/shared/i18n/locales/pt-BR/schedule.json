@@ -14,6 +14,7 @@
   },
   "cards": {
     "noReason": "Sem motivo informado",
+    "unknownPatient": "Paciente não identificado",
     "cancelAppointment": "Cancelar agendamento"
   },
   "emptyState": {
@@ -35,6 +36,8 @@
       "date": "Data",
       "startTime": "Início",
       "endTime": "Fim",
+      "selectStartTime": "Selecione o horário de início",
+      "selectEndTime": "Selecione o horário de término",
       "reason": "Motivo",
       "reasonPlaceholder": "Motivo da consulta...",
       "cancel": "Cancelar",
@@ -74,7 +77,8 @@
     "reasonMax": "O motivo deve ter no máximo 500 caracteres.",
     "dateFuture": "A data do agendamento deve ser hoje ou uma data futura.",
     "endAfterStart": "O horário de término deve ser após o início.",
-    "startTimeAligned": "O início da consulta deve estar alinhado a um horário válido (:00, :30 ou :45).",
+    "startTimeAligned": "O início da consulta deve estar alinhado a um horário válido (:00, :15, :30 ou :45).",
+    "startTimePast": "O início da consulta não pode ser no passado.",
     "slotDuration": "A duração da consulta deve ser de 30 ou 45 minutos."
   },
   "unavailability": {
@@ -87,6 +91,8 @@
       "date": "Data",
       "startTime": "Início",
       "endTime": "Fim",
+      "selectStartTime": "Selecione o horário de início",
+      "selectEndTime": "Selecione o horário de término",
       "reason": "Motivo",
       "reasonPlaceholder": "Motivo da indisponibilidade...",
       "cancel": "Cancelar",
