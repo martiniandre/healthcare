@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next"
 import { Card } from "../../../shared/components/ui/Card"
 import { EmptyState } from "../../../shared/components/ui/EmptyState"
 import type { DoctorConsultation } from "../dashboard_types"
@@ -7,6 +8,7 @@ interface DoctorConsultationsChartProps {
 }
 
 export const DoctorConsultationsChart = ({ consultationsPerDoctor }: DoctorConsultationsChartProps) => {
+  const { t } = useTranslation("analytics")
   const maxCount = consultationsPerDoctor.length > 0
     ? Math.max(...consultationsPerDoctor.map((item) => item.count))
     : 1
@@ -14,8 +16,8 @@ export const DoctorConsultationsChart = ({ consultationsPerDoctor }: DoctorConsu
   return (
     <Card className="p-5 flex flex-col gap-5 text-left border border-border">
       <div>
-        <h3 className="font-extrabold text-gray-900 text-md">Consultas por Médico</h3>
-        <span className="text-xs text-muted block mt-1">Distribuição de consultas nos últimos 30 dias</span>
+        <h3 className="font-extrabold text-gray-900 text-md">{t("dashboard.doctorConsultations.title")}</h3>
+        <span className="text-xs text-muted block mt-1">{t("dashboard.doctorConsultations.subtitle")}</span>
       </div>
 
       <div className="overflow-x-auto w-full">
@@ -44,8 +46,8 @@ export const DoctorConsultationsChart = ({ consultationsPerDoctor }: DoctorConsu
           </div>
         ) : (
           <EmptyState
-            title="Sem dados"
-            description="Nenhum dado de consultas por médico disponível para o período."
+            title={t("dashboard.doctorConsultations.noDataTitle")}
+            description={t("dashboard.doctorConsultations.noDataDescription")}
             className="h-40"
           />
         )}
