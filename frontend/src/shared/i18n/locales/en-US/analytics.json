@@ -79,6 +79,48 @@
     "subtitle": "Real-time indicators for clinical follow-up",
     "errorTitle": "Failed to load dashboard",
     "errorDescription": "The clinical dashboard data could not be loaded. Please try again later.",
-    "retryButton": "Try Again"
+    "retryButton": "Try Again",
+    "kpi": {
+      "consultationsToday": "Consultations today",
+      "occupancyRate": "Occupancy rate",
+      "avgWaitTime": "Average wait time",
+      "byDepartment": "By department",
+      "activePatients": "Active patients",
+      "inCare": "In care",
+      "examsToday": "Exams today",
+      "performed": "Performed",
+      "newDiagnoses": "New diagnoses",
+      "last30Days": "Last 30 days"
+    },
+    "doctorConsultations": {
+      "title": "Consultations by Doctor",
+      "subtitle": "Consultation distribution over the last 30 days",
+      "noDataTitle": "No data",
+      "noDataDescription": "No per-doctor consultation data available for the period."
+    },
+    "occupancy": {
+      "title": "Occupancy Rate",
+      "subtitle": "Occupied vs available beds",
+      "label": "Occupancy",
+      "occupied": "Occupied",
+      "total": "Total",
+      "available": "Available"
+    },
+    "topDiagnoses": {
+      "title": "Top Diagnoses",
+      "subtitle": "Most frequent ICD-10 codes in the last 30 days",
+      "code": "Code",
+      "description": "Description",
+      "cases": "Cases",
+      "proportion": "Proportion",
+      "noDataTitle": "No data",
+      "noDataDescription": "No diagnoses recorded in the period."
+    },
+    "waitTime": {
+      "title": "Wait Time by Department",
+      "subtitle": "Average in minutes over the last 30 days",
+      "noDataTitle": "No data",
+      "noDataDescription": "No wait time data available."
+    }
   }
 }

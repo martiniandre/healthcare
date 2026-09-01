@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next"
 import { Card } from "../../../shared/components/ui/Card"
 import { EmptyState } from "../../../shared/components/ui/EmptyState"
 import type { DepartmentWaitTime } from "../dashboard_types"
@@ -7,6 +8,7 @@ interface WaitTimeChartProps {
 }
 
 export const WaitTimeChart = ({ waitTimeByDepartment }: WaitTimeChartProps) => {
+  const { t } = useTranslation("analytics")
   const maxMinutes = waitTimeByDepartment.length > 0
     ? Math.max(...waitTimeByDepartment.map((department) => department.minutes))
     : 1
@@ -14,8 +16,8 @@ export const WaitTimeChart = ({ waitTimeByDepartment }: WaitTimeChartProps) => {
   return (
     <Card className="p-5 flex flex-col gap-5 text-left border border-border">
       <div>
-        <h3 className="font-extrabold text-gray-900 text-md">Tempo de Espera por Departamento</h3>
-        <span className="text-xs text-muted block mt-1">Média em minutos nos últimos 30 dias</span>
+        <h3 className="font-extrabold text-gray-900 text-md">{t("dashboard.waitTime.title")}</h3>
+        <span className="text-xs text-muted block mt-1">{t("dashboard.waitTime.subtitle")}</span>
       </div>
 
       <div className="overflow-x-auto w-full">
@@ -43,8 +45,8 @@ export const WaitTimeChart = ({ waitTimeByDepartment }: WaitTimeChartProps) => {
           </div>
         ) : (
           <EmptyState
-            title="Sem dados"
-            description="Nenhum dado de tempo de espera disponível."
+            title={t("dashboard.waitTime.noDataTitle")}
+            description={t("dashboard.waitTime.noDataDescription")}
             className="h-40"
           />
         )}
