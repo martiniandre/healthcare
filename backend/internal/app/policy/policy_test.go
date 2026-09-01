@@ -24,7 +24,7 @@ func rolesKey(roles []role.Role) string {
 
 func TestGRPCMethodPermissions(testingInstance *testing.T) {
 	expectedRoles := map[string]string{
-		"/audit_logs.v1.AuditLogsService/CreateAuditLog": "ADMIN,DOCTOR,NURSE,PATIENT,RECEPTION",
+		"/audit_logs.v1.AuditLogsService/CreateAuditLog": "ADMIN",
 		"/audit_logs.v1.AuditLogsService/ListAuditLogs":  "ADMIN",
 
 		"/telemetry.v1.TelemetryService/GetRooms":           "ADMIN,DOCTOR,NURSE,RECEPTION",
@@ -169,7 +169,7 @@ func TestHTTPRoutePermissions(testingInstance *testing.T) {
 		"DELETE /api/v1/patients/{patientFhirId}/conditions/{conditionFhirId}": "ADMIN,DOCTOR,NURSE",
 
 		"GET /api/v1/audit-logs":  "ADMIN",
-		"POST /api/v1/audit-logs": "ADMIN,DOCTOR,NURSE,PATIENT,RECEPTION",
+		"POST /api/v1/audit-logs": "ADMIN",
 
 		"GET /api/v1/patients/{patientFhirId}/allergies":                    "ADMIN,DOCTOR,NURSE",
 		"POST /api/v1/patients/{patientFhirId}/allergies":                   "ADMIN,DOCTOR,NURSE",

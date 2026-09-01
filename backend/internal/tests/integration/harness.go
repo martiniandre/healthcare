@@ -164,6 +164,7 @@ func newTestServer(t *testing.T) *testServer {
 	allergyService := allergy.Register(grpcServer, allergy.Dependency{FHIRClient: fhirClient})
 	medicationService := medication.Register(grpcServer, medication.Dependency{FHIRClient: fhirClient})
 	auditLogsService := audit_logs.Register(grpcServer, audit_logs.Dependency{DB: environment.pool})
+	middleware.SetHTTPAuditRecorder(audit_logs.NewHTTPAuditRecorder(auditLogsService))
 	diagnosticReportService := diagnostic_report.Register(grpcServer, diagnostic_report.Dependency{
 		FHIRClient:   fhirClient,
 		EventBus:     eventBus,

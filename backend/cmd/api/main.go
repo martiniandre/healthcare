@@ -25,7 +25,9 @@ import (
 	"time"
 
 	"github.com/healthcare/backend/internal/api"
+	"github.com/healthcare/backend/internal/api/middleware"
 	"github.com/healthcare/backend/internal/app"
+	"github.com/healthcare/backend/internal/app/interceptor"
 	"github.com/healthcare/backend/internal/modules/allergy"
 	"github.com/healthcare/backend/internal/modules/analytics"
 	"github.com/healthcare/backend/internal/modules/audit_logs"
@@ -118,6 +120,8 @@ func main() {
 	allergyService := allergy.Register(applicationServer.GRPCServer, allergy.Dependency{FHIRClient: fhirClient})
 	medicationService := medication.Register(applicationServer.GRPCServer, medication.Dependency{FHIRClient: fhirClient})
 	auditLogsService := audit_logs.Register(applicationServer.GRPCServer, audit_logs.Dependency{DB: databasePool})
+	interceptor.SetAuditLogsService(auditLogsService)
+	middleware.SetHTTPAuditRecorder(audit_logs.NewHTTPAuditRecorder(auditLogsService))
 	diagnosticReportService := diagnostic_report.Register(applicationServer.GRPCServer, diagnostic_report.Dependency{FHIRClient: fhirClient, EventBus: eventBus, DB: databasePool, AuditService: auditLogsService})
 	storageClient, storageClientErr := storage.NewGCSClient(mainContext, appConfig.GCSBucketName, appConfig.StorageRoot)
 	if storageClientErr != nil {

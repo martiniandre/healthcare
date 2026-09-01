@@ -16,6 +16,16 @@ func (recorder *statusRecorder) WriteHeader(code int) {
 	recorder.ResponseWriter.WriteHeader(code)
 }
 
+func (recorder *statusRecorder) Flush() {
+	if flusher, flusherOk := recorder.ResponseWriter.(http.Flusher); flusherOk {
+		flusher.Flush()
+	}
+}
+
+func (recorder *statusRecorder) Unwrap() http.ResponseWriter {
+	return recorder.ResponseWriter
+}
+
 func Logger(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
 		requestStartTime := time.Now()
