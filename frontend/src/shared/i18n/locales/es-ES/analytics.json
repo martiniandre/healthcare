@@ -79,6 +79,48 @@
     "subtitle": "Indicadores en tiempo real para el seguimiento clínico",
     "errorTitle": "Error al cargar el dashboard",
     "errorDescription": "No fue posible cargar los datos del dashboard clínico. Intente nuevamente más tarde.",
-    "retryButton": "Intentar de nuevo"
+    "retryButton": "Intentar de nuevo",
+    "kpi": {
+      "consultationsToday": "Consultas hoy",
+      "occupancyRate": "Tasa de ocupación",
+      "avgWaitTime": "Tiempo medio de espera",
+      "byDepartment": "Por departamento",
+      "activePatients": "Pacientes activos",
+      "inCare": "En atención",
+      "examsToday": "Exámenes hoy",
+      "performed": "Realizados",
+      "newDiagnoses": "Nuevos diagnósticos",
+      "last30Days": "Últimos 30 días"
+    },
+    "doctorConsultations": {
+      "title": "Consultas por Médico",
+      "subtitle": "Distribución de consultas en los últimos 30 días",
+      "noDataTitle": "Sin datos",
+      "noDataDescription": "No hay datos de consultas por médico disponibles para el período."
+    },
+    "occupancy": {
+      "title": "Tasa de Ocupación",
+      "subtitle": "Camas ocupadas vs disponibles",
+      "label": "Ocupación",
+      "occupied": "Ocupadas",
+      "total": "Totales",
+      "available": "Disponibles"
+    },
+    "topDiagnoses": {
+      "title": "Principales Diagnósticos",
+      "subtitle": "Códigos CIE-10 más frecuentes en los últimos 30 días",
+      "code": "Código",
+      "description": "Descripción",
+      "cases": "Casos",
+      "proportion": "Proporción",
+      "noDataTitle": "Sin datos",
+      "noDataDescription": "No se registraron diagnósticos en el período."
+    },
+    "waitTime": {
+      "title": "Tiempo de Espera por Departamento",
+      "subtitle": "Promedio en minutos en los últimos 30 días",
+      "noDataTitle": "Sin datos",
+      "noDataDescription": "No hay datos de tiempo de espera disponibles."
+    }
   }
 }
