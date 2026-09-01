@@ -38,7 +38,7 @@ func NewService(repo Repository, eventBus eventbus.Bus, auditService audit_logs.
 
 var allowedAppointmentDurations = []int{30, 45}
 
-var allowedAppointmentStartMinutes = []int{0, 30, 45}
+var allowedAppointmentStartMinutes = []int{0, 15, 30, 45}
 
 func isAllowedAppointmentDuration(appointmentStart time.Time, appointmentEnd time.Time) bool {
 	durationMinutes := int(appointmentEnd.Sub(appointmentStart).Minutes())
@@ -94,7 +94,7 @@ func (appointmentService *service) CreateAppointment(ctx context.Context, input 
 	} else if !input.StartsAt.After(time.Now()) {
 		fieldViolations["starts_at"] = "must be in the future"
 	} else if !isAlignedToAllowedSlotStart(input.StartsAt) {
-		fieldViolations["starts_at"] = "must start at an allowed slot time (:00, :30 or :45)"
+		fieldViolations["starts_at"] = "must start at an allowed slot time (:00, :15, :30 or :45)"
 	}
 	if input.EndsAt.IsZero() {
 		fieldViolations["ends_at"] = "is required"
@@ -180,7 +180,7 @@ func (appointmentService *service) RescheduleAppointment(ctx context.Context, ap
 	} else if !startsAt.After(time.Now()) {
 		fieldViolations["starts_at"] = "must be in the future"
 	} else if !isAlignedToAllowedSlotStart(startsAt) {
-		fieldViolations["starts_at"] = "must start at an allowed slot time (:00, :30 or :45)"
+		fieldViolations["starts_at"] = "must start at an allowed slot time (:00, :15, :30 or :45)"
 	}
 	if endsAt.IsZero() {
 		fieldViolations["ends_at"] = "is required"

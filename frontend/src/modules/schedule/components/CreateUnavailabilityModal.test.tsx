@@ -78,4 +78,21 @@ describe("CreateUnavailabilityModal", () => {
     expect(screen.getByText("unavailability.modal.cancel")).toBeInTheDocument()
     expect(screen.getByText("unavailability.modal.confirm")).toBeInTheDocument()
   })
+
+  it("should block past dates on the unavailability date input", () => {
+    render(
+      <CreateUnavailabilityModal
+        isOpen={true}
+        onClose={vi.fn()}
+        onSubmit={vi.fn()}
+        isPending={false}
+        staffId="staff-1"
+        defaultDate="2026-09-01"
+      />
+    )
+    const dateInput = document.querySelector('input[type="date"]') as HTMLInputElement
+    const now = new Date()
+    const expectedMin = `${String(now.getFullYear()).padStart(4, "0")}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`
+    expect(dateInput.min).toBe(expectedMin)
+  })
 })

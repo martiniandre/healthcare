@@ -87,4 +87,29 @@ describe("api client", () => {
 
     expect(headers.set).not.toHaveBeenCalled()
   })
+
+  it("should fall back to the csrf cookie when no token is stored", () => {
+    clearCsrfToken()
+    document.cookie = "csrf_token=cookie-token-456; Path=/"
+    const headers = { set: vi.fn() }
+    const config = { method: "post", headers }
+
+    interceptorHandlers.requestFulfilled(config)
+
+    expect(headers.set).toHaveBeenCalledWith("X-CSRF-Token", "cookie-token-456")
+    document.cookie = "csrf_token=; Path=/; Max-Age=0"
+  })
+
+  it("should prefer the stored token over the csrf cookie", () => {
+    setCsrfToken("stored-token-789")
+    document.cookie = "csrf_token=cookie-token-456; Path=/"
+    const headers = { set: vi.fn() }
+    const config = { method: "put", headers }
+
+    interceptorHandlers.requestFulfilled(config)
+
+    expect(headers.set).toHaveBeenCalledWith("X-CSRF-Token", "stored-token-789")
+    document.cookie = "csrf_token=; Path=/; Max-Age=0"
+    clearCsrfToken()
+  })
 })

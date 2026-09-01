@@ -34,7 +34,7 @@ export const AppointmentCard = ({ appointment, onCancel }: AppointmentCardProps)
       </div>
       <div className="flex flex-col gap-0.5">
         <span className="text-sm font-bold text-gray-900">
-          {patient?.full_name ?? appointment.patient_fhir_id}
+          {patient?.full_name ?? t("cards.unknownPatient")}
         </span>
         <span className="text-xs text-gray-500 truncate">
           {appointment.reason || t("cards.noReason")}

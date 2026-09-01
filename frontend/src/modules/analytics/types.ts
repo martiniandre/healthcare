@@ -12,19 +12,17 @@ export interface ConsultationsDayData {
 
 export interface PathologyData {
   code: string
-  descriptionKey: string
-  categoryKey: string
+  description: string
+  category: string
   activeCases: number
   trend: string
 }
 
 export interface StatsResponse {
-  totalRegisteredPatients: number
-  fhirComplianceRate: number
-  averageServiceDurationMinutes: number
-  activeConsultationsTotal: number
-  totalStudiesCount: number
-  examModalitiesData: ModalityData[]
-  consultationsWeeklyData: ConsultationsDayData[]
-  pathologies: PathologyData[]
+  total_patients: number
+  fhir_compliance_rate: number
+  avg_service_duration_minutes: number
+  weekly_consultations: ConsultationsDayData[]
+  exam_modalities: ModalityData[]
+  pathology_cases: PathologyData[]
 }

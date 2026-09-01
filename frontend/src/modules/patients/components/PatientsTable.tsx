@@ -116,9 +116,6 @@ export const PatientsTable = ({
                         <span className="text-[13px] font-semibold text-gray-800 block truncate group-hover:text-primary transition-colors">
                           {patient.full_name}
                         </span>
-                        <span className="text-[10px] text-gray-400 font-mono block mt-0.5">
-                          {patient.fhir_resource_id}
-                        </span>
                       </div>
                     </div>
                   </TableCell>

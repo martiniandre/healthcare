@@ -176,20 +176,30 @@ describe('patient schemas', () => {
   })
 
   describe('getNewVitalSignsPanelSchema', () => {
-    it('should accept an entirely empty panel since every metric is optional', () => {
+    it('should reject an entirely empty panel since at least one metric is required', () => {
       const result = getNewVitalSignsPanelSchema(mockTranslate).safeParse({})
+      expect(result.success).toBe(false)
+      if (!result.success) {
+        expect(result.error.issues[0].path).toEqual(['heartRate'])
+        expect(result.error.issues[0].message).toContain('validation.vitalSignsAtLeastOne')
+      }
+    })
+
+    it('should accept a panel with a single measured metric', () => {
+      const result = getNewVitalSignsPanelSchema(mockTranslate).safeParse({
+        heartRate: 72,
+      })
       expect(result.success).toBe(true)
     })
 
-    it('should treat empty numeric inputs as unmeasured metrics', () => {
+    it('should treat empty numeric inputs as unmeasured metrics and reject an empty panel', () => {
       const result = getNewVitalSignsPanelSchema(mockTranslate).safeParse({
         heartRate: Number.NaN,
         bodyTemperature: Number.NaN,
       })
-      expect(result.success).toBe(true)
-      if (result.success) {
-        expect(result.data.heartRate).toBeUndefined()
-        expect(result.data.bodyTemperature).toBeUndefined()
+      expect(result.success).toBe(false)
+      if (!result.success) {
+        expect(result.error.issues[0].path).toEqual(['heartRate'])
       }
     })
 

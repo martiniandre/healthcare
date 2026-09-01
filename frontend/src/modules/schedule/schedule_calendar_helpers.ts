@@ -38,7 +38,7 @@ export const appointmentsToCalendarEvents = (
 ): CalendarEventShape[] => {
   return activeAppointmentsOnly(appointments).map((appointment) => ({
     id: appointment.id,
-    title: appointment.reason || appointment.patient_fhir_id,
+    title: appointment.reason || "",
     start: appointment.starts_at,
     end: appointment.ends_at,
     extendedProps: {

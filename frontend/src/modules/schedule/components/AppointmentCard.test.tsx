@@ -60,13 +60,14 @@ describe("AppointmentCard", () => {
     expect(screen.queryByRole("button", { name: "cards.cancelAppointment" })).toBeNull()
   })
 
-  it("should fall back to patient fhir id when patient name is not available", () => {
+  it("should not show the patient fhir id when the patient name is not available", () => {
     mockedUsePatientQuery.mockReturnValue({
       data: null,
       isLoading: false,
     } as ReturnType<typeof usePatientQuery>)
     render(<AppointmentCard appointment={baseAppointment} onCancel={vi.fn()} />)
-    expect(screen.getByText("fhir-pat-1")).toBeDefined()
+    expect(screen.queryByText("fhir-pat-1")).toBeNull()
+    expect(screen.getByText("cards.unknownPatient")).toBeDefined()
   })
 
   it("should render the no reason label when reason is empty", () => {

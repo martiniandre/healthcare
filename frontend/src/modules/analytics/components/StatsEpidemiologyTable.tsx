@@ -1,5 +1,4 @@
 import { useTranslation } from "react-i18next"
-import { createModuleTranslator } from "../../../shared/i18n/i18n"
 import { Card } from "../../../shared/components/ui/Card"
 import { Button } from "../../../shared/components/ui/Button"
 import { EmptyState } from "../../../shared/components/ui/EmptyState"
@@ -15,8 +14,8 @@ import { FileSpreadsheet } from "lucide-react"
 
 interface Pathology {
   code: string
-  descriptionKey: string
-  categoryKey: string
+  description: string
+  category: string
   activeCases: number
   trend: string
 }
@@ -27,7 +26,6 @@ interface StatsEpidemiologyTableProps {
 
 export const StatsEpidemiologyTable = ({ pathologies }: StatsEpidemiologyTableProps) => {
   const { t: translate } = useTranslation("analytics")
-  const translateModuleKey = createModuleTranslator("analytics")
 
   const getTrendStyle = (pathologyCode: string): string => {
     if (pathologyCode === "E11.9") {
@@ -66,23 +64,17 @@ export const StatsEpidemiologyTable = ({ pathologies }: StatsEpidemiologyTablePr
               </TableHeader>
               <TableBody className="text-gray-700 font-medium">
                 {pathologies.map((pathologyItem) => {
-                  const translatedDescription = pathologyItem.descriptionKey.startsWith("analytics.")
-                    ? translateModuleKey(pathologyItem.descriptionKey)
-                    : translateModuleKey(`pathologies.${pathologyItem.descriptionKey}`)
-
-                  const translatedCategory = pathologyItem.categoryKey.startsWith("analytics.")
-                    ? translateModuleKey(pathologyItem.categoryKey)
-                    : translateModuleKey(`categories.${pathologyItem.categoryKey}`)
+                  const isStableTrend = pathologyItem.trend.toLowerCase() === "stable"
 
                   return (
                     <TableRow key={pathologyItem.code}>
                       <TableCell className="font-mono font-bold text-primary">{pathologyItem.code}</TableCell>
-                      <TableCell>{translatedDescription}</TableCell>
-                      <TableCell>{translatedCategory}</TableCell>
+                      <TableCell>{pathologyItem.description}</TableCell>
+                      <TableCell>{pathologyItem.category}</TableCell>
                       <TableCell className="font-bold text-gray-900">{pathologyItem.activeCases}</TableCell>
                       <TableCell className="text-right">
                         <span className={getTrendStyle(pathologyItem.code)}>
-                          {pathologyItem.trend === "stable" ? translate("epidemiology.table.stable") : pathologyItem.trend}
+                          {isStableTrend ? translate("epidemiology.table.stable") : pathologyItem.trend}
                         </span>
                       </TableCell>
                     </TableRow>

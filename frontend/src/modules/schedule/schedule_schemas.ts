@@ -1,9 +1,9 @@
 import * as z from "zod"
-import { isTodayOrFutureDate } from "../../shared/utils/validators"
+import { isTodayOrFutureDate, todayDateString } from "../../shared/utils/validators"
 
 export const allowedAppointmentDurations = [30, 45] as const
 
-export const allowedAppointmentStartMinutes = ["00", "30", "45"] as const
+export const allowedAppointmentStartMinutes = ["00", "15", "30", "45"] as const
 
 export const baseAppointmentSchema = z.object({
   patientFhirId: z.string(),
@@ -62,6 +62,28 @@ export const getNewAppointmentSchema = (translateFunction: (key: string) => stri
   {
     message: translateFunction("validation.slotDuration"),
     path: ["endTime"],
+  }
+).refine(
+  (formData) => {
+    if (!formData.date || !formData.startTime) {
+      return true
+    }
+    if (formData.date !== todayDateString()) {
+      return true
+    }
+    const [startHour, startMinute] = formData.startTime.split(":").map(Number)
+    const currentDate = new Date()
+    if (startHour > currentDate.getHours()) {
+      return true
+    }
+    if (startHour === currentDate.getHours()) {
+      return startMinute > currentDate.getMinutes()
+    }
+    return false
+  },
+  {
+    message: translateFunction("validation.startTimePast"),
+    path: ["startTime"],
   }
 )
 

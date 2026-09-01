@@ -10,6 +10,8 @@ import {
   DialogTitle,
 } from "../../../shared/components/ui/Dialog"
 import { getUnavailabilitySchema, type UnavailabilityFormData } from "../schedule_schemas"
+import { todayDateString } from "../../../shared/utils/validators"
+import { getTimeSlotOptions } from "../schedule_time_options"
 import type { CreateUnavailabilityPayload } from "../types"
 
 interface CreateUnavailabilityModalProps {
@@ -24,6 +26,8 @@ interface CreateUnavailabilityModalProps {
 const formatLocalDateTime = (dateValue: string, timeValue: string): string => {
   return new Date(`${dateValue}T${timeValue}`).toISOString()
 }
+
+const timeSlotOptions = getTimeSlotOptions()
 
 export const CreateUnavailabilityModal = ({
   isOpen,
@@ -79,25 +83,57 @@ export const CreateUnavailabilityModal = ({
             {t("unavailability.modal.title")}
           </DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleFormSubmit} className="flex flex-col gap-4 text-left mt-4">
+        <form onSubmit={handleFormSubmit} noValidate className="flex flex-col gap-4 text-left mt-4">
           <div className="grid grid-cols-3 gap-3">
             <div className="flex flex-col gap-1">
               <label className="text-xs font-semibold text-gray-600">
                 {t("unavailability.modal.date")}
               </label>
-              <Input type="date" errorText={errors.date?.message} {...register("date")} />
+              <Input type="date" min={todayDateString()} errorText={errors.date?.message} {...register("date")} />
             </div>
             <div className="flex flex-col gap-1">
               <label className="text-xs font-semibold text-gray-600">
                 {t("unavailability.modal.startTime")}
               </label>
-              <Input type="time" step={900} errorText={errors.startTime?.message} {...register("startTime")} />
+              <select
+                aria-label={t("unavailability.modal.startTime")}
+                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                {...register("startTime")}
+              >
+                <option value="">{t("unavailability.modal.selectStartTime")}</option>
+                {timeSlotOptions.map((timeSlot) => (
+                  <option key={timeSlot.value} value={timeSlot.value}>
+                    {timeSlot.label}
+                  </option>
+                ))}
+              </select>
+              {errors.startTime?.message && (
+                <span className="text-xs text-red-500 font-medium px-1 mt-1">
+                  {errors.startTime.message}
+                </span>
+              )}
             </div>
             <div className="flex flex-col gap-1">
               <label className="text-xs font-semibold text-gray-600">
                 {t("unavailability.modal.endTime")}
               </label>
-              <Input type="time" step={900} errorText={errors.endTime?.message} {...register("endTime")} />
+              <select
+                aria-label={t("unavailability.modal.endTime")}
+                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                {...register("endTime")}
+              >
+                <option value="">{t("unavailability.modal.selectEndTime")}</option>
+                {timeSlotOptions.map((timeSlot) => (
+                  <option key={timeSlot.value} value={timeSlot.value}>
+                    {timeSlot.label}
+                  </option>
+                ))}
+              </select>
+              {errors.endTime?.message && (
+                <span className="text-xs text-red-500 font-medium px-1 mt-1">
+                  {errors.endTime.message}
+                </span>
+              )}
             </div>
           </div>
 

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import { authApi } from "../../modules/auth/api"
 import { useAuthStore } from "../store/auth_store"
+import { setCsrfToken } from "../services/api"
 
 export const useAuthInit = () => {
   const [isLoading, setIsLoading] = useState(true)
@@ -13,6 +14,9 @@ export const useAuthInit = () => {
       .me()
       .then((sessionData) => {
         if (!cancelled) {
+          if (sessionData.csrfToken) {
+            setCsrfToken(sessionData.csrfToken)
+          }
           login(
             sessionData.userId,
             sessionData.role,

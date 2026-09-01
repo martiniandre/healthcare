@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { useForm, Controller } from "react-hook-form"
+import { useForm, Controller, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useTranslation } from "react-i18next"
 import { isAxiosError } from "axios"
@@ -19,6 +19,8 @@ import {
   DialogTitle,
 } from "../../../shared/components/ui/Dialog"
 import { getNewAppointmentSchema, type NewAppointmentFormData } from "../schedule_schemas"
+import { todayDateString } from "../../../shared/utils/validators"
+import { getAvailableStartTimeOptions, getEndTimeOptionsForStart } from "../schedule_time_options"
 import { useStaffListQuery } from "../../staff/queries"
 import { usePatientsQuery } from "../../patients/queries"
 import { useIdempotencyKey } from "../hooks/useIdempotencyKey"
@@ -77,6 +79,11 @@ export const AppointmentModal = ({
     },
   })
 
+  const selectedDate = useWatch({ control, name: "date" }) ?? ""
+  const selectedStartTime = useWatch({ control, name: "startTime" }) ?? ""
+  const availableStartTimeOptions = getAvailableStartTimeOptions(selectedDate)
+  const endTimeOptions = getEndTimeOptionsForStart(selectedStartTime)
+
   const handleClose = () => {
     setConflictMessage(null)
     setPatientSearch("")
@@ -131,7 +138,7 @@ export const AppointmentModal = ({
             {t("modals.create.title")}
           </DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleFormSubmit} className="flex flex-col gap-4 text-left mt-4">
+        <form onSubmit={handleFormSubmit} noValidate className="flex flex-col gap-4 text-left mt-4">
           {conflictMessage && (
             <div className="text-xs font-semibold text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
               {conflictMessage}
@@ -186,8 +193,8 @@ export const AppointmentModal = ({
                     <SelectValue placeholder={t("modals.create.selectStaff")} />
                   </SelectTrigger>
                   <SelectContent>
-                    {staffMembers.filter((staffMember) => staffMember.fhirResourceId).map((staffMember) => (
-                      <SelectItem key={staffMember.id} value={staffMember.fhirResourceId}>
+                    {staffMembers.filter((staffMember) => staffMember.id).map((staffMember) => (
+                      <SelectItem key={staffMember.id} value={staffMember.id}>
                         {staffMember.fullName} — {staffMember.role}
                       </SelectItem>
                     ))}
@@ -207,19 +214,51 @@ export const AppointmentModal = ({
               <label className="text-xs font-semibold text-gray-600">
                 {t("modals.create.date")}
               </label>
-              <Input type="date" errorText={errors.date?.message} {...register("date")} />
+              <Input type="date" min={todayDateString()} errorText={errors.date?.message} {...register("date")} />
             </div>
             <div className="flex flex-col gap-1">
               <label className="text-xs font-semibold text-gray-600">
                 {t("modals.create.startTime")}
               </label>
-              <Input type="time" step={900} errorText={errors.startTime?.message} {...register("startTime")} />
+              <select
+                aria-label={t("modals.create.startTime")}
+                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                {...register("startTime")}
+              >
+                <option value="">{t("modals.create.selectStartTime")}</option>
+                {availableStartTimeOptions.map((timeSlot) => (
+                  <option key={timeSlot.value} value={timeSlot.value}>
+                    {timeSlot.label}
+                  </option>
+                ))}
+              </select>
+              {errors.startTime?.message && (
+                <span className="text-xs text-red-500 font-medium px-1 mt-1">
+                  {errors.startTime.message}
+                </span>
+              )}
             </div>
             <div className="flex flex-col gap-1">
               <label className="text-xs font-semibold text-gray-600">
                 {t("modals.create.endTime")}
               </label>
-              <Input type="time" step={900} errorText={errors.endTime?.message} {...register("endTime")} />
+              <select
+                aria-label={t("modals.create.endTime")}
+                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                {...register("endTime")}
+              >
+                <option value="">{t("modals.create.selectEndTime")}</option>
+                {endTimeOptions.map((timeSlot) => (
+                  <option key={timeSlot.value} value={timeSlot.value}>
+                    {timeSlot.label}
+                  </option>
+                ))}
+              </select>
+              {errors.endTime?.message && (
+                <span className="text-xs text-red-500 font-medium px-1 mt-1">
+                  {errors.endTime.message}
+                </span>
+              )}
             </div>
           </div>
 

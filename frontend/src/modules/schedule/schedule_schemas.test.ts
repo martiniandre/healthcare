@@ -1,5 +1,9 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi, afterEach } from 'vitest'
 import { getNewAppointmentSchema, getUnavailabilitySchema } from './schedule_schemas'
+
+afterEach(() => {
+  vi.useRealTimers()
+})
 
 const mockTranslate = (key: string) => `message:${key}`
 
@@ -9,7 +13,7 @@ const pastIso = new Date(Date.now() - 5 * 86400000).toISOString().slice(0, 10)
 const validAppointment = {
   patientFhirId: 'fhir-patient-1',
   staffId: 'fhir-staff-1',
-  date: todayIso,
+  date: '2099-01-01',
   startTime: '09:00',
   endTime: '09:30',
   reason: 'Routine checkup',
@@ -89,13 +93,58 @@ describe('getNewAppointmentSchema', () => {
     expect(result.success).toBe(false)
   })
 
-  it('should reject an unaligned start time', () => {
+  it('should accept a 15 minute aligned start time', () => {
     const result = getNewAppointmentSchema(mockTranslate).safeParse({
       ...validAppointment,
       startTime: '09:15',
       endTime: '09:45',
     })
+    expect(result.success).toBe(true)
+  })
+
+  it('should reject an unaligned start time', () => {
+    const result = getNewAppointmentSchema(mockTranslate).safeParse({
+      ...validAppointment,
+      startTime: '09:07',
+      endTime: '09:45',
+    })
     expect(result.success).toBe(false)
+  })
+
+  it('should reject a start time in the past when the date is today', () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2099-01-01T14:32:00'))
+    const result = getNewAppointmentSchema(mockTranslate).safeParse({
+      ...validAppointment,
+      date: '2099-01-01',
+      startTime: '14:15',
+      endTime: '14:45',
+    })
+    expect(result.success).toBe(false)
+  })
+
+  it('should accept a start time in the future when the date is today', () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2099-01-01T14:32:00'))
+    const result = getNewAppointmentSchema(mockTranslate).safeParse({
+      ...validAppointment,
+      date: '2099-01-01',
+      startTime: '15:00',
+      endTime: '15:30',
+    })
+    expect(result.success).toBe(true)
+  })
+
+  it('should ignore the past rule when the date is not today', () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2099-01-01T14:32:00'))
+    const result = getNewAppointmentSchema(mockTranslate).safeParse({
+      ...validAppointment,
+      date: '2099-02-01',
+      startTime: '09:00',
+      endTime: '09:30',
+    })
+    expect(result.success).toBe(true)
   })
 
   it('should reject a reason longer than the maximum', () => {
