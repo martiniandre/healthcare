@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next"
 import { Card } from "../../../shared/components/ui/Card"
 import { EmptyState } from "../../../shared/components/ui/EmptyState"
 import {
@@ -15,6 +16,7 @@ interface TopDiagnosesTableProps {
 }
 
 export const TopDiagnosesTable = ({ topDiagnoses }: TopDiagnosesTableProps) => {
+  const { t } = useTranslation("analytics")
   const maxCount = topDiagnoses.length > 0
     ? Math.max(...topDiagnoses.map((diagnosis) => diagnosis.count))
     : 1
@@ -22,8 +24,8 @@ export const TopDiagnosesTable = ({ topDiagnoses }: TopDiagnosesTableProps) => {
   return (
     <Card className="p-5 flex flex-col gap-4 text-left border border-border">
       <div>
-        <h3 className="font-extrabold text-gray-900 text-md">Principais Diagnósticos</h3>
-        <span className="text-xs text-muted block mt-1">CID-10 mais frequentes nos últimos 30 dias</span>
+        <h3 className="font-extrabold text-gray-900 text-md">{t("dashboard.topDiagnoses.title")}</h3>
+        <span className="text-xs text-muted block mt-1">{t("dashboard.topDiagnoses.subtitle")}</span>
       </div>
 
       <div className="overflow-x-auto w-full">
@@ -31,10 +33,10 @@ export const TopDiagnosesTable = ({ topDiagnoses }: TopDiagnosesTableProps) => {
           <Table className="min-w-[450px]">
             <TableHeader>
               <TableRow>
-                <TableHead>Código</TableHead>
-                <TableHead>Descrição</TableHead>
-                <TableHead>Casos</TableHead>
-                <TableHead className="text-right">Proporção</TableHead>
+                <TableHead>{t("dashboard.topDiagnoses.code")}</TableHead>
+                <TableHead>{t("dashboard.topDiagnoses.description")}</TableHead>
+                <TableHead>{t("dashboard.topDiagnoses.cases")}</TableHead>
+                <TableHead className="text-right">{t("dashboard.topDiagnoses.proportion")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody className="text-gray-700 font-medium">
@@ -63,8 +65,8 @@ export const TopDiagnosesTable = ({ topDiagnoses }: TopDiagnosesTableProps) => {
           </Table>
         ) : (
           <EmptyState
-            title="Sem dados"
-            description="Nenhum diagnóstico registrado no período."
+            title={t("dashboard.topDiagnoses.noDataTitle")}
+            description={t("dashboard.topDiagnoses.noDataDescription")}
           />
         )}
       </div>

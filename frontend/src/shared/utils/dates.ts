@@ -8,9 +8,29 @@ const resolveLocale = (explicitLocale?: string): string => {
   return explicitLocale ?? i18next.language ?? fallbackLocale
 }
 
+const dateOnlyPattern = /^\d{4}-\d{2}-\d{2}$/
+
+const parseDateOnlyString = (value: string): Date | null => {
+  const [year, month, day] = value.split("-").map(Number)
+  if (month < 1 || month > 12 || day < 1 || day > 31) {
+    return null
+  }
+  const parsedDate = new Date(year, month - 1, day)
+  if (
+    parsedDate.getFullYear() !== year ||
+    parsedDate.getMonth() !== month - 1 ||
+    parsedDate.getDate() !== day
+  ) {
+    return null
+  }
+  return parsedDate
+}
+
 const toDate = (value: DateInput): Date | null => {
-  const parsedDate = new Date(value)
-  return Number.isNaN(parsedDate.getTime()) ? null : parsedDate
+  const parsedDate = typeof value === "string" && dateOnlyPattern.test(value)
+    ? parseDateOnlyString(value)
+    : new Date(value)
+  return parsedDate && !Number.isNaN(parsedDate.getTime()) ? parsedDate : null
 }
 
 const formatWithIntl = (value: DateInput, options: Intl.DateTimeFormatOptions, explicitLocale?: string): string => {
