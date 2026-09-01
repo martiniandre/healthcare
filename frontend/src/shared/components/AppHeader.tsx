@@ -3,7 +3,6 @@ import { useTranslation } from "react-i18next"
 import { useAuthStore } from "../store/auth_store"
 import { useLayoutStore } from "../store/layout_store"
 import { Menu, ShieldCheck, WifiOff } from "lucide-react"
-import { LanguageSwitcher } from "./LanguageSwitcher"
 import { NotificationBell } from "../../modules/notifications/components/NotificationBell"
 
 export const AppHeader = () => {
@@ -48,8 +47,6 @@ export const AppHeader = () => {
           <span>{t("offlineStatus")}</span>
         </div>
       )}
-
-      <LanguageSwitcher />
 
       <NotificationBell />
 
