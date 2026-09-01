@@ -1,6 +1,7 @@
 import { ArrowLeft } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { Button } from "../../../shared/components/ui/Button"
+import { formatDate } from "../../../shared/utils/dates"
 
 interface PatientRepresentation {
   patient_id: string
@@ -35,7 +36,7 @@ export const PatientHeader = ({ patient, onBack }: PatientHeaderProps) => {
           </span>
           <span className="hidden sm:inline text-gray-300">•</span>
           <span className="text-gray-500">
-            {t("details.birth")}: {patient.birth_date}
+            {t("details.birth")}: {formatDate(patient.birth_date)}
           </span>
           <span className="hidden sm:inline text-gray-300">•</span>
           <span className="font-mono text-[10px] text-gray-400 bg-gray-50 border border-border/80 px-2 py-0.5 rounded-md">

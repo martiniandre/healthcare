@@ -11,6 +11,7 @@ import {
 } from "../../../shared/components/ui/Table"
 import { Button } from "../../../shared/components/ui/Button"
 import { Skeleton } from "../../../shared/components/ui/Skeleton"
+import { formatDate } from "../../../shared/utils/dates"
 import type { Patient } from "../queries"
 
 export type SortDirection = "asc" | "desc"
@@ -128,7 +129,7 @@ export const PatientsTable = ({
                   </TableCell>
                   <TableCell>
                     <span className="text-xs text-gray-500">
-                      {patient.birth_date}
+                      {formatDate(patient.birth_date)}
                     </span>
                   </TableCell>
                   <TableCell>

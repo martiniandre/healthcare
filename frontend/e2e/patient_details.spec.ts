@@ -15,6 +15,16 @@ test.describe("Patient Record and Clinical File Module", () => {
     await expect(initialEncounter).toBeVisible()
   })
 
+  test("should format the header birth date according to the selected language", async ({ page }) => {
+    const expectedBirthDate = new Intl.DateTimeFormat("pt-BR", {
+      day: "numeric",
+      month: "numeric",
+      year: "numeric",
+    }).format(new Date(1988, 3, 12))
+
+    await expect(page.getByText(expectedBirthDate)).toBeVisible()
+  })
+
   test("should create a new medical encounter", async ({ page }) => {
     await page.getByRole("button", { name: "Nova Consulta" }).click()
     await page.getByPlaceholder("Ex: Consulta de rotina cardiologia, Check-up anual").fill("Checkup Anual Geral")

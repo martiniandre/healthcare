@@ -14,6 +14,23 @@ test.describe("Patients Management Module", () => {
     await expect(secondPatientName).toBeVisible()
   })
 
+  test("should format patient birth dates according to the selected language", async ({ page }) => {
+    const expectedBirthDate = (locale: string) =>
+      new Intl.DateTimeFormat(locale, {
+        day: "numeric",
+        month: "numeric",
+        year: "numeric",
+      }).format(new Date(1988, 3, 12))
+
+    const guilhermeRow = page.locator("tr", { hasText: "Guilherme de Souza Araujo" })
+    await expect(guilhermeRow).toContainText(expectedBirthDate("pt-BR"))
+
+    await page.getByRole("button", { name: "Português" }).click()
+    await page.getByRole("button", { name: "English" }).click()
+
+    await expect(guilhermeRow).toContainText(expectedBirthDate("en-US"))
+  })
+
   test("should filter patients through the search field", async ({ page }) => {
     const searchField = page.getByPlaceholder("Buscar por nome, CPF ou telefone...")
     await searchField.fill("Guilherme")
