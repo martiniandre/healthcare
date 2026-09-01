@@ -25,6 +25,23 @@ describe("dates", () => {
       expect(formatDate(isoDate)).toContain("2026")
       expect(formatDate(localDate)).toContain("2026")
     })
+
+    it("parses date-only ISO strings as local dates without timezone shifting", () => {
+      const birthDate = "1988-04-12"
+      expect(formatDate(birthDate)).toBe(formatDate(new Date(1988, 3, 12)))
+    })
+
+    it("formats date-only ISO strings following the selected locale", async () => {
+      await i18n.changeLanguage("pt-BR")
+      expect(formatDate("1990-05-15")).toBe("15/05/1990")
+      await i18n.changeLanguage("en-US")
+      expect(formatDate("1990-05-15")).toBe("5/15/1990")
+    })
+
+    it("returns the raw value for invalid date-only strings", () => {
+      expect(formatDate("2026-13-01")).toBe("2026-13-01")
+      expect(formatDate("2026-02-31")).toBe("2026-02-31")
+    })
   })
 
   describe("formatLongDate", () => {
