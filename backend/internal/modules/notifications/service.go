@@ -45,6 +45,7 @@ type Service interface {
 	CreateNotification(ctx context.Context, notifType NotificationType, title, body string, actorID *uuid.UUID, resourceType, resourceID string, recipientIDs []uuid.UUID) (*Notification, error)
 	CreateNotificationByRole(ctx context.Context, notifType NotificationType, title, body string, actorID *uuid.UUID, resourceType, resourceID string) (*Notification, error)
 	ListNotifications(ctx context.Context, userID uuid.UUID, limit, offset int32) ([]*Notification, int32, error)
+	ListNotificationEventDefinitions(ctx context.Context) ([]NotificationEventDefinition, error)
 	MarkRead(ctx context.Context, notificationID, userID uuid.UUID) error
 	GetUnreadCount(ctx context.Context, userID uuid.UUID) (int32, error)
 	Subscribe(ctx context.Context, userID uuid.UUID) Subscriber
@@ -122,6 +123,25 @@ func (notificationService *service) CreateNotificationByRole(ctx context.Context
 
 func (notificationService *service) ListNotifications(ctx context.Context, userID uuid.UUID, limit, offset int32) ([]*Notification, int32, error) {
 	return notificationService.repo.ListByUserID(ctx, userID, limit, offset)
+}
+
+func (notificationService *service) ListNotificationEventDefinitions(ctx context.Context) ([]NotificationEventDefinition, error) {
+	eventDefinitions := make([]NotificationEventDefinition, 0, len(notificationEventDefinitions))
+	for _, eventDefinition := range notificationEventDefinitions {
+		recipientRoles := make([]string, 0)
+		if allowedRoles, rolesDefined := policy.RolesForNotificationType(string(eventDefinition.NotificationType)); rolesDefined {
+			for _, allowedRole := range allowedRoles {
+				recipientRoles = append(recipientRoles, string(allowedRole))
+			}
+		}
+		eventDefinitions = append(eventDefinitions, NotificationEventDefinition{
+			EventName:        eventDefinition.EventName,
+			NotificationType: eventDefinition.NotificationType,
+			Priority:         notificationPriorityDefaults[eventDefinition.NotificationType],
+			RecipientRoles:   recipientRoles,
+		})
+	}
+	return eventDefinitions, nil
 }
 
 func (notificationService *service) MarkRead(ctx context.Context, notificationID, userID uuid.UUID) error {

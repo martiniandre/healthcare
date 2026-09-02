@@ -109,6 +109,7 @@ var httpRouteRoles = map[string][]role.Role{
 	"POST /api/v1/notifications/{notificationId}/read": {role.RoleAdmin, role.RoleDoctor, role.RoleNurse, role.RoleReception, role.RolePatient},
 	"GET /api/v1/notifications/unread-count":           {role.RoleAdmin, role.RoleDoctor, role.RoleNurse, role.RoleReception, role.RolePatient},
 	"GET /api/v1/notifications/stream":                 {role.RoleAdmin, role.RoleDoctor, role.RoleNurse, role.RoleReception, role.RolePatient},
+	"GET /api/v1/notification-events":                  {role.RoleAdmin, role.RoleDoctor, role.RoleNurse, role.RoleReception},
 
 	"GET /api/v1/encounters/{encounterFhirId}/medications":  {role.RoleAdmin, role.RoleDoctor, role.RoleNurse},
 	"POST /api/v1/encounters/{encounterFhirId}/medications": {role.RoleAdmin, role.RoleDoctor},
