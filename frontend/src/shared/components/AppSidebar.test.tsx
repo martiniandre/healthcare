@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from "vitest"
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest"
 import { render, screen, fireEvent, waitFor } from "@testing-library/react"
 import { AppSidebar } from "./AppSidebar"
 import { useAuthStore } from "../store/auth_store"
@@ -38,6 +38,10 @@ vi.mock("../services/api", () => ({
 }))
 
 describe("AppSidebar", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs()
+  })
+
   beforeEach(() => {
     window.localStorage.clear()
     mockNavigate.mockReset()
@@ -131,6 +135,17 @@ describe("AppSidebar", () => {
     expect(useLayoutStore.getState().theme).toBe("dark")
     expect(appearanceToggle).toHaveAttribute("aria-pressed", "true")
     expect(window.localStorage.getItem("healthcare.theme")).toBe("dark")
+  })
+
+  it("should hide the schedule item in production mode", () => {
+    vi.stubEnv("PROD", true)
+
+    render(<AppSidebar />)
+
+    expect(screen.queryByRole("button", { name: "schedule" })).not.toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "patients" })).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "dashboard" })).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "telemetry" })).toBeInTheDocument()
   })
 
   it("should logout and close the sidebar", async () => {
