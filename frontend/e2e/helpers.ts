@@ -100,6 +100,54 @@ export const mockPatientsAPI = async (pageInstance: Page): Promise<void> => {
       document_id: "987.654.321-11",
       phone_number: "(21) 99999-8888",
     },
+    {
+      patient_id: "pat-3",
+      fhir_resource_id: "fhir-pat-3",
+      full_name: "Rafael Nogueira Alves",
+      birth_date: "1981-02-07",
+      document_id: "111.111.111-33",
+      phone_number: "(31) 91234-5678",
+    },
+    {
+      patient_id: "pat-4",
+      fhir_resource_id: "fhir-pat-4",
+      full_name: "Ricardo Lopes Ferreira",
+      birth_date: "1978-08-19",
+      document_id: "222.222.222-44",
+      phone_number: "(31) 92345-6789",
+    },
+    {
+      patient_id: "pat-5",
+      fhir_resource_id: "fhir-pat-5",
+      full_name: "Sandra Rocha Campos",
+      birth_date: "1992-06-30",
+      document_id: "333.333.333-55",
+      phone_number: "(41) 93456-7890",
+    },
+    {
+      patient_id: "pat-6",
+      fhir_resource_id: "fhir-pat-6",
+      full_name: "Thiago Costa Matos",
+      birth_date: "1986-12-05",
+      document_id: "444.444.444-66",
+      phone_number: "(51) 94567-8901",
+    },
+    {
+      patient_id: "pat-7",
+      fhir_resource_id: "fhir-pat-7",
+      full_name: "Vitor Mendes Rocha",
+      birth_date: "1998-03-27",
+      document_id: "555.555.555-77",
+      phone_number: "(61) 95678-9012",
+    },
+    {
+      patient_id: "pat-8",
+      fhir_resource_id: "fhir-pat-8",
+      full_name: "Wesley Pinto Ramos",
+      birth_date: "1990-09-14",
+      document_id: "666.666.666-88",
+      phone_number: "(71) 96789-0123",
+    },
   ]
 
   await pageInstance.route("**/api/v1/patients*", async (networkRoute) => {
@@ -107,6 +155,10 @@ export const mockPatientsAPI = async (pageInstance: Page): Promise<void> => {
     if (httpRequest.method() === "GET") {
       const requestURL = new URL(httpRequest.url())
       const searchTerm = (requestURL.searchParams.get("search") ?? "").toLowerCase()
+      const sortField = requestURL.searchParams.get("sortField") ?? "full_name"
+      const sortDirection = requestURL.searchParams.get("sortDirection") ?? "asc"
+      const requestedPage = Math.max(1, Number(requestURL.searchParams.get("page")) || 1)
+      const requestedLimit = Math.max(1, Number(requestURL.searchParams.get("limit")) || 50)
 
       const filteredPatients = searchTerm
         ? currentPatientsList.filter((patient) =>
@@ -114,12 +166,30 @@ export const mockPatientsAPI = async (pageInstance: Page): Promise<void> => {
             patient.document_id.toLowerCase().includes(searchTerm) ||
             patient.phone_number.toLowerCase().includes(searchTerm)
           )
-        : currentPatientsList
+        : [...currentPatientsList]
+
+      filteredPatients.sort((firstPatient, secondPatient) => {
+        const firstValue = firstPatient[sortField as keyof typeof firstPatient].toLowerCase()
+        const secondValue = secondPatient[sortField as keyof typeof secondPatient].toLowerCase()
+        if (sortDirection === "desc") {
+          return secondValue.localeCompare(firstValue)
+        }
+        return firstValue.localeCompare(secondValue)
+      })
+
+      const totalCount = filteredPatients.length
+      const offsetStart = (requestedPage - 1) * requestedLimit
+      const pagePatients = filteredPatients.slice(offsetStart, offsetStart + requestedLimit)
 
       await networkRoute.fulfill({
         status: 200,
         contentType: "application/json",
-        body: JSON.stringify(filteredPatients),
+        body: JSON.stringify({
+          patients: pagePatients,
+          total: totalCount,
+          page: requestedPage,
+          limit: requestedLimit,
+        }),
       })
     } else if (httpRequest.method() === "POST") {
       const submittedJSON = httpRequest.postDataJSON()

@@ -51,13 +51,13 @@ export const AppointmentModal = ({
 }: AppointmentModalProps) => {
   const { t } = useTranslation("schedule")
   const { data: staffMembers = [] } = useStaffListQuery()
-  const { data: patients = [] } = usePatientsQuery("", "", "", 1, 100)
+  const { data: patientsPage } = usePatientsQuery("", "", "", 1, 100)
   const { getOrCreateKey, resetKey } = useIdempotencyKey()
 
   const [patientSearch, setPatientSearch] = useState("")
   const [conflictMessage, setConflictMessage] = useState<string | null>(null)
 
-  const filteredPatients = patients.filter((patient) =>
+  const filteredPatients = (patientsPage?.patients ?? []).filter((patient) =>
     patient.full_name.toLowerCase().includes(patientSearch.toLowerCase())
   )
 

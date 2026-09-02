@@ -175,6 +175,17 @@ func (healthcareClient *Client) SearchResources(ctx context.Context, resourceTyp
 	return mergedResponse, nil
 }
 
+func (healthcareClient *Client) SearchResourcesPage(ctx context.Context, resourceType, queryParams string) (json.RawMessage, error) {
+	endpoint := fmt.Sprintf("%s/%s?%s", healthcareClient.baseURL, url.PathEscape(resourceType), queryParams)
+	request, err := http.NewRequestWithContext(ctx, http.MethodGet, endpoint, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+	request.Header.Set("Accept", "application/fhir+json")
+
+	return healthcareClient.doWithRetry(request, resourceType, "")
+}
+
 func (healthcareClient *Client) UpdateResource(ctx context.Context, resourceType, resourceID string, resourceBody interface{}) (json.RawMessage, error) {
 	bodyBytes, err := json.Marshal(resourceBody)
 	if err != nil {
