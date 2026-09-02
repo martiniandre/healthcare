@@ -12,7 +12,7 @@ type MockRepository struct {
 	CreateAppointmentFunc             func(ctx context.Context, appointment *Appointment) (*Appointment, error)
 	GetAppointmentByIDFunc            func(ctx context.Context, appointmentID uuid.UUID) (*Appointment, error)
 	CancelAppointmentFunc             func(ctx context.Context, appointmentID uuid.UUID) (*Appointment, error)
-	RescheduleAppointmentFunc         func(ctx context.Context, appointmentID uuid.UUID, startsAt time.Time, endsAt time.Time) (*Appointment, error)
+	UpdateAppointmentFunc            func(ctx context.Context, appointmentID uuid.UUID, input UpdateAppointmentInput) (*Appointment, error)
 	ListAppointmentsByPatientFunc     func(ctx context.Context, patientFHIRID string) ([]*Appointment, error)
 	ListAppointmentsByStaffOnDateFunc func(ctx context.Context, staffID uuid.UUID, date time.Time) ([]*Appointment, error)
 	ListAppointmentsByStaffInRangeFunc func(ctx context.Context, staffID uuid.UUID, startDate time.Time, endDate time.Time) ([]*Appointment, error)
@@ -65,9 +65,9 @@ func (mock *MockRepository) ListAppointmentsByStaffInRange(ctx context.Context, 
 	return []*Appointment{}, nil
 }
 
-func (mock *MockRepository) RescheduleAppointment(ctx context.Context, appointmentID uuid.UUID, startsAt time.Time, endsAt time.Time) (*Appointment, error) {
-	if mock.RescheduleAppointmentFunc != nil {
-		return mock.RescheduleAppointmentFunc(ctx, appointmentID, startsAt, endsAt)
+func (mock *MockRepository) UpdateAppointment(ctx context.Context, appointmentID uuid.UUID, input UpdateAppointmentInput) (*Appointment, error) {
+	if mock.UpdateAppointmentFunc != nil {
+		return mock.UpdateAppointmentFunc(ctx, appointmentID, input)
 	}
 	return nil, apperrors.ErrAppointmentNotFound
 }
