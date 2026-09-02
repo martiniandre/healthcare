@@ -26,6 +26,7 @@ func (handler *HTTPHandler) RegisterRoutes(mux *http.ServeMux) {
 	mux.Handle("POST /api/v1/notifications/{notificationId}/read", middleware.RequirePolicy("POST /api/v1/notifications/{notificationId}/read")(http.HandlerFunc(handler.MarkRead)))
 	mux.Handle("GET /api/v1/notifications/unread-count", middleware.RequirePolicy("GET /api/v1/notifications/unread-count")(http.HandlerFunc(handler.GetUnreadCount)))
 	mux.Handle("GET /api/v1/notifications/stream", middleware.RequirePolicy("GET /api/v1/notifications/stream")(http.HandlerFunc(handler.StreamNotifications)))
+	mux.Handle("GET /api/v1/notification-events", middleware.RequirePolicy("GET /api/v1/notification-events")(http.HandlerFunc(handler.ListNotificationEventDefinitions)))
 }
 
 type notificationResponse struct {
@@ -145,6 +146,22 @@ func (handler *HTTPHandler) GetUnreadCount(httpResponseWriter http.ResponseWrite
 	}
 
 	render.JSON(httpResponseWriter, http.StatusOK, map[string]int32{"count": count})
+}
+
+func (handler *HTTPHandler) ListNotificationEventDefinitions(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
+	authenticatedContext, authPassed := middleware.ValidatePolicyAuth(httpResponseWriter, httpRequest, "GET /api/v1/notification-events")
+	if !authPassed {
+		return
+	}
+
+	eventDefinitions, listError := handler.service.ListNotificationEventDefinitions(authenticatedContext)
+	if listError != nil {
+		slog.Error("failed to list notification event definitions", "error", listError)
+		render.Error(httpResponseWriter, http.StatusInternalServerError, "failed to list notification event definitions")
+		return
+	}
+
+	render.JSON(httpResponseWriter, http.StatusOK, map[string]any{"events": eventDefinitions})
 }
 
 func (handler *HTTPHandler) StreamNotifications(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {

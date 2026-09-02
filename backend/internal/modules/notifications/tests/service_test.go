@@ -220,3 +220,27 @@ func TestBroadcastFailsClosedWhenRecipientLookupFails(testingInstance *testing.T
 	default:
 	}
 }
+
+func TestListNotificationEventDefinitions(testingInstance *testing.T) {
+	mockRepository := mocks.NewMockNotificationRepository()
+	notificationService := notifications.NewService(mockRepository)
+
+	eventDefinitions, listError := notificationService.ListNotificationEventDefinitions(context.Background())
+
+	assert.NoError(testingInstance, listError)
+	assert.Len(testingInstance, eventDefinitions, 6)
+	expectedEventNames := []string{"telemetry.alert", "exam.complete", "encounter.created", "patient.created", "report.ready", "system.notification"}
+	for _, expectedEventName := range expectedEventNames {
+		foundEvent := false
+		for _, eventDefinition := range eventDefinitions {
+			if eventDefinition.EventName != expectedEventName {
+				continue
+			}
+			foundEvent = true
+			assert.NotEmpty(testingInstance, eventDefinition.NotificationType)
+			assert.NotEmpty(testingInstance, eventDefinition.Priority)
+			assert.NotEmpty(testingInstance, eventDefinition.RecipientRoles)
+		}
+		assert.True(testingInstance, foundEvent, "notification event %s not listed", expectedEventName)
+	}
+}

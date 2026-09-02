@@ -18,14 +18,20 @@ func Register(dep Dependency) (Service, *HTTPHandler) {
 	svc := NewService(repo)
 	httpHandler := NewHTTPHandler(svc)
 
-	dep.EventBus.Subscribe("telemetry.alert", subscribeByRoleHandler(svc, NotificationTypeTelemetryAlert))
-	dep.EventBus.Subscribe("exam.complete", subscribeByRoleHandler(svc, NotificationTypeExamComplete))
-	dep.EventBus.Subscribe("encounter.created", subscribeByRoleHandler(svc, NotificationTypeEncounterCreate))
-	dep.EventBus.Subscribe("patient.created", subscribeByRoleHandler(svc, NotificationTypePatientCreate))
-	dep.EventBus.Subscribe("report.ready", subscribeByRoleHandler(svc, NotificationTypeReportReady))
-	dep.EventBus.Subscribe("system.notification", subscribeByRoleHandler(svc, NotificationTypeSystem))
+	for _, eventDefinition := range notificationEventDefinitions {
+		dep.EventBus.Subscribe(eventDefinition.EventName, subscribeByRoleHandler(svc, eventDefinition.NotificationType))
+	}
 
 	return svc, httpHandler
+}
+
+var notificationEventDefinitions = []NotificationEventDefinition{
+	{EventName: "telemetry.alert", NotificationType: NotificationTypeTelemetryAlert},
+	{EventName: "exam.complete", NotificationType: NotificationTypeExamComplete},
+	{EventName: "encounter.created", NotificationType: NotificationTypeEncounterCreate},
+	{EventName: "patient.created", NotificationType: NotificationTypePatientCreate},
+	{EventName: "report.ready", NotificationType: NotificationTypeReportReady},
+	{EventName: "system.notification", NotificationType: NotificationTypeSystem},
 }
 
 func subscribeByRoleHandler(svc Service, notificationType NotificationType) func(ctx context.Context, event eventbus.Event) error {

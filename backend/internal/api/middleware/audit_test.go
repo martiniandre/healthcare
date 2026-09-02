@@ -129,6 +129,21 @@ func TestAuditTrail_SkipsSwaggerPath(testingInstance *testing.T) {
 	assert.Empty(testingInstance, recorderStub.recordedEntries)
 }
 
+func TestAuditTrail_SkipsSignInEndpoint(testingInstance *testing.T) {
+	recorderStub := installStubAuditRecorder(testingInstance)
+
+	httpRequest := httptest.NewRequest(http.MethodPost, "/api/v1/auth/login", nil)
+	httpResponseRecorder := httptest.NewRecorder()
+
+	auditedPipeline := buildAuditedPipeline(http.HandlerFunc(func(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
+		httpResponseWriter.WriteHeader(http.StatusOK)
+	}))
+
+	auditedPipeline.ServeHTTP(httpResponseRecorder, httpRequest)
+
+	assert.Empty(testingInstance, recorderStub.recordedEntries)
+}
+
 func TestAuditTrail_NoRecorderSkipsAuditWrite(testingInstance *testing.T) {
 	adminToken := initializeJWTForMiddlewareTest(testingInstance)
 
@@ -160,7 +175,6 @@ func TestMatchHTTPRouteMetadata(testingInstance *testing.T) {
 		{routeName: "my appointments", httpMethod: http.MethodGet, requestPath: "/api/v1/appointments/my", expectedType: "appointment", expectedAction: "read"},
 		{routeName: "appointment by id", httpMethod: http.MethodGet, requestPath: "/api/v1/appointments/appt-9", expectedType: "appointment", expectedAction: "read", expectedID: "appt-9"},
 		{routeName: "portal report read", httpMethod: http.MethodGet, requestPath: "/api/v1/portal/reports", expectedType: "diagnostic_report", expectedAction: "read"},
-		{routeName: "login", httpMethod: http.MethodPost, requestPath: "/api/v1/auth/login", expectedType: "auth", expectedAction: "login"},
 		{routeName: "cancel appointment", httpMethod: http.MethodPost, requestPath: "/api/v1/appointments/appt-9/cancel", expectedType: "appointment", expectedAction: "cancel", expectedID: "appt-9"},
 		{routeName: "stream notifications", httpMethod: http.MethodGet, requestPath: "/api/v1/notifications/stream", expectedType: "notification", expectedAction: "read"},
 		{routeName: "unregistered route", httpMethod: http.MethodGet, requestPath: "/api/v1/unregistered", expectedType: "", expectedAction: ""},

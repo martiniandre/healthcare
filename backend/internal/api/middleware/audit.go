@@ -65,6 +65,9 @@ func shouldSkipHTTPAudit(httpMethod string, requestPath string) bool {
 	if httpMethod == http.MethodOptions {
 		return true
 	}
+	if httpMethod == http.MethodPost && requestPath == "/api/v1/auth/login" {
+		return true
+	}
 	if requestPath == "/health" || requestPath == "/api/v1/health" {
 		return true
 	}
@@ -99,7 +102,6 @@ var httpRouteAuditMetadataList = []struct {
 	httpRouteAuditMetadata
 }{
 	{routePattern: "GET /api/v1/auth/me", httpRouteAuditMetadata: httpRouteAuditMetadata{resourceType: "auth", action: "read"}},
-	{routePattern: "POST /api/v1/auth/login", httpRouteAuditMetadata: httpRouteAuditMetadata{resourceType: "auth", action: "login"}},
 	{routePattern: "POST /api/v1/auth/logout", httpRouteAuditMetadata: httpRouteAuditMetadata{resourceType: "auth", action: "logout"}},
 
 	{routePattern: "GET /api/v1/audit-logs", httpRouteAuditMetadata: httpRouteAuditMetadata{resourceType: "audit_log", action: "list"}},
