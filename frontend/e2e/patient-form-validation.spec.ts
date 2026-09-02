@@ -10,7 +10,7 @@ test.describe("Patient Registration Validation", () => {
     await page.getByRole("button", { name: "Novo Paciente" }).click()
 
     await page.getByPlaceholder("Nome Completo do Paciente").fill("Jo")
-    await page.getByPlaceholder("AAAA-MM-DD").fill("2050-01-01")
+    await page.getByPlaceholder("DD/MM/AAAA").fill("01/01/2050")
     await page.getByPlaceholder("123.456.789-00").fill("111.111.111-11")
     await page.getByPlaceholder("(11) 98765-4321").fill("99999")
 
@@ -31,7 +31,7 @@ test.describe("Patient Registration Validation", () => {
     await page.getByRole("button", { name: "Novo Paciente" }).click()
 
     await page.getByPlaceholder("Nome Completo do Paciente").fill("A".repeat(256))
-    await page.getByPlaceholder("AAAA-MM-DD").fill("1990-01-01")
+    await page.getByPlaceholder("DD/MM/AAAA").fill("01/01/1990")
     await page.getByPlaceholder("123.456.789-00").fill("529.982.247-25")
     await page.getByPlaceholder("(11) 98765-4321").fill("(11) 98765-4321")
 

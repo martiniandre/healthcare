@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest'
+import i18n from '../../shared/i18n/i18n'
 import {
   basePatientSchema,
   baseEncounterSchema,
@@ -106,6 +107,28 @@ describe('patient schemas', () => {
         phoneNumber: '(11) 98765-4321',
       })
       expect(result.success).toBe(true)
+    })
+
+    it('should accept a birth date in the localized day-first format', async () => {
+      await i18n.changeLanguage('pt-BR')
+      const result = getNewPatientSchema(mockTranslate).safeParse({
+        fullName: 'John Doe',
+        birthDate: '15/05/1990',
+        documentId: '111.222.333-44',
+        phoneNumber: '(11) 98765-4321',
+      })
+      expect(result.success).toBe(true)
+    })
+
+    it('should reject a future birth date in the localized format', async () => {
+      await i18n.changeLanguage('pt-BR')
+      const result = getNewPatientSchema(mockTranslate).safeParse({
+        fullName: 'John Doe',
+        birthDate: '01/01/2050',
+        documentId: '111.222.333-44',
+        phoneNumber: '(11) 98765-4321',
+      })
+      expect(result.success).toBe(false)
     })
   })
 
