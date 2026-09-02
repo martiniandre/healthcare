@@ -15,7 +15,7 @@ import (
 type Repository interface {
 	CreateAppointment(ctx context.Context, appointment *Appointment) (*Appointment, error)
 	CancelAppointment(ctx context.Context, appointmentID uuid.UUID) (*Appointment, error)
-	RescheduleAppointment(ctx context.Context, appointmentID uuid.UUID, startsAt time.Time, endsAt time.Time) (*Appointment, error)
+UpdateAppointment(ctx context.Context, appointmentID uuid.UUID, input UpdateAppointmentInput) (*Appointment, error)
 	GetAppointmentByID(ctx context.Context, appointmentID uuid.UUID) (*Appointment, error)
 	ListAppointmentsByPatient(ctx context.Context, patientFHIRID string) ([]*Appointment, error)
 	ListAppointmentsByStaffOnDate(ctx context.Context, staffID uuid.UUID, date time.Time) ([]*Appointment, error)
@@ -168,17 +168,26 @@ func (appointmentRepository *repository) ListAppointmentsByStaffInRange(ctx cont
 	return appointmentRepository.queryAppointments(ctx, listQuery, staffID, startDate, endDate)
 }
 
-func (appointmentRepository *repository) RescheduleAppointment(ctx context.Context, appointmentID uuid.UUID, startsAt time.Time, endsAt time.Time) (*Appointment, error) {
+func (appointmentRepository *repository) UpdateAppointment(ctx context.Context, appointmentID uuid.UUID, input UpdateAppointmentInput) (*Appointment, error) {
 	transaction, beginErr := appointmentRepository.dbPool.Begin(ctx)
 	if beginErr != nil {
 		return nil, beginErr
 	}
 	defer transaction.Rollback(ctx)
 
+	var activeEmployeeID uuid.UUID
+	employeeCheckQuery := `SELECT id FROM employees WHERE id = $1 AND is_active = true`
+	employeeCheckErr := transaction.QueryRow(ctx, employeeCheckQuery, input.StaffID).Scan(&activeEmployeeID)
+	if employeeCheckErr != nil {
+		if errors.Is(employeeCheckErr, pgx.ErrNoRows) {
+			return nil, apperrors.ErrEmployeeNotFound
+		}
+		return nil, employeeCheckErr
+	}
+
 	var currentStatus string
-	var currentStaffID uuid.UUID
-	statusQuery := `SELECT status, staff_id FROM appointments WHERE id = $1 FOR UPDATE`
-	statusScanErr := transaction.QueryRow(ctx, statusQuery, appointmentID).Scan(&currentStatus, &currentStaffID)
+	statusQuery := `SELECT status FROM appointments WHERE id = $1 FOR UPDATE`
+	statusScanErr := transaction.QueryRow(ctx, statusQuery, appointmentID).Scan(&currentStatus)
 	if statusScanErr != nil {
 		if errors.Is(statusScanErr, pgx.ErrNoRows) {
 			return nil, apperrors.ErrAppointmentNotFound
@@ -193,7 +202,7 @@ func (appointmentRepository *repository) RescheduleAppointment(ctx context.Conte
 		WHERE id <> $1 AND staff_id = $2 AND status IN ('scheduled', 'confirmed')
 		AND starts_at < $4 AND ends_at > $3
 		FOR UPDATE`
-	overlappingRows, overlapQueryErr := transaction.Query(ctx, overlapQuery, appointmentID, currentStaffID, startsAt, endsAt)
+	overlappingRows, overlapQueryErr := transaction.Query(ctx, overlapQuery, appointmentID, input.StaffID, input.StartsAt, input.EndsAt)
 	if overlapQueryErr != nil {
 		return nil, overlapQueryErr
 	}
@@ -209,7 +218,7 @@ func (appointmentRepository *repository) RescheduleAppointment(ctx context.Conte
 	unavailabilityOverlapQuery := `SELECT id FROM staff_unavailability
 		WHERE staff_id = $1 AND starts_at < $3 AND ends_at > $2
 		FOR UPDATE`
-	overlappingUnavailabilityRows, unavailabilityQueryErr := transaction.Query(ctx, unavailabilityOverlapQuery, currentStaffID, startsAt, endsAt)
+	overlappingUnavailabilityRows, unavailabilityQueryErr := transaction.Query(ctx, unavailabilityOverlapQuery, input.StaffID, input.StartsAt, input.EndsAt)
 	if unavailabilityQueryErr != nil {
 		return nil, unavailabilityQueryErr
 	}
@@ -223,15 +232,15 @@ func (appointmentRepository *repository) RescheduleAppointment(ctx context.Conte
 	}
 
 	updateQuery := `UPDATE appointments
-		SET starts_at = $2, ends_at = $3, version = version + 1, updated_at = NOW()
+		SET patient_fhir_id = $2, staff_id = $3, starts_at = $4, ends_at = $5, reason = $6, version = version + 1, updated_at = NOW()
 		WHERE id = $1
 		RETURNING id, patient_fhir_id, staff_id, starts_at, ends_at, status, reason, version, created_by, created_at, updated_at`
-	var rescheduledAppointment Appointment
-	scanErr := transaction.QueryRow(ctx, updateQuery, appointmentID, startsAt, endsAt).Scan(
-		&rescheduledAppointment.ID, &rescheduledAppointment.PatientFHIRID, &rescheduledAppointment.StaffID,
-		&rescheduledAppointment.StartsAt, &rescheduledAppointment.EndsAt, &rescheduledAppointment.Status,
-		&rescheduledAppointment.Reason, &rescheduledAppointment.Version, &rescheduledAppointment.CreatedBy,
-		&rescheduledAppointment.CreatedAt, &rescheduledAppointment.UpdatedAt,
+	var updatedAppointment Appointment
+	scanErr := transaction.QueryRow(ctx, updateQuery, appointmentID, input.PatientFHIRID, input.StaffID, input.StartsAt, input.EndsAt, input.Reason).Scan(
+		&updatedAppointment.ID, &updatedAppointment.PatientFHIRID, &updatedAppointment.StaffID,
+		&updatedAppointment.StartsAt, &updatedAppointment.EndsAt, &updatedAppointment.Status,
+		&updatedAppointment.Reason, &updatedAppointment.Version, &updatedAppointment.CreatedBy,
+		&updatedAppointment.CreatedAt, &updatedAppointment.UpdatedAt,
 	)
 	if scanErr != nil {
 		return nil, scanErr
@@ -240,7 +249,7 @@ func (appointmentRepository *repository) RescheduleAppointment(ctx context.Conte
 	if commitErr := transaction.Commit(ctx); commitErr != nil {
 		return nil, commitErr
 	}
-	return &rescheduledAppointment, nil
+	return &updatedAppointment, nil
 }
 
 func (appointmentRepository *repository) ResolveActiveEmployeeIDByEmail(ctx context.Context, email string) (*uuid.UUID, error) {

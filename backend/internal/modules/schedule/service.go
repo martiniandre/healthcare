@@ -18,7 +18,7 @@ import (
 type Service interface {
 	CreateAppointment(ctx context.Context, input CreateAppointmentInput) (*Appointment, error)
 	CancelAppointment(ctx context.Context, appointmentID uuid.UUID) (*Appointment, error)
-	RescheduleAppointment(ctx context.Context, appointmentID uuid.UUID, startsAt time.Time, endsAt time.Time) (*Appointment, error)
+UpdateAppointment(ctx context.Context, appointmentID uuid.UUID, input UpdateAppointmentInput) (*Appointment, error)
 	GetAppointment(ctx context.Context, appointmentID uuid.UUID) (*Appointment, error)
 	ListAppointmentsByPatient(ctx context.Context, patientFHIRID string) ([]*Appointment, error)
 	ListMyAppointments(ctx context.Context, authenticatedUserID string) ([]*Appointment, error)
@@ -71,6 +71,31 @@ func isAlignedToAllowedSlotStart(appointmentStart time.Time) bool {
 	return false
 }
 
+func validateAppointmentFields(patientFHIRID string, staffID uuid.UUID, startsAt time.Time, endsAt time.Time) map[string]string {
+	fieldViolations := make(map[string]string)
+	if patientFHIRID == "" {
+		fieldViolations["patient_fhir_id"] = "is required"
+	}
+	if staffID == uuid.Nil {
+		fieldViolations["staff_id"] = "is required"
+	}
+	if startsAt.IsZero() {
+		fieldViolations["starts_at"] = "is required"
+	} else if !startsAt.After(time.Now()) {
+		fieldViolations["starts_at"] = "must be in the future"
+	} else if !isAlignedToAllowedSlotStart(startsAt) {
+		fieldViolations["starts_at"] = "must start at an allowed slot time (:00, :15, :30 or :45)"
+	}
+	if endsAt.IsZero() {
+		fieldViolations["ends_at"] = "is required"
+	} else if !endsAt.After(startsAt) {
+		fieldViolations["ends_at"] = "must be after starts_at"
+	} else if !startsAt.IsZero() && !isAllowedAppointmentDuration(startsAt, endsAt) {
+		fieldViolations["ends_at"] = appointmentDurationViolationDescription()
+	}
+	return fieldViolations
+}
+
 func (appointmentService *service) CreateAppointment(ctx context.Context, input CreateAppointmentInput) (*Appointment, error) {
 	if input.IdempotencyKey != "" {
 		cachedAppointment, cachedErr := appointmentService.resolveIdempotency(ctx, input)
@@ -82,27 +107,7 @@ func (appointmentService *service) CreateAppointment(ctx context.Context, input 
 		}
 	}
 
-	fieldViolations := make(map[string]string)
-	if input.PatientFHIRID == "" {
-		fieldViolations["patient_fhir_id"] = "is required"
-	}
-	if input.StaffID == uuid.Nil {
-		fieldViolations["staff_id"] = "is required"
-	}
-	if input.StartsAt.IsZero() {
-		fieldViolations["starts_at"] = "is required"
-	} else if !input.StartsAt.After(time.Now()) {
-		fieldViolations["starts_at"] = "must be in the future"
-	} else if !isAlignedToAllowedSlotStart(input.StartsAt) {
-		fieldViolations["starts_at"] = "must start at an allowed slot time (:00, :15, :30 or :45)"
-	}
-	if input.EndsAt.IsZero() {
-		fieldViolations["ends_at"] = "is required"
-	} else if !input.EndsAt.After(input.StartsAt) {
-		fieldViolations["ends_at"] = "must be after starts_at"
-	} else if !input.StartsAt.IsZero() && !isAllowedAppointmentDuration(input.StartsAt, input.EndsAt) {
-		fieldViolations["ends_at"] = appointmentDurationViolationDescription()
-	}
+	fieldViolations := validateAppointmentFields(input.PatientFHIRID, input.StaffID, input.StartsAt, input.EndsAt)
 	if len(fieldViolations) > 0 {
 		return nil, apperrors.InvalidArgument("invalid appointment input", fieldViolations)
 	}
@@ -158,7 +163,7 @@ func (appointmentService *service) CancelAppointment(ctx context.Context, appoin
 	return cancelledAppointment, nil
 }
 
-func (appointmentService *service) RescheduleAppointment(ctx context.Context, appointmentID uuid.UUID, startsAt time.Time, endsAt time.Time) (*Appointment, error) {
+func (appointmentService *service) UpdateAppointment(ctx context.Context, appointmentID uuid.UUID, input UpdateAppointmentInput) (*Appointment, error) {
 	if appointmentID == uuid.Nil {
 		return nil, apperrors.InvalidArgument("invalid appointment input", map[string]string{"appointment_id": "is required"})
 	}
@@ -174,34 +179,20 @@ func (appointmentService *service) RescheduleAppointment(ctx context.Context, ap
 		return nil, apperrors.ErrAppointmentInvalidTransition
 	}
 
-	fieldViolations := make(map[string]string)
-	if startsAt.IsZero() {
-		fieldViolations["starts_at"] = "is required"
-	} else if !startsAt.After(time.Now()) {
-		fieldViolations["starts_at"] = "must be in the future"
-	} else if !isAlignedToAllowedSlotStart(startsAt) {
-		fieldViolations["starts_at"] = "must start at an allowed slot time (:00, :15, :30 or :45)"
-	}
-	if endsAt.IsZero() {
-		fieldViolations["ends_at"] = "is required"
-	} else if !endsAt.After(startsAt) {
-		fieldViolations["ends_at"] = "must be after starts_at"
-	} else if !startsAt.IsZero() && !isAllowedAppointmentDuration(startsAt, endsAt) {
-		fieldViolations["ends_at"] = appointmentDurationViolationDescription()
-	}
+	fieldViolations := validateAppointmentFields(input.PatientFHIRID, input.StaffID, input.StartsAt, input.EndsAt)
 	if len(fieldViolations) > 0 {
 		return nil, apperrors.InvalidArgument("invalid appointment input", fieldViolations)
 	}
 
-	rescheduledAppointment, rescheduleErr := appointmentService.repo.RescheduleAppointment(ctx, appointmentID, startsAt, endsAt)
-	if rescheduleErr != nil {
-		return nil, rescheduleErr
+	updatedAppointment, updateErr := appointmentService.repo.UpdateAppointment(ctx, appointmentID, input)
+	if updateErr != nil {
+		return nil, updateErr
 	}
 
-	appointmentService.publishAppointmentEvent(ctx, "appointment.rescheduled", rescheduledAppointment)
-	appointmentService.recordAppointmentAudit(ctx, "reschedule", currentAppointment, rescheduledAppointment)
+	appointmentService.publishAppointmentEvent(ctx, "appointment.rescheduled", updatedAppointment)
+	appointmentService.recordAppointmentAudit(ctx, "update", currentAppointment, updatedAppointment)
 
-	return rescheduledAppointment, nil
+	return updatedAppointment, nil
 }
 
 func (appointmentService *service) GetAppointment(ctx context.Context, appointmentID uuid.UUID) (*Appointment, error) {

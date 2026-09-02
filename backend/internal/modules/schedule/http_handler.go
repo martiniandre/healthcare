@@ -30,7 +30,7 @@ func (handler *HTTPHandler) RegisterRoutes(mux *http.ServeMux) {
 	mux.Handle("GET /api/v1/appointments/my", middleware.RequirePolicy("GET /api/v1/appointments/my")(http.HandlerFunc(handler.ListMyAppointments)))
 	mux.Handle("GET /api/v1/appointments/{appointmentId}", middleware.RequirePolicy("GET /api/v1/appointments/{appointmentId}")(http.HandlerFunc(handler.GetAppointment)))
 	mux.Handle("POST /api/v1/appointments/{appointmentId}/cancel", middleware.RequirePolicy("POST /api/v1/appointments/{appointmentId}/cancel")(http.HandlerFunc(handler.CancelAppointment)))
-	mux.Handle("PUT /api/v1/appointments/{appointmentId}", middleware.RequirePolicy("PUT /api/v1/appointments/{appointmentId}")(http.HandlerFunc(handler.RescheduleAppointment)))
+	mux.Handle("PUT /api/v1/appointments/{appointmentId}", middleware.RequirePolicy("PUT /api/v1/appointments/{appointmentId}")(http.HandlerFunc(handler.UpdateAppointment)))
 }
 
 // CreateAppointment godoc
@@ -244,33 +244,38 @@ func (handler *HTTPHandler) CancelAppointment(httpResponseWriter http.ResponseWr
 	render.JSON(httpResponseWriter, http.StatusOK, toAppointmentResponse(cancelledAppointment))
 }
 
-// RescheduleAppointment godoc
+// UpdateAppointment godoc
 //
-//	@Summary		Reschedule an appointment
-//	@Description	Moves an existing appointment to a new time slot
+//	@Summary		Update an appointment
+//	@Description	Updates an existing appointment's patient, staff and time slot
 //	@Tags			appointments
 //	@Accept			json
 //	@Produce		json
 //	@Param			appointmentId	path	string						true	"Appointment UUID"
-//	@Param			body			body	RescheduleAppointmentRequest	true	"New appointment time"
+//	@Param			body			body	UpdateAppointmentRequest	true	"Updated appointment data"
 //	@Success		200				{object}	AppointmentResponse
 //	@Failure		400				{object}	map[string]string
 //	@Failure		404				{object}	map[string]string
 //	@Failure		409				{object}	map[string]string
 //	@Router			/appointments/{appointmentId} [put]
-func (handler *HTTPHandler) RescheduleAppointment(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
+func (handler *HTTPHandler) UpdateAppointment(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
 	appointmentID, idParseErr := uuid.Parse(httpRequest.PathValue("appointmentId"))
 	if idParseErr != nil {
 		render.Error(httpResponseWriter, http.StatusBadRequest, "appointmentId inválido.")
 		return
 	}
 
-	var payload RescheduleAppointmentRequest
+	var payload UpdateAppointmentRequest
 	if payloadDecodeErr := json.NewDecoder(httpRequest.Body).Decode(&payload); payloadDecodeErr != nil {
 		render.Error(httpResponseWriter, http.StatusBadRequest, "Payload inválido.")
 		return
 	}
 
+	staffID, staffParseErr := uuid.Parse(payload.StaffID)
+	if staffParseErr != nil {
+		render.Error(httpResponseWriter, http.StatusBadRequest, "staff_id inválido.")
+		return
+	}
 	startsAt, startsParseErr := time.Parse(time.RFC3339, payload.StartsAt)
 	if startsParseErr != nil {
 		render.Error(httpResponseWriter, http.StatusBadRequest, "starts_at inválido.")
@@ -282,18 +287,28 @@ func (handler *HTTPHandler) RescheduleAppointment(httpResponseWriter http.Respon
 		return
 	}
 
-	rescheduledAppointment, rescheduleErr := handler.service.RescheduleAppointment(httpRequest.Context(), appointmentID, startsAt, endsAt)
-	if rescheduleErr != nil {
-		render.ErrorFromAppError(httpResponseWriter, rescheduleErr)
+	updatedAppointment, updateErr := handler.service.UpdateAppointment(httpRequest.Context(), appointmentID, UpdateAppointmentInput{
+		PatientFHIRID: payload.PatientFhirID,
+		StaffID:       staffID,
+		StartsAt:      startsAt,
+		EndsAt:        endsAt,
+		Reason:        payload.Reason,
+	})
+	if updateErr != nil {
+		slog.Error("failed to update appointment", "error", updateErr, "request_id", middleware.GetRequestID(httpRequest.Context()))
+		render.ErrorFromAppError(httpResponseWriter, updateErr)
 		return
 	}
 
-	render.JSON(httpResponseWriter, http.StatusOK, toAppointmentResponse(rescheduledAppointment))
+	render.JSON(httpResponseWriter, http.StatusOK, toAppointmentResponse(updatedAppointment))
 }
 
-type RescheduleAppointmentRequest struct {
-	StartsAt string `json:"starts_at"`
-	EndsAt   string `json:"ends_at"`
+type UpdateAppointmentRequest struct {
+	PatientFhirID string `json:"patient_fhir_id"`
+	StaffID       string `json:"staff_id"`
+	StartsAt      string `json:"starts_at"`
+	EndsAt        string `json:"ends_at"`
+	Reason        string `json:"reason"`
 }
 
 type CreateAppointmentRequest struct {
