@@ -13,6 +13,7 @@ interface NavigationItem {
   staffOnly?: boolean
   patientOnly?: boolean
   adminOnly?: boolean
+  hiddenWhenProduction?: boolean
 }
 
 interface NavigationGroup {
@@ -26,7 +27,7 @@ const navigationGroups: NavigationGroup[] = [
     items: [
       { key: "patients", icon: Users, path: "/", staffOnly: true },
       { key: "dashboard", icon: LayoutDashboard, path: "/dashboard", staffOnly: true },
-      { key: "schedule", icon: CalendarClock, path: "/schedule", staffOnly: true },
+      { key: "schedule", icon: CalendarClock, path: "/schedule", staffOnly: true, hiddenWhenProduction: true },
     ],
   },
   {
@@ -60,6 +61,7 @@ export const AppSidebar = () => {
   const { isMobileSidebarOpen, closeMobileSidebar, theme, toggleTheme } = useLayoutStore()
 
   const isItemVisible = (item: NavigationItem) => {
+    if (item.hiddenWhenProduction && import.meta.env.PROD) return false
     if (item.patientOnly) return role === "PATIENT"
     if (item.staffOnly) return role !== "PATIENT"
     return true
