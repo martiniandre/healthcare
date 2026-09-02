@@ -44,13 +44,23 @@ Otherwise use sensible defaults:
 - Scope default = backend + frontend.
 - Field defaults: `id` (UUID PK), `status` (enum), `createdAt`/`updatedAt` (timestamps).
 
-## Step 3 — Create the branch
+## Step 3 — Activate an isolated worktree (MANDATORY)
 
-```bash
-git checkout -b feature/<kebab-slug-from-issue-title>
-```
+Load the `parallel-worktrees` skill and follow **Step 0 — Activate** before writing any code:
 
-Never implement directly on `main`.
+1. `git fetch origin main`
+2. `node scripts/worktrees.mjs list` — verify no other feature claimed this slug or the required identifiers.
+3. Create the worktree from `origin/main`, never in the main repo directory:
+   ```bash
+   git worktree add ../healthcare-worktrees/<kebab-slug-from-issue-title> -b feat/<kebab-slug-from-issue-title> origin/main
+   ```
+4. Claim it in the registry:
+   ```bash
+   node scripts/worktrees.mjs claim --slug <kebab-slug-from-issue-title> --type feat --note "<issue #N: <title>>"
+   ```
+5. All remaining steps (backend, frontend, validation, commit, push, PR) run **inside the worktree** (`cd ../healthcare-worktrees/<slug>`), never in the main repo directory. If another feature already claimed a conflicting slug or identifier, STOP and choose another slug before proceeding.
+
+When a migration number is needed, reserve it via `node scripts/worktrees.mjs reserve-migration --slug <slug> --name <snake_case>` instead of computing "local max + 1".
 
 ## Step 4 — Backend (when in scope)
 
@@ -94,7 +104,7 @@ Use the official template from `.github/pull_request_template.md` if present.
 
 - [ ] Issue read in detail (title, body, labels, comments) and blueprint extracted.
 - [ ] Ambiguities asked; non-blocking defaults applied.
-- [ ] Feature branch created; nothing committed on `main`.
+- [ ] Worktree activated at `../healthcare-worktrees/<slug>` and claimed in the registry; nothing committed on `main`.
 - [ ] Backend/frontend scaffolded with mandatory tests.
 - [ ] All endpoints registered in `policy.go`; RBAC gate green.
 - [ ] Full validation matrix green (BE build/vet/test, FE lint/test/build, E2E).

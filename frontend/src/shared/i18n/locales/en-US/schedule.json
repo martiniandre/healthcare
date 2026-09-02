@@ -43,6 +43,22 @@
       "cancel": "Cancel",
       "confirm": "Book"
     },
+    "edit": {
+      "title": "Edit Appointment",
+      "confirm": "Save Changes"
+    },
+    "details": {
+      "title": "Appointment Details",
+      "patient": "Patient",
+      "staff": "Professional",
+      "date": "Starts",
+      "end": "Ends",
+      "reason": "Reason",
+      "status": "Status",
+      "edit": "Edit",
+      "cancel": "Cancel",
+      "close": "Close"
+    },
     "cancel": {
       "title": "Cancel Appointment",
       "description": "Are you sure you want to cancel this appointment?",
@@ -59,7 +75,9 @@
     "cancelSuccess": "Appointment cancelled successfully!",
     "cancelError": "Failed to cancel appointment.",
     "rescheduleSuccess": "Appointment rescheduled successfully!",
-    "rescheduleError": "Failed to reschedule appointment."
+    "rescheduleError": "Failed to reschedule appointment.",
+    "updateSuccess": "Appointment updated successfully!",
+    "updateError": "Failed to update appointment."
   },
   "portal": {
     "date": "Date",

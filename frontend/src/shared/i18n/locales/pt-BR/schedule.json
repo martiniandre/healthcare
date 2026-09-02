@@ -43,6 +43,22 @@
       "cancel": "Cancelar",
       "confirm": "Agendar"
     },
+    "edit": {
+      "title": "Editar Agendamento",
+      "confirm": "Salvar Alterações"
+    },
+    "details": {
+      "title": "Detalhes do Agendamento",
+      "patient": "Paciente",
+      "staff": "Profissional",
+      "date": "Início",
+      "end": "Término",
+      "reason": "Motivo",
+      "status": "Status",
+      "edit": "Editar",
+      "cancel": "Cancelar",
+      "close": "Fechar"
+    },
     "cancel": {
       "title": "Cancelar Agendamento",
       "description": "Tem certeza que deseja cancelar este agendamento?",
@@ -59,7 +75,9 @@
     "cancelSuccess": "Agendamento cancelado com sucesso!",
     "cancelError": "Falha ao cancelar agendamento.",
     "rescheduleSuccess": "Agendamento reagendado com sucesso!",
-    "rescheduleError": "Falha ao reagendar agendamento."
+    "rescheduleError": "Falha ao reagendar agendamento.",
+    "updateSuccess": "Agendamento atualizado com sucesso!",
+    "updateError": "Falha ao atualizar agendamento."
   },
   "portal": {
     "date": "Data",
