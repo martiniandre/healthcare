@@ -15,6 +15,10 @@ User request: `"Antigravity, crie o módulo backend [Nome] com os campos [Campos
 
 Identify ambiguities before writing any code. If anything is unclear about fields, business rules, persistence target, integrations, or expected behavior, ask the user and wait for the answer. Never assume silently.
 
+## Step 0.5 — Worktree isolation (MANDATORY when other features may be in flight)
+
+If this module is created inside a dedicated worktree, follow the `parallel-worktrees` skill: it is already claimed by the orchestrator. If the current working directory is the main repo, load `parallel-worktrees` Step 0 and activate a worktree first — never scaffold on `main`. All `policy.go` / `main.go` edits must follow its shared-file additive-anchored protocol.
+
 ## Step 1 — Persistence decision (MANDATORY)
 
 Decide where the data lives BEFORE scaffolding:
@@ -22,7 +26,7 @@ Decide where the data lives BEFORE scaffolding:
 - **Clinical (Google Cloud Healthcare API / FHIR):** `Patient`, `Observation`, `Encounter`, `Condition`, `DiagnosticReport`, `ImagingStudy`, `AllergyIntolerance`, `MedicationRequest`. The repository talks to `shared/healthcare.FHIRClient`. **No SQL migration.**
 - **Operational (PostgreSQL local):** `auth`, `staff`, `telemetry`, `audit_logs`, `notifications`, `schedule`. The repository uses `pgxpool`. **Requires a migration** in `backend/migrations/`.
 
-Migration naming convention: `{NNN}_{snake_case_name}.up.sql` and `{NNN}_{snake_case_name}.down.sql`, where `NNN` is the next sequential number after the highest existing one.
+Migration naming convention: `{NNN}_{snake_case_name}.up.sql` and `{NNN}_{snake_case_name}.down.sql`. The `NNN` is **reserved from the worktree registry**, never computed as "local max + 1" (sibling worktrees compute the same number): `node scripts/worktrees.mjs reserve-migration --slug <slug> --name <snake_case_name>`. In a single-worktree session with no registry entry, fall back to the highest existing number + 1 and verify uniqueness.
 
 ## Step 2 — Proto contract
 
@@ -145,6 +149,8 @@ Register every new endpoint in `backend/internal/app/policy/policy.go`:
 
 **Endpoints not registered are blocked by default.** Available roles: `role.RoleAdmin`, `role.RoleDoctor`, `role.RoleNurse`, `role.RoleReception`, `role.RolePatient`. Reads (`Get*`) usually allow doctor/nurse; writes (`Create*`) usually allow doctor (sometimes nurse); staff/audit admin-only. Follow the pattern of the nearest existing module.
 
+Insert new map entries at their **sorted key position** (never append before a map's closing brace) so parallel worktrees merging into `main` land on non-overlapping lines. Additive-only: never restructure existing entries.
+
 ## Step 9 — Core injection
 
 Create `backend/internal/modules/{domain}/register.go`:
@@ -165,7 +171,7 @@ func Register(grpcServer *grpc.Server, dep Dependency) Service {
 }
 ```
 
-Then add only `{domain}.Register(applicationServer.GRPCServer, {domain}.Dependency{...})` in `backend/cmd/api/main.go`, mirroring the existing registrations.
+Then add only `{domain}.Register(applicationServer.GRPCServer, {domain}.Dependency{...})` in `backend/cmd/api/main.go`, mirroring the existing registrations. Insert the Go import at its **alphabetical position** and the `Register(...)` / HTTP-handler / router-argument lines near the related module block — additive and anchored, so parallel worktrees merge cleanly.
 
 ## Step 10 — Unit tests (MANDATORY)
 

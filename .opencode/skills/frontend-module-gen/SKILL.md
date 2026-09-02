@@ -15,6 +15,10 @@ User request: `"Antigravity, crie o módulo frontend [Nome]"`.
 
 Identify ambiguities before writing code (fields, screens, route path, roles, API endpoints). Ask the user and wait for the answer. Never assume silently.
 
+## Step 0.5 — Worktree isolation (MANDATORY when other features may be in flight)
+
+If the module is created inside a dedicated worktree, it is already claimed by the orchestrator. If the current working directory is the main repo, load `parallel-worktrees` Step 0 and activate a worktree first. All `routes.tsx`, `AppSidebar` and i18n edits must follow the shared-file additive-anchored protocol: add-only, sorted/anchored inserts, never reorder or rename existing entries.
+
 ## Step 1 — Module scaffolding
 
 Create `frontend/src/modules/{domain}/` with this autonomous structure (mirror `frontend/src/modules/patients/`):
@@ -40,12 +44,12 @@ Create `frontend/src/modules/{domain}/` with this autonomous structure (mirror `
 
 ## Step 3 — Route and navigation registration
 
-- Register the page in `frontend/src/app/routes.tsx` using `lazy()` + `Suspense` (existing pattern) and a guarded `<Route path=... element={...} />`.
-- Add the menu entry in the `AppSidebar` (respecting role-based visibility when the module is role-specific).
+- Register the page in `frontend/src/app/routes.tsx` using `lazy()` + `Suspense` (existing pattern) and a guarded `<Route path=... element={...} />`. Insert the `lazy()` import and the `<Route>` at their **path-ordered positions** — additive inserts only, so parallel worktrees merge cleanly.
+- Add the menu entry in the `AppSidebar` (respecting role-based visibility when the module is role-specific), inserted after the alphabetical/role-ordered neighbour. Never reorder existing items.
 
 ## Step 4 — i18n
 
-Add pt-BR / en-US / es-ES keys when the module renders user-facing copy. Follow the existing i18n structure in `frontend/src/shared/i18n/`.
+Add pt-BR / en-US / es-ES keys **only** (new `{domain}` key groups) when the module renders user-facing copy. Never rename or move existing keys that other modules or worktrees may rely on. Follow the existing i18n structure in `frontend/src/shared/i18n/`.
 
 ## Step 5 — Unit tests (MANDATORY)
 

@@ -43,6 +43,22 @@
       "cancel": "Cancelar",
       "confirm": "Agendar"
     },
+    "edit": {
+      "title": "Editar Cita",
+      "confirm": "Guardar Cambios"
+    },
+    "details": {
+      "title": "Detalles de la Cita",
+      "patient": "Paciente",
+      "staff": "Profesional",
+      "date": "Inicio",
+      "end": "Fin",
+      "reason": "Motivo",
+      "status": "Estado",
+      "edit": "Editar",
+      "cancel": "Cancelar",
+      "close": "Cerrar"
+    },
     "cancel": {
       "title": "Cancelar Cita",
       "description": "¿Está seguro de que desea cancelar esta cita?",
@@ -59,7 +75,9 @@
     "cancelSuccess": "¡Cita cancelada con éxito!",
     "cancelError": "Error al cancelar la cita.",
     "rescheduleSuccess": "¡Cita reprogramada con éxito!",
-    "rescheduleError": "Error al reprogramar la cita."
+    "rescheduleError": "Error al reprogramar la cita.",
+    "updateSuccess": "¡Cita actualizada con éxito!",
+    "updateError": "Error al actualizar la cita."
   },
   "portal": {
     "date": "Fecha",

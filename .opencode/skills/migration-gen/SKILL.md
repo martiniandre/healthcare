@@ -18,15 +18,26 @@ Before writing SQL, confirm with the user:
 
 Never assume the schema silently.
 
-## Step 1 — Determine the next sequence number
+## Step 1 — Reserve the next sequence number
 
-List the existing migrations and compute the next number:
+When this migration is created for a feature in a dedicated worktree, reserve the number from the shared registry so parallel worktrees never pick the same sequence:
+
+```powershell
+node scripts/worktrees.mjs list
+node scripts/worktrees.mjs reserve-migration --slug <worktree-slug> --name <snake_case_name>
+```
+
+The helper computes `max(origin/main numbers, local numbers, registry reservations) + 1` under a lock — never compute "local max + 1" yourself, sibling worktrees reach the same answer.
+
+Fallback (no registry entry exists — single-worktree session):
 
 ```bash
 Get-ChildItem backend/migrations -Filter "*.up.sql" | ForEach-Object { $_.Name.Split('_')[0] } | Sort-Object
 ```
 
 `NNN` = highest existing number + 1 (zero-padded to 3 digits).
+
+If the feature spans `main` and the number collides at rebase/merge time (another feature merged first with the same number), renumber: delete the pair, release + reserve again, recreate the files. See `parallel-worktrees` Step 3.
 
 ## Step 2 — Name the migration
 
@@ -66,7 +77,7 @@ DROP TABLE IF EXISTS module_table;
 
 ## Definition of Done
 
-- [ ] `NNN` follows the highest existing number.
+- [ ] `NNN` reserved from the registry (or follows the highest existing number in single-worktree sessions).
 - [ ] Both `.up.sql` and `.down.sql` exist with the same base name.
 - [ ] DDL is PostgreSQL-compatible and reversible.
 - [ ] No comments were added to the generated SQL.

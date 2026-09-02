@@ -12,10 +12,13 @@
 - **PostgreSQL local:** Dados operacionais — `auth`, `staff`. Nesses módulos, `repository.go` usa `pgxpool` e requer migration SQL.
 
 **REGRA DE ISOLAMENTO COM GIT WORKTREES:** Toda tarefa, feature ou correção deve ser desenvolvida em um worktree dedicado — nunca diretamente na pasta principal do repositório nem na branch `main`. Fluxo obrigatório:
-1. Antes de escrever qualquer código, criar o worktree em pasta irmã do repo: `git worktree add ../healthcare-worktrees/{slug-da-tarefa} -b {tipo}/{slug-da-tarefa}`, onde `{tipo}` segue o Conventional Commits (`feat/`, `fix/`, `chore/`, `refactor/`).
-2. Todo o trabalho (código, testes, validações, commits e push) acontece dentro do worktree; a pasta principal permanece apenas na `main`.
-3. É proibido criar worktrees dentro da própria pasta do repo ou no Temp do sistema; o caminho padrão é sempre `../healthcare-worktrees/`.
-4. Após o merge do PR, limpar o ambiente: `git worktree remove ../healthcare-worktrees/{slug-da-tarefa}` seguido de `git branch -d {tipo}/{slug-da-tarefa}`.
+1. Antes de escrever qualquer código, seguir o protocolo do skill `parallel-worktrees` em `.opencode/skills/parallel-worktrees/`: `git fetch origin main`, conferir `node scripts/worktrees.mjs list`, criar o worktree em pasta irmã do repo a partir de `origin/main` — `git worktree add ../healthcare-worktrees/{slug-da-tarefa} -b {tipo}/{slug-da-tarefa} origin/main` (onde `{tipo}` segue o Conventional Commits: `feat/`, `fix/`, `chore/`, `refactor/`, `docs/`) — e registrar o claim com `node scripts/worktrees.mjs claim --slug {slug-da-tarefa} --type {tipo}`. Interromper e trocar o slug se houver colisão.
+2. Identificadores únicos (número de migration, slug, branch) são **reservados no registry compartilhado** (`../healthcare-worktrees/registry.json`) via `node scripts/worktrees.mjs reserve-migration`/`list` — nunca calcular "max local + 1", pois agentes paralelos chegam ao mesmo número.
+3. Todo o trabalho (código, testes, validações, commits e push) acontece dentro do worktree; a pasta principal permanece apenas na `main`.
+4. É proibido criar worktrees dentro da própria pasta do repo ou no Temp do sistema; o caminho padrão é sempre `../healthcare-worktrees/`.
+5. Arquivos compartilhados com edição aditiva (`backend/internal/app/policy/policy.go`, `backend/cmd/api/main.go`, `frontend/src/app/routes.tsx`, `AppSidebar`, i18n) seguem o protocolo aditivo-ancorado do skill `parallel-worktrees`: somente adicionar entradas em posição ordenada/ancorada, nunca reordenar, renomear ou reformatar linhas existentes de outros features.
+6. Antes do `push`/PR: `git fetch origin main` + `git rebase origin/main` (se avançou), resolver conflitos preservando as duas intenções, revalidar local (build/vet/test, lint/test/build/e2e) e renumerar migrations em colisão.
+7. Após o merge do PR, limpar o ambiente: `git worktree remove ../healthcare-worktrees/{slug-da-tarefa}` seguido de `git branch -d {tipo}/{slug-da-tarefa}` e `node scripts/worktrees.mjs release --slug {slug-da-tarefa}`.
 
 **REGRA DE COMMIT E PUSH AUTOMÁTICO:** Sempre que uma funcionalidade relevante for concluída ou um marco de desenvolvimento for atingido (ex: criação de um novo módulo, término de testes de um serviço, correção de bugs críticos), o engenheiro/agente deve obrigatoriamente:
 1. Validar a integridade local do código (compilação livre de erros e testes passando com sucesso).
