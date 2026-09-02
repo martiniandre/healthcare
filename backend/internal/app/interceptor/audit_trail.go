@@ -63,6 +63,9 @@ func UnaryAuditTrailInterceptor() grpc.UnaryServerInterceptor {
 }
 
 func isClinicalOrCriticalMethod(fullMethod string) bool {
+	if fullMethod == "/auth.v1.AuthService/Login" {
+		return false
+	}
 	prefixes := []string{
 		"/patients.",
 		"/clinical.",
