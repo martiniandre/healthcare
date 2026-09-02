@@ -33,7 +33,7 @@
     "name": "Full Name",
     "namePlaceholder": "Patient's Full Name",
     "birthDate": "Birth Date",
-    "birthDatePlaceholder": "YYYY-MM-DD",
+    "birthDatePlaceholder": "MM/DD/YYYY",
     "document": "Document ID / SSN",
     "documentPlaceholder": "123.456.789-00",
     "phone": "Contact Phone",

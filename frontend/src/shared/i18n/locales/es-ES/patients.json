@@ -33,7 +33,7 @@
     "name": "Nombre Completo",
     "namePlaceholder": "Nombre Completo del Paciente",
     "birthDate": "Fecha de Nacimiento",
-    "birthDatePlaceholder": "AAAA-MM-DD",
+    "birthDatePlaceholder": "DD/MM/AAAA",
     "document": "Documento o Cédula de Identidad",
     "documentPlaceholder": "123.456.789-00",
     "phone": "Teléfono de Contacto",

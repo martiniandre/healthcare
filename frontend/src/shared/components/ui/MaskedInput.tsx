@@ -46,6 +46,16 @@ export const MaskedInput = React.forwardRef<HTMLInputElement, MaskedInputProps>(
         }
         return `${truncated.slice(0, 4)}-${truncated.slice(4, 6)}-${truncated.slice(6)}`
       }
+      if (mask.includes("/")) {
+        const truncated = digits.slice(0, 8)
+        if (truncated.length <= 2) {
+          return truncated
+        }
+        if (truncated.length <= 4) {
+          return `${truncated.slice(0, 2)}/${truncated.slice(2)}`
+        }
+        return `${truncated.slice(0, 2)}/${truncated.slice(2, 4)}/${truncated.slice(4)}`
+      }
       return rawValue
     }
 

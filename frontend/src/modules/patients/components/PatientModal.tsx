@@ -12,6 +12,7 @@ import { Button } from "../../../shared/components/ui/Button"
 import { Input } from "../../../shared/components/ui/Input"
 import { getNewPatientSchema, type NewPatientFormData } from "../patient_schemas"
 import { createModuleTranslator } from "../../../shared/i18n/i18n"
+import { localizedDateToIso } from "../../../shared/utils/dates"
 import { useCreatePatientMutation } from "../queries"
 import { toast } from "../../../shared/store/toast_store"
 import { useEffect } from "react"
@@ -22,7 +23,7 @@ interface PatientModalProps {
 }
 
 export const PatientModal = ({ isOpen, onOpenChange }: PatientModalProps) => {
-  const { t } = useTranslation("patients")
+  const { t, i18n } = useTranslation("patients")
   const createPatientMutation = useCreatePatientMutation()
 
   const {
@@ -50,7 +51,7 @@ export const PatientModal = ({ isOpen, onOpenChange }: PatientModalProps) => {
     try {
       await createPatientMutation.mutateAsync({
         full_name: formData.fullName,
-        birth_date: formData.birthDate,
+        birth_date: localizedDateToIso(formData.birthDate, i18n.language),
         document_id: formData.documentId,
         phone_number: formData.phoneNumber,
       })
@@ -82,7 +83,7 @@ export const PatientModal = ({ isOpen, onOpenChange }: PatientModalProps) => {
           <div className="flex flex-col gap-1">
             <label className="text-xs font-semibold text-gray-600">{t("modal.birthDate")}</label>
             <MaskedInput
-              mask="9999-99-99"
+              mask="99/99/9999"
               placeholder={t("modal.birthDatePlaceholder")}
               errorText={errors.birthDate?.message}
               {...register("birthDate")}

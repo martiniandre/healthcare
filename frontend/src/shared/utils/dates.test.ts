@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest"
 import i18n from "../i18n/i18n"
-import { formatDate, formatLongDate, formatTime, formatDateTime, formatRelativeTime } from "./dates"
+import { formatDate, formatLongDate, formatTime, formatDateTime, formatRelativeTime, localizedDateToIso, isPastLocalizedDate, getDateOrder } from "./dates"
 
 const localDate = new Date(2026, 7, 15, 14, 30, 0)
 const isoDate = "2026-08-15T12:00:00Z"
@@ -121,6 +121,60 @@ describe("dates", () => {
     it("formats with the given locale instead of the active language", async () => {
       await i18n.changeLanguage("en-US")
       expect(formatDate(localDate, "pt-BR")).toBe("15/08/2026")
+    })
+  })
+
+  describe("getDateOrder", () => {
+    it("detects day-first ordering for pt-BR", async () => {
+      await i18n.changeLanguage("pt-BR")
+      expect(getDateOrder()).toBe("day-first")
+    })
+
+    it("detects month-first ordering for en-US", async () => {
+      await i18n.changeLanguage("en-US")
+      expect(getDateOrder()).toBe("month-first")
+      expect(getDateOrder("pt-BR")).toBe("day-first")
+    })
+  })
+
+  describe("localizedDateToIso", () => {
+    it("converts day-first dates for pt-BR", async () => {
+      await i18n.changeLanguage("pt-BR")
+      expect(localizedDateToIso("15/05/1990")).toBe("1990-05-15")
+    })
+
+    it("converts month-first dates for en-US", async () => {
+      await i18n.changeLanguage("en-US")
+      expect(localizedDateToIso("05/15/1990")).toBe("1990-05-15")
+    })
+
+    it("returns an empty string when the same text is invalid in the target order", async () => {
+      await i18n.changeLanguage("en-US")
+      expect(localizedDateToIso("15/05/1990")).toBe("")
+    })
+
+    it("passes through ISO date strings unchanged", () => {
+      expect(localizedDateToIso("1990-05-15")).toBe("1990-05-15")
+    })
+
+    it("returns an empty string for invalid dates and formats", async () => {
+      await i18n.changeLanguage("pt-BR")
+      expect(localizedDateToIso("31/02/1990")).toBe("")
+      expect(localizedDateToIso("invalid")).toBe("")
+    })
+  })
+
+  describe("isPastLocalizedDate", () => {
+    it("accepts past localized dates", async () => {
+      await i18n.changeLanguage("pt-BR")
+      expect(isPastLocalizedDate("15/05/1990")).toBe(true)
+      expect(isPastLocalizedDate("1990-05-15")).toBe(true)
+    })
+
+    it("rejects future and invalid localized dates", async () => {
+      await i18n.changeLanguage("pt-BR")
+      expect(isPastLocalizedDate("01/01/2050")).toBe(false)
+      expect(isPastLocalizedDate("invalid")).toBe(false)
     })
   })
 })

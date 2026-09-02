@@ -1,5 +1,6 @@
 import * as z from "zod"
-import { cpfValidation, isPastDate, isValidICD10 } from "../../shared/utils/validators"
+import { cpfValidation, isValidICD10 } from "../../shared/utils/validators"
+import { isPastLocalizedDate } from "../../shared/utils/dates"
 
 export const basePatientSchema = z.object({
   fullName: z.string(),
@@ -75,7 +76,7 @@ export type NewMedicationFormData = z.infer<typeof baseMedicationSchema>
 
 export const getNewPatientSchema = (translateFunction: (key: string) => string) => z.object({
   fullName: z.string().min(3, translateFunction("validation.fullNameMin")).max(255, translateFunction("validation.maxLength")).trim(),
-  birthDate: z.string().min(10, translateFunction("validation.birthDateReq")).refine(isPastDate, translateFunction("validation.birthDatePast")),
+  birthDate: z.string().min(10, translateFunction("validation.birthDateReq")).refine(isPastLocalizedDate, translateFunction("validation.birthDatePast")),
   documentId: z.string().min(11, translateFunction("validation.documentMin")).refine(cpfValidation, translateFunction("validation.documentInvalid")),
   phoneNumber: z.string().regex(/^\(\d{2}\) \d{4,5}-\d{4}$/, translateFunction("validation.phoneFormat")),
 })

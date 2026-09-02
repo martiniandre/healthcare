@@ -49,7 +49,7 @@ test.describe("Patients Management Module", () => {
     await page.getByRole("button", { name: "Novo Paciente" }).click()
 
     await page.getByPlaceholder("Nome Completo do Paciente").fill("Carlos Eduardo Rezende")
-    await page.getByPlaceholder("AAAA-MM-DD").fill("1990-05-15")
+    await page.getByPlaceholder("DD/MM/AAAA").fill("15/05/1990")
     await page.getByPlaceholder("123.456.789-00").fill("111.222.333-44")
     await page.getByPlaceholder("(11) 98765-4321").fill("(11) 96543-2100")
 
