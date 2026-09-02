@@ -48,3 +48,10 @@ type NotificationRecipient struct {
 	IsRead         bool       `db:"is_read"`
 	ReadAt         *time.Time `db:"read_at"`
 }
+
+type NotificationEventDefinition struct {
+	EventName        string
+	NotificationType NotificationType
+	Priority         NotificationPriority
+	RecipientRoles   []string
+}
