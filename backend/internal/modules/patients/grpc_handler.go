@@ -73,7 +73,7 @@ func (handler *GRPCHandler) ListPatients(ctx context.Context, req *pb.ListPatien
 		limit = 50
 	}
 
-	patientsList, listError := handler.service.ListPatients(ctx, req.Search, req.SortField, req.SortDirection, page, limit)
+	patientsList, _, listError := handler.service.ListPatients(ctx, req.Search, req.SortField, req.SortDirection, page, limit)
 	if listError != nil {
 		return nil, apperrors.ToGRPCStatus(listError)
 	}

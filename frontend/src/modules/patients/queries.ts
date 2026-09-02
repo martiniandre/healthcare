@@ -212,4 +212,4 @@ export const useCreateMedicationMutation = () => {
   })
 }
 
-export type { DiagnosticReport, DiagnosticReportVersion, Encounter, Observation, Patient, AllergyIntolerance, MedicationRequest } from "./types"
+export type { DiagnosticReport, DiagnosticReportVersion, Encounter, Observation, Patient, PatientsPage, AllergyIntolerance, MedicationRequest } from "./types"

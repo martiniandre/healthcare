@@ -113,6 +113,78 @@ func (fake *inMemoryFHIRClient) SearchResources(ctx context.Context, resourceTyp
 	return json.Marshal(bundle)
 }
 
+func (fake *inMemoryFHIRClient) SearchResourcesPage(ctx context.Context, resourceType, queryParams string) (json.RawMessage, error) {
+	fake.mu.Lock()
+	defer fake.mu.Unlock()
+
+	parsedQuery, _ := url.ParseQuery(queryParams)
+	identifierFilter := parsedQuery.Get("identifier")
+	encounterFilter := parsedQuery.Get("encounter")
+	subjectFilter := parsedQuery.Get("subject")
+	nameContainsFilter := parsedQuery.Get("name:contains")
+
+	entries := make([]map[string]json.RawMessage, 0)
+	for _, rawResource := range fake.resources[resourceType] {
+		if identifierFilter != "" && !fake.resourceMatchesIdentifier(rawResource, identifierFilter) {
+			continue
+		}
+		if encounterFilter != "" && !fake.resourceMatchesReference(rawResource, "encounter", encounterFilter) {
+			continue
+		}
+		if subjectFilter != "" && !fake.resourceMatchesReference(rawResource, "subject", subjectFilter) {
+			continue
+		}
+		if nameContainsFilter != "" && !fake.resourceNameContains(rawResource, nameContainsFilter) {
+			continue
+		}
+		entries = append(entries, map[string]json.RawMessage{"resource": rawResource})
+	}
+
+	totalCount := len(entries)
+
+	countLimit, _ := strconv.Atoi(parsedQuery.Get("_count"))
+	offsetStart, _ := strconv.Atoi(parsedQuery.Get("_offset"))
+	if countLimit > 0 {
+		if offsetStart >= len(entries) {
+			entries = make([]map[string]json.RawMessage, 0)
+		} else {
+			endingIndex := offsetStart + countLimit
+			if endingIndex > len(entries) {
+				endingIndex = len(entries)
+			}
+			entries = entries[offsetStart:endingIndex]
+		}
+	}
+
+	bundle := map[string]interface{}{
+		"resourceType": "Bundle",
+		"type":         "searchset",
+		"total":        totalCount,
+		"entry":        entries,
+	}
+	return json.Marshal(bundle)
+}
+
+func (fake *inMemoryFHIRClient) resourceNameContains(rawResource json.RawMessage, searchTerm string) bool {
+	var patientResource struct {
+		Name []struct {
+			Given  []string `json:"given"`
+			Family string   `json:"family"`
+		} `json:"name"`
+	}
+	if err := json.Unmarshal(rawResource, &patientResource); err != nil {
+		return false
+	}
+	fullNameParts := make([]string, 0, 4)
+	for _, nameEntry := range patientResource.Name {
+		fullNameParts = append(fullNameParts, nameEntry.Given...)
+		if nameEntry.Family != "" {
+			fullNameParts = append(fullNameParts, nameEntry.Family)
+		}
+	}
+	return strings.Contains(strings.Join(fullNameParts, " "), searchTerm)
+}
+
 func (fake *inMemoryFHIRClient) UpdateResource(ctx context.Context, resourceType, resourceID string, resourceBody interface{}) (json.RawMessage, error) {
 	fake.mu.Lock()
 	defer fake.mu.Unlock()
