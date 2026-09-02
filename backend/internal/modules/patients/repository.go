@@ -20,7 +20,7 @@ type Repository interface {
 	CreatePatient(ctx context.Context, patient *Patient) (*Patient, error)
 	GetPatientByID(ctx context.Context, fhirResourceID string) (*Patient, error)
 	GetPatientByDocumentID(ctx context.Context, documentID string) (*Patient, error)
-	ListPatients(ctx context.Context, search string, sortField string, sortDirection string, page int, limit int) ([]*Patient, error)
+ListPatients(ctx context.Context, search string, sortField string, sortDirection string, page int, limit int) ([]*Patient, int, error)
 }
 
 type repository struct {
@@ -97,13 +97,14 @@ func (patientRepository *repository) GetPatientByDocumentID(ctx context.Context,
 	return mapFHIRPatientToDomain(&decodedResources[0], decodedResources[0].ID)
 }
 
-func (patientRepository *repository) ListPatients(ctx context.Context, search string, sortField string, sortDirection string, page int, limit int) ([]*Patient, error) {
+func (patientRepository *repository) ListPatients(ctx context.Context, search string, sortField string, sortDirection string, page int, limit int) ([]*Patient, int, error) {
 	queryValues := url.Values{}
 	
 	if limit <= 0 {
 		limit = 100
 	}
 	queryValues.Add("_count", fmt.Sprintf("%d", limit))
+	queryValues.Add("_total", "accurate")
 	
 	if page > 1 {
 		offset := (page - 1) * limit
@@ -133,14 +134,19 @@ func (patientRepository *repository) ListPatients(ctx context.Context, search st
 	}
 
 	queryParams := queryValues.Encode()
-	responseBody, err := patientRepository.fhirClient.SearchResources(ctx, "Patient", queryParams)
+	responseBody, err := patientRepository.fhirClient.SearchResourcesPage(ctx, "Patient", queryParams)
 	if err != nil {
-		return nil, fmt.Errorf("failed to list patients from healthcare api: %w", err)
+		return nil, 0, fmt.Errorf("failed to list patients from healthcare api: %w", err)
+	}
+
+	totalCount, totalError := fhir.DecodeBundleTotal(responseBody)
+	if totalError != nil {
+		return nil, 0, fmt.Errorf("failed to parse total from list response: %w", totalError)
 	}
 
 	decodedResources, err := fhir.DecodeBundle[fhir.Patient](responseBody)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse list response: %w", err)
+		return nil, 0, fmt.Errorf("failed to parse list response: %w", err)
 	}
 
 	patientList := make([]*Patient, 0, len(decodedResources))
@@ -152,7 +158,7 @@ func (patientRepository *repository) ListPatients(ctx context.Context, search st
 		patientList = append(patientList, patient)
 	}
 
-	return patientList, nil
+	return patientList, totalCount, nil
 }
 
 func parsePatientFromFHIR(responseBody json.RawMessage, fhirResourceID string) (*Patient, error) {

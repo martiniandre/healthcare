@@ -15,6 +15,13 @@ export interface Patient {
   phone_number: string
 }
 
+export interface PatientsPage {
+  patients: Patient[]
+  total: number
+  page: number
+  limit: number
+}
+
 export interface CreatePatientResponse {
   patient_id: string
   fhir_resource_id: string

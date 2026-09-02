@@ -7,9 +7,21 @@ import (
 )
 
 type bundleEnvelope struct {
+	Total int `json:"total"`
 	Entry []struct {
 		Resource json.RawMessage `json:"resource"`
 	} `json:"entry"`
+}
+
+func DecodeBundleTotal(responseBody json.RawMessage) (int, error) {
+	var envelope bundleEnvelope
+	if err := json.Unmarshal(responseBody, &envelope); err != nil {
+		return 0, err
+	}
+	if envelope.Total > 0 {
+		return envelope.Total, nil
+	}
+	return len(envelope.Entry), nil
 }
 
 func DecodeBundle[T any](responseBody json.RawMessage) ([]T, error) {

@@ -36,7 +36,7 @@ func TestHealthCheckReportsDatabaseAndCacheHealthy(t *testing.T) {
 	}
 }
 
-func TestPatientListAndPortalReturnJSONArray(t *testing.T) {
+func TestPatientListReturnsPaginationEnvelope(t *testing.T) {
 	testServer := newTestServer(t)
 	serverURL := startTestHTTPServer(t, testServer.handler)
 
@@ -45,6 +45,14 @@ func TestPatientListAndPortalReturnJSONArray(t *testing.T) {
 	patientsResponse := doctorClient.Get(t, "/api/v1/patients")
 	requireStatusCode(t, patientsResponse, http.StatusOK)
 
-	var patientsList []json.RawMessage
-	decodeJSONResponse(t, patientsResponse, &patientsList)
+	var patientsEnvelope struct {
+		Patients []json.RawMessage `json:"patients"`
+		Total    int               `json:"total"`
+		Page     int               `json:"page"`
+		Limit    int               `json:"limit"`
+	}
+	decodeJSONResponse(t, patientsResponse, &patientsEnvelope)
+	if patientsEnvelope.Total < 0 {
+		t.Fatalf("expected non-negative total, got %d", patientsEnvelope.Total)
+	}
 }

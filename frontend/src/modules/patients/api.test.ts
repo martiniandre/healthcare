@@ -16,7 +16,8 @@ describe("patientsApi", () => {
   })
 
   it("should list patients without query params by default", async () => {
-    vi.mocked(http.get).mockResolvedValue([])
+    const emptyPage = { patients: [], total: 0, page: 1, limit: 5 }
+    vi.mocked(http.get).mockResolvedValue(emptyPage)
 
     await patientsApi.getPatients()
 
@@ -24,11 +25,35 @@ describe("patientsApi", () => {
   })
 
   it("should build the query string from pagination and sort filters", async () => {
-    vi.mocked(http.get).mockResolvedValue([])
+    const emptyPage = { patients: [], total: 0, page: 1, limit: 5 }
+    vi.mocked(http.get).mockResolvedValue(emptyPage)
 
     await patientsApi.getPatients("Ana", "full_name", "desc", 2, 10)
 
     expect(http.get).toHaveBeenCalledWith("/patients?search=Ana&sortField=full_name&sortDirection=desc&page=2&limit=10")
+  })
+
+  it("should return the pagination envelope from the list endpoint", async () => {
+    const patientsPage = {
+      patients: [
+        {
+          patient_id: "pat-1",
+          fhir_resource_id: "fhir-1",
+          full_name: "Maria Silva",
+          birth_date: "1990-01-01",
+          document_id: "52998224725",
+          phone_number: "(21) 99999-0000",
+        },
+      ],
+      total: 1,
+      page: 1,
+      limit: 5,
+    }
+    vi.mocked(http.get).mockResolvedValue(patientsPage)
+
+    const result = await patientsApi.getPatients(undefined, "full_name", "asc", 1, 5)
+
+    expect(result).toEqual(patientsPage)
   })
 
   it("should get a single patient by fhir id", async () => {

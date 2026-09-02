@@ -1,9 +1,9 @@
 import { http } from "../../shared/utils/http"
-import type { DiagnosticReport, DiagnosticReportVersion, Encounter, Observation, Patient, Condition, CreatePatientResponse, AllergyIntolerance, MedicationRequest } from "./types"
+import type { DiagnosticReport, DiagnosticReportVersion, Encounter, Observation, Patient, Condition, CreatePatientResponse, PatientsPage, AllergyIntolerance, MedicationRequest } from "./types"
 import type { NewVitalSignsPanelFormData } from "./patient_schemas"
 
 export const patientsApi = {
-  getPatients: async (search?: string, sortField?: string, sortDirection?: string, page?: number, limit?: number): Promise<Patient[]> => {
+  getPatients: async (search?: string, sortField?: string, sortDirection?: string, page?: number, limit?: number): Promise<PatientsPage> => {
     const params = new URLSearchParams()
     if (search) params.append("search", search)
     if (sortField) params.append("sortField", sortField)
@@ -11,7 +11,7 @@ export const patientsApi = {
     if (page) params.append("page", page.toString())
     if (limit) params.append("limit", limit.toString())
     const queryString = params.toString()
-    return http.get<Patient[]>(`/patients${queryString ? `?${queryString}` : ""}`)
+    return http.get<PatientsPage>(`/patients${queryString ? `?${queryString}` : ""}`)
   },
 
   getPatient: async (patientFhirId: string): Promise<Patient> => {

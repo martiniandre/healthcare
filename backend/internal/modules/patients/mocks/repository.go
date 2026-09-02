@@ -55,13 +55,13 @@ func (mockRepo *MockPatientRepository) GetPatientByDocumentID(contextParam conte
 	return patient, nil
 }
 
-func (mockRepo *MockPatientRepository) ListPatients(contextParam context.Context, search string, sortField string, sortDirection string, page int, limit int) ([]*patients.Patient, error) {
+func (mockRepo *MockPatientRepository) ListPatients(contextParam context.Context, search string, sortField string, sortDirection string, page int, limit int) ([]*patients.Patient, int, error) {
 	if mockRepo.Err != nil {
-		return nil, mockRepo.Err
+		return nil, 0, mockRepo.Err
 	}
 	result := make([]*patients.Patient, 0, len(mockRepo.Patients))
 	for _, patient := range mockRepo.Patients {
 		result = append(result, patient)
 	}
-	return result, nil
+	return result, len(result), nil
 }
