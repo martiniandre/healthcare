@@ -35,10 +35,16 @@ func TestPatientCRUDFlow(t *testing.T) {
 	listResponse := adminClient.Get(t, "/api/v1/patients?page=1&limit=50")
 	requireStatusCode(t, listResponse, http.StatusOK)
 
-	var patientsList []map[string]interface{}
-	decodeJSONResponse(t, listResponse, &patientsList)
-	if len(patientsList) < 1 {
+	var patientsEnvelope struct {
+		Patients []map[string]interface{} `json:"patients"`
+		Total    int                      `json:"total"`
+	}
+	decodeJSONResponse(t, listResponse, &patientsEnvelope)
+	if len(patientsEnvelope.Patients) < 1 {
 		t.Fatal("expected at least one patient in the list")
+	}
+	if patientsEnvelope.Total < 1 {
+		t.Fatalf("expected total >= 1, got %d", patientsEnvelope.Total)
 	}
 }
 

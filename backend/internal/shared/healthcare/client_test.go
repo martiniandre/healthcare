@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"sync"
 	"testing"
 )
 
@@ -100,6 +101,74 @@ func TestSearchResourcesAccumulatesEntriesAcrossAllPages(t *testing.T) {
 	for _, expectedID := range []string{"obs-1", "obs-2", "obs-3"} {
 		if !observedIDs[expectedID] {
 			t.Fatalf("expected entry %q to be present in merged bundle", expectedID)
+		}
+	}
+}
+
+func TestSearchResourcesPageReturnsOnlyTheFirstPage(t *testing.T) {
+	requestedPathsMutex := &sync.Mutex{}
+	requestedPaths := make([]string, 0)
+
+	var paginationServer *httptest.Server
+	paginationServer = httptest.NewServer(http.HandlerFunc(func(responseWriter http.ResponseWriter, request *http.Request) {
+		requestedPathsMutex.Lock()
+		requestedPaths = append(requestedPaths, request.URL.Path)
+		requestedPathsMutex.Unlock()
+
+		responseWriter.Header().Set("Content-Type", "application/fhir+json")
+		switch request.URL.Path {
+		case "/fhir/Observation":
+			responseWriter.Write([]byte(fmt.Sprintf(`{
+				"resourceType": "Bundle",
+				"type": "searchset",
+				"total": 3,
+				"entry": [{"resource": {"id": "obs-1"}}],
+				"link": [{"relation": "next", "url": "%s/page-2"}]
+			}`, paginationServer.URL)))
+		case "/page-2":
+			responseWriter.Write([]byte(`{
+				"resourceType": "Bundle",
+				"type": "searchset",
+				"total": 3,
+				"entry": [{"resource": {"id": "obs-2"}}]
+			}`))
+		default:
+			http.NotFound(responseWriter, request)
+		}
+	}))
+	defer paginationServer.Close()
+
+	client, clientError := NewClientWithBaseURL(paginationServer.URL + "/fhir")
+	if clientError != nil {
+		t.Fatalf("unexpected error: %v", clientError)
+	}
+
+	searchResult, searchError := client.SearchResourcesPage(context.Background(), "Observation", "encounter=Encounter%2Fenc-9")
+	if searchError != nil {
+		t.Fatalf("unexpected search error: %v", searchError)
+	}
+
+	var singlePageBundle struct {
+		Total int `json:"total"`
+		Entry []struct {
+			Resource map[string]interface{} `json:"resource"`
+		} `json:"entry"`
+	}
+	if parseError := json.Unmarshal(searchResult, &singlePageBundle); parseError != nil {
+		t.Fatalf("failed to parse bundle: %v", parseError)
+	}
+	if singlePageBundle.Total != 3 {
+		t.Fatalf("expected total 3, got %d", singlePageBundle.Total)
+	}
+	if len(singlePageBundle.Entry) != 1 {
+		t.Fatalf("expected 1 entry on the first page, got %d", len(singlePageBundle.Entry))
+	}
+
+	requestedPathsMutex.Lock()
+	defer requestedPathsMutex.Unlock()
+	for _, requestedPath := range requestedPaths {
+		if requestedPath == "/page-2" {
+			t.Fatal("expected SearchResourcesPage not to follow next links")
 		}
 	}
 }

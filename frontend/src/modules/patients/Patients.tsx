@@ -9,6 +9,7 @@ import { PatientsEmptyState } from "./components/PatientsEmptyState"
 import { PatientsTable, type SortField, type SortDirection } from "./components/PatientsTable"
 import { PatientModal } from "./components/PatientModal"
 import { usePatientsQuery } from "./queries"
+import { calculateTotalPages } from "./pagination"
 import { PageContainer } from "../../shared/components/ui/PageContainer"
 
 export const Patients = () => {
@@ -36,13 +37,17 @@ export const Patients = () => {
 
   const debouncedSearchTerm = useDebounce(searchTerm, 500)
 
-  const { data: patients = [], isLoading } = usePatientsQuery(
+  const { data: patientsPage, isLoading } = usePatientsQuery(
     debouncedSearchTerm,
     sort.field,
     sort.direction,
     currentPage,
     itemsPerPage
   )
+
+  const patients = patientsPage?.patients ?? []
+  const totalPatientsCount = patientsPage?.total ?? 0
+  const totalPages = calculateTotalPages(totalPatientsCount, itemsPerPage)
 
   const handleSortToggle = (field: SortField) => {
     setSort((prev) => {
@@ -59,18 +64,16 @@ export const Patients = () => {
     setCurrentPage(1)
   }
 
-  const totalPages = patients.length === itemsPerPage ? currentPage + 1 : currentPage
-
   return (
     <PageContainer className="gap-4 md:gap-5">
       <PatientsHeader onNewPatient={() => setIsModalOpen(true)} />
       
-      <PatientsMetricsGrid totalPatients={patients.length} />
+      <PatientsMetricsGrid totalPatients={totalPatientsCount} />
 
       <PatientsFilters
         searchTerm={searchTerm}
         onSearchChange={handleSearchChange}
-        resultsCount={patients.length}
+        resultsCount={totalPatientsCount}
       />
 
       {isLoading ? (
@@ -88,7 +91,7 @@ export const Patients = () => {
           onSort={handleSortToggle}
           currentPage={currentPage}
           totalPages={totalPages}
-          totalPatients={-1}
+          totalPatients={totalPatientsCount}
           onPageChange={setCurrentPage}
         />
       )}

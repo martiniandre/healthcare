@@ -45,6 +45,30 @@ test.describe("Patients Management Module", () => {
     await expect(nonMatchingPatientName).toBeVisible()
   })
 
+  test("should hide pagination when all results fit in a single page", async ({ page }) => {
+    const searchField = page.getByPlaceholder("Buscar por nome, CPF ou telefone...")
+    await searchField.fill("Nogueira")
+
+    await expect(page.locator("text=Rafael Nogueira Alves")).toBeVisible()
+    await expect(page.getByRole("button", { name: "Próxima" })).not.toBeVisible()
+    await expect(page.getByRole("button", { name: "Anterior" })).not.toBeVisible()
+  })
+
+  test("should paginate through the patient list showing distinct rows per page", async ({ page }) => {
+    await expect(page.locator("text=Guilherme de Souza Araujo")).toBeVisible()
+    await expect(page.locator("text=Thiago Costa Matos")).not.toBeVisible()
+
+    await page.getByRole("button", { name: "Próxima" }).click()
+
+    await expect(page.locator("text=Thiago Costa Matos")).toBeVisible()
+    await expect(page.locator("text=Guilherme de Souza Araujo")).not.toBeVisible()
+
+    await page.getByRole("button", { name: "Anterior" }).click()
+
+    await expect(page.locator("text=Guilherme de Souza Araujo")).toBeVisible()
+    await expect(page.locator("text=Thiago Costa Matos")).not.toBeVisible()
+  })
+
   test("should successfully register a new patient", async ({ page }) => {
     await page.getByRole("button", { name: "Novo Paciente" }).click()
 

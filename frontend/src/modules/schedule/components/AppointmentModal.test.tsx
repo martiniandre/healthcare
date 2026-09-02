@@ -90,7 +90,9 @@ const renderModal = (overrides: {
 describe("AppointmentModal", () => {
   beforeEach(() => {
     mockedUseStaffListQuery.mockReturnValue({ data: staffFixture } as ReturnType<typeof useStaffListQuery>)
-    mockedUsePatientsQuery.mockReturnValue({ data: patientsFixture } as ReturnType<typeof usePatientsQuery>)
+    mockedUsePatientsQuery.mockReturnValue({
+      data: { patients: patientsFixture, total: patientsFixture.length, page: 1, limit: 100 },
+    } as ReturnType<typeof usePatientsQuery>)
   })
 
   it("should show validation errors when required fields are missing", async () => {

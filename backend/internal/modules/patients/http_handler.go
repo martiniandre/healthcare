@@ -38,7 +38,7 @@ func (handler *HTTPHandler) RegisterRoutes(mux *http.ServeMux) {
 //	@Param			sortDirection	query		string	false	"Sort direction (asc/desc)"
 //	@Param			page			query		int		false	"Page number"			default(1)
 //	@Param			limit			query		int		false	"Items per page"		default(50)
-//	@Success		200				{array}		PatientListResponse
+//	@Success		200				{object}	PatientListEnvelope
 //	@Failure		500				{object}	map[string]string
 //	@Router			/patients [get]
 func (handler *HTTPHandler) ListPatients(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
@@ -54,7 +54,7 @@ func (handler *HTTPHandler) ListPatients(httpResponseWriter http.ResponseWriter,
 		limit = 50
 	}
 
-	patientsList, listError := handler.service.ListPatients(httpRequest.Context(), search, sortField, sortDirection, page, limit)
+	patientsList, totalCount, listError := handler.service.ListPatients(httpRequest.Context(), search, sortField, sortDirection, page, limit)
 	if listError != nil {
 		slog.Error("failed to list patients", "error", listError, "request_id", middleware.GetRequestID(httpRequest.Context()))
 		render.ErrorFromAppError(httpResponseWriter, listError)
@@ -73,7 +73,12 @@ func (handler *HTTPHandler) ListPatients(httpResponseWriter http.ResponseWriter,
 		})
 	}
 
-	render.JSON(httpResponseWriter, http.StatusOK, responseList)
+	render.JSON(httpResponseWriter, http.StatusOK, PatientListEnvelope{
+		Patients: responseList,
+		Total:    totalCount,
+		Page:     page,
+		Limit:    limit,
+	})
 }
 
 // CreatePatient godoc
@@ -151,6 +156,13 @@ func (handler *HTTPHandler) GetPatient(httpResponseWriter http.ResponseWriter, h
 		DocumentID:     patient.DocumentID,
 		PhoneNumber:    patient.PhoneNumber,
 	})
+}
+
+type PatientListEnvelope struct {
+	Patients []PatientListResponse `json:"patients"`
+	Total    int                   `json:"total"`
+	Page     int                   `json:"page"`
+	Limit    int                   `json:"limit"`
 }
 
 type PatientListResponse struct {

@@ -644,6 +644,35 @@ func TestDecodeBundleResilienceToMissingResourceType(t *testing.T) {
 	}
 }
 
+func TestDecodeBundleTotalReturnsServerProvidedTotal(t *testing.T) {
+	bundle := []byte(`{"resourceType": "Bundle", "total": 42, "entry": [{"resource": {"id": "a"}}]}`)
+	total, err := DecodeBundleTotal(bundle)
+	if err != nil {
+		t.Fatalf("DecodeBundleTotal returned error: %v", err)
+	}
+	if total != 42 {
+		t.Errorf("expected total 42, got %d", total)
+	}
+}
+
+func TestDecodeBundleTotalFallsBackToPageEntryCount(t *testing.T) {
+	bundle := []byte(`{"resourceType": "Bundle", "entry": [{"resource": {"id": "a"}}, {"resource": {"id": "b"}}]}`)
+	total, err := DecodeBundleTotal(bundle)
+	if err != nil {
+		t.Fatalf("DecodeBundleTotal returned error: %v", err)
+	}
+	if total != 2 {
+		t.Errorf("expected total 2, got %d", total)
+	}
+}
+
+func TestDecodeBundleTotalOnMalformedBundle(t *testing.T) {
+	_, err := DecodeBundleTotal([]byte(`not-json`))
+	if err == nil {
+		t.Fatal("expected error for malformed bundle")
+	}
+}
+
 func TestConcatenatedNameFormatting(t *testing.T) {
 	family := "Silva"
 	given := "Maria"
