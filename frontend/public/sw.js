@@ -1,11 +1,16 @@
-const CACHE_NAME_KEY = "healthcare-shell-v1";
-const ASSETS_TO_CACHE = [
-  "./",
-  "./index.html",
-  "./favicon.svg",
-  "./icons.svg",
-  "./manifest.json"
-];
+const CACHE_NAME_KEY = "healthcare-shell-v2";
+const NAVIGATION_FALLBACK_PATH = "/index.html";
+const CACHE_BYPASS_PATH_PREFIXES = ["/api/", "/assets/", "/clinical.v1.", "/auth.v1."];
+const ASSETS_TO_CACHE = [NAVIGATION_FALLBACK_PATH, "/favicon.svg", "/icons.svg", "/manifest.json"];
+
+function isSameOriginGetRequest(request) {
+  return request.method === "GET" && new URL(request.url).origin === self.location.origin;
+}
+
+function isCacheBypassedRequest(request) {
+  const requestPath = new URL(request.url).pathname;
+  return CACHE_BYPASS_PATH_PREFIXES.some((pathPrefix) => requestPath.startsWith(pathPrefix));
+}
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -30,36 +35,32 @@ self.addEventListener("activate", (event) => {
 });
 
 self.addEventListener("fetch", (event) => {
-  const requestUrl = new URL(event.request.url);
-  const isGetRequest = event.request.method === "GET";
-  const isSameOrigin = requestUrl.origin === self.location.origin;
-
-  if (!isGetRequest || !isSameOrigin) {
+  if (!isSameOriginGetRequest(event.request)) {
     return;
   }
 
-  const isApiRequest = requestUrl.pathname.includes("/api/") || requestUrl.pathname.includes("/clinical.v1.") || requestUrl.pathname.includes("/auth.v1.");
-  if (isApiRequest) {
+  if (isCacheBypassedRequest(event.request)) {
     return;
   }
+
+  const isNavigationRequest = event.request.mode === "navigate";
 
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        return cachedResponse;
-      }
-      return fetch(event.request).then((networkResponse) => {
-        if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== "basic") {
-          return networkResponse;
+    fetch(event.request)
+      .then((networkResponse) => {
+        if (isNavigationRequest && networkResponse.status === 200) {
+          const responseToCache = networkResponse.clone();
+          caches.open(CACHE_NAME_KEY).then((cache) => {
+            cache.put(NAVIGATION_FALLBACK_PATH, responseToCache);
+          });
         }
-        const responseToCache = networkResponse.clone();
-        caches.open(CACHE_NAME_KEY).then((cache) => {
-          cache.put(event.request, responseToCache);
-        });
         return networkResponse;
-      }).catch(() => {
-        return caches.match("./index.html");
-      });
-    })
+      })
+      .catch(() => {
+        if (isNavigationRequest) {
+          return caches.match(NAVIGATION_FALLBACK_PATH);
+        }
+        return Response.error();
+      })
   );
 });
