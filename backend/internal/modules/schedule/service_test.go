@@ -365,7 +365,7 @@ func TestCancelAppointment_ReturnsNotFoundWhenMissing(t *testing.T) {
 	}
 }
 
-func TestRescheduleAppointment_UpdatesTimeAndVersion(t *testing.T) {
+func TestUpdateAppointment_UpdatesFieldsAndVersion(t *testing.T) {
 	existingAppointment := &Appointment{
 		ID:      uuid.New(),
 		Status:  AppointmentStatusConfirmed,
@@ -375,28 +375,47 @@ func TestRescheduleAppointment_UpdatesTimeAndVersion(t *testing.T) {
 		GetAppointmentByIDFunc: func(ctx context.Context, appointmentID uuid.UUID) (*Appointment, error) {
 			return existingAppointment, nil
 		},
-		RescheduleAppointmentFunc: func(ctx context.Context, appointmentID uuid.UUID, startsAt time.Time, endsAt time.Time) (*Appointment, error) {
-			rescheduledAppointment := *existingAppointment
-			rescheduledAppointment.StartsAt = startsAt
-			rescheduledAppointment.EndsAt = endsAt
-			rescheduledAppointment.Version++
-			return &rescheduledAppointment, nil
+		UpdateAppointmentFunc: func(ctx context.Context, appointmentID uuid.UUID, input UpdateAppointmentInput) (*Appointment, error) {
+			updatedAppointment := *existingAppointment
+			updatedAppointment.PatientFHIRID = input.PatientFHIRID
+			updatedAppointment.StaffID = input.StaffID
+			updatedAppointment.StartsAt = input.StartsAt
+			updatedAppointment.EndsAt = input.EndsAt
+			updatedAppointment.Reason = input.Reason
+			updatedAppointment.Version++
+			return &updatedAppointment, nil
 		},
 	}
 	appointmentService := NewService(repositoryMock, nil, nil)
 	newStartsAt := futureAlignedSlotStart(30)
 	newEndsAt := newStartsAt.Add(30 * time.Minute)
+	updatedStaffID := uuid.New()
 
-	rescheduledAppointment, rescheduleErr := appointmentService.RescheduleAppointment(context.Background(), existingAppointment.ID, newStartsAt, newEndsAt)
-	if rescheduleErr != nil {
-		t.Fatalf("unexpected error: %v", rescheduleErr)
+	updatedAppointment, updateErr := appointmentService.UpdateAppointment(context.Background(), existingAppointment.ID, UpdateAppointmentInput{
+		PatientFHIRID: "patient-updated",
+		StaffID:       updatedStaffID,
+		StartsAt:      newStartsAt,
+		EndsAt:        newEndsAt,
+		Reason:        "Changed reason",
+	})
+	if updateErr != nil {
+		t.Fatalf("unexpected error: %v", updateErr)
 	}
-	if rescheduledAppointment.Version != 3 {
-		t.Errorf("expected version 3, got %d", rescheduledAppointment.Version)
+	if updatedAppointment.Version != 3 {
+		t.Errorf("expected version 3, got %d", updatedAppointment.Version)
+	}
+	if updatedAppointment.PatientFHIRID != "patient-updated" {
+		t.Errorf("expected updated patient, got %s", updatedAppointment.PatientFHIRID)
+	}
+	if updatedAppointment.StaffID != updatedStaffID {
+		t.Errorf("expected updated staff, got %s", updatedAppointment.StaffID)
+	}
+	if updatedAppointment.Reason != "Changed reason" {
+		t.Errorf("expected updated reason, got %s", updatedAppointment.Reason)
 	}
 }
 
-func TestRescheduleAppointment_RejectsCancelledAppointment(t *testing.T) {
+func TestUpdateAppointment_RejectsCancelledAppointment(t *testing.T) {
 	cancelledAppointment := &Appointment{
 		ID:      uuid.New(),
 		Status:  AppointmentStatusCancelled,
@@ -411,16 +430,21 @@ func TestRescheduleAppointment_RejectsCancelledAppointment(t *testing.T) {
 	newStartsAt := futureAlignedSlotStart(0)
 	newEndsAt := newStartsAt.Add(30 * time.Minute)
 
-	_, rescheduleErr := appointmentService.RescheduleAppointment(context.Background(), cancelledAppointment.ID, newStartsAt, newEndsAt)
-	if rescheduleErr == nil {
+	_, updateErr := appointmentService.UpdateAppointment(context.Background(), cancelledAppointment.ID, UpdateAppointmentInput{
+		PatientFHIRID: "patient-123",
+		StaffID:       uuid.New(),
+		StartsAt:      newStartsAt,
+		EndsAt:        newEndsAt,
+	})
+	if updateErr == nil {
 		t.Fatal("expected invalid transition error, got nil")
 	}
-	if !errors.Is(rescheduleErr, apperrors.ErrAppointmentInvalidTransition) {
-		t.Errorf("expected invalid transition, got %v", rescheduleErr)
+	if !errors.Is(updateErr, apperrors.ErrAppointmentInvalidTransition) {
+		t.Errorf("expected invalid transition, got %v", updateErr)
 	}
 }
 
-func TestRescheduleAppointment_RejectsFinishedAppointment(t *testing.T) {
+func TestUpdateAppointment_RejectsFinishedAppointment(t *testing.T) {
 	finishedAppointment := &Appointment{
 		ID:      uuid.New(),
 		Status:  AppointmentStatusFinished,
@@ -435,31 +459,41 @@ func TestRescheduleAppointment_RejectsFinishedAppointment(t *testing.T) {
 	newStartsAt := futureAlignedSlotStart(0)
 	newEndsAt := newStartsAt.Add(30 * time.Minute)
 
-	_, rescheduleErr := appointmentService.RescheduleAppointment(context.Background(), finishedAppointment.ID, newStartsAt, newEndsAt)
-	if rescheduleErr == nil {
+	_, updateErr := appointmentService.UpdateAppointment(context.Background(), finishedAppointment.ID, UpdateAppointmentInput{
+		PatientFHIRID: "patient-123",
+		StaffID:       uuid.New(),
+		StartsAt:      newStartsAt,
+		EndsAt:        newEndsAt,
+	})
+	if updateErr == nil {
 		t.Fatal("expected invalid transition error, got nil")
 	}
-	if !errors.Is(rescheduleErr, apperrors.ErrAppointmentInvalidTransition) {
-		t.Errorf("expected invalid transition, got %v", rescheduleErr)
+	if !errors.Is(updateErr, apperrors.ErrAppointmentInvalidTransition) {
+		t.Errorf("expected invalid transition, got %v", updateErr)
 	}
 }
 
-func TestRescheduleAppointment_ReturnsNotFoundWhenMissing(t *testing.T) {
+func TestUpdateAppointment_ReturnsNotFoundWhenMissing(t *testing.T) {
 	repositoryMock := &MockRepository{}
 	appointmentService := NewService(repositoryMock, nil, nil)
 	newStartsAt := futureAlignedSlotStart(0)
 	newEndsAt := newStartsAt.Add(30 * time.Minute)
 
-	_, rescheduleErr := appointmentService.RescheduleAppointment(context.Background(), uuid.New(), newStartsAt, newEndsAt)
-	if rescheduleErr == nil {
+	_, updateErr := appointmentService.UpdateAppointment(context.Background(), uuid.New(), UpdateAppointmentInput{
+		PatientFHIRID: "patient-123",
+		StaffID:       uuid.New(),
+		StartsAt:      newStartsAt,
+		EndsAt:        newEndsAt,
+	})
+	if updateErr == nil {
 		t.Fatal("expected not found error, got nil")
 	}
-	if !errors.Is(rescheduleErr, apperrors.ErrAppointmentNotFound) {
-		t.Errorf("expected appointment not found, got %v", rescheduleErr)
+	if !errors.Is(updateErr, apperrors.ErrAppointmentNotFound) {
+		t.Errorf("expected appointment not found, got %v", updateErr)
 	}
 }
 
-func TestRescheduleAppointment_RejectsOffGridStart(t *testing.T) {
+func TestUpdateAppointment_RejectsOffGridStart(t *testing.T) {
 	existingAppointment := &Appointment{
 		ID:      uuid.New(),
 		Status:  AppointmentStatusScheduled,
@@ -474,11 +508,68 @@ func TestRescheduleAppointment_RejectsOffGridStart(t *testing.T) {
 	alignedStart := futureAlignedSlotStart(0)
 	offGridStart := alignedStart.Add(7 * time.Minute)
 
-	_, rescheduleErr := appointmentService.RescheduleAppointment(context.Background(), existingAppointment.ID, offGridStart, offGridStart.Add(30*time.Minute))
-	if rescheduleErr == nil {
+	_, updateErr := appointmentService.UpdateAppointment(context.Background(), existingAppointment.ID, UpdateAppointmentInput{
+		PatientFHIRID: "patient-123",
+		StaffID:       uuid.New(),
+		StartsAt:      offGridStart,
+		EndsAt:        offGridStart.Add(30 * time.Minute),
+	})
+	if updateErr == nil {
 		t.Fatal("expected validation error, got nil")
 	}
-	assertFieldViolation(t, rescheduleErr, "starts_at")
+	assertFieldViolation(t, updateErr, "starts_at")
+}
+
+func TestUpdateAppointment_RejectsMissingPatient(t *testing.T) {
+	existingAppointment := &Appointment{
+		ID:      uuid.New(),
+		Status:  AppointmentStatusScheduled,
+		Version: 1,
+	}
+	repositoryMock := &MockRepository{
+		GetAppointmentByIDFunc: func(ctx context.Context, appointmentID uuid.UUID) (*Appointment, error) {
+			return existingAppointment, nil
+		},
+	}
+	appointmentService := NewService(repositoryMock, nil, nil)
+	newStartsAt := futureAlignedSlotStart(0)
+	newEndsAt := newStartsAt.Add(30 * time.Minute)
+
+	_, updateErr := appointmentService.UpdateAppointment(context.Background(), existingAppointment.ID, UpdateAppointmentInput{
+		StaffID:  uuid.New(),
+		StartsAt: newStartsAt,
+		EndsAt:   newEndsAt,
+	})
+	if updateErr == nil {
+		t.Fatal("expected validation error, got nil")
+	}
+	assertFieldViolation(t, updateErr, "patient_fhir_id")
+}
+
+func TestUpdateAppointment_RejectsMissingStaff(t *testing.T) {
+	existingAppointment := &Appointment{
+		ID:      uuid.New(),
+		Status:  AppointmentStatusScheduled,
+		Version: 1,
+	}
+	repositoryMock := &MockRepository{
+		GetAppointmentByIDFunc: func(ctx context.Context, appointmentID uuid.UUID) (*Appointment, error) {
+			return existingAppointment, nil
+		},
+	}
+	appointmentService := NewService(repositoryMock, nil, nil)
+	newStartsAt := futureAlignedSlotStart(0)
+	newEndsAt := newStartsAt.Add(30 * time.Minute)
+
+	_, updateErr := appointmentService.UpdateAppointment(context.Background(), existingAppointment.ID, UpdateAppointmentInput{
+		PatientFHIRID: "patient-123",
+		StartsAt:      newStartsAt,
+		EndsAt:        newEndsAt,
+	})
+	if updateErr == nil {
+		t.Fatal("expected validation error, got nil")
+	}
+	assertFieldViolation(t, updateErr, "staff_id")
 }
 
 func TestListAppointmentsByPatient_RejectsEmptyFilter(t *testing.T) {

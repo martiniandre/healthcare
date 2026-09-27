@@ -1,10 +1,10 @@
-import { useMemo } from "react"
+import { useEffect, useMemo, useRef } from "react"
 import FullCalendar from "@fullcalendar/react"
 import dayGridPlugin from "@fullcalendar/daygrid"
 import timeGridPlugin from "@fullcalendar/timegrid"
 import interactionPlugin from "@fullcalendar/interaction"
 import multiMonthPlugin from "@fullcalendar/multimonth"
-import type { EventContentArg, EventDropArg, DateSelectArg } from "@fullcalendar/core"
+import type { EventContentArg, EventDropArg, EventClickArg, DateSelectArg } from "@fullcalendar/core"
 import { ScheduleEventChip } from "./ScheduleEventChip"
 import type { CalendarEventShape } from "../schedule_calendar_helpers"
 import type { Appointment } from "../types"
@@ -24,6 +24,7 @@ interface ScheduleCalendarProps {
   onVisibleRangeChange: (rangeStart: string, rangeEnd: string) => void
   onCreateStart: (start: Date) => void
   onReschedule: (appointment: Appointment, newStart: Date, newEnd: Date) => void
+  onEventClick: (appointment: Appointment) => void
 }
 
 const toIsoDate = (dateValue: Date): string => {
@@ -46,16 +47,34 @@ export const ScheduleCalendar = ({
   onVisibleRangeChange,
   onCreateStart,
   onReschedule,
+  onEventClick,
 }: ScheduleCalendarProps) => {
+  const calendarRef = useRef<FullCalendar>(null)
+  const latestEventsRef = useRef(events)
+
+  useEffect(() => {
+    latestEventsRef.current = events
+  }, [events])
+
+  useEffect(() => {
+    calendarRef.current?.getApi().refetchEvents()
+  }, [events])
+
   const renderEventContent = useMemo(() => {
     return (eventContentArgument: EventContentArg) => {
       const extendedProps = eventContentArgument.event.extendedProps as unknown as CalendarEventShape["extendedProps"]
       if (!extendedProps?.appointment) {
         return null
       }
-      return <ScheduleEventChip appointment={extendedProps.appointment} staffColor={extendedProps.staffColor} />
+      return (
+        <ScheduleEventChip
+          appointment={extendedProps.appointment}
+          staffColor={extendedProps.staffColor}
+          onClick={() => onEventClick(extendedProps.appointment)}
+        />
+      )
     }
-  }, [])
+  }, [onEventClick])
 
   const handleSelect = (selection: DateSelectArg) => {
     const startDate = selection.start
@@ -78,11 +97,19 @@ export const ScheduleCalendar = ({
     onReschedule(extendedProps.appointment, dropInfo.event.start as Date, dropInfo.event.end as Date)
   }
 
+  const handleEventClick = (clickInfo: EventClickArg) => {
+    const extendedProps = clickInfo.event.extendedProps as unknown as CalendarEventShape["extendedProps"]
+    if (extendedProps?.appointment) {
+      onEventClick(extendedProps.appointment)
+    }
+  }
+
   return (
-    <div className="schedule-calendar-container relative overflow-hidden rounded-2xl border border-border/70 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04),0_18px_40px_-26px_rgba(15,23,42,0.38)]">
+    <div className="schedule-calendar-container relative overflow-hidden rounded-2xl border border-border/70 bg-white dark:bg-card dark:border-border/90 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_18px_40px_-26px_rgba(15,23,42,0.38)]">
       <div className="h-1.5 w-full" style={{ background: headerAccentGradient }} />
       <div className="p-3 sm:p-5">
         <FullCalendar
+          ref={calendarRef}
           plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin, multiMonthPlugin]}
           initialView={VIEW_TYPE_BY_MODE[viewMode]}
           key={viewMode}
@@ -91,7 +118,9 @@ export const ScheduleCalendar = ({
           height="auto"
           headerToolbar={{ left: "prev,next today", center: "title", right: "" }}
           dayMaxEvents={3}
-          events={events}
+          events={(_fetchInfo, successCallback) => {
+            successCallback(latestEventsRef.current)
+          }}
           eventContent={renderEventContent}
           eventDisplay="block"
           slotDuration="00:30:00"
@@ -104,6 +133,7 @@ export const ScheduleCalendar = ({
           dateClick={handleDateClick}
           editable={true}
           eventDrop={handleEventDrop}
+          eventClick={handleEventClick}
           datesSet={(dateSetInput) => {
             onVisibleRangeChange(toIsoDate(dateSetInput.start), toIsoDate(dateSetInput.end))
           }}

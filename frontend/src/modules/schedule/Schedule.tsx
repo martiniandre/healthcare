@@ -6,6 +6,7 @@ import { useStaffListQuery } from "../staff/queries"
 import { Button } from "../../shared/components/ui/Button"
 import { AppointmentModal } from "./components/AppointmentModal"
 import { CancelAppointmentModal } from "./components/CancelAppointmentModal"
+import { AppointmentDetailsModal } from "./components/AppointmentDetailsModal"
 import { UnavailabilityCard } from "./components/UnavailabilityCard"
 import { CreateUnavailabilityModal } from "./components/CreateUnavailabilityModal"
 import { DeleteUnavailabilityModal } from "./components/DeleteUnavailabilityModal"
@@ -15,7 +16,7 @@ import { ScheduleViewToggle } from "./components/ScheduleViewToggle"
 import {
   useCreateAppointmentMutation,
   useCancelAppointmentMutation,
-  useRescheduleAppointmentMutation,
+  useUpdateAppointmentMutation,
   useStaffUnavailabilityQuery,
   useCreateUnavailabilityMutation,
   useDeleteUnavailabilityMutation,
@@ -24,7 +25,7 @@ import {
 import { appointmentsToCalendarEvents, staffColorForIndex } from "./schedule_calendar_helpers"
 import type { CalendarEventShape } from "./schedule_calendar_helpers"
 import { toast } from "../../shared/store/toast_store"
-import type { Appointment, CreateAppointmentPayload, StaffUnavailability, CreateUnavailabilityPayload } from "./types"
+import type { Appointment, CreateAppointmentPayload, UpdateAppointmentPayload, StaffUnavailability, CreateUnavailabilityPayload } from "./types"
 
 const todayDate = (): string => {
   const localDate = new Date()
@@ -56,6 +57,8 @@ export const Schedule = () => {
   const [viewMode, setViewMode] = useState<ScheduleViewMode>("week")
   const [createDefaults, setCreateDefaults] = useState<{ date: string; startTime: string } | null>(null)
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+  const [appointmentToView, setAppointmentToView] = useState<Appointment | null>(null)
+  const [appointmentToEdit, setAppointmentToEdit] = useState<Appointment | null>(null)
   const [appointmentToCancel, setAppointmentToCancel] = useState<Appointment | null>(null)
   const [isCreateUnavailabilityOpen, setIsCreateUnavailabilityOpen] = useState(false)
   const [unavailabilityToDelete, setUnavailabilityToDelete] = useState<StaffUnavailability | null>(null)
@@ -102,7 +105,7 @@ export const Schedule = () => {
 
   const createAppointmentMutation = useCreateAppointmentMutation()
   const cancelAppointmentMutation = useCancelAppointmentMutation()
-  const rescheduleAppointmentMutation = useRescheduleAppointmentMutation()
+  const updateAppointmentMutation = useUpdateAppointmentMutation()
   const createUnavailabilityMutation = useCreateUnavailabilityMutation()
   const deleteUnavailabilityMutation = useDeleteUnavailabilityMutation()
 
@@ -153,23 +156,60 @@ export const Schedule = () => {
   }
 
   const handleRescheduleAppointment = (appointment: Appointment, newStart: Date, newEnd: Date) => {
-    rescheduleAppointmentMutation.mutate(
+    updateAppointmentMutation.mutate(
       {
         appointmentId: appointment.id,
         payload: {
+          patient_fhir_id: appointment.patient_fhir_id,
+          staff_id: appointment.staff_id,
           starts_at: newStart.toISOString(),
           ends_at: newEnd.toISOString(),
+          reason: appointment.reason,
         },
       },
       {
         onSuccess: () => {
           toast.success(t("toasts.rescheduleSuccess"))
         },
-        onError: () => {
+        onError: (updateError) => {
+          if (isAxiosError(updateError) && updateError.response?.status === 409) {
+            toast.error(t("errors.conflict"))
+            return
+          }
           toast.error(t("toasts.rescheduleError"))
         },
       }
     )
+  }
+
+  const handleUpdateAppointment = async (payload: UpdateAppointmentPayload) => {
+    if (!appointmentToEdit) {
+      return
+    }
+    try {
+      await updateAppointmentMutation.mutateAsync({ appointmentId: appointmentToEdit.id, payload })
+      toast.success(t("toasts.updateSuccess"))
+    } catch (updateError) {
+      if (isAxiosError(updateError) && updateError.response?.status === 409) {
+        throw updateError
+      }
+      toast.error(t("toasts.updateError"))
+      throw updateError
+    }
+  }
+
+  const handleEventClick = (appointment: Appointment) => {
+    setAppointmentToView(appointment)
+  }
+
+  const handleEditFromDetails = (appointment: Appointment) => {
+    setAppointmentToView(null)
+    setAppointmentToEdit(appointment)
+  }
+
+  const handleCancelFromDetails = (appointment: Appointment) => {
+    setAppointmentToView(null)
+    setAppointmentToCancel(appointment)
   }
 
   const handleCreateUnavailability = async (payload: CreateUnavailabilityPayload) => {
@@ -230,30 +270,30 @@ export const Schedule = () => {
         />
 
         <div className="flex flex-col gap-4 min-w-0">
-          {rangeQueriesLoading && effectiveSelectedStaffIds.length > 0 ? (
-            <div className="flex items-center justify-center py-16 bg-card border border-border rounded-xl">
-              <Loader2 className="w-6 h-6 text-primary animate-spin" />
-            </div>
-          ) : (
-            <>
-              <div className="flex justify-end">
-                <ScheduleViewToggle value={viewMode} onChange={setViewMode} />
+          <div className="flex justify-end">
+            <ScheduleViewToggle value={viewMode} onChange={setViewMode} />
+          </div>
+          <div className="relative">
+            <ScheduleCalendar
+              events={calendarEvents}
+              viewMode={viewMode}
+              onVisibleRangeChange={(rangeStart, rangeEnd) =>
+                setVisibleRange((previousRange) =>
+                  previousRange.startDate === rangeStart && previousRange.endDate === rangeEnd
+                    ? previousRange
+                    : { startDate: rangeStart, endDate: rangeEnd }
+                )
+              }
+              onCreateStart={handleCalendarSlotClick}
+              onReschedule={handleRescheduleAppointment}
+              onEventClick={handleEventClick}
+            />
+            {rangeQueriesLoading && effectiveSelectedStaffIds.length > 0 && (
+              <div className="absolute inset-0 z-10 flex items-center justify-center rounded-2xl bg-background/40 backdrop-blur-sm">
+                <Loader2 className="w-7 h-7 text-primary animate-spin" />
               </div>
-              <ScheduleCalendar
-                events={calendarEvents}
-                viewMode={viewMode}
-                onVisibleRangeChange={(rangeStart, rangeEnd) =>
-                  setVisibleRange((previousRange) =>
-                    previousRange.startDate === rangeStart && previousRange.endDate === rangeEnd
-                      ? previousRange
-                      : { startDate: rangeStart, endDate: rangeEnd }
-                  )
-                }
-                onCreateStart={handleCalendarSlotClick}
-                onReschedule={handleRescheduleAppointment}
-              />
-            </>
-          )}
+            )}
+          </div>
 
           {upcomingUnavailabilityWindows.length > 0 && (
             <div className="flex flex-col gap-3">
@@ -278,11 +318,27 @@ export const Schedule = () => {
       <AppointmentModal
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
-        onSubmit={handleCreateAppointment}
+        onSubmit={(payload) => handleCreateAppointment(payload as CreateAppointmentPayload)}
         isPending={createAppointmentMutation.isPending}
         defaultStaffId={focusedStaffId}
         defaultDate={createDefaults?.date ?? todayDate()}
         defaultStartTime={createDefaults?.startTime}
+      />
+
+      <AppointmentDetailsModal
+        isOpen={appointmentToView !== null}
+        appointment={appointmentToView}
+        onClose={() => setAppointmentToView(null)}
+        onEdit={handleEditFromDetails}
+        onCancel={handleCancelFromDetails}
+      />
+
+      <AppointmentModal
+        isOpen={appointmentToEdit !== null}
+        onClose={() => setAppointmentToEdit(null)}
+        onSubmit={handleUpdateAppointment}
+        isPending={updateAppointmentMutation.isPending}
+        appointment={appointmentToEdit}
       />
 
       <CancelAppointmentModal

@@ -15,3 +15,11 @@ type CreateAppointmentInput struct {
 	IdempotencyKey string
 	RequestHash    string
 }
+
+type UpdateAppointmentInput struct {
+	PatientFHIRID string
+	StaffID       uuid.UUID
+	StartsAt      time.Time
+	EndsAt        time.Time
+	Reason        string
+}

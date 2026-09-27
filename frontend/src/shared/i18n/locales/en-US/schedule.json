@@ -43,6 +43,12 @@
       "cancel": "Cancel",
       "confirm": "Book"
     },
+    "cancel": {
+      "title": "Cancel Appointment",
+      "description": "Are you sure you want to cancel this appointment?",
+      "back": "Back",
+      "confirm": "Confirm Cancellation"
+    },
     "edit": {
       "title": "Edit Appointment",
       "confirm": "Save Changes"
@@ -51,19 +57,13 @@
       "title": "Appointment Details",
       "patient": "Patient",
       "staff": "Professional",
-      "date": "Starts",
-      "end": "Ends",
+      "date": "Date",
+      "end": "End",
       "reason": "Reason",
       "status": "Status",
       "edit": "Edit",
       "cancel": "Cancel",
       "close": "Close"
-    },
-    "cancel": {
-      "title": "Cancel Appointment",
-      "description": "Are you sure you want to cancel this appointment?",
-      "back": "Back",
-      "confirm": "Confirm Cancellation"
     }
   },
   "errors": {
