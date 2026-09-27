@@ -9,17 +9,17 @@ import (
 )
 
 type MockRepository struct {
-	CreateAppointmentFunc             func(ctx context.Context, appointment *Appointment) (*Appointment, error)
-	GetAppointmentByIDFunc            func(ctx context.Context, appointmentID uuid.UUID) (*Appointment, error)
-	CancelAppointmentFunc             func(ctx context.Context, appointmentID uuid.UUID) (*Appointment, error)
-	UpdateAppointmentFunc            func(ctx context.Context, appointmentID uuid.UUID, input UpdateAppointmentInput) (*Appointment, error)
-	ListAppointmentsByPatientFunc     func(ctx context.Context, patientFHIRID string) ([]*Appointment, error)
-	ListAppointmentsByStaffOnDateFunc func(ctx context.Context, staffID uuid.UUID, date time.Time) ([]*Appointment, error)
+	CreateAppointmentFunc              func(ctx context.Context, appointment *Appointment) (*Appointment, error)
+	GetAppointmentByIDFunc             func(ctx context.Context, appointmentID uuid.UUID) (*Appointment, error)
+	CancelAppointmentFunc              func(ctx context.Context, appointmentID uuid.UUID) (*Appointment, error)
+	UpdateAppointmentFunc              func(ctx context.Context, appointmentID uuid.UUID, input UpdateAppointmentInput) (*Appointment, error)
+	ListAppointmentsByPatientFunc      func(ctx context.Context, patientFHIRID string) ([]*Appointment, error)
+	ListAppointmentsByStaffOnDateFunc  func(ctx context.Context, staffID uuid.UUID, date time.Time) ([]*Appointment, error)
 	ListAppointmentsByStaffInRangeFunc func(ctx context.Context, staffID uuid.UUID, startDate time.Time, endDate time.Time) ([]*Appointment, error)
 	ResolveActiveEmployeeIDByEmailFunc func(ctx context.Context, email string) (*uuid.UUID, error)
-	ResolvePatientFHIRIDByUserIDFunc  func(ctx context.Context, userID string) (string, error)
-	FindIdempotencyKeyFunc            func(ctx context.Context, idempotencyKey string) (*IdempotencyKey, error)
-	SaveIdempotencyKeyFunc            func(ctx context.Context, key *IdempotencyKey) error
+	ResolvePatientFHIRIDByUserIDFunc   func(ctx context.Context, userID string) (string, error)
+	FindIdempotencyKeyFunc             func(ctx context.Context, idempotencyKey string) (*IdempotencyKey, error)
+	SaveIdempotencyKeyFunc             func(ctx context.Context, key *IdempotencyKey) error
 }
 
 func (mock *MockRepository) CreateAppointment(ctx context.Context, appointment *Appointment) (*Appointment, error) {

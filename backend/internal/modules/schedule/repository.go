@@ -6,16 +6,16 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/healthcare/backend/internal/shared/apperrors"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/healthcare/backend/internal/shared/apperrors"
 )
 
 type Repository interface {
 	CreateAppointment(ctx context.Context, appointment *Appointment) (*Appointment, error)
 	CancelAppointment(ctx context.Context, appointmentID uuid.UUID) (*Appointment, error)
-UpdateAppointment(ctx context.Context, appointmentID uuid.UUID, input UpdateAppointmentInput) (*Appointment, error)
+	UpdateAppointment(ctx context.Context, appointmentID uuid.UUID, input UpdateAppointmentInput) (*Appointment, error)
 	GetAppointmentByID(ctx context.Context, appointmentID uuid.UUID) (*Appointment, error)
 	ListAppointmentsByPatient(ctx context.Context, patientFHIRID string) ([]*Appointment, error)
 	ListAppointmentsByStaffOnDate(ctx context.Context, staffID uuid.UUID, date time.Time) ([]*Appointment, error)

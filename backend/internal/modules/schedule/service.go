@@ -18,7 +18,7 @@ import (
 type Service interface {
 	CreateAppointment(ctx context.Context, input CreateAppointmentInput) (*Appointment, error)
 	CancelAppointment(ctx context.Context, appointmentID uuid.UUID) (*Appointment, error)
-UpdateAppointment(ctx context.Context, appointmentID uuid.UUID, input UpdateAppointmentInput) (*Appointment, error)
+	UpdateAppointment(ctx context.Context, appointmentID uuid.UUID, input UpdateAppointmentInput) (*Appointment, error)
 	GetAppointment(ctx context.Context, appointmentID uuid.UUID) (*Appointment, error)
 	ListAppointmentsByPatient(ctx context.Context, patientFHIRID string) ([]*Appointment, error)
 	ListMyAppointments(ctx context.Context, authenticatedUserID string) ([]*Appointment, error)
