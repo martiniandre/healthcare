@@ -1,4 +1,4 @@
-import { useQuery, useQueries, useMutation, useQueryClient } from "@tanstack/react-query"
+import { useQuery, useQueries, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query"
 import { scheduleApi } from "./api"
 import type {
   CreateAppointmentPayload,
@@ -41,6 +41,7 @@ export const useStaffRangeAppointmentsQueries = (filters: StaffRangeFilter[]) =>
       queryKey: scheduleQueryKeys.byStaffRange(filter.staffId, filter.startDate, filter.endDate),
       queryFn: () => scheduleApi.listByStaffInRange(filter.staffId, filter.startDate, filter.endDate),
       enabled: !!filter.staffId && !!filter.startDate && !!filter.endDate,
+      placeholderData: keepPreviousData,
     })),
   })
 }

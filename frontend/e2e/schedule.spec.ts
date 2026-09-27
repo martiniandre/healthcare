@@ -23,6 +23,8 @@ const getFutureAlignedSlot = (): { startTime: string; endTime: string; appointme
   }
 }
 
+const escapeRegExp = (value: string): string => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+
 const getEditSlot = (
   prefilledStartTime: string,
   prefilledDate: string
@@ -143,6 +145,21 @@ test.describe("Appointment Scheduling Module", () => {
     const backdrop = page.locator('[data-state="open"].bg-black\\/60')
     await expect(backdrop).toBeVisible()
     await expect(backdrop).toHaveCSS("opacity", "1")
+  })
+
+  test("should keep the displayed range when navigating between calendar weeks", async ({ page }) => {
+    await page.goto("/schedule")
+    const toolbarTitle = page.locator(".fc-toolbar-title")
+    const initialTitle = (await toolbarTitle.innerText()).toLowerCase()
+    const initialTitlePattern = new RegExp(`^${escapeRegExp(initialTitle)}$`, "i")
+
+    await page.locator(".fc-next-button").click()
+    await expect(toolbarTitle).not.toHaveText(initialTitlePattern)
+    await page.waitForTimeout(1200)
+    await expect(toolbarTitle).not.toHaveText(initialTitlePattern)
+
+    await page.locator(".fc-prev-button").click()
+    await expect(toolbarTitle).toHaveText(initialTitlePattern)
   })
 
   test("should open appointment details when clicking an existing event", async ({ page }) => {

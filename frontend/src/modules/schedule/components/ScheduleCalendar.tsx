@@ -105,7 +105,7 @@ export const ScheduleCalendar = ({
   }
 
   return (
-    <div className="schedule-calendar-container relative overflow-hidden rounded-2xl border border-border/70 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04),0_18px_40px_-26px_rgba(15,23,42,0.38)]">
+    <div className="schedule-calendar-container relative overflow-hidden rounded-2xl border border-border/70 bg-white dark:bg-card dark:border-border/90 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_18px_40px_-26px_rgba(15,23,42,0.38)]">
       <div className="h-1.5 w-full" style={{ background: headerAccentGradient }} />
       <div className="p-3 sm:p-5">
         <FullCalendar

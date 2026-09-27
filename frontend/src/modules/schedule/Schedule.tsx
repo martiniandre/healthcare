@@ -270,31 +270,30 @@ export const Schedule = () => {
         />
 
         <div className="flex flex-col gap-4 min-w-0">
-          {rangeQueriesLoading && effectiveSelectedStaffIds.length > 0 ? (
-            <div className="flex items-center justify-center py-16 bg-card border border-border rounded-xl">
-              <Loader2 className="w-6 h-6 text-primary animate-spin" />
-            </div>
-          ) : (
-            <>
-              <div className="flex justify-end">
-                <ScheduleViewToggle value={viewMode} onChange={setViewMode} />
+          <div className="flex justify-end">
+            <ScheduleViewToggle value={viewMode} onChange={setViewMode} />
+          </div>
+          <div className="relative">
+            <ScheduleCalendar
+              events={calendarEvents}
+              viewMode={viewMode}
+              onVisibleRangeChange={(rangeStart, rangeEnd) =>
+                setVisibleRange((previousRange) =>
+                  previousRange.startDate === rangeStart && previousRange.endDate === rangeEnd
+                    ? previousRange
+                    : { startDate: rangeStart, endDate: rangeEnd }
+                )
+              }
+              onCreateStart={handleCalendarSlotClick}
+              onReschedule={handleRescheduleAppointment}
+              onEventClick={handleEventClick}
+            />
+            {rangeQueriesLoading && effectiveSelectedStaffIds.length > 0 && (
+              <div className="absolute inset-0 z-10 flex items-center justify-center rounded-2xl bg-background/40 backdrop-blur-sm">
+                <Loader2 className="w-7 h-7 text-primary animate-spin" />
               </div>
-              <ScheduleCalendar
-                events={calendarEvents}
-                viewMode={viewMode}
-                onVisibleRangeChange={(rangeStart, rangeEnd) =>
-                  setVisibleRange((previousRange) =>
-                    previousRange.startDate === rangeStart && previousRange.endDate === rangeEnd
-                      ? previousRange
-                      : { startDate: rangeStart, endDate: rangeEnd }
-                  )
-                }
-                onCreateStart={handleCalendarSlotClick}
-                onReschedule={handleRescheduleAppointment}
-                onEventClick={handleEventClick}
-              />
-            </>
-          )}
+            )}
+          </div>
 
           {upcomingUnavailabilityWindows.length > 0 && (
             <div className="flex flex-col gap-3">
