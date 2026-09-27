@@ -1,37 +1,48 @@
 import { test, expect } from "@playwright/test"
 import { loginAsAdmin } from "./helpers"
 
-const getFutureAlignedSlot = (): { startTime: string; endTime: string } => {
+const formatSlotTime = (totalMinutes: number): string =>
+  `${String(Math.floor(totalMinutes / 60)).padStart(2, "0")}:${String(totalMinutes % 60).padStart(2, "0")}`
+
+const formatDateValue = (dateValue: Date): string =>
+  `${String(dateValue.getFullYear()).padStart(4, "0")}-${String(dateValue.getMonth() + 1).padStart(2, "0")}-${String(dateValue.getDate()).padStart(2, "0")}`
+
+const getFutureAlignedSlot = (): { startTime: string; endTime: string; appointmentDate: string } => {
   const nowDate = new Date()
-  const slotDate = new Date(nowDate.getTime() + 2 * 60 * 60 * 1000)
-  const alignedMinutes = Math.ceil(slotDate.getMinutes() / 15) * 15
-  slotDate.setMinutes(alignedMinutes, 0, 0)
-  const formatSlotTime = (dateValue: Date): string =>
-    `${String(dateValue.getHours()).padStart(2, "0")}:${String(dateValue.getMinutes()).padStart(2, "0")}`
-
-  const crossesMidnight =
-    slotDate.getDate() !== nowDate.getDate() ||
-    slotDate.getMonth() !== nowDate.getMonth() ||
-    slotDate.getFullYear() !== nowDate.getFullYear()
-
-  let startHour = slotDate.getHours()
-  let startMinute = slotDate.getMinutes()
-  if (crossesMidnight) {
-    startHour = 21
-    startMinute = 0
-  }
-  let endTotalMinutes = startHour * 60 + startMinute + 30
-  const lastEndMinute = 23 * 60 + 45
-  if (endTotalMinutes > lastEndMinute) {
-    startHour = 22
-    startMinute = 0
-    endTotalMinutes = 22 * 60 + 30
-  }
-  const endHour = Math.floor(endTotalMinutes / 60)
-  const endMinute = endTotalMinutes % 60
+  const nowTotalMinutes = nowDate.getHours() * 60 + nowDate.getMinutes()
+  const earliestStartTotalMinutes = Math.ceil((nowTotalMinutes + 5) / 15) * 15
+  const latestEndTotalMinutes = 23 * 60 + 45
+  const shiftToNextDay = earliestStartTotalMinutes + 30 > latestEndTotalMinutes
+  const scheduleDate = shiftToNextDay ? new Date(nowDate.getTime() + 24 * 60 * 60 * 1000) : nowDate
+  const startTotalMinutes = shiftToNextDay ? 9 * 60 : earliestStartTotalMinutes
+  const endTotalMinutes = startTotalMinutes + 30
   return {
-    startTime: formatSlotTime(new Date(2020, 0, 1, startHour, startMinute)),
-    endTime: formatSlotTime(new Date(2020, 0, 1, endHour, endMinute)),
+    startTime: formatSlotTime(startTotalMinutes),
+    endTime: formatSlotTime(endTotalMinutes),
+    appointmentDate: formatDateValue(scheduleDate),
+  }
+}
+
+const getEditSlot = (
+  prefilledStartTime: string,
+  prefilledDate: string
+): { startTime: string; endTime: string; appointmentDate: string } => {
+  const [startHour, startMinute] = prefilledStartTime.split(":").map(Number)
+  const shiftedStartTotalMinutes = startHour * 60 + startMinute + 30
+  const shiftedEndTotalMinutes = shiftedStartTotalMinutes + 30
+  if (shiftedEndTotalMinutes <= 23 * 60 + 45) {
+    return {
+      startTime: formatSlotTime(shiftedStartTotalMinutes),
+      endTime: formatSlotTime(shiftedEndTotalMinutes),
+      appointmentDate: prefilledDate,
+    }
+  }
+  const nextDayDate = new Date(`${prefilledDate}T00:00:00`)
+  nextDayDate.setDate(nextDayDate.getDate() + 1)
+  return {
+    startTime: "09:00",
+    endTime: "09:30",
+    appointmentDate: formatDateValue(nextDayDate),
   }
 }
 
@@ -39,6 +50,7 @@ const fillAppointmentForm = async (page: import("@playwright/test").Page) => {
   const modalDialog = page.getByRole("dialog")
   const appointmentSlot = getFutureAlignedSlot()
 
+  await modalDialog.locator('input[type="date"]').fill(appointmentSlot.appointmentDate)
   await modalDialog.locator('[role="combobox"]').first().click()
   await page.locator('[role="option"]', { hasText: "Guilherme de Souza Araujo" }).click()
 
@@ -131,5 +143,60 @@ test.describe("Appointment Scheduling Module", () => {
     const backdrop = page.locator('[data-state="open"].bg-black\\/60')
     await expect(backdrop).toBeVisible()
     await expect(backdrop).toHaveCSS("opacity", "1")
+  })
+
+  test("should open appointment details when clicking an existing event", async ({ page }) => {
+    await page.goto("/schedule")
+    await page.getByRole("button", { name: "Novo Agendamento" }).click()
+    await fillAppointmentForm(page)
+    await page.getByRole("button", { name: "Agendar" }).click()
+    await expect(page.locator(".fc-event").filter({ hasText: "Guilherme de Souza Araujo" }).first()).toBeVisible()
+
+    await page.locator(".fc-event").filter({ hasText: "Guilherme de Souza Araujo" }).first().click()
+
+    await expect(page.getByRole("heading", { name: "Detalhes do Agendamento" })).toBeVisible()
+    await expect(page.getByRole("button", { name: "Editar" })).toBeVisible()
+    await expect(page.getByRole("button", { name: "Cancelar" })).toBeVisible()
+  })
+
+  test("should edit an appointment from the details dialog", async ({ page }) => {
+    await page.goto("/schedule")
+    await page.getByRole("button", { name: "Novo Agendamento" }).click()
+    await fillAppointmentForm(page)
+    await page.getByRole("button", { name: "Agendar" }).click()
+    await expect(page.locator(".fc-event").filter({ hasText: "Guilherme de Souza Araujo" }).first()).toBeVisible()
+
+    await page.locator(".fc-event").filter({ hasText: "Guilherme de Souza Araujo" }).first().click()
+    await page.getByRole("button", { name: "Editar" }).click()
+
+    await expect(page.getByRole("heading", { name: "Editar Agendamento" })).toBeVisible()
+    const prefilledAppointmentDate = await page.getByRole("dialog").locator('input[type="date"]').inputValue()
+    const prefilledStartTime = await page.getByRole("dialog").locator('select[name="startTime"]').inputValue()
+    const alternateSlot = getEditSlot(prefilledStartTime, prefilledAppointmentDate)
+    if (alternateSlot.appointmentDate !== prefilledAppointmentDate) {
+      await page.getByRole("dialog").locator('input[type="date"]').fill(alternateSlot.appointmentDate)
+    }
+    await page.getByRole("dialog").locator('select[name="startTime"]').selectOption(alternateSlot.startTime)
+    await page.getByRole("dialog").locator('select[name="endTime"]').selectOption(alternateSlot.endTime)
+    await page.getByRole("button", { name: "Salvar Alterações" }).click()
+
+    await expect(page.locator("text=Agendamento atualizado com sucesso!")).toBeVisible()
+  })
+
+  test("should cancel an appointment from the details dialog", async ({ page }) => {
+    await page.goto("/schedule")
+    await page.getByRole("button", { name: "Novo Agendamento" }).click()
+    await fillAppointmentForm(page)
+    await page.getByRole("button", { name: "Agendar" }).click()
+    await expect(page.locator(".fc-event").filter({ hasText: "Guilherme de Souza Araujo" }).first()).toBeVisible()
+
+    await page.locator(".fc-event").filter({ hasText: "Guilherme de Souza Araujo" }).first().click()
+    await page.getByRole("button", { name: "Cancelar" }).click()
+
+    await expect(page.getByRole("heading", { name: "Cancelar Agendamento" })).toBeVisible()
+    await page.getByRole("button", { name: "Confirmar Cancelamento" }).click()
+
+    await expect(page.locator("text=Agendamento cancelado com sucesso!")).toBeVisible()
+    await expect(page.locator(".fc-event").filter({ hasText: "Guilherme de Souza Araujo" })).toHaveCount(0)
   })
 })

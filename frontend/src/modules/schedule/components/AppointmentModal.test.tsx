@@ -14,6 +14,7 @@ vi.mock("../../staff/queries", () => ({
 
 vi.mock("../../patients/queries", () => ({
   usePatientsQuery: vi.fn(),
+  usePatientQuery: vi.fn(),
 }))
 
 vi.mock("../hooks/useIdempotencyKey", () => ({
@@ -24,10 +25,11 @@ vi.mock("../hooks/useIdempotencyKey", () => ({
 }))
 
 import { useStaffListQuery } from "../../staff/queries"
-import { usePatientsQuery } from "../../patients/queries"
+import { usePatientsQuery, usePatientQuery } from "../../patients/queries"
 
 const mockedUseStaffListQuery = vi.mocked(useStaffListQuery)
 const mockedUsePatientsQuery = vi.mocked(usePatientsQuery)
+const mockedUsePatientQuery = vi.mocked(usePatientQuery)
 
 const staffFixture = [
   { id: "emp-1", fullName: "Dr. André Silva", role: "DOCTOR" },
@@ -35,6 +37,18 @@ const staffFixture = [
 const patientsFixture = [
   { patient_id: "pat-1", fhir_resource_id: "fhir-pat-1", full_name: "Guilherme de Souza Araujo" },
 ]
+
+const appointmentFixture = {
+  id: "appointment-1",
+  patient_fhir_id: "fhir-pat-1",
+  staff_id: "emp-1",
+  starts_at: new Date(2027, 4, 20, 9, 0).toISOString(),
+  ends_at: new Date(2027, 4, 20, 9, 30).toISOString(),
+  status: "scheduled",
+  reason: "Consulta de rotina",
+  version: 3,
+  created_at: "2027-05-10T10:00:00.000Z",
+} as const
 
 const fillPatientAndStaff = async () => {
   const comboboxes = screen.getAllByRole("combobox")
@@ -90,9 +104,10 @@ const renderModal = (overrides: {
 describe("AppointmentModal", () => {
   beforeEach(() => {
     mockedUseStaffListQuery.mockReturnValue({ data: staffFixture } as ReturnType<typeof useStaffListQuery>)
-    mockedUsePatientsQuery.mockReturnValue({
+mockedUsePatientsQuery.mockReturnValue({
       data: { patients: patientsFixture, total: patientsFixture.length, page: 1, limit: 100 },
     } as ReturnType<typeof usePatientsQuery>)
+    mockedUsePatientQuery.mockReturnValue({ data: undefined } as ReturnType<typeof usePatientQuery>)
   })
 
   it("should show validation errors when required fields are missing", async () => {
@@ -179,5 +194,73 @@ describe("AppointmentModal", () => {
       <AppointmentModal isOpen={false} onClose={vi.fn()} onSubmit={vi.fn()} isPending={false} />
     )
     expect(container).toBeEmptyDOMElement()
+  })
+
+  it("should prefill the form from the appointment in edit mode", () => {
+    render(
+      <AppointmentModal
+        isOpen
+        onClose={vi.fn()}
+        onSubmit={vi.fn()}
+        isPending={false}
+        appointment={appointmentFixture}
+      />
+    )
+
+    expect(screen.getByText("modals.edit.title")).toBeDefined()
+    const comboboxes = screen.getAllByRole("combobox")
+    expect(comboboxes[0]).toHaveTextContent("Guilherme de Souza Araujo")
+    expect(comboboxes[1]).toHaveTextContent("Dr. André Silva")
+    const dateInput = document.querySelector('input[type="date"]') as HTMLInputElement
+    expect(dateInput.value).toBe("2027-05-20")
+    const startTimeSelect = screen.getByRole("combobox", { name: "modals.create.startTime" }) as HTMLSelectElement
+    expect(startTimeSelect.value).toBe("09:00")
+    const endTimeSelect = screen.getByRole("combobox", { name: "modals.create.endTime" }) as HTMLSelectElement
+    expect(endTimeSelect.value).toBe("09:30")
+    expect(screen.getByPlaceholderText("modals.create.reasonPlaceholder")).toHaveValue("Consulta de rotina")
+  })
+
+  it("should submit an update payload without an idempotency key in edit mode", async () => {
+    const onSubmit = vi.fn().mockResolvedValue(undefined)
+    render(
+      <AppointmentModal
+        isOpen
+        onClose={vi.fn()}
+        onSubmit={onSubmit}
+        isPending={false}
+        appointment={appointmentFixture}
+      />
+    )
+
+    fireEvent.click(screen.getByRole("button", { name: "modals.edit.confirm" }))
+    await waitFor(() => expect(onSubmit).toHaveBeenCalled())
+
+    const submittedPayload = (onSubmit as ReturnType<typeof vi.fn>).mock.calls[0][0]
+    expect(submittedPayload).toEqual({
+      patient_fhir_id: "fhir-pat-1",
+      staff_id: "emp-1",
+      starts_at: new Date(2027, 4, 20, 9, 0).toISOString(),
+      ends_at: new Date(2027, 4, 20, 9, 30).toISOString(),
+      reason: "Consulta de rotina",
+    })
+    expect(submittedPayload).not.toHaveProperty("idempotency_key")
+  })
+
+  it("should display conflict message when the update returns 409", async () => {
+    const onSubmit = vi.fn().mockRejectedValue(
+      Object.assign(new Error("Conflict"), { isAxiosError: true, response: { status: 409 } })
+    )
+    render(
+      <AppointmentModal
+        isOpen
+        onClose={vi.fn()}
+        onSubmit={onSubmit}
+        isPending={false}
+        appointment={appointmentFixture}
+      />
+    )
+
+    fireEvent.click(screen.getByRole("button", { name: "modals.edit.confirm" }))
+    expect(await screen.findByText("errors.conflict")).toBeDefined()
   })
 })

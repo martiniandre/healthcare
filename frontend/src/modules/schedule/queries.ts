@@ -3,7 +3,7 @@ import { scheduleApi } from "./api"
 import type {
   CreateAppointmentPayload,
   CreateUnavailabilityPayload,
-  RescheduleAppointmentPayload,
+  UpdateAppointmentPayload,
 } from "./types"
 
 export const scheduleQueryKeys = {
@@ -84,16 +84,16 @@ export const useCancelAppointmentMutation = () => {
   })
 }
 
-export interface RescheduleAppointmentVariables {
+export interface UpdateAppointmentVariables {
   appointmentId: string
-  payload: RescheduleAppointmentPayload
+  payload: UpdateAppointmentPayload
 }
 
-export const useRescheduleAppointmentMutation = () => {
+export const useUpdateAppointmentMutation = () => {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (variables: RescheduleAppointmentVariables) =>
-      scheduleApi.rescheduleAppointment(variables.appointmentId, variables.payload),
+    mutationFn: (variables: UpdateAppointmentVariables) =>
+      scheduleApi.updateAppointment(variables.appointmentId, variables.payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: scheduleQueryKeys.appointments() })
     },

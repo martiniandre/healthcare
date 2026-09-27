@@ -43,6 +43,12 @@
       "cancel": "Cancelar",
       "confirm": "Agendar"
     },
+    "cancel": {
+      "title": "Cancelar Agendamento",
+      "description": "Tem certeza que deseja cancelar este agendamento?",
+      "back": "Voltar",
+      "confirm": "Confirmar Cancelamento"
+    },
     "edit": {
       "title": "Editar Agendamento",
       "confirm": "Salvar Alterações"
@@ -51,19 +57,13 @@
       "title": "Detalhes do Agendamento",
       "patient": "Paciente",
       "staff": "Profissional",
-      "date": "Início",
-      "end": "Término",
+      "date": "Data",
+      "end": "Fim",
       "reason": "Motivo",
       "status": "Status",
       "edit": "Editar",
       "cancel": "Cancelar",
       "close": "Fechar"
-    },
-    "cancel": {
-      "title": "Cancelar Agendamento",
-      "description": "Tem certeza que deseja cancelar este agendamento?",
-      "back": "Voltar",
-      "confirm": "Confirmar Cancelamento"
     }
   },
   "errors": {
