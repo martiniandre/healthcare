@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { useForm, Controller, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useTranslation } from "react-i18next"
@@ -22,22 +22,38 @@ import { getNewAppointmentSchema, type NewAppointmentFormData } from "../schedul
 import { todayDateString } from "../../../shared/utils/validators"
 import { getAvailableStartTimeOptions, getEndTimeOptionsForStart } from "../schedule_time_options"
 import { useStaffListQuery } from "../../staff/queries"
-import { usePatientsQuery } from "../../patients/queries"
+import { usePatientsQuery, usePatientQuery } from "../../patients/queries"
 import { useIdempotencyKey } from "../hooks/useIdempotencyKey"
-import type { CreateAppointmentPayload } from "../types"
+import type { Appointment, CreateAppointmentPayload, UpdateAppointmentPayload } from "../types"
 
 interface AppointmentModalProps {
   isOpen: boolean
   onClose: () => void
-  onSubmit: (payload: CreateAppointmentPayload) => Promise<void>
+  onSubmit: (payload: CreateAppointmentPayload | UpdateAppointmentPayload) => Promise<void>
   isPending: boolean
   defaultStaffId?: string
   defaultDate?: string
   defaultStartTime?: string
+  appointment?: Appointment | null
 }
 
 const formatLocalDateTime = (dateValue: string, timeValue: string): string => {
   return new Date(`${dateValue}T${timeValue}`).toISOString()
+}
+
+const getLocalDateValue = (isoDateTime: string): string => {
+  const dateObject = new Date(isoDateTime)
+  const year = dateObject.getFullYear()
+  const month = String(dateObject.getMonth() + 1).padStart(2, "0")
+  const day = String(dateObject.getDate()).padStart(2, "0")
+  return `${year}-${month}-${day}`
+}
+
+const getLocalTimeValue = (isoDateTime: string): string => {
+  const dateObject = new Date(isoDateTime)
+  const hour = String(dateObject.getHours()).padStart(2, "0")
+  const minute = String(dateObject.getMinutes()).padStart(2, "0")
+  return `${hour}:${minute}`
 }
 
 export const AppointmentModal = ({
@@ -48,16 +64,32 @@ export const AppointmentModal = ({
   defaultStaffId,
   defaultDate,
   defaultStartTime,
+  appointment,
 }: AppointmentModalProps) => {
   const { t } = useTranslation("schedule")
+  const isEditMode = appointment !== undefined && appointment !== null
   const { data: staffMembers = [] } = useStaffListQuery()
-  const { data: patientsPage } = usePatientsQuery("", "", "", 1, 100)
+const { data: patientsPage } = usePatientsQuery("", "", "", 1, 100)
+  const { data: appointmentPatient } = usePatientQuery(
+    isEditMode && appointment ? appointment.patient_fhir_id : ""
+  )
+  const patients = patientsPage?.patients ?? []
   const { getOrCreateKey, resetKey } = useIdempotencyKey()
 
   const [patientSearch, setPatientSearch] = useState("")
   const [conflictMessage, setConflictMessage] = useState<string | null>(null)
 
-  const filteredPatients = (patientsPage?.patients ?? []).filter((patient) =>
+  const patientCandidates = useMemo(() => {
+    if (!isEditMode || !appointmentPatient) {
+      return patients
+    }
+    const alreadyListed = patients.some(
+      (patient) => patient.fhir_resource_id === appointmentPatient.fhir_resource_id
+    )
+    return alreadyListed ? patients : [...patients, appointmentPatient]
+  }, [isEditMode, appointmentPatient, patients])
+
+  const filteredPatients = patientCandidates.filter((patient) =>
     patient.full_name.toLowerCase().includes(patientSearch.toLowerCase())
   )
 
@@ -93,16 +125,27 @@ export const AppointmentModal = ({
 
   useEffect(() => {
     if (isOpen) {
-      reset({
-        patientFhirId: "",
-        staffId: defaultStaffId ?? "",
-        date: defaultDate ?? "",
-        startTime: defaultStartTime ?? "",
-        endTime: "",
-        reason: "",
-      })
+      if (isEditMode && appointment) {
+        reset({
+          patientFhirId: appointment.patient_fhir_id,
+          staffId: appointment.staff_id,
+          date: getLocalDateValue(appointment.starts_at),
+          startTime: getLocalTimeValue(appointment.starts_at),
+          endTime: getLocalTimeValue(appointment.ends_at),
+          reason: appointment.reason || "",
+        })
+      } else {
+        reset({
+          patientFhirId: "",
+          staffId: defaultStaffId ?? "",
+          date: defaultDate ?? "",
+          startTime: defaultStartTime ?? "",
+          endTime: "",
+          reason: "",
+        })
+      }
     }
-  }, [isOpen, defaultStaffId, defaultDate, defaultStartTime, reset])
+  }, [isOpen, appointment, isEditMode, defaultStaffId, defaultDate, defaultStartTime, reset])
 
   if (!isOpen) {
     return null
@@ -110,18 +153,31 @@ export const AppointmentModal = ({
 
   const handleFormSubmit = handleSubmit(async (formData) => {
     setConflictMessage(null)
-    const createPayload: CreateAppointmentPayload = {
-      patient_fhir_id: formData.patientFhirId,
-      staff_id: formData.staffId,
-      starts_at: formatLocalDateTime(formData.date, formData.startTime),
-      ends_at: formatLocalDateTime(formData.date, formData.endTime),
-      reason: formData.reason,
-      idempotency_key: getOrCreateKey(),
-    }
+    const startsAt = formatLocalDateTime(formData.date, formData.startTime)
+    const endsAt = formatLocalDateTime(formData.date, formData.endTime)
 
     try {
-      await onSubmit(createPayload)
-      resetKey()
+      if (isEditMode && appointment) {
+        const updatePayload: UpdateAppointmentPayload = {
+          patient_fhir_id: formData.patientFhirId,
+          staff_id: formData.staffId,
+          starts_at: startsAt,
+          ends_at: endsAt,
+          reason: formData.reason,
+        }
+        await onSubmit(updatePayload)
+      } else {
+        const createPayload: CreateAppointmentPayload = {
+          patient_fhir_id: formData.patientFhirId,
+          staff_id: formData.staffId,
+          starts_at: startsAt,
+          ends_at: endsAt,
+          reason: formData.reason,
+          idempotency_key: getOrCreateKey(),
+        }
+        await onSubmit(createPayload)
+        resetKey()
+      }
       handleClose()
     } catch (submitError) {
       if (isAxiosError(submitError) && submitError.response?.status === 409) {
@@ -135,7 +191,7 @@ export const AppointmentModal = ({
       <DialogContent className="sm:max-w-[520px]">
         <DialogHeader>
           <DialogTitle className="text-left">
-            {t("modals.create.title")}
+            {isEditMode ? t("modals.edit.title") : t("modals.create.title")}
           </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleFormSubmit} noValidate className="flex flex-col gap-4 text-left mt-4">
@@ -283,7 +339,7 @@ export const AppointmentModal = ({
               {t("modals.create.cancel")}
             </Button>
             <Button type="submit" disabled={isPending}>
-              {t("modals.create.confirm")}
+              {isEditMode ? t("modals.edit.confirm") : t("modals.create.confirm")}
             </Button>
           </div>
         </form>

@@ -10,42 +10,52 @@ const isoDateOffset = (dayOffset: number): string => {
   return `${year}-${month}-${day}`
 }
 
+const isoDateWithinCurrentWeek = (dayOffsetFromMonday: number): string => {
+  const date = new Date()
+  const mondayDayIndex = (date.getDay() + 6) % 7
+  date.setDate(date.getDate() - mondayDayIndex + dayOffsetFromMonday)
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, "0")
+  const day = String(date.getDate()).padStart(2, "0")
+  return `${year}-${month}-${day}`
+}
+
 const seedAppointmentsInCurrentWeek = (): Record<string, unknown>[] => {
-  const today = isoDateOffset(0)
-  const tomorrow = isoDateOffset(1)
+  const firstWeekday = isoDateWithinCurrentWeek(0)
+  const secondWeekday = isoDateWithinCurrentWeek(1)
   return [
     {
       id: "seed-appt-1",
       patient_fhir_id: "fhir-pat-1",
       staff_id: "emp-1",
-      starts_at: `${today}T10:00:00Z`,
-      ends_at: `${today}T10:30:00Z`,
+      starts_at: `${firstWeekday}T10:00:00Z`,
+      ends_at: `${firstWeekday}T10:30:00Z`,
       status: "scheduled",
       reason: "Consulta cardiológica",
       version: 1,
-      created_at: `${today}T08:00:00Z`,
+      created_at: `${firstWeekday}T08:00:00Z`,
     },
     {
       id: "seed-appt-2",
       patient_fhir_id: "fhir-pat-2",
       staff_id: "emp-1",
-      starts_at: `${tomorrow}T14:00:00Z`,
-      ends_at: `${tomorrow}T14:30:00Z`,
+      starts_at: `${secondWeekday}T14:00:00Z`,
+      ends_at: `${secondWeekday}T14:30:00Z`,
       status: "confirmed",
       reason: "Retorno clínico",
       version: 1,
-      created_at: `${tomorrow}T08:00:00Z`,
+      created_at: `${secondWeekday}T08:00:00Z`,
     },
     {
       id: "seed-appt-cancelled",
       patient_fhir_id: "fhir-pat-2",
       staff_id: "emp-1",
-      starts_at: `${today}T15:00:00Z`,
-      ends_at: `${today}T15:30:00Z`,
+      starts_at: `${firstWeekday}T15:00:00Z`,
+      ends_at: `${firstWeekday}T15:30:00Z`,
       status: "cancelled",
       reason: "Cancelada pelo paciente",
       version: 2,
-      created_at: `${today}T08:00:00Z`,
+      created_at: `${firstWeekday}T08:00:00Z`,
     },
   ]
 }

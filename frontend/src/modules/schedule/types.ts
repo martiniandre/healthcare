@@ -21,9 +21,12 @@ export interface CreateAppointmentPayload {
   idempotency_key: string
 }
 
-export interface RescheduleAppointmentPayload {
+export interface UpdateAppointmentPayload {
+  patient_fhir_id: string
+  staff_id: string
   starts_at: string
   ends_at: string
+  reason?: string
 }
 
 export const AppointmentStatusLabel = {

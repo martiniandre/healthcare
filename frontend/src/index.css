@@ -338,3 +338,104 @@
   border-width: 1px;
   border-style: solid;
 }
+
+/* ==========================================================================
+   Schedule Calendar (FullCalendar) — Dark Mode
+   Mirrors the editorial light theme using the app's dark palette
+   ========================================================================== */
+.dark .schedule-calendar-container .fc {
+  --fc-border-color: var(--color-border);
+  --fc-today-bg-color: rgba(45, 212, 191, 0.08);
+  --sc-ink: #e2e8f0;
+  --sc-muted: #94a3b8;
+  --sc-primary: #3b82f6;
+  --sc-teal: #2dd4bf;
+}
+
+.dark .schedule-calendar-container .fc-toolbar-chunk:first-child .fc-button-group {
+  border-color: var(--color-border);
+  background: var(--color-surface);
+  box-shadow: 0 1px 2px rgba(2, 6, 23, 0.6);
+}
+
+.dark .schedule-calendar-container .fc-button:hover {
+  background: rgba(148, 163, 184, 0.12);
+}
+
+.dark .schedule-calendar-container .fc-button-primary:not(:disabled).fc-button-active,
+.dark .schedule-calendar-container .fc-button-primary:not(:disabled):active {
+  background: rgba(59, 130, 246, 0.16);
+}
+
+.dark .schedule-calendar-container .fc-today-button {
+  border-color: rgba(96, 165, 250, 0.35) !important;
+  background: rgba(59, 130, 246, 0.14) !important;
+}
+
+.dark .schedule-calendar-container .fc-today-button:hover {
+  background: rgba(59, 130, 246, 0.26) !important;
+}
+
+.dark .schedule-calendar-container .fc-today-button:disabled {
+  background: var(--color-surface) !important;
+  color: #475569 !important;
+  border-color: var(--color-border) !important;
+}
+
+.dark .schedule-calendar-container .fc-scrollgrid {
+  border-color: var(--color-border);
+  background: var(--color-surface);
+  box-shadow: 0 1px 2px rgba(2, 6, 23, 0.5) inset;
+}
+
+.dark .schedule-calendar-container .fc-scrollgrid-section > td {
+  border-color: var(--color-border);
+}
+
+.dark .schedule-calendar-container .fc-col-header {
+  background: var(--color-card);
+}
+
+.dark .schedule-calendar-container .fc-col-header-cell {
+  border-color: var(--color-border) !important;
+}
+
+.dark .schedule-calendar-container .fc-daygrid-day {
+  border-color: var(--color-border) !important;
+}
+
+.dark .schedule-calendar-container .fc-daygrid-day-number {
+  color: #b6c2d6;
+}
+
+.dark .schedule-calendar-container .fc-daygrid-day:hover .fc-daygrid-day-number:not(.fc-day-today .fc-daygrid-day-number) {
+  background: rgba(148, 163, 184, 0.15);
+}
+
+.dark .schedule-calendar-container .fc-day-today {
+  background: rgba(45, 212, 191, 0.08) !important;
+}
+
+.dark .schedule-calendar-container .fc-day-today .fc-daygrid-day-number {
+  color: #022c22;
+}
+
+.dark .schedule-calendar-container .fc-day-other {
+  background: var(--color-background);
+}
+
+.dark .schedule-calendar-container .fc-day-other .fc-daygrid-day-number {
+  color: #334155;
+}
+
+.dark .schedule-calendar-container .fc-daygrid-event:hover {
+  box-shadow: 0 8px 16px -10px rgba(0, 0, 0, 0.7);
+}
+
+.dark .schedule-calendar-container .fc-daygrid-more-link:hover {
+  color: #93c5fd;
+}
+
+.dark .schedule-calendar-container .fc-timegrid {
+  background: var(--color-surface);
+}

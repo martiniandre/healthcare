@@ -71,14 +71,17 @@ describe("scheduleApi", () => {
     expect(http.post).toHaveBeenCalledWith("/appointments/appointment-1/cancel")
   })
 
-  it("should reschedule an appointment", async () => {
+  it("should update an appointment with the given payload", async () => {
     vi.mocked(http.put).mockResolvedValue({ id: "appointment-1", status: "confirmed" })
     const payload = {
+      patient_fhir_id: "patient-1",
+      staff_id: "staff-1",
       starts_at: "2026-09-02T10:00:00Z",
       ends_at: "2026-09-02T10:30:00Z",
+      reason: "Retorno",
     }
 
-    await scheduleApi.rescheduleAppointment("appointment-1", payload)
+    await scheduleApi.updateAppointment("appointment-1", payload)
 
     expect(http.put).toHaveBeenCalledWith("/appointments/appointment-1", payload)
   })

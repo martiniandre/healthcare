@@ -1247,6 +1247,14 @@ export const mockScheduleAPI = async (
 
     const matchedAppointment = currentAppointments.find((appointment) => appointment.id === appointmentId)
     if (matchedAppointment) {
+      if (matchedAppointment.status === "cancelled" || matchedAppointment.status === "finished") {
+        await networkRoute.fulfill({
+          status: 400,
+          contentType: "application/json",
+          body: JSON.stringify({ error: "appointment cannot be updated in its current status" }),
+        })
+        return
+      }
       const newStart = new Date(submittedJSON.starts_at)
       const newEnd = new Date(submittedJSON.ends_at)
       const slotDurationMinutes = (newEnd.getTime() - newStart.getTime()) / 60000
@@ -1263,8 +1271,28 @@ export const mockScheduleAPI = async (
         return
       }
 
+      const conflictingAppointment = currentAppointments.find(
+        (appointment) =>
+          appointment.id !== appointmentId &&
+          appointment.staff_id === submittedJSON.staff_id &&
+          appointment.status !== "cancelled" &&
+          hasTimeOverlap(newStart, newEnd, new Date(appointment.starts_at as string), new Date(appointment.ends_at as string))
+      )
+
+      if (conflictingAppointment) {
+        await networkRoute.fulfill({
+          status: 409,
+          contentType: "application/json",
+          body: JSON.stringify({ error: "appointment time slot conflicts with an existing appointment" }),
+        })
+        return
+      }
+
+      matchedAppointment.patient_fhir_id = submittedJSON.patient_fhir_id
+      matchedAppointment.staff_id = submittedJSON.staff_id
       matchedAppointment.starts_at = submittedJSON.starts_at
       matchedAppointment.ends_at = submittedJSON.ends_at
+      matchedAppointment.reason = submittedJSON.reason ?? ""
       await networkRoute.fulfill({
         status: 200,
         contentType: "application/json",

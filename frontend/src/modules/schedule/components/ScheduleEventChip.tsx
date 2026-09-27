@@ -5,6 +5,7 @@ import type { Appointment } from "../types"
 interface ScheduleEventChipProps {
   appointment: Appointment
   staffColor: string
+  onClick?: () => void
 }
 
 const formatChipTime = (dateTimeValue: string): string => {
@@ -19,18 +20,19 @@ const tintedBackground = (hexColor: string, alpha: number): string => {
   return `rgba(${red}, ${green}, ${blue}, ${alpha})`
 }
 
-export const ScheduleEventChip = ({ appointment, staffColor }: ScheduleEventChipProps) => {
+export const ScheduleEventChip = ({ appointment, staffColor, onClick }: ScheduleEventChipProps) => {
   const { t } = useTranslation("schedule")
   const { data: patient } = usePatientQuery(appointment.patient_fhir_id)
   const patientLabel = patient?.full_name ?? t("cards.unknownPatient")
 
   return (
     <div
-      className="schedule-event-ticket flex items-center gap-1.5 rounded-md px-1.5 py-0.5 text-[11px] leading-tight"
+      className="schedule-event-ticket flex items-center gap-1.5 rounded-md px-1.5 py-0.5 text-[11px] leading-tight cursor-pointer"
       style={{
         backgroundColor: tintedBackground(staffColor, 0.12),
         borderColor: tintedBackground(staffColor, 0.28),
       }}
+      onClick={onClick}
     >
       <span className="shrink-0 w-1 self-stretch rounded-full" style={{ backgroundColor: staffColor }} />
       <span className="shrink-0 tabular-nums font-semibold opacity-80" style={{ color: staffColor }}>
