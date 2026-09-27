@@ -339,6 +339,18 @@
   border-style: solid;
 }
 
+/* Time axis — hour labels follow the editorial pattern used by the header row */
+.schedule-calendar-container .fc-timegrid-slot-label-cushion {
+  font-family: "Poppins", sans-serif;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1.2;
+  color: var(--sc-muted);
+  padding: 0.15rem 0.4rem 0;
+  text-align: left;
+}
+
 /* ==========================================================================
    Schedule Calendar (FullCalendar) — Dark Mode
    Mirrors the editorial light theme using the app's dark palette
