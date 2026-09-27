@@ -95,6 +95,9 @@
     "doctorConsultations": {
       "title": "Consultations by Doctor",
       "subtitle": "Consultation distribution over the last 30 days",
+      "peakLabel": "Peak",
+      "peakUnit": "{{count}} visits",
+      "consultationsUnit": "visits",
       "noDataTitle": "No data",
       "noDataDescription": "No per-doctor consultation data available for the period."
     },
@@ -104,23 +107,55 @@
       "label": "Occupancy",
       "occupied": "Occupied",
       "total": "Total",
-      "available": "Available"
+      "available": "Available",
+      "bedsShort": "Beds",
+      "gaugeLabel": "Bed occupancy {{rate}} percent, {{occupied}} of {{total}} beds",
+      "severity": {
+        "critical": "Critical",
+        "elevated": "Elevated",
+        "stable": "Stable"
+      },
+      "range": {
+        "critical": "85% or more",
+        "elevated": "65% to 84%",
+        "stable": "under 65%"
+      }
     },
     "topDiagnoses": {
       "title": "Top Diagnoses",
       "subtitle": "Most frequent ICD-10 codes in the last 30 days",
+      "rank": "#",
       "code": "Code",
       "description": "Description",
       "cases": "Cases",
       "proportion": "Proportion",
+      "codeCountLabel": "Catalog",
+      "codeCountUnit": "{{count}} codes",
       "noDataTitle": "No data",
       "noDataDescription": "No diagnoses recorded in the period."
     },
     "waitTime": {
       "title": "Wait Time by Department",
       "subtitle": "Average in minutes over the last 30 days",
+      "peakLabel": "Slowest",
+      "peakUnit": "{{minutes}} min",
+      "severity": {
+        "critical": "Critical",
+        "elevated": "Elevated",
+        "stable": "On target"
+      },
+      "range": {
+        "critical": "45 min or more",
+        "elevated": "25 to 44 min",
+        "stable": "under 25 min"
+      },
       "noDataTitle": "No data",
       "noDataDescription": "No wait time data available."
-    }
+    },
+    "unit": {
+      "minutes": "min"
+    },
+    "refresh": "Refresh dashboard",
+    "updatedAt": "Updated {{time}}"
   }
 }

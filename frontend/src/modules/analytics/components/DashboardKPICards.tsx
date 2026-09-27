@@ -1,6 +1,39 @@
+import { useMemo } from "react"
+import type { LucideIcon } from "lucide-react"
 import { useTranslation } from "react-i18next"
+import {
+  Activity,
+  ArrowDownRight,
+  ArrowUpRight,
+  CalendarDays,
+  Clock,
+  FileText,
+  Stethoscope,
+  Users,
+} from "lucide-react"
 import { Card } from "../../../shared/components/ui/Card"
-import { Users, Clock, Activity, ArrowUpRight, Stethoscope, FileText } from "lucide-react"
+import { cn } from "../../../shared/utils/cn"
+import {
+  resolveOccupancySeverity,
+  resolveWaitTimeSeverity,
+  toneClassNames,
+  type MetricTone,
+} from "../dashboard_thresholds"
+
+interface KpiMeta {
+  text: string
+  tone: string
+  icon?: LucideIcon
+}
+
+interface KpiDefinition {
+  label: string
+  value: string
+  unit?: string
+  icon: LucideIcon
+  tone: MetricTone
+  meta: KpiMeta
+}
 
 interface DashboardKPICardsProps {
   consultationsToday: number
@@ -23,90 +56,139 @@ export const DashboardKPICards = ({
 }: DashboardKPICardsProps) => {
   const { t } = useTranslation("analytics")
 
+  const occupancySeverity = resolveOccupancySeverity(occupancyRate)
+  const waitTimeSeverity = resolveWaitTimeSeverity(avgWaitTimeMinutes)
+
+  const kpiDefinitions = useMemo<KpiDefinition[]>(
+    () => [
+      {
+        label: t("dashboard.kpi.consultationsToday"),
+        value: String(consultationsToday),
+        icon: Stethoscope,
+        tone: "primary",
+        meta: {
+          text: consultationsTrend,
+          tone: "text-gray-700",
+          icon: consultationsTrend.trim().startsWith("-") ? ArrowDownRight : ArrowUpRight,
+        },
+      },
+      {
+        label: t("dashboard.kpi.occupancyRate"),
+        value: occupancyRate.toFixed(1),
+        unit: "%",
+        icon: Activity,
+        tone: occupancySeverity,
+        meta: {
+          text: t(`dashboard.occupancy.severity.${occupancySeverity}`),
+          tone: toneClassNames[occupancySeverity].text,
+        },
+      },
+      {
+        label: t("dashboard.kpi.avgWaitTime"),
+        value: avgWaitTimeMinutes.toFixed(0),
+        unit: t("dashboard.unit.minutes"),
+        icon: Clock,
+        tone: waitTimeSeverity,
+        meta: {
+          text: t(`dashboard.waitTime.severity.${waitTimeSeverity}`),
+          tone: toneClassNames[waitTimeSeverity].text,
+        },
+      },
+      {
+        label: t("dashboard.kpi.activePatients"),
+        value: String(activePatients),
+        icon: Users,
+        tone: "secondary",
+        meta: { text: t("dashboard.kpi.inCare"), tone: "text-muted-foreground", icon: Users },
+      },
+      {
+        label: t("dashboard.kpi.examsToday"),
+        value: String(examsToday),
+        icon: Activity,
+        tone: "primary",
+        meta: {
+          text: t("dashboard.kpi.performed"),
+          tone: "text-muted-foreground",
+          icon: Activity,
+        },
+      },
+      {
+        label: t("dashboard.kpi.newDiagnoses"),
+        value: String(newDiagnosesToday),
+        icon: FileText,
+        tone: "neutral",
+        meta: {
+          text: t("dashboard.kpi.last30Days"),
+          tone: "text-muted-foreground",
+          icon: CalendarDays,
+        },
+      },
+    ],
+    [
+      t,
+      consultationsToday,
+      consultationsTrend,
+      occupancyRate,
+      occupancySeverity,
+      avgWaitTimeMinutes,
+      waitTimeSeverity,
+      activePatients,
+      examsToday,
+      newDiagnosesToday,
+    ]
+  )
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-      <Card className="p-4 flex items-center justify-between border border-border">
-        <div className="text-left">
-          <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block">{t("dashboard.kpi.consultationsToday")}</span>
-          <span className="text-2xl font-black text-gray-900 mt-1 block">{consultationsToday}</span>
-          <span className="text-[10px] text-emerald-600 font-bold flex items-center gap-1 mt-1.5">
-            <ArrowUpRight className="w-3.5 h-3.5" />
-            {consultationsTrend}
-          </span>
-        </div>
-        <div className="bg-primary/8 p-3 rounded-xl">
-          <Stethoscope className="w-6 h-6 text-primary" />
-        </div>
-      </Card>
-
-      <Card className="p-4 flex flex-col items-start justify-between border border-border">
-        <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">{t("dashboard.kpi.occupancyRate")}</span>
-        <div className="w-full mt-2">
-          <span className="text-2xl font-black text-gray-900">{occupancyRate.toFixed(1)}%</span>
-          <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
-            <div
-              className="bg-primary rounded-full h-2 transition-all duration-500"
-              style={{ width: `${Math.min(occupancyRate, 100)}%` }}
-            />
-          </div>
-        </div>
-      </Card>
-
-      <Card className="p-4 flex items-center justify-between border border-border">
-        <div className="text-left">
-          <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block">{t("dashboard.kpi.avgWaitTime")}</span>
-          <span className="text-2xl font-black text-gray-900 mt-1 block">{avgWaitTimeMinutes.toFixed(0)} min</span>
-          <span className="text-[10px] text-amber-600 font-bold flex items-center gap-1 mt-1.5">
-            <Clock className="w-3.5 h-3.5" />
-            {t("dashboard.kpi.byDepartment")}
-          </span>
-        </div>
-        <div className="bg-amber-50 p-3 rounded-xl">
-          <Clock className="w-6 h-6 text-amber-500" />
-        </div>
-      </Card>
-
-      <Card className="p-4 flex items-center justify-between border border-border">
-        <div className="text-left">
-          <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block">{t("dashboard.kpi.activePatients")}</span>
-          <span className="text-2xl font-black text-gray-900 mt-1 block">{activePatients}</span>
-          <span className="text-[10px] text-emerald-600 font-bold flex items-center gap-1 mt-1.5">
-            <Users className="w-3.5 h-3.5" />
-            {t("dashboard.kpi.inCare")}
-          </span>
-        </div>
-        <div className="bg-emerald-50 p-3 rounded-xl">
-          <Users className="w-6 h-6 text-emerald-600" />
-        </div>
-      </Card>
-
-      <Card className="p-4 flex items-center justify-between border border-border">
-        <div className="text-left">
-          <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block">{t("dashboard.kpi.examsToday")}</span>
-          <span className="text-2xl font-black text-gray-900 mt-1 block">{examsToday}</span>
-          <span className="text-[10px] text-purple-600 font-bold flex items-center gap-1 mt-1.5">
-            <Activity className="w-3.5 h-3.5" />
-            {t("dashboard.kpi.performed")}
-          </span>
-        </div>
-        <div className="bg-purple-50 p-3 rounded-xl">
-          <Activity className="w-6 h-6 text-purple-600" />
-        </div>
-      </Card>
-
-      <Card className="p-4 flex items-center justify-between border border-border">
-        <div className="text-left">
-          <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block">{t("dashboard.kpi.newDiagnoses")}</span>
-          <span className="text-2xl font-black text-gray-900 mt-1 block">{newDiagnosesToday}</span>
-          <span className="text-[10px] text-sky-600 font-bold flex items-center gap-1 mt-1.5">
-            <FileText className="w-3.5 h-3.5" />
-            {t("dashboard.kpi.last30Days")}
-          </span>
-        </div>
-        <div className="bg-sky-50 p-3 rounded-xl">
-          <FileText className="w-6 h-6 text-sky-600" />
-        </div>
-      </Card>
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6 lg:gap-4">
+      {kpiDefinitions.map((kpiDefinition) => (
+        <KpiCard key={kpiDefinition.label} definition={kpiDefinition} />
+      ))}
     </div>
+  )
+}
+
+interface KpiCardProps {
+  definition: KpiDefinition
+}
+
+const KpiCard = ({ definition }: KpiCardProps) => {
+  const { label, value, unit, icon: Icon, tone, meta } = definition
+  const toneClassName = toneClassNames[tone]
+  const MetaIcon = meta.icon
+
+  return (
+    <Card className="relative flex flex-col gap-3 overflow-hidden p-4">
+      <span
+        className={cn("absolute inset-x-0 bottom-0 h-[3px]", toneClassName.bar)}
+        aria-hidden="true"
+      />
+
+      <div className="flex items-start justify-between gap-2">
+        <span className="text-[11px] font-bold uppercase leading-tight tracking-wider text-muted-foreground">
+          {label}
+        </span>
+        <span
+          className={cn("grid size-8 shrink-0 place-items-center rounded-lg", toneClassName.surface)}
+        >
+          <Icon className={cn("size-4", toneClassName.text)} aria-hidden="true" />
+        </span>
+      </div>
+
+      <div className="flex items-baseline gap-1.5">
+        <span className="text-3xl font-black leading-none tracking-tight tabular-nums text-gray-900">
+          {value}
+        </span>
+        {unit ? (
+          <span className="text-xs font-bold text-muted-foreground">{unit}</span>
+        ) : null}
+      </div>
+
+      <div className="mt-auto flex h-4 items-center">
+        <span className={cn("flex items-center gap-1 text-[11px] font-bold", meta.tone)}>
+          {MetaIcon ? <MetaIcon className="size-3 shrink-0" aria-hidden="true" /> : null}
+          <span className="truncate">{meta.text}</span>
+        </span>
+      </div>
+    </Card>
   )
 }

@@ -95,6 +95,9 @@
     "doctorConsultations": {
       "title": "Consultas por Médico",
       "subtitle": "Distribución de consultas en los últimos 30 días",
+      "peakLabel": "Pico",
+      "peakUnit": "{{count}} consultas",
+      "consultationsUnit": "consultas",
       "noDataTitle": "Sin datos",
       "noDataDescription": "No hay datos de consultas por médico disponibles para el período."
     },
@@ -104,23 +107,55 @@
       "label": "Ocupación",
       "occupied": "Ocupadas",
       "total": "Totales",
-      "available": "Disponibles"
+      "available": "Disponibles",
+      "bedsShort": "Camas",
+      "gaugeLabel": "Ocupación de camas del {{rate}} por ciento, {{occupied}} de {{total}} camas",
+      "severity": {
+        "critical": "Crítico",
+        "elevated": "Elevado",
+        "stable": "Estable"
+      },
+      "range": {
+        "critical": "85% o más",
+        "elevated": "65% a 84%",
+        "stable": "menos de 65%"
+      }
     },
     "topDiagnoses": {
       "title": "Principales Diagnósticos",
       "subtitle": "Códigos CIE-10 más frecuentes en los últimos 30 días",
+      "rank": "#",
       "code": "Código",
       "description": "Descripción",
       "cases": "Casos",
       "proportion": "Proporción",
+      "codeCountLabel": "Catálogo",
+      "codeCountUnit": "{{count}} códigos",
       "noDataTitle": "Sin datos",
       "noDataDescription": "No se registraron diagnósticos en el período."
     },
     "waitTime": {
       "title": "Tiempo de Espera por Departamento",
       "subtitle": "Promedio en minutos en los últimos 30 días",
+      "peakLabel": "Más lento",
+      "peakUnit": "{{minutes}} min",
+      "severity": {
+        "critical": "Crítico",
+        "elevated": "Elevado",
+        "stable": "En objetivo"
+      },
+      "range": {
+        "critical": "45 min o más",
+        "elevated": "25 a 44 min",
+        "stable": "menos de 25 min"
+      },
       "noDataTitle": "Sin datos",
       "noDataDescription": "No hay datos de tiempo de espera disponibles."
-    }
+    },
+    "unit": {
+      "minutes": "min"
+    },
+    "refresh": "Actualizar dashboard",
+    "updatedAt": "Actualizado a las {{time}}"
   }
 }
