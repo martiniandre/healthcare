@@ -5,6 +5,8 @@
   "searchPlaceholder": "Search by name, email or specialty...",
   "filterAll": "All",
   "loading": "Loading clinical staff...",
+  "requiredHint": "All fields are required",
+  "emptyState": "No professional matches the current filters.",
   "table": {
     "professional": "Professional",
     "role": "Role / Category",
@@ -13,7 +15,19 @@
     "contact": "Contact",
     "status": "Duty Status",
     "onDuty": "On Duty",
-    "offDuty": "Off Duty"
+    "offDuty": "Off Duty",
+    "actions": "Actions",
+    "active": "Active",
+    "inactive": "Inactive",
+    "enable": "Enable access",
+    "disable": "Disable access",
+    "delete": "Delete professional",
+    "roles": {
+      "doctor": "doctor",
+      "nurse": "nurse",
+      "receptionist": "reception",
+      "admin": "administration"
+    }
   },
   "modal": {
     "title": "Register New Professional",
@@ -25,13 +39,37 @@
     "email": "Corporate E-mail",
     "emailPlaceholder": "Ex: name@hospital.com",
     "department": "Department",
-    "departmentPlaceholder": "Ex: Cardiology",
+    "departmentPlaceholder": "Select the department",
     "cancel": "Cancel",
     "confirm": "Save Registration"
+  },
+  "deleteModal": {
+    "title": "Delete professional",
+    "description": "The professional will be deactivated and lose operational access. The record is preserved for auditing.",
+    "confirm": "Delete",
+    "back": "Back"
+  },
+  "validation": {
+    "nameMinLength": "The name must be at least 3 characters long",
+    "nameMaxLength": "The name must be at most 255 characters long",
+    "roleRequired": "Select a valid category",
+    "licenseRequired": "Enter the professional license",
+    "licenseFormat": "Invalid format. Ex: CRM-SP 12345",
+    "licenseMaxLength": "The license must be at most 50 characters long",
+    "emailRequired": "Enter the corporate e-mail",
+    "emailInvalid": "Invalid e-mail",
+    "emailMaxLength": "The e-mail must be at most 255 characters long",
+    "departmentRequired": "Select a department"
   },
   "toast": {
     "createSuccess": "Health professional successfully registered!",
     "createError": "Failed to register health professional.",
-    "sessionError": "Session expired. Sign in again to register professionals."
+    "sessionError": "Session expired. Sign in again to register professionals.",
+    "activateSuccess": "Professional access activated.",
+    "activateError": "Failed to activate the professional access.",
+    "deactivateSuccess": "Professional access deactivated.",
+    "deactivateError": "Failed to deactivate the professional access.",
+    "deleteSuccess": "Professional removed from the clinical staff.",
+    "deleteError": "Failed to delete the professional."
   }
 }

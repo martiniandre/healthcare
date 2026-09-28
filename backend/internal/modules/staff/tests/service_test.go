@@ -16,14 +16,16 @@ import (
 
 func TestCreateEmployee_ValidInput_CreatesEmployee(testingInstance *testing.T) {
 	mockRepository := mocks.NewMockStaffRepository()
+	department := mockRepository.SeedDepartment("Cardiologia")
 	staffService := staff.NewService(mockRepository, nil)
 
 	input := staff.CreateEmployeeInput{
-		CreatedBy: uuid.New().String(),
-		FullName:  "Dr. João Silva",
-		Email:     "joao@clinic.com",
-		Role:      string(role.RoleDoctor),
-		CRMNumber: "CRM-12345",
+		CreatedBy:    uuid.New().String(),
+		FullName:     "Dr. João Silva",
+		Email:        "joao@clinic.com",
+		Role:         string(role.RoleDoctor),
+		CRMNumber:    "CRM-12345",
+		DepartmentID: department.ID.String(),
 	}
 
 	employee, err := staffService.CreateEmployee(context.Background(), input)
@@ -34,10 +36,16 @@ func TestCreateEmployee_ValidInput_CreatesEmployee(testingInstance *testing.T) {
 	assert.Equal(testingInstance, role.RoleDoctor, employee.Role)
 	require.NotNil(testingInstance, employee.CRMNumber)
 	assert.Equal(testingInstance, "CRM-12345", *employee.CRMNumber)
+	assert.Equal(testingInstance, department.ID, employee.DepartmentID)
+	assert.Equal(testingInstance, "Cardiologia", employee.DepartmentName)
 	assert.True(testingInstance, employee.IsActive)
 }
 
 func TestCreateEmployee_MissingFields_ReturnsErrorAndDoesNotCallRepository(testingInstance *testing.T) {
+	mockRepository := mocks.NewMockStaffRepository()
+	department := mockRepository.SeedDepartment("Clínica Geral")
+	departmentID := department.ID.String()
+
 	testCases := []struct {
 		name             string
 		input            staff.CreateEmployeeInput
@@ -46,59 +54,103 @@ func TestCreateEmployee_MissingFields_ReturnsErrorAndDoesNotCallRepository(testi
 		{
 			name: "invalid created by",
 			input: staff.CreateEmployeeInput{
-				CreatedBy: "not-a-uuid",
-				FullName:  "Dr. João Silva",
-				Email:     "joao@clinic.com",
-				Role:      string(role.RoleDoctor),
+				CreatedBy:    "not-a-uuid",
+				FullName:     "Dr. João Silva",
+				Email:        "joao@clinic.com",
+				Role:         string(role.RoleDoctor),
+				CRMNumber:    "CRM-12345",
+				DepartmentID: departmentID,
 			},
 			expectedFieldKey: "created_by",
 		},
 		{
 			name: "missing full name",
 			input: staff.CreateEmployeeInput{
-				CreatedBy: uuid.New().String(),
-				Email:     "joao@clinic.com",
-				Role:      string(role.RoleDoctor),
+				CreatedBy:    uuid.New().String(),
+				Email:        "joao@clinic.com",
+				Role:         string(role.RoleDoctor),
+				CRMNumber:    "CRM-12345",
+				DepartmentID: departmentID,
 			},
 			expectedFieldKey: "full_name",
 		},
 		{
 			name: "invalid email",
 			input: staff.CreateEmployeeInput{
-				CreatedBy: uuid.New().String(),
-				FullName:  "Dr. João Silva",
-				Email:     "not-an-email",
-				Role:      string(role.RoleDoctor),
+				CreatedBy:    uuid.New().String(),
+				FullName:     "Dr. João Silva",
+				Email:        "not-an-email",
+				Role:         string(role.RoleDoctor),
+				CRMNumber:    "CRM-12345",
+				DepartmentID: departmentID,
 			},
 			expectedFieldKey: "email",
 		},
 		{
 			name: "invalid role",
 			input: staff.CreateEmployeeInput{
-				CreatedBy: uuid.New().String(),
-				FullName:  "Dr. João Silva",
-				Email:     "joao@clinic.com",
-				Role:      "invalid-role",
+				CreatedBy:    uuid.New().String(),
+				FullName:     "Dr. João Silva",
+				Email:        "joao@clinic.com",
+				Role:         "invalid-role",
+				CRMNumber:    "CRM-12345",
+				DepartmentID: departmentID,
 			},
 			expectedFieldKey: "role",
 		},
 		{
+			name: "missing crm number",
+			input: staff.CreateEmployeeInput{
+				CreatedBy:    uuid.New().String(),
+				FullName:     "Dr. João Silva",
+				Email:        "joao@clinic.com",
+				Role:         string(role.RoleDoctor),
+				DepartmentID: departmentID,
+			},
+			expectedFieldKey: "crm_number",
+		},
+		{
 			name: "invalid crm number",
+			input: staff.CreateEmployeeInput{
+				CreatedBy:    uuid.New().String(),
+				FullName:     "Dr. João Silva",
+				Email:        "joao@clinic.com",
+				Role:         string(role.RoleDoctor),
+				CRMNumber:    "invalid-crm",
+				DepartmentID: departmentID,
+			},
+			expectedFieldKey: "crm_number",
+		},
+		{
+			name: "missing department",
 			input: staff.CreateEmployeeInput{
 				CreatedBy: uuid.New().String(),
 				FullName:  "Dr. João Silva",
 				Email:     "joao@clinic.com",
 				Role:      string(role.RoleDoctor),
-				CRMNumber: "invalid-crm",
+				CRMNumber: "CRM-12345",
 			},
-			expectedFieldKey: "crm_number",
+			expectedFieldKey: "department_id",
+		},
+		{
+			name: "invalid department",
+			input: staff.CreateEmployeeInput{
+				CreatedBy:    uuid.New().String(),
+				FullName:     "Dr. João Silva",
+				Email:        "joao@clinic.com",
+				Role:         string(role.RoleDoctor),
+				CRMNumber:    "CRM-12345",
+				DepartmentID: "not-a-uuid",
+			},
+			expectedFieldKey: "department_id",
 		},
 	}
 
 	for _, testCase := range testCases {
 		testingInstance.Run(testCase.name, func(subTest *testing.T) {
-			mockRepository := mocks.NewMockStaffRepository()
-			staffService := staff.NewService(mockRepository, nil)
+			isolatedRepository := mocks.NewMockStaffRepository()
+			isolatedRepository.SeedDepartment("Clínica Geral")
+			staffService := staff.NewService(isolatedRepository, nil)
 
 			result, err := staffService.CreateEmployee(context.Background(), testCase.input)
 
@@ -111,17 +163,39 @@ func TestCreateEmployee_MissingFields_ReturnsErrorAndDoesNotCallRepository(testi
 	}
 }
 
+func TestCreateEmployee_UnknownDepartment_ReturnsError(testingInstance *testing.T) {
+	mockRepository := mocks.NewMockStaffRepository()
+	staffService := staff.NewService(mockRepository, nil)
+
+	result, err := staffService.CreateEmployee(context.Background(), staff.CreateEmployeeInput{
+		CreatedBy:    uuid.New().String(),
+		FullName:     "Dr. João Silva",
+		Email:        "joao@clinic.com",
+		Role:         string(role.RoleDoctor),
+		CRMNumber:    "CRM-12345",
+		DepartmentID: uuid.New().String(),
+	})
+
+	assert.Nil(testingInstance, result)
+	var appError apperrors.AppError
+	require.True(testingInstance, errors.As(err, &appError))
+	assert.Contains(testingInstance, appError.Message, "department_id")
+}
+
 func TestCreateEmployee_RepositoryFailure_ReturnsError(testingInstance *testing.T) {
 	expectedErr := errors.New("database unavailable")
 	mockRepository := mocks.NewMockStaffRepository()
+	department := mockRepository.SeedDepartment("Pediatria")
 	mockRepository.Err = expectedErr
 	staffService := staff.NewService(mockRepository, nil)
 
 	input := staff.CreateEmployeeInput{
-		CreatedBy: uuid.New().String(),
-		FullName:  "Dr. João Silva",
-		Email:     "joao@clinic.com",
-		Role:      string(role.RoleDoctor),
+		CreatedBy:    uuid.New().String(),
+		FullName:     "Dr. João Silva",
+		Email:        "joao@clinic.com",
+		Role:         string(role.RoleDoctor),
+		CRMNumber:    "CRM-12345",
+		DepartmentID: department.ID.String(),
 	}
 
 	result, err := staffService.CreateEmployee(context.Background(), input)
@@ -132,13 +206,16 @@ func TestCreateEmployee_RepositoryFailure_ReturnsError(testingInstance *testing.
 
 func TestGetEmployee_ReturnsEmployee(testingInstance *testing.T) {
 	mockRepository := mocks.NewMockStaffRepository()
+	department := mockRepository.SeedDepartment("Neurologia")
 	staffService := staff.NewService(mockRepository, nil)
 
 	createdEmployee, _ := staffService.CreateEmployee(context.Background(), staff.CreateEmployeeInput{
-		CreatedBy: uuid.New().String(),
-		FullName:  "Enf. Maria Costa",
-		Email:     "maria@clinic.com",
-		Role:      string(role.RoleNurse),
+		CreatedBy:    uuid.New().String(),
+		FullName:     "Enf. Maria Costa",
+		Email:        "maria@clinic.com",
+		Role:         string(role.RoleNurse),
+		CRMNumber:    "COREN-12345",
+		DepartmentID: department.ID.String(),
 	})
 
 	foundEmployee, err := staffService.GetEmployee(context.Background(), createdEmployee.ID)
@@ -158,54 +235,185 @@ func TestGetEmployee_NotFound_ReturnsAppError(testingInstance *testing.T) {
 	assert.Equal(testingInstance, "employee not found", appError.Message)
 }
 
-func TestDeactivateEmployee(testingInstance *testing.T) {
+func TestSetEmployeeActive_TogglesStatusBothWays(testingInstance *testing.T) {
 	mockRepository := mocks.NewMockStaffRepository()
+	department := mockRepository.SeedDepartment("Ortopedia")
 	staffService := staff.NewService(mockRepository, nil)
+	contextParam := context.Background()
 
-	createdEmployee, _ := staffService.CreateEmployee(context.Background(), staff.CreateEmployeeInput{
-		CreatedBy: uuid.New().String(),
-		FullName:  "Recep. Ana Lima",
-		Email:     "ana@clinic.com",
-		Role:      string(role.RoleReception),
+	createdEmployee, _ := staffService.CreateEmployee(contextParam, staff.CreateEmployeeInput{
+		CreatedBy:    uuid.New().String(),
+		FullName:     "Recep. Ana Lima",
+		Email:        "ana@clinic.com",
+		Role:         string(role.RoleReception),
+		CRMNumber:    "CRM-00001",
+		DepartmentID: department.ID.String(),
 	})
 
-	err := staffService.DeactivateEmployee(context.Background(), createdEmployee.ID)
-	assert.NoError(testingInstance, err)
+	disabledEmployee, errDisable := staffService.SetEmployeeActive(contextParam, staff.SetEmployeeActiveInput{
+		EmployeeID: createdEmployee.ID.String(),
+		IsActive:   false,
+	})
+	assert.NoError(testingInstance, errDisable)
+	assert.False(testingInstance, disabledEmployee.IsActive)
+
+	enabledEmployee, errEnable := staffService.SetEmployeeActive(contextParam, staff.SetEmployeeActiveInput{
+		EmployeeID: createdEmployee.ID.String(),
+		IsActive:   true,
+	})
+	assert.NoError(testingInstance, errEnable)
+	assert.True(testingInstance, enabledEmployee.IsActive)
 }
 
-func TestDeactivateEmployee_NotFound_ReturnsAppError(testingInstance *testing.T) {
+func TestSetEmployeeActive_InvalidIdentifier_ReturnsAppError(testingInstance *testing.T) {
 	mockRepository := mocks.NewMockStaffRepository()
 	staffService := staff.NewService(mockRepository, nil)
 
-	errNotFound := staffService.DeactivateEmployee(context.Background(), uuid.New())
+	employee, errInvalid := staffService.SetEmployeeActive(context.Background(), staff.SetEmployeeActiveInput{
+		EmployeeID: "not-a-uuid",
+		IsActive:   false,
+	})
 
+	assert.Nil(testingInstance, employee)
+	var appError apperrors.AppError
+	require.True(testingInstance, errors.As(errInvalid, &appError))
+	assert.Contains(testingInstance, appError.Message, "employee_id")
+}
+
+func TestSetEmployeeActive_NotFound_ReturnsAppError(testingInstance *testing.T) {
+	mockRepository := mocks.NewMockStaffRepository()
+	staffService := staff.NewService(mockRepository, nil)
+
+	employee, errNotFound := staffService.SetEmployeeActive(context.Background(), staff.SetEmployeeActiveInput{
+		EmployeeID: uuid.New().String(),
+		IsActive:   false,
+	})
+
+	assert.Nil(testingInstance, employee)
 	var appError apperrors.AppError
 	require.True(testingInstance, errors.As(errNotFound, &appError))
 	assert.Equal(testingInstance, "employee not found", appError.Message)
 }
 
-func TestListEmployees_ReturnsActiveEmployees(testingInstance *testing.T) {
+func TestListDepartments_ReturnsCatalog(testingInstance *testing.T) {
 	mockRepository := mocks.NewMockStaffRepository()
+	mockRepository.SeedDepartment("Clínica Geral")
+	mockRepository.SeedDepartment("Cardiologia")
+	staffService := staff.NewService(mockRepository, nil)
+
+	departments, err := staffService.ListDepartments(context.Background())
+
+	assert.NoError(testingInstance, err)
+	assert.Len(testingInstance, departments, 2)
+}
+
+func TestListDepartments_RepositoryFailure_ReturnsError(testingInstance *testing.T) {
+	expectedErr := errors.New("database unavailable")
+	mockRepository := mocks.NewMockStaffRepository()
+	mockRepository.Err = expectedErr
+	staffService := staff.NewService(mockRepository, nil)
+
+	departments, err := staffService.ListDepartments(context.Background())
+
+	assert.Nil(testingInstance, departments)
+	assert.ErrorIs(testingInstance, err, expectedErr)
+}
+
+func TestGetDepartment_ReturnsDepartment(testingInstance *testing.T) {
+	mockRepository := mocks.NewMockStaffRepository()
+	department := mockRepository.SeedDepartment("Dermatologia")
+	staffService := staff.NewService(mockRepository, nil)
+
+	foundDepartment, err := staffService.GetDepartment(context.Background(), department.ID)
+
+	assert.NoError(testingInstance, err)
+	assert.Equal(testingInstance, "Dermatologia", foundDepartment.Name)
+}
+
+func TestGetDepartment_NotFound_ReturnsAppError(testingInstance *testing.T) {
+	mockRepository := mocks.NewMockStaffRepository()
+	staffService := staff.NewService(mockRepository, nil)
+
+	_, errNotFound := staffService.GetDepartment(context.Background(), uuid.New())
+
+	var appError apperrors.AppError
+	require.True(testingInstance, errors.As(errNotFound, &appError))
+	assert.Equal(testingInstance, "department not found", appError.Message)
+}
+
+func TestGetDefaultDepartmentID_ReturnsFirstActiveDepartmentBySortOrder(testingInstance *testing.T) {
+	mockRepository := mocks.NewMockStaffRepository()
+	neurology := mockRepository.SeedDepartment("Neurologia")
+	generalPractice := mockRepository.SeedDepartment("Clínica Geral")
+	cardiology := mockRepository.SeedDepartment("Cardiologia")
+	mockRepository.Departments[neurology.ID].IsActive = false
+	staffService := staff.NewService(mockRepository, nil)
+
+	departmentID, err := staffService.GetDefaultDepartmentID(context.Background())
+
+	require.NoError(testingInstance, err)
+	assert.Equal(testingInstance, generalPractice.ID, departmentID)
+	assert.NotEqual(testingInstance, cardiology.ID, departmentID)
+}
+
+func TestGetDefaultDepartmentID_NoActiveDepartment_ReturnsAppError(testingInstance *testing.T) {
+	mockRepository := mocks.NewMockStaffRepository()
+	department := mockRepository.SeedDepartment("Clínica Geral")
+	mockRepository.Departments[department.ID].IsActive = false
+	staffService := staff.NewService(mockRepository, nil)
+
+	result, errNotFound := staffService.GetDefaultDepartmentID(context.Background())
+
+	assert.Equal(testingInstance, uuid.Nil, result)
+	var appError apperrors.AppError
+	require.True(testingInstance, errors.As(errNotFound, &appError))
+	assert.Equal(testingInstance, "department not found", appError.Message)
+}
+
+func TestGetDefaultDepartmentID_RepositoryFailure_ReturnsError(testingInstance *testing.T) {
+	expectedErr := errors.New("database unavailable")
+	mockRepository := mocks.NewMockStaffRepository()
+	mockRepository.Err = expectedErr
+	staffService := staff.NewService(mockRepository, nil)
+
+	result, err := staffService.GetDefaultDepartmentID(context.Background())
+
+	assert.Equal(testingInstance, uuid.Nil, result)
+	assert.ErrorIs(testingInstance, err, expectedErr)
+}
+
+func TestListEmployees_IncludesInactiveEmployees(testingInstance *testing.T) {
+	mockRepository := mocks.NewMockStaffRepository()
+	department := mockRepository.SeedDepartment("Urologia")
 	staffService := staff.NewService(mockRepository, nil)
 	contextParam := context.Background()
 
-	staffService.CreateEmployee(contextParam, staff.CreateEmployeeInput{
-		CreatedBy: uuid.New().String(),
-		FullName:  "Dr. A",
-		Email:     "a@clinic.com",
-		Role:      string(role.RoleDoctor),
-		CRMNumber: "CRM-1",
+	firstEmployee, _ := staffService.CreateEmployee(contextParam, staff.CreateEmployeeInput{
+		CreatedBy:    uuid.New().String(),
+		FullName:     "Dr. A",
+		Email:        "a@clinic.com",
+		Role:         string(role.RoleDoctor),
+		CRMNumber:    "CRM-1",
+		DepartmentID: department.ID.String(),
 	})
-	staffService.CreateEmployee(contextParam, staff.CreateEmployeeInput{
-		CreatedBy: uuid.New().String(),
-		FullName:  "Dr. B",
-		Email:     "b@clinic.com",
-		Role:      string(role.RoleDoctor),
-		CRMNumber: "CRM-2",
+	secondEmployee, _ := staffService.CreateEmployee(contextParam, staff.CreateEmployeeInput{
+		CreatedBy:    uuid.New().String(),
+		FullName:     "Dr. B",
+		Email:        "b@clinic.com",
+		Role:         string(role.RoleDoctor),
+		CRMNumber:    "CRM-2",
+		DepartmentID: department.ID.String(),
 	})
+
+	_, disableErr := staffService.SetEmployeeActive(contextParam, staff.SetEmployeeActiveInput{
+		EmployeeID: secondEmployee.ID.String(),
+		IsActive:   false,
+	})
+	assert.NoError(testingInstance, disableErr)
 
 	employees, err := staffService.ListEmployees(contextParam, "", "")
 
 	assert.NoError(testingInstance, err)
 	assert.Len(testingInstance, employees, 2)
+	assert.Equal(testingInstance, firstEmployee.ID, employees[0].ID)
 }

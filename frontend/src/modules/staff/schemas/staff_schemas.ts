@@ -2,24 +2,26 @@ import * as z from "zod"
 import { StaffRole } from "../../../shared/types"
 
 export const staffFormSchema = z.object({
-  fullName: z.string().min(3, "O nome deve ter no mínimo 3 caracteres").max(255),
+  fullName: z.string().trim().min(3, "validation.nameMinLength").max(255, "validation.nameMaxLength"),
   role: z.nativeEnum(StaffRole, {
-    message: "Selecione uma categoria válida",
+    error: "validation.roleRequired",
   }),
   license: z
     .string()
-    .optional()
+    .trim()
+    .min(1, "validation.licenseRequired")
+    .max(50, "validation.licenseMaxLength")
     .refine(
-      (value) => {
-        if (!value || value.trim() === "") {
-          return true
-        }
-        return /^(CRM|COREN)(-[A-Z]{2})?[\s-]?\d{1,6}$/i.test(value.trim())
-      },
-      "Formato inválido. Ex: CRM-SP 12345"
+      (value) => /^(CRM|COREN)(-[A-Z]{2})?[\s-]?\d{1,6}$/i.test(value),
+      "validation.licenseFormat"
     ),
-  email: z.string().email("E-mail inválido").max(255),
-  department: z.string().max(100).optional(),
+  email: z
+    .string()
+    .trim()
+    .min(1, "validation.emailRequired")
+    .email("validation.emailInvalid")
+    .max(255, "validation.emailMaxLength"),
+  departmentId: z.string().trim().min(1, "validation.departmentRequired"),
 })
 
 export type StaffFormData = z.infer<typeof staffFormSchema>

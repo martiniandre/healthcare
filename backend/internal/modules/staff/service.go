@@ -3,6 +3,7 @@ package staff
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -19,7 +20,10 @@ type Service interface {
 	CreateEmployee(ctx context.Context, input CreateEmployeeInput) (*Employee, error)
 	GetEmployee(ctx context.Context, employeeID uuid.UUID) (*Employee, error)
 	ListEmployees(ctx context.Context, search string, role string) ([]*Employee, error)
-	DeactivateEmployee(ctx context.Context, employeeID uuid.UUID) error
+	SetEmployeeActive(ctx context.Context, input SetEmployeeActiveInput) (*Employee, error)
+	GetDepartment(ctx context.Context, departmentID uuid.UUID) (*Department, error)
+	GetDefaultDepartmentID(ctx context.Context) (uuid.UUID, error)
+	ListDepartments(ctx context.Context) ([]*Department, error)
 }
 
 type service struct {
@@ -38,16 +42,28 @@ func (staffService *service) CreateEmployee(ctx context.Context, input CreateEmp
 
 	parsedRole, _ := role.ParseRole(input.Role)
 	parsedCreatedBy, _ := uuid.Parse(input.CreatedBy)
+	parsedDepartmentID, _ := uuid.Parse(input.DepartmentID)
+
+	department, departmentErr := staffService.repo.GetDepartmentByID(ctx, parsedDepartmentID)
+	if departmentErr != nil {
+		if errors.Is(departmentErr, apperrors.ErrDepartmentNotFound) {
+			return nil, apperrors.InvalidArgument("invalid employee input", map[string]string{"department_id": "unknown department"})
+		}
+		return nil, departmentErr
+	}
+
 	employee := &Employee{
-		ID:        uuid.New(),
-		FullName:  input.FullName,
-		Email:     input.Email,
-		Role:      parsedRole,
-		CRMNumber: nil,
-		CreatedBy: &parsedCreatedBy,
-		IsActive:  true,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
+		ID:             uuid.New(),
+		FullName:       input.FullName,
+		Email:          input.Email,
+		Role:           parsedRole,
+		CRMNumber:      nil,
+		DepartmentID:   parsedDepartmentID,
+		DepartmentName: department.Name,
+		CreatedBy:      &parsedCreatedBy,
+		IsActive:       true,
+		CreatedAt:      time.Now(),
+		UpdatedAt:      time.Now(),
 	}
 	if input.CRMNumber != "" {
 		employee.CRMNumber = &input.CRMNumber
@@ -90,12 +106,44 @@ func (staffService *service) ListEmployees(ctx context.Context, search string, r
 	return staffService.repo.ListEmployees(ctx, search, role)
 }
 
-func (staffService *service) DeactivateEmployee(ctx context.Context, employeeID uuid.UUID) error {
-	_, err := staffService.repo.GetEmployeeByID(ctx, employeeID)
-	if err != nil {
-		return err
+func (staffService *service) SetEmployeeActive(ctx context.Context, input SetEmployeeActiveInput) (*Employee, error) {
+	employeeID, parseErr := uuid.Parse(input.EmployeeID)
+	if parseErr != nil {
+		return nil, apperrors.InvalidArgument("invalid employee reference", map[string]string{"employee_id": "invalid UUID format"})
 	}
-	return staffService.repo.DeactivateEmployee(ctx, employeeID)
+
+	employee, findErr := staffService.repo.GetEmployeeByID(ctx, employeeID)
+	if findErr != nil {
+		return nil, findErr
+	}
+
+	if employee.IsActive == input.IsActive {
+		return employee, nil
+	}
+
+	if updateErr := staffService.repo.SetEmployeeActive(ctx, employee.ID, input.IsActive); updateErr != nil {
+		return nil, updateErr
+	}
+
+	employee.IsActive = input.IsActive
+	employee.UpdatedAt = time.Now()
+	return employee, nil
+}
+
+func (staffService *service) GetDepartment(ctx context.Context, departmentID uuid.UUID) (*Department, error) {
+	return staffService.repo.GetDepartmentByID(ctx, departmentID)
+}
+
+func (staffService *service) ListDepartments(ctx context.Context) ([]*Department, error) {
+	return staffService.repo.ListDepartments(ctx)
+}
+
+func (staffService *service) GetDefaultDepartmentID(ctx context.Context) (uuid.UUID, error) {
+	department, findErr := staffService.repo.GetDefaultDepartment(ctx)
+	if findErr != nil {
+		return uuid.Nil, findErr
+	}
+	return department.ID, nil
 }
 
 func validateEmployeeFields(input CreateEmployeeInput) map[string]string {
@@ -114,8 +162,15 @@ func validateEmployeeFields(input CreateEmployeeInput) map[string]string {
 	if _, roleIsValid := role.ParseRole(input.Role); !roleIsValid {
 		fieldViolations["role"] = "invalid role"
 	}
-	if input.CRMNumber != "" && !validator.IsValidCRMNumber(input.CRMNumber) {
+	if strings.TrimSpace(input.CRMNumber) == "" {
+		fieldViolations["crm_number"] = "is required"
+	} else if !validator.IsValidCRMNumber(input.CRMNumber) {
 		fieldViolations["crm_number"] = "invalid CRM format"
+	}
+	if strings.TrimSpace(input.DepartmentID) == "" {
+		fieldViolations["department_id"] = "is required"
+	} else if _, err := uuid.Parse(input.DepartmentID); err != nil {
+		fieldViolations["department_id"] = "invalid UUID format"
 	}
 	return fieldViolations
 }
