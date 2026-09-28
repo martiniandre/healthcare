@@ -12,43 +12,60 @@
   },
   "metrics": {
     "activePatients": "Active Patients",
-    "admissionsGrowth": "+12% this month",
+    "registeredBase": "Total registered base",
     "fhirCompliance": "FHIR Compliance",
-    "fhirCompliantDesc": "R4 Core compliant",
+    "averageAcrossVisits": "Average across visits",
     "avgConsultationTime": "Avg Consultation Time",
-    "consultationTrend": "-1.2m vs last month",
     "weeklyConsultations": "Weekly Consultations",
-    "activeIcuBeds": "5 active ICU beds"
+    "lastSevenDays": "Sum of last 7 days",
+    "peakOnDay": "Peak on {{day}}",
+    "compliance": {
+      "severity": {
+        "critical": "Below minimum",
+        "elevated": "Above minimum",
+        "stable": "Compliant"
+      }
+    }
   },
   "exams": {
     "title": "Exams Distribution (PACS)",
     "subtitle": "Modality of integrated DICOM studies",
     "totalLabel": "Total",
     "studiesLabel": "Studies",
+    "studiesUnit": "{{count}} studies",
     "examesUnit": "exams"
   },
   "consultations": {
     "title": "Consultations Volume",
     "subtitle": "Daily evolution of medical consultations and triage",
     "consultationsLabel": "Consultations",
-    "minLabel": "Min:",
-    "sunShort": "(Sun)",
-    "avgLabel": "Avg:",
-    "perDay": "/ Day",
-    "peakLabel": "Peak:",
-    "friShort": "(Fri)"
+    "minLabel": "Min",
+    "avgLabel": "Avg",
+    "peakLabel": "Peak",
+    "peakUnit": "{{count}} · {{day}}"
   },
   "epidemiology": {
     "title": "Epidemiology & Diagnostics (FHIR Core)",
     "subtitle": "Active clinical cases mapped in the FHIR database",
     "exportButton": "Export CSV",
+    "activeCasesTotalLabel": "Cases",
+    "activeCasesUnit": "{{count}} active",
+    "trend": {
+      "severity": {
+        "critical": "Critical",
+        "elevated": "Under watch",
+        "neutral": "Within expected range",
+        "stable": "Declining"
+      }
+    },
     "table": {
       "code": "ICD Code",
       "description": "Pathology Description",
       "category": "FHIR Category",
       "activeCases": "Active Cases",
       "trend": "Trend",
-      "stable": "Stable"
+      "stable": "Stable",
+      "proportion": "Proportion"
     }
   },
   "pathologies": {
@@ -156,6 +173,7 @@
       "minutes": "min"
     },
     "refresh": "Refresh dashboard",
-    "updatedAt": "Updated {{time}}"
+    "lastUpdated": "Last updated",
+    "syncing": "Syncing"
   }
 }

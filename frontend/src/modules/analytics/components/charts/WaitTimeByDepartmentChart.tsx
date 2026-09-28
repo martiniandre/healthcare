@@ -13,10 +13,11 @@ import {
   type YAxisTickContentProps,
 } from "recharts"
 import { EmptyState } from "../../../../shared/components/ui/EmptyState"
-import { DashboardPanel, PanelMetric } from "../DashboardPanel"
+import { AnalyticsPanel, PanelMetric } from "../AnalyticsPanel"
 import { ChartTooltip } from "./ChartTooltip"
 import { SeverityLegend, type SeverityBand } from "../SeverityLegend"
-import { resolveWaitTimeSeverity, severityFillVariables, type Severity } from "../../dashboard_thresholds"
+import { resolveWaitTimeSeverity } from "../../dashboard_thresholds"
+import { severityFillVariables, type Severity } from "../../metric_tones"
 import type { DepartmentWaitTime } from "../../dashboard_types"
 
 const BAND_HEIGHT = 40
@@ -112,7 +113,7 @@ export const WaitTimeByDepartmentChart = ({
   ]
 
   return (
-    <DashboardPanel
+    <AnalyticsPanel
       title={t("dashboard.waitTime.title")}
       subtitle={t("dashboard.waitTime.subtitle")}
       trailing={
@@ -208,6 +209,6 @@ export const WaitTimeByDepartmentChart = ({
           description={t("dashboard.waitTime.noDataDescription")}
         />
       )}
-    </DashboardPanel>
+    </AnalyticsPanel>
   )
 }

@@ -12,7 +12,7 @@ import {
   type YAxisTickContentProps,
 } from "recharts"
 import { EmptyState } from "../../../../shared/components/ui/EmptyState"
-import { DashboardPanel, PanelMetric } from "../DashboardPanel"
+import { AnalyticsPanel, PanelMetric } from "../AnalyticsPanel"
 import { ChartTooltip } from "./ChartTooltip"
 import type { DoctorConsultation } from "../../dashboard_types"
 
@@ -66,7 +66,7 @@ export const ConsultationsByDoctorChart = ({
   }
 
   return (
-    <DashboardPanel
+    <AnalyticsPanel
       title={t("dashboard.doctorConsultations.title")}
       subtitle={t("dashboard.doctorConsultations.subtitle")}
       trailing={
@@ -150,6 +150,6 @@ export const ConsultationsByDoctorChart = ({
           className="flex-1"
         />
       )}
-    </DashboardPanel>
+    </AnalyticsPanel>
   )
 }

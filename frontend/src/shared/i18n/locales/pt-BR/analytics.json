@@ -12,43 +12,60 @@
   },
   "metrics": {
     "activePatients": "Pacientes Ativos",
-    "admissionsGrowth": "+12% este mês",
+    "registeredBase": "Base total de pacientes",
     "fhirCompliance": "Conformidade FHIR",
-    "fhirCompliantDesc": "R4 Core compliant",
+    "averageAcrossVisits": "Média por atendimento",
     "avgConsultationTime": "T. Médio Consulta",
-    "consultationTrend": "-1.2m vs mês anterior",
     "weeklyConsultations": "Atendimentos Semanal",
-    "activeIcuBeds": "5 leitos de UTI ativos"
+    "lastSevenDays": "Soma dos últimos 7 dias",
+    "peakOnDay": "Pico em {{day}}",
+    "compliance": {
+      "severity": {
+        "critical": "Abaixo do mínimo",
+        "elevated": "Acima do mínimo",
+        "stable": "Em conformidade"
+      }
+    }
   },
   "exams": {
     "title": "Distribuição de Exames (PACS)",
     "subtitle": "Modalidade dos estudos DICOM integrados",
     "totalLabel": "Total",
     "studiesLabel": "Estudos",
+    "studiesUnit": "{{count}} estudos",
     "examesUnit": "exames"
   },
   "consultations": {
     "title": "Volume de Atendimentos",
     "subtitle": "Evolução diária de atendimentos médicos e triagem",
     "consultationsLabel": "Consultas",
-    "minLabel": "Menor:",
-    "sunShort": "(Dom)",
-    "avgLabel": "Média:",
-    "perDay": "/ Dia",
-    "peakLabel": "Pico:",
-    "friShort": "(Sex)"
+    "minLabel": "Menor",
+    "avgLabel": "Média",
+    "peakLabel": "Pico",
+    "peakUnit": "{{count}} · {{day}}"
   },
   "epidemiology": {
     "title": "Epidemiologia e Diagnósticos (FHIR Core)",
     "subtitle": "Casos clínicos ativos mapeados na base de dados FHIR",
     "exportButton": "Exportar CSV",
+    "activeCasesTotalLabel": "Casos",
+    "activeCasesUnit": "{{count}} ativos",
+    "trend": {
+      "severity": {
+        "critical": "Crítico",
+        "elevated": "Em acompanhamento",
+        "neutral": "Dentro do esperado",
+        "stable": "Em queda"
+      }
+    },
     "table": {
       "code": "Código CID",
       "description": "Descrição da Patologia",
       "category": "Categoria FHIR",
       "activeCases": "Casos Ativos",
       "trend": "Tendência",
-      "stable": "Estável"
+      "stable": "Estável",
+      "proportion": "Proporção"
     }
   },
   "pathologies": {
@@ -156,6 +173,7 @@
       "minutes": "min"
     },
     "refresh": "Atualizar dashboard",
-    "updatedAt": "Atualizado às {{time}}"
+    "lastUpdated": "Última atualização",
+    "syncing": "Sincronizando"
   }
 }

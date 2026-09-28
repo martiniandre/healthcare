@@ -9,8 +9,8 @@ import {
   TableHeader,
   TableRow,
 } from "../../../shared/components/ui/Table"
-import { DashboardPanel, PanelMetric } from "./DashboardPanel"
-import { toneFillVariables } from "../dashboard_thresholds"
+import { AnalyticsPanel, PanelMetric } from "./AnalyticsPanel"
+import { toneFillVariables } from "../metric_tones"
 import type { DiagnosisCount } from "../dashboard_types"
 
 interface RankedDiagnosis extends DiagnosisCount {
@@ -42,7 +42,7 @@ export const TopDiagnosesTable = ({ topDiagnoses }: TopDiagnosesTableProps) => {
   }, [topDiagnoses])
 
   return (
-    <DashboardPanel
+    <AnalyticsPanel
       title={t("dashboard.topDiagnoses.title")}
       subtitle={t("dashboard.topDiagnoses.subtitle")}
       trailing={
@@ -108,6 +108,6 @@ export const TopDiagnosesTable = ({ topDiagnoses }: TopDiagnosesTableProps) => {
           description={t("dashboard.topDiagnoses.noDataDescription")}
         />
       )}
-    </DashboardPanel>
+    </AnalyticsPanel>
   )
 }
