@@ -82,12 +82,19 @@ export const FileUploader = ({ onUpload, isPending, uploadProgress }: FileUpload
     }
   }
 
+  const isSubmitDisabled = !uploaderState.file || !uploaderState.consentChecked || isPending
+
+  const submitHint = (() => {
+    if (isPending || uploadProgress !== null) return null
+    if (!uploaderState.file) return t("uploader.hintNeedsFile")
+    if (!uploaderState.consentChecked) return t("uploader.hintNeedsConsent")
+    return null
+  })()
+
   return (
-    <Card glowingType="cyan" className="p-6 bg-card border border-border rounded-xl">
-      <h3 className="text-base font-bold text-gray-900 mb-2">
-        {t("uploader.title")}
-      </h3>
-      <span className="text-xs text-muted block mb-5 leading-normal">
+    <Card glowingType="cyan" className="bg-card">
+      <h3 className="text-base font-bold text-gray-900">{t("uploader.title")}</h3>
+      <span className="mt-1.5 mb-4 block text-xs leading-relaxed text-muted">
         {t("uploader.subtitle")}
       </span>
 
@@ -125,7 +132,10 @@ export const FileUploader = ({ onUpload, isPending, uploadProgress }: FileUpload
         </label>
 
         {uploaderState.error && (
-          <div className="text-xs font-semibold text-red-500 bg-red-50 border border-red-200 rounded-lg p-3 text-center">
+          <div
+            role="alert"
+            className="rounded-lg border border-danger/25 bg-danger/8 p-3 text-center text-xs font-semibold text-danger"
+          >
             {uploaderState.error}
           </div>
         )}
@@ -153,75 +163,88 @@ export const FileUploader = ({ onUpload, isPending, uploadProgress }: FileUpload
           </div>
         )}
 
-        <div className="flex flex-col gap-3">
-          <label className="flex items-start gap-3 cursor-pointer select-none group">
+        <div className="flex flex-col gap-2.5">
+          <label className="group flex cursor-pointer select-none items-start gap-3 rounded-lg border border-border bg-gray-50/60 p-3 transition-colors hover:border-primary/30">
             <input
               type="checkbox"
               checked={uploaderState.consentChecked}
               onChange={(event) => setUploaderState((prev) => ({ ...prev, consentChecked: event.target.checked }))}
               className="sr-only"
             />
-            <div className="mt-0.5 text-primary">
+            <span className="mt-0.5 shrink-0 text-primary">
               {uploaderState.consentChecked ? (
-                <CheckSquare className="w-4.5 h-4.5 group-hover:scale-105 transition-transform" />
+                <CheckSquare className="h-4 w-4 transition-transform group-hover:scale-105" aria-hidden="true" />
               ) : (
-                <Square className="w-4.5 h-4.5 text-gray-400 group-hover:scale-105 transition-transform" />
+                <Square className="h-4 w-4 text-gray-400 transition-transform group-hover:scale-105" aria-hidden="true" />
               )}
-            </div>
-            <div className="flex-1 text-left">
-              <span className="text-xs font-semibold text-gray-700 block">
+            </span>
+            <span className="flex-1 text-left">
+              <span className="block text-xs font-semibold text-gray-900">
                 {t("uploader.consentTitle")}
               </span>
-              <span className="text-[10px] text-muted block mt-0.5 leading-normal">
+              <span className="mt-0.5 block text-[11px] leading-relaxed text-muted-foreground">
                 {t("uploader.consentDesc")}
               </span>
-            </div>
+            </span>
           </label>
 
-          <label className="flex items-start gap-3 cursor-pointer select-none group">
+          <label className="group flex cursor-pointer select-none items-start gap-3 rounded-lg border border-border bg-gray-50/60 p-3 transition-colors hover:border-secondary/30">
             <input
               type="checkbox"
               checked={uploaderState.anonymizeChecked}
               onChange={(event) => setUploaderState((prev) => ({ ...prev, anonymizeChecked: event.target.checked }))}
               className="sr-only"
             />
-            <div className="mt-0.5 text-secondary">
+            <span className="mt-0.5 shrink-0 text-secondary">
               {uploaderState.anonymizeChecked ? (
-                <CheckSquare className="w-4.5 h-4.5 group-hover:scale-105 transition-transform" />
+                <CheckSquare className="h-4 w-4 transition-transform group-hover:scale-105" aria-hidden="true" />
               ) : (
-                <Square className="w-4.5 h-4.5 text-gray-400 group-hover:scale-105 transition-transform" />
+                <Square className="h-4 w-4 text-gray-400 transition-transform group-hover:scale-105" aria-hidden="true" />
               )}
-            </div>
-            <div className="flex-1 text-left">
-              <span className="text-xs font-semibold text-gray-700 block">
+            </span>
+            <span className="flex-1 text-left">
+              <span className="block text-xs font-semibold text-gray-900">
                 {t("uploader.anonymizeTitle")}
               </span>
-              <span className="text-[10px] text-muted block mt-0.5 leading-normal">
+              <span className="mt-0.5 block text-[11px] leading-relaxed text-muted-foreground">
                 {t("uploader.anonymizeDesc")}
               </span>
-            </div>
+            </span>
           </label>
         </div>
 
         {uploadProgress !== null && (
-          <div className="flex flex-col gap-1.5 mt-2 animate-fade-in">
-            <div className="flex items-center justify-between text-[10px] font-semibold text-muted">
+          <div className="mt-2 flex flex-col gap-1.5 animate-fade-in">
+            <div className="flex items-center justify-between text-[11px] font-semibold text-muted-foreground">
               <span>{t("uploader.uploading")}</span>
-              <span>{uploadProgress}%</span>
+              <span className="tabular-nums">{uploadProgress}%</span>
             </div>
-            <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+            <div
+              role="progressbar"
+              aria-label={t("uploader.uploading")}
+              aria-valuenow={uploadProgress}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              className="h-1.5 w-full overflow-hidden rounded-full bg-black/10"
+            >
               <div
-                className="h-full bg-primary transition-all duration-300"
+                className="h-full rounded-full bg-primary transition-all duration-300"
                 style={{ width: `${uploadProgress}%` }}
               />
             </div>
           </div>
         )}
 
+        {submitHint && (
+          <p className="text-center text-[11px] leading-normal text-muted-foreground">
+            {submitHint}
+          </p>
+        )}
+
         <Button
           type="submit"
-          disabled={!uploaderState.file || !uploaderState.consentChecked || isPending}
-          className="w-full py-2.5 mt-2 font-bold"
+          disabled={isSubmitDisabled}
+          className="mt-1 w-full py-2.5 font-bold"
         >
           {isPending ? t("uploader.processing") : t("uploader.submit")}
         </Button>

@@ -108,25 +108,27 @@ export const ExamAnalyzer = ({ patientFhirId }: ExamAnalyzerProps = {}) => {
   })()
 
   return (
-    <PageContainer className="gap-6 select-none">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <h2 className="text-xl font-display font-bold text-gray-900 tracking-tight leading-none">
+    <PageContainer className="gap-5">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="font-display text-xl font-bold leading-none tracking-tight text-gray-900">
               {t("title")}
             </h2>
-            <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-primary/8 border border-primary/10">
-              <Sparkles className="w-3 h-3 text-primary animate-pulse" />
-              <span className="text-[10px] font-bold text-primary">{t("badge")}</span>
-            </div>
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/15 bg-primary/8 px-2.5 py-0.5">
+              <Sparkles className="h-3 w-3 text-primary" aria-hidden="true" />
+              <span className="text-[10px] font-bold uppercase tracking-wider text-primary">
+                {t("badge")}
+              </span>
+            </span>
           </div>
-          <span className="text-xs text-muted mt-1.5 block">
+          <p className="mt-1.5 block max-w-2xl text-xs leading-relaxed text-muted">
             {t("subtitle")}
-          </span>
+          </p>
         </div>
       </div>
 
-      <div className="flex flex-col md:flex-row gap-6 items-stretch">
+      <div className="flex flex-col items-stretch gap-5 md:flex-row">
         <AnalysisHistory
           history={analysesHistory}
           isLoading={isHistoryLoading}
@@ -135,7 +137,7 @@ export const ExamAnalyzer = ({ patientFhirId }: ExamAnalyzerProps = {}) => {
           onDelete={handleDeleteAnalysis}
         />
 
-        <div className="flex-1 flex flex-col gap-6">
+        <div className="flex flex-1 flex-col gap-5">
           <FileUploader
             onUpload={handleFileUpload}
             isPending={uploadExamMutation.isPending}

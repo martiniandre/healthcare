@@ -1,21 +1,7 @@
 {
-  "title": "Medical Exam Analyzer",
-  "subtitle": "Análise clínica assistiva de exames médicos por processamento computacional",
+  "title": "Análise de Exames",
+  "subtitle": "Leitura assistiva por IA de exames médicos. Os achados são preliminares e exigem validação clínica.",
   "badge": "IA Multimodal",
-  "dropzone": {
-    "title": "Arraste e solte o arquivo do exame aqui",
-    "subtitle": "Suporta PDF, PNG ou JPEG de até 10MB",
-    "button": "Selecionar Arquivo"
-  },
-  "patientSelect": "Selecionar Paciente Vinculado",
-  "analyze": "Iniciar Análise Inteligente",
-  "analyzing": "Analisando documento via LLM...",
-  "results": {
-    "title": "Resultado da Extração",
-    "observations": "Observações Detectadas",
-    "status": "Status da Análise",
-    "save": "Persistir Dados no FHIR"
-  },
   "toast": {
     "analysisCompleted": "Análise do exame {{fileName}} concluída.",
     "uploadSuccess": "Exame enviado com sucesso! Iniciando análise...",
@@ -36,13 +22,15 @@
     "anonymizeDesc": "Substituir o nome do arquivo enviado por um identificador UUID criptográfico seguro antes da gravação no armazenamento temporário.",
     "uploading": "Transmitindo arquivo para o servidor...",
     "processing": "Processando Análise...",
-    "submit": "Enviar para Análise"
+    "submit": "Enviar para Análise",
+    "hintNeedsFile": "Selecione um arquivo para continuar.",
+    "hintNeedsConsent": "Confirme o consentimento do paciente para habilitar o envio."
   },
   "card": {
     "noExam": "Nenhum Exame Selecionado",
-    "noExamDesc": "Selecione um exame no histórico lateral ou faça o upload de um novo exame para visualizar os achados preliminares.",
+    "noExamDesc": "Selecione um exame no histórico ao lado ou envie um novo exame para visualizar os achados preliminares.",
     "processing": "Processando Análise Clínica...",
-    "processingDesc": "Nossa inteligência artificial multimodal está extraindo os achados e avaliando a qualidade da imagem. Por favor, aguarde.",
+    "processingDesc": "A inteligência artificial está extraindo os achados e avaliando a qualidade da imagem. Isso costuma levar alguns instantes.",
     "failed": "Falha no Processamento",
     "failedDesc": "Não foi possível processar a imagem do exame. Verifique se o formato é válido e tente novamente.",
     "insufficient": "Dados Insuficientes para Análise",
@@ -52,20 +40,42 @@
     "cause2": "Imagem excessivamente cortada ou enquadramento inadequado.",
     "cause3": "Imagem ilegível ou com desfoque de movimento severo.",
     "cause4": "Múltiplos exames ou documentos misturados no mesmo arquivo.",
-    "analysisId": "ID da Análise:",
-    "qualityAssessment": "Avaliação de Qualidade",
-    "warnings": "Alertas de Qualidade da Imagem:",
-    "findings": "Achados Clínicos Detectados",
-    "severityHigh": "Alta Urgência",
-    "severityMedium": "Moderado",
-    "severityLow": "Leve",
-    "confidence": "Nível de Confiança:",
-    "interpretations": "Possíveis Interpretações Clínicas",
-    "recommendations": "Recomendações e Próximos Passos",
-    "urgency": "Classificação de Urgência:",
+    "analysisId": "Análise",
+    "qualityAssessment": "Qualidade da Imagem",
+    "qualityVerdict": {
+      "good": "Aprovada para leitura",
+      "fair": "Leitura com ressalvas",
+      "poor": "Qualidade insuficiente"
+    },
+    "warnings": "Alertas de Qualidade da Imagem",
+    "urgencyTitle": "Conduta Sugerida",
+    "urgencyCaption": "Classificação de urgência segundo a análise assistiva. Confirme antes de agir.",
     "urgencyUrgent": "Urgência Médica",
     "urgencyFollowup": "Acompanhamento Clínico",
     "urgencyNormal": "Normal / Eletivo",
+    "findings": "Achados Clínicos Detectados",
+    "findingsCaption": "O nível de ação combina a relevância do achado com a confiança do modelo.",
+    "significance": "Relevância",
+    "significanceHigh": "Alta",
+    "significanceMedium": "Moderada",
+    "significanceLow": "Baixa",
+    "triage": {
+      "priority": "Prioridade",
+      "verify": "Verificar",
+      "review": "Revisar",
+      "informative": "Informativo"
+    },
+    "confidence": "Confiança",
+    "confidenceBand": {
+      "strong": "Alta",
+      "moderate": "Moderada",
+      "weak": "Baixa"
+    },
+    "noFindings": "Nenhum achado foi identificado nesta imagem.",
+    "noInterpretations": "Nenhuma interpretação foi sugerida.",
+    "noLimitations": "Nenhuma limitação adicional foi registrada.",
+    "noNextSteps": "Nenhum próximo passo foi sugerido.",
+    "interpretations": "Possíveis Interpretações Clínicas",
     "limitations": "Limitações da Análise Assistiva",
     "disclaimerTitle": "Aviso Legal e Limite Tecnológico"
   },
@@ -79,8 +89,12 @@
     "empty": "Nenhum exame analisado ainda",
     "processing": "Processando...",
     "insufficient": "Dados Insuficientes",
+    "unknownFile": "Arquivo desconhecido",
+    "selectAnalysis": "Ver análise de {{fileName}}",
+    "deleteAnalysis": "Excluir análise de {{fileName}}",
     "statusCompleted": "Concluído",
-    "statusQueue": "Fila",
+    "statusPending": "Na fila",
+    "statusProcessing": "Processando",
     "statusQuality": "Qualidade",
     "statusFailed": "Falha"
   }
