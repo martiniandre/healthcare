@@ -5,6 +5,8 @@
   "searchPlaceholder": "Buscar por nombre, correo electrónico o especialidad...",
   "filterAll": "Todos",
   "loading": "Cargando personal clínico...",
+  "requiredHint": "Todos los campos son obligatorios",
+  "emptyState": "Ningún profesional coincide con los filtros actuales.",
   "table": {
     "professional": "Profesional",
     "role": "Función / Categoría",
@@ -13,7 +15,19 @@
     "contact": "Contacto",
     "status": "Estado de Guardia",
     "onDuty": "De Guardia",
-    "offDuty": "Fuera de Guardia"
+    "offDuty": "Fuera de Guardia",
+    "actions": "Acciones",
+    "active": "Activo",
+    "inactive": "Inactivo",
+    "enable": "Activar acceso",
+    "disable": "Desactivar acceso",
+    "delete": "Eliminar profesional",
+    "roles": {
+      "doctor": "médico",
+      "nurse": "enfermero",
+      "receptionist": "recepción",
+      "admin": "administración"
+    }
   },
   "modal": {
     "title": "Registrar Nuevo Profesional",
@@ -25,13 +39,37 @@
     "email": "Correo Electrónico Corporativo",
     "emailPlaceholder": "Ej: nombre@hospital.com",
     "department": "Departamento",
-    "departmentPlaceholder": "Ej: Cardiología",
+    "departmentPlaceholder": "Selecciona el departamento",
     "cancel": "Cancelar",
     "confirm": "Guardar Registro"
+  },
+  "deleteModal": {
+    "title": "Eliminar profesional",
+    "description": "El profesional será desactivado y perderá el acceso operativo. El registro se conserva para auditoría.",
+    "confirm": "Eliminar",
+    "back": "Volver"
+  },
+  "validation": {
+    "nameMinLength": "El nombre debe tener al menos 3 caracteres",
+    "nameMaxLength": "El nombre debe tener como máximo 255 caracteres",
+    "roleRequired": "Selecciona una categoría válida",
+    "licenseRequired": "Ingresa el registro profesional",
+    "licenseFormat": "Formato inválido. Ej: CRM-SP 12345",
+    "licenseMaxLength": "El registro debe tener como máximo 50 caracteres",
+    "emailRequired": "Ingresa el correo corporativo",
+    "emailInvalid": "Correo electrónico inválido",
+    "emailMaxLength": "El correo debe tener como máximo 255 caracteres",
+    "departmentRequired": "Selecciona un departamento"
   },
   "toast": {
     "createSuccess": "¡Profesional de la salud registrado con éxito!",
     "createError": "Error al registrar profesional de la salud.",
-    "sessionError": "Sesión expirada. Inicie sesión nuevamente para registrar profesionales."
+    "sessionError": "Sesión expirada. Inicie sesión nuevamente para registrar profesionales.",
+    "activateSuccess": "Acceso del profesional activado.",
+    "activateError": "Error al activar el acceso del profesional.",
+    "deactivateSuccess": "Acceso del profesional desactivado.",
+    "deactivateError": "Error al desactivar el acceso del profesional.",
+    "deleteSuccess": "Profesional eliminado del cuadro clínico.",
+    "deleteError": "Error al eliminar el profesional."
   }
 }

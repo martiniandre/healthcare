@@ -5,6 +5,8 @@
   "searchPlaceholder": "Buscar por nome, e-mail ou especialidade...",
   "filterAll": "Todos",
   "loading": "Carregando corpo clínico...",
+  "requiredHint": "Todos os campos são obrigatórios",
+  "emptyState": "Nenhum profissional encontrado com os filtros atuais.",
   "table": {
     "professional": "Profissional",
     "role": "Função / Categoria",
@@ -13,7 +15,19 @@
     "contact": "Contato",
     "status": "Escala",
     "onDuty": "Plantonista",
-    "offDuty": "Fora de Escala"
+    "offDuty": "Fora de Escala",
+    "actions": "Ações",
+    "active": "Ativo",
+    "inactive": "Inativo",
+    "enable": "Ativar acesso",
+    "disable": "Desativar acesso",
+    "delete": "Excluir profissional",
+    "roles": {
+      "doctor": "médico",
+      "nurse": "enfermeiro",
+      "receptionist": "recepção",
+      "admin": "administração"
+    }
   },
   "modal": {
     "title": "Cadastrar Novo Profissional",
@@ -25,13 +39,37 @@
     "email": "E-mail Corporativo",
     "emailPlaceholder": "Ex: nome@hospital.com",
     "department": "Departamento",
-    "departmentPlaceholder": "Ex: Cardiologia",
+    "departmentPlaceholder": "Selecione o departamento",
     "cancel": "Cancelar",
     "confirm": "Salvar Cadastro"
+  },
+  "deleteModal": {
+    "title": "Excluir profissional",
+    "description": "O profissional será desativado e perderá o acesso operacional. O registro é preservado para auditoria.",
+    "confirm": "Excluir",
+    "back": "Voltar"
+  },
+  "validation": {
+    "nameMinLength": "O nome deve ter no mínimo 3 caracteres",
+    "nameMaxLength": "O nome deve ter no máximo 255 caracteres",
+    "roleRequired": "Selecione uma categoria válida",
+    "licenseRequired": "Informe o registro profissional",
+    "licenseFormat": "Formato inválido. Ex: CRM-SP 12345",
+    "licenseMaxLength": "O registro deve ter no máximo 50 caracteres",
+    "emailRequired": "Informe o e-mail corporativo",
+    "emailInvalid": "E-mail inválido",
+    "emailMaxLength": "O e-mail deve ter no máximo 255 caracteres",
+    "departmentRequired": "Selecione um departamento"
   },
   "toast": {
     "createSuccess": "Profissional de saúde cadastrado com sucesso!",
     "createError": "Falha ao registrar profissional de saúde.",
-    "sessionError": "Sessão expirada. Faça login novamente para registrar profissionais."
+    "sessionError": "Sessão expirada. Faça login novamente para registrar profissionais.",
+    "activateSuccess": "Acesso do profissional ativado.",
+    "activateError": "Falha ao ativar o acesso do profissional.",
+    "deactivateSuccess": "Acesso do profissional desativado.",
+    "deactivateError": "Falha ao desativar o acesso do profissional.",
+    "deleteSuccess": "Profissional excluído do quadro clínico.",
+    "deleteError": "Falha ao excluir o profissional."
   }
 }

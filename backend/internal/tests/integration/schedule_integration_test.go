@@ -147,14 +147,25 @@ func fetchUserID(t *testing.T, db *pgxpool.Pool, email string) string {
 	return userID.String()
 }
 
+func fetchDepartmentID(t *testing.T, db *pgxpool.Pool, departmentName string) string {
+	t.Helper()
+	ctx := context.Background()
+	var departmentID uuid.UUID
+	if queryError := db.QueryRow(ctx, `SELECT id FROM departments WHERE name = $1`, departmentName).Scan(&departmentID); queryError != nil {
+		t.Fatalf("failed to fetch department id for %s: %v", departmentName, queryError)
+	}
+	return departmentID.String()
+}
+
 func seedDoctorEmployee(t *testing.T, db *pgxpool.Pool) uuid.UUID {
 	t.Helper()
 	ctx := context.Background()
 
 	var employeeID uuid.UUID
 	insertError := db.QueryRow(ctx, `
-		INSERT INTO employees (id, full_name, email, role, crm_number, is_active, created_at, updated_at)
-		VALUES (uuid_generate_v4(), 'Médico Teste', 'medico.teste@clinica.com', 'DOCTOR', 'CRM 123456', true, NOW(), NOW())
+		INSERT INTO employees (id, full_name, email, role, crm_number, department_id, is_active, created_at, updated_at)
+		VALUES (uuid_generate_v4(), 'Médico Teste', 'medico.teste@clinica.com', 'DOCTOR', 'CRM 123456',
+			(SELECT id FROM departments WHERE name = 'Clínica Geral'), true, NOW(), NOW())
 		RETURNING id`).Scan(&employeeID)
 	if insertError != nil {
 		t.Fatalf("failed to seed doctor employee: %v", insertError)
