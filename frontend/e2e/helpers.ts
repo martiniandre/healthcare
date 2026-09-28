@@ -997,30 +997,46 @@ export const mockAnalyticsAPI = async (pageInstance: Page): Promise<void> => {
       status: 200,
       contentType: "application/json",
       body: JSON.stringify({
-        totalRegisteredPatients: 340,
-        fhirComplianceRate: 99.4,
-        averageServiceDurationMinutes: 14.5,
-        activeConsultationsTotal: 79,
-        totalStudiesCount: 35,
-        examModalitiesData: [
+        total_patients: 340,
+        fhir_compliance_rate: 99.4,
+        avg_service_duration_minutes: 14.5,
+        weekly_consultations: [
+          { dayName: "analytics.days.mon", count: 12 },
+          { dayName: "analytics.days.tue", count: 14 },
+          { dayName: "analytics.days.wed", count: 13 },
+          { dayName: "analytics.days.thu", count: 11 },
+          { dayName: "analytics.days.fri", count: 15 },
+          { dayName: "analytics.days.sat", count: 8 },
+          { dayName: "analytics.days.sun", count: 6 }
+        ],
+        exam_modalities: [
           { modality: "CT (Tomografia)", percentage: 45, count: 16, color: "#2563eb" },
           { modality: "MR (Ressonância)", percentage: 30, count: 11, color: "#0d9488" },
           { modality: "CR (Raio-X)", percentage: 15, count: 5, color: "#8b5cf6" },
           { modality: "US (Ultrassom)", percentage: 10, count: 3, color: "#f59e0b" }
         ],
-        consultationsWeeklyData: [
-          { dayName: "analytics.days.mon", count: 8 },
-          { dayName: "analytics.days.tue", count: 12 },
-          { dayName: "analytics.days.wed", count: 14 },
-          { dayName: "analytics.days.thu", count: 11 },
-          { dayName: "analytics.days.fri", count: 15 },
-          { dayName: "analytics.days.sat", count: 5 },
-          { dayName: "analytics.days.sun", count: 2 }
-        ],
-        pathologies: [
-          { code: "J45.9", descriptionKey: "analytics.pathologies.asthma", categoryKey: "analytics.categories.respiratory", activeCases: 44, trend: "+5%" },
-          { code: "I10", descriptionKey: "analytics.pathologies.hypertension", categoryKey: "analytics.categories.cardiovascular", activeCases: 119, trend: "stable" },
-          { code: "E11.9", descriptionKey: "analytics.pathologies.diabetes", categoryKey: "analytics.categories.endocrine", activeCases: 85, trend: "+12%" }
+        pathology_cases: [
+          {
+            code: "J45.9",
+            description: "Asma não especificada",
+            category: "Respiratório",
+            activeCases: 44,
+            trend: "+5%"
+          },
+          {
+            code: "I10",
+            description: "Hipertensão essencial primária",
+            category: "Cardiovascular",
+            activeCases: 119,
+            trend: "stable"
+          },
+          {
+            code: "E11.9",
+            description: "Diabetes mellitus tipo 2",
+            category: "Endócrino",
+            activeCases: 85,
+            trend: "-3%"
+          }
         ]
       })
     })

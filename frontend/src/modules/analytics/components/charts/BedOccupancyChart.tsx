@@ -1,12 +1,9 @@
 import { useTranslation } from "react-i18next"
 import { PolarAngleAxis, RadialBar, RadialBarChart, ResponsiveContainer } from "recharts"
-import { DashboardPanel, PanelMetric } from "../DashboardPanel"
+import { AnalyticsPanel, PanelMetric } from "../AnalyticsPanel"
 import { SeverityLegend, type SeverityBand } from "../SeverityLegend"
-import {
-  resolveOccupancySeverity,
-  severityFillVariables,
-  toneClassNames,
-} from "../../dashboard_thresholds"
+import { resolveOccupancySeverity } from "../../dashboard_thresholds"
+import { severityFillVariables, toneClassNames } from "../../metric_tones"
 
 interface BedOccupancyChartProps {
   occupancyRate: number
@@ -43,7 +40,7 @@ export const BedOccupancyChart = ({
   ]
 
   return (
-    <DashboardPanel
+    <AnalyticsPanel
       title={t("dashboard.occupancy.title")}
       subtitle={t("dashboard.occupancy.subtitle")}
       trailing={
@@ -124,6 +121,6 @@ export const BedOccupancyChart = ({
 
         <SeverityLegend bands={severityBands} className="mt-auto" />
       </div>
-    </DashboardPanel>
+    </AnalyticsPanel>
   )
 }

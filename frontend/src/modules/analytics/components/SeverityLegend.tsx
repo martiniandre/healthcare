@@ -1,5 +1,5 @@
 import { cn } from "../../../shared/utils/cn"
-import { toneClassNames, type Severity } from "../dashboard_thresholds"
+import { toneClassNames, type Severity } from "../metric_tones"
 
 export interface SeverityBand {
   severity: Severity

@@ -44,15 +44,26 @@ export const ClinicalDashboard = () => {
         description={t("dashboard.subtitle")}
         actions={
           <div className="flex items-center gap-3">
-            <span className="flex items-center gap-1.5 text-[11px] font-semibold text-muted-foreground">
-              <span
-                className={cn(
-                  "size-1.5 rounded-full",
-                  isFetching ? "bg-warning" : "bg-success"
-                )}
-                aria-hidden="true"
-              />
-              {t("dashboard.updatedAt", { time: lastUpdatedLabel })}
+            <span className="flex items-center gap-2 rounded-lg border border-border bg-gray-50 px-2.5 py-1.5">
+              <span className="relative flex size-1.5 shrink-0" aria-hidden="true">
+                {isFetching ? (
+                  <span className="absolute inline-flex size-full animate-ping rounded-full bg-warning opacity-75" />
+                ) : null}
+                <span
+                  className={cn(
+                    "relative inline-flex size-1.5 rounded-full",
+                    isFetching ? "bg-warning" : "bg-success"
+                  )}
+                />
+              </span>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                {isFetching ? t("dashboard.syncing") : t("dashboard.lastUpdated")}
+              </span>
+              {isFetching ? null : (
+                <span className="text-xs font-black tabular-nums text-gray-900">
+                  {lastUpdatedLabel}
+                </span>
+              )}
             </span>
             <Button
               variantType="outline"

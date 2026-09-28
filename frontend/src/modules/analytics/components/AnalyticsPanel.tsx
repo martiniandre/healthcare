@@ -2,7 +2,7 @@ import type { ReactNode } from "react"
 import { Card } from "../../../shared/components/ui/Card"
 import { cn } from "../../../shared/utils/cn"
 
-interface DashboardPanelProps {
+interface AnalyticsPanelProps {
   title: string
   subtitle?: string
   trailing?: ReactNode
@@ -11,14 +11,14 @@ interface DashboardPanelProps {
   children: ReactNode
 }
 
-export const DashboardPanel = ({
+export const AnalyticsPanel = ({
   title,
   subtitle,
   trailing,
   bodyClassName,
   className,
   children,
-}: DashboardPanelProps) => {
+}: AnalyticsPanelProps) => {
   return (
     <Card className={cn("flex flex-col overflow-hidden p-0", className)}>
       <header className="flex items-start justify-between gap-4 border-b border-border px-5 py-4">
