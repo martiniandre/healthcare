@@ -76,6 +76,11 @@ func (authenticated *authenticatedClient) Put(t *testing.T, path string, payload
 	return performJSONRequest(t, authenticated.httpClient, authenticated.serverURL, http.MethodPut, path, authenticated.csrfToken, payload)
 }
 
+func (authenticated *authenticatedClient) Patch(t *testing.T, path string, payload interface{}) *http.Response {
+	t.Helper()
+	return performJSONRequest(t, authenticated.httpClient, authenticated.serverURL, http.MethodPatch, path, authenticated.csrfToken, payload)
+}
+
 func (authenticated *authenticatedClient) Delete(t *testing.T, path string) *http.Response {
 	t.Helper()
 	return performJSONRequest(t, authenticated.httpClient, authenticated.serverURL, http.MethodDelete, path, authenticated.csrfToken, nil)

@@ -797,43 +797,60 @@ export const mockAnalyzerAPI = async (pageInstance: Page): Promise<void> => {
 }
 
 export const mockStaffAPI = async (pageInstance: Page): Promise<void> => {
+  const currentDepartments = [
+    { id: "dep-1", name: "Clínica Geral" },
+    { id: "dep-2", name: "Cardiologia" },
+    { id: "dep-3", name: "Dermatologia" },
+    { id: "dep-4", name: "Pediatria" },
+    { id: "dep-5", name: "Neurologia" },
+  ]
+
   const currentEmployees = [
     {
       id: "emp-1",
-      userId: "user-1",
       full_name: "Dr. André Silva de Araujo",
       email: "andre.silva@hospital.com",
-      role: "doctor",
+      role: "DOCTOR",
       crm_number: "CRM-SP 12345",
       is_active: true,
-      department: "Cardiologia",
+      department_id: "dep-2",
+      department_name: "Cardiologia",
       fhir_resource_id: "fhir-emp-1",
     },
     {
       id: "emp-2",
-      userId: "user-2",
       full_name: "Enf. Roberta Santos Almeida",
       email: "roberta.santos@hospital.com",
-      role: "nurse",
+      role: "NURSE",
       crm_number: "COREN-SP 54321",
       is_active: true,
-      department: "Pediatria",
+      department_id: "dep-4",
+      department_name: "Pediatria",
       fhir_resource_id: "fhir-emp-2",
     },
   ]
 
-  await pageInstance.route("**/api/v1/staff/employees*", async (networkRoute) => {
+  await pageInstance.route("**/api/v1/staff/departments*", async (networkRoute) => {
+    await networkRoute.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify(currentDepartments),
+    })
+  })
+
+  await pageInstance.route("**/api/v1/staff/employees**", async (networkRoute) => {
     const httpRequest = networkRoute.request()
-    if (httpRequest.method() === "GET") {
+    const requestPath = new URL(httpRequest.url()).pathname
+    const urlParts = requestPath.split("/")
+    const targetEmployeeId = urlParts[urlParts.length - 1]
+
+    if (httpRequest.method() === "GET" && requestPath.endsWith("/staff/employees")) {
       const requestURL = new URL(httpRequest.url())
       const searchTerm = (requestURL.searchParams.get("search") ?? "").toLowerCase()
       const roleFilter = requestURL.searchParams.get("role")
 
       const filteredEmployees = currentEmployees.filter((employee) => {
-        const matchesRole =
-          !roleFilter ||
-          roleFilter === "All" ||
-          employee.role.toLowerCase() === roleFilter.toLowerCase()
+        const matchesRole = !roleFilter || roleFilter === "All" || employee.role === roleFilter
         const matchesSearch =
           !searchTerm ||
           employee.full_name.toLowerCase().includes(searchTerm) ||
@@ -846,26 +863,75 @@ export const mockStaffAPI = async (pageInstance: Page): Promise<void> => {
         contentType: "application/json",
         body: JSON.stringify(filteredEmployees),
       })
-    } else if (httpRequest.method() === "POST") {
+      return
+    }
+
+    if (httpRequest.method() === "POST" && requestPath.endsWith("/staff/employees")) {
       const submittedJSON = httpRequest.postDataJSON()
+      const selectedDepartment = currentDepartments.find(
+        (department) => department.id === submittedJSON.department_id
+      )
       const newEmployee = {
         id: `emp-${currentEmployees.length + 1}`,
-        user_id: submittedJSON.user_id || `user-${currentEmployees.length + 1}`,
         full_name: submittedJSON.full_name,
         email: submittedJSON.email,
         role: submittedJSON.role,
-        crm_number: submittedJSON.crm_number || "N/A",
+        crm_number: submittedJSON.crm_number,
         is_active: true,
-        department: "Geral",
+        department_id: submittedJSON.department_id,
+        department_name: selectedDepartment?.name ?? "Clínica Geral",
         fhir_resource_id: `fhir-emp-${currentEmployees.length + 1}`,
       }
       currentEmployees.push(newEmployee)
       await networkRoute.fulfill({
         status: 201,
         contentType: "application/json",
-        body: JSON.stringify({ employeeId: newEmployee.id }),
+        body: JSON.stringify({ employee_id: newEmployee.id, fhir_resource_id: newEmployee.fhir_resource_id }),
       })
+      return
     }
+
+    if (httpRequest.method() === "PATCH" && requestPath.endsWith("/status")) {
+      const employeeId = urlParts[urlParts.length - 2]
+      const submittedJSON = httpRequest.postDataJSON()
+      const matchedEmployee = currentEmployees.find((employee) => employee.id === employeeId)
+      if (!matchedEmployee) {
+        await networkRoute.fulfill({
+          status: 404,
+          contentType: "application/json",
+          body: JSON.stringify({ error: "employee not found" }),
+        })
+        return
+      }
+      matchedEmployee.is_active = Boolean(submittedJSON.is_active)
+      await networkRoute.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ id: matchedEmployee.id, is_active: matchedEmployee.is_active }),
+      })
+      return
+    }
+
+    if (httpRequest.method() === "DELETE") {
+      const matchedEmployee = currentEmployees.find((employee) => employee.id === targetEmployeeId)
+      if (!matchedEmployee) {
+        await networkRoute.fulfill({
+          status: 404,
+          contentType: "application/json",
+          body: JSON.stringify({ error: "employee not found" }),
+        })
+        return
+      }
+      matchedEmployee.is_active = false
+      await networkRoute.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ id: matchedEmployee.id, is_active: false }),
+      })
+      return
+    }
+
+    await networkRoute.fulfill({ status: 405, contentType: "application/json", body: JSON.stringify({}) })
   })
 }
 

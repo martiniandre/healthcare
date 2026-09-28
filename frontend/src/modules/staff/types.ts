@@ -7,8 +7,15 @@ export interface StaffMember {
   license: string
   email: string
   status: StaffStatus
-  department: string
+  isActive: boolean
+  departmentId: string
+  departmentName: string
   fhirResourceId: string
+}
+
+export interface Department {
+  id: string
+  name: string
 }
 
 export interface CreateEmployeePayload {
@@ -17,8 +24,14 @@ export interface CreateEmployeePayload {
   email: string
   role: StaffRole
   crmNumber: string
+  departmentId: string
 }
 
 export interface CreateEmployeeResponseDto {
   employeeId: string
+}
+
+export interface SetEmployeeStatusPayload {
+  employeeId: string
+  isActive: boolean
 }

@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next"
 import { Search } from "lucide-react"
 import { StaffRole } from "../../../shared/types"
+import { STAFF_ROLE_LABEL_KEYS } from "../staff_roles"
 
 interface StaffFiltersProps {
   searchQuery: string
@@ -9,6 +10,8 @@ interface StaffFiltersProps {
   onFilterChange: (role: string) => void
 }
 
+const roleFilterOptions = ["All", StaffRole.Doctor, StaffRole.Nurse, StaffRole.Receptionist, StaffRole.Admin]
+
 export const StaffFilters = ({
   searchQuery,
   onSearchChange,
@@ -16,6 +19,14 @@ export const StaffFilters = ({
   onFilterChange,
 }: StaffFiltersProps) => {
   const { t } = useTranslation("staff")
+
+  const getRoleLabel = (role: string) => {
+    if (role === "All") {
+      return t("filterAll")
+    }
+    const labelKey = STAFF_ROLE_LABEL_KEYS[role as StaffRole]
+    return labelKey ? t(labelKey) : role
+  }
 
   return (
     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -31,32 +42,19 @@ export const StaffFilters = ({
       </div>
 
       <div className="flex gap-2 flex-wrap">
-        {["All", StaffRole.Doctor, StaffRole.Nurse, StaffRole.Receptionist, StaffRole.Admin].map((roleOption) => {
-          const getRoleLabel = (role: string) => {
-            switch (role) {
-              case "All": return t("filterAll")
-              case StaffRole.Doctor: return t("table.roles.doctor", "Médico")
-              case StaffRole.Nurse: return t("table.roles.nurse", "Enfermeiro")
-              case StaffRole.Receptionist: return t("table.roles.receptionist", "Recepção")
-              case StaffRole.Admin: return t("table.roles.admin", "Admin")
-              default: return role
-            }
-          }
-
-          return (
-            <button
-              key={roleOption}
-              onClick={() => onFilterChange(roleOption)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 border ${
-                filterRole === roleOption
-                  ? "bg-primary/5 text-primary border-primary"
-                  : "bg-card text-gray-500 border-border hover:bg-gray-50 hover:text-gray-900"
-              }`}
-            >
-              {getRoleLabel(roleOption)}
-            </button>
-          )
-        })}
+        {roleFilterOptions.map((roleOption) => (
+          <button
+            key={roleOption}
+            onClick={() => onFilterChange(roleOption)}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 border ${
+              filterRole === roleOption
+                ? "bg-primary/5 text-primary border-primary"
+                : "bg-card text-gray-500 border-border hover:bg-gray-50 hover:text-gray-900"
+            }`}
+          >
+            {getRoleLabel(roleOption)}
+          </button>
+        ))}
       </div>
     </div>
   )
