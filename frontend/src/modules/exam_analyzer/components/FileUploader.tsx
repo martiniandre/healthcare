@@ -148,7 +148,7 @@ export const FileUploader = ({ onUpload, isPending, uploadProgress }: FileUpload
                 <span className="text-xs font-semibold text-gray-800 block truncate">
                   {uploaderState.file.name}
                 </span>
-                <span className="text-[10px] text-muted block mt-0.5">
+                <span className="text-[11px] text-muted block mt-0.5">
                   {(uploaderState.file.size / (1024 * 1024)).toFixed(2)} MB
                 </span>
               </div>

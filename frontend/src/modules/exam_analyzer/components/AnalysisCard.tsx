@@ -199,7 +199,7 @@ export const AnalysisCard = ({ activeAnalysis }: AnalysisCardProperties) => {
               </h3>
             </div>
             <span
-              className="mt-1.5 block font-mono text-[10px] text-muted"
+              className="mt-1.5 block font-mono text-[11px] text-muted"
               title={activeAnalysis.id}
             >
               {t("card.analysisId")} {truncateIdentifier(activeAnalysis.id)}
@@ -213,7 +213,7 @@ export const AnalysisCard = ({ activeAnalysis }: AnalysisCardProperties) => {
             )}
           >
             <div className="min-w-0">
-              <span className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+              <span className="block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
                 {t("card.qualityAssessment")}
               </span>
               <span className={cn("mt-0.5 block text-[11px] font-bold", qualityStyles.text)}>
@@ -261,7 +261,7 @@ export const AnalysisCard = ({ activeAnalysis }: AnalysisCardProperties) => {
               <ol className="mt-2.5 flex flex-col gap-1.5">
                 {nextSteps.map((stepItem, index) => (
                   <li key={index} className="flex items-start gap-2 text-xs leading-relaxed text-gray-800">
-                    <span className="mt-0.5 flex h-4 w-4 shrink-0 select-none items-center justify-center rounded border border-border bg-card text-[10px] font-bold text-muted-foreground">
+                    <span className="mt-0.5 flex h-4 w-4 shrink-0 select-none items-center justify-center rounded border border-border bg-card text-[11px] font-bold text-muted-foreground">
                       {index + 1}
                     </span>
                     {stepItem}
@@ -275,11 +275,11 @@ export const AnalysisCard = ({ activeAnalysis }: AnalysisCardProperties) => {
         </div>
 
         {qualityWarnings.length > 0 && (
-          <div className="mt-4 flex items-start gap-2.5 rounded-lg border border-warning/25 bg-warning/8 px-3.5 py-3">
-            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning" aria-hidden="true" />
+          <div className="mt-4 flex items-start gap-2.5 rounded-lg border border-border bg-gray-50 px-3.5 py-3">
+            <Info className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
             <div className="min-w-0">
               <span className="block text-[11px] font-bold text-gray-900">
-                {t("card.warnings")}
+                {t("card.qualityObservations")}
               </span>
               <ul className="mt-1 flex list-disc flex-col gap-1 pl-4 text-[11px] leading-normal text-gray-700">
                 {qualityWarnings.map((warningItem, index) => (
@@ -325,14 +325,14 @@ export const AnalysisCard = ({ activeAnalysis }: AnalysisCardProperties) => {
                     <div className="flex shrink-0 items-center gap-1.5">
                       <span
                         className={cn(
-                          "rounded-md border border-border bg-card px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground"
+                          "rounded-md border border-border bg-card px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground"
                         )}
                       >
                         {t("card.significance")}: {t(significanceTranslationKey)}
                       </span>
                       <span
                         className={cn(
-                          "rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider",
+                          "rounded-md px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider",
                           triageStyles.surface,
                           triageStyles.text
                         )}
@@ -343,7 +343,7 @@ export const AnalysisCard = ({ activeAnalysis }: AnalysisCardProperties) => {
                   </div>
 
                   <div className="mt-2.5 flex items-center gap-2.5">
-                    <span className="shrink-0 text-[10px] font-semibold text-muted-foreground">
+                    <span className="shrink-0 text-[11px] font-semibold text-muted-foreground">
                       {t("card.confidence")}
                     </span>
                     <div
@@ -357,7 +357,7 @@ export const AnalysisCard = ({ activeAnalysis }: AnalysisCardProperties) => {
                       />
                     </div>
                     <span
-                      className={cn("shrink-0 text-[10px] font-bold tabular-nums", confidenceStyles.text)}
+                      className={cn("shrink-0 text-[11px] font-bold tabular-nums", confidenceStyles.text)}
                     >
                       {confidenceReading.percentage}%
                     </span>
@@ -406,7 +406,7 @@ export const AnalysisCard = ({ activeAnalysis }: AnalysisCardProperties) => {
         <div className="mt-4 flex items-start gap-2.5 rounded-xl border border-border bg-gray-50 p-3.5">
           <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
           <div>
-            <span className="block text-[10px] font-bold uppercase tracking-wider text-gray-900">
+            <span className="block text-[11px] font-bold uppercase tracking-wider text-gray-900">
               {t("card.disclaimerTitle")}
             </span>
             <p className="mt-1 text-[11px] font-medium leading-relaxed text-gray-600">

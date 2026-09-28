@@ -47,7 +47,7 @@
       "fair": "Readable with caveats",
       "poor": "Insufficient quality"
     },
-    "warnings": "Image Quality Warnings",
+    "qualityObservations": "Image Quality Observations",
     "urgencyTitle": "Suggested Course of Action",
     "urgencyCaption": "Urgency classification from the assistive analysis. Confirm before acting.",
     "urgencyUrgent": "Medical Urgency",
@@ -83,7 +83,7 @@
     "title": "Analysis History",
     "exams_one": "{{count}} exam",
     "exams_other": "{{count}} exams",
-    "filterPlaceholder": "Filter by name or type...",
+    "filterPlaceholder": "Filter by name, type or status...",
     "loading": "Loading history...",
     "noResults": "No results found",
     "empty": "No exams analyzed yet",

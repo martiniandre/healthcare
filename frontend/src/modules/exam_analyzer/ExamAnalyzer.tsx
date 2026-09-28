@@ -117,7 +117,7 @@ export const ExamAnalyzer = ({ patientFhirId }: ExamAnalyzerProps = {}) => {
             </h2>
             <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/15 bg-primary/8 px-2.5 py-0.5">
               <Sparkles className="h-3 w-3 text-primary" aria-hidden="true" />
-              <span className="text-[10px] font-bold uppercase tracking-wider text-primary">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-primary">
                 {t("badge")}
               </span>
             </span>
