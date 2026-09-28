@@ -17,6 +17,7 @@ import {
   resolveFindingTriage,
   resolveQualityVerdict,
   resolveUrgencyTone,
+  truncateIdentifier,
   type ConfidenceBand,
   type FindingTriageTier,
   type QualityTone,
@@ -197,8 +198,11 @@ export const AnalysisCard = ({ activeAnalysis }: AnalysisCardProperties) => {
                 {analysisPayload.examType}
               </h3>
             </div>
-            <span className="mt-1.5 block font-mono text-[10px] text-muted">
-              {t("card.analysisId")} {activeAnalysis.id}
+            <span
+              className="mt-1.5 block font-mono text-[10px] text-muted"
+              title={activeAnalysis.id}
+            >
+              {t("card.analysisId")} {truncateIdentifier(activeAnalysis.id)}
             </span>
           </div>
 

@@ -7,6 +7,7 @@ import {
   resolveFindingTriage,
   resolveUrgencyTone,
   resolveHistoryStatus,
+  truncateIdentifier,
 } from "./exam_analysis_domain"
 
 describe("resolveQualityVerdict", () => {
@@ -180,5 +181,23 @@ describe("resolveHistoryStatus", () => {
       tone: "failed",
       translationKey: "history.statusFailed",
     })
+  })
+})
+
+describe("truncateIdentifier", () => {
+  it("shortens a long identifier to eight characters", () => {
+    expect(truncateIdentifier("3f7c1a9e-2b44-4d18-9c0a-5e6f7a8b9c01")).toBe("3f7c1a9e…")
+  })
+
+  it("leaves a short identifier untouched", () => {
+    expect(truncateIdentifier("ana-1")).toBe("ana-1")
+  })
+
+  it("leaves an identifier of exactly the visible length untouched", () => {
+    expect(truncateIdentifier("12345678")).toBe("12345678")
+  })
+
+  it("returns an empty string unchanged", () => {
+    expect(truncateIdentifier("")).toBe("")
   })
 })

@@ -151,3 +151,10 @@ export const resolveHistoryStatus = (status: ExamAnalysisStatus): HistoryStatusR
 
   return { tone: "failed", translationKey: "history.statusFailed" }
 }
+
+const VISIBLE_IDENTIFIER_LENGTH = 8
+
+export const truncateIdentifier = (identifier: string): string =>
+  identifier.length > VISIBLE_IDENTIFIER_LENGTH
+    ? `${identifier.slice(0, VISIBLE_IDENTIFIER_LENGTH)}…`
+    : identifier
