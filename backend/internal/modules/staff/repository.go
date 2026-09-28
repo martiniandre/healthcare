@@ -16,7 +16,10 @@ type Repository interface {
 	CreateEmployee(ctx context.Context, employee *Employee) error
 	GetEmployeeByID(ctx context.Context, employeeID uuid.UUID) (*Employee, error)
 	ListEmployees(ctx context.Context, search string, role string) ([]*Employee, error)
-	DeactivateEmployee(ctx context.Context, employeeID uuid.UUID) error
+	SetEmployeeActive(ctx context.Context, employeeID uuid.UUID, isActive bool) error
+	GetDepartmentByID(ctx context.Context, departmentID uuid.UUID) (*Department, error)
+	GetDefaultDepartment(ctx context.Context) (*Department, error)
+	ListDepartments(ctx context.Context) ([]*Department, error)
 	UpdateEmployeeFHIRResourceID(ctx context.Context, employeeID uuid.UUID, fhirResourceID string) error
 }
 
@@ -29,17 +32,20 @@ func NewRepository(db *pgxpool.Pool) Repository {
 }
 
 func (staffRepository *repository) CreateEmployee(ctx context.Context, employee *Employee) error {
-	query := `INSERT INTO employees (id, full_name, email, role, crm_number, fhir_resource_id, created_by, is_active, created_at, updated_at)
-			  VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`
+	query := `INSERT INTO employees (id, full_name, email, role, crm_number, fhir_resource_id, department_id, created_by, is_active, created_at, updated_at)
+			  VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`
 
 	_, err := staffRepository.db.Exec(ctx, query,
 		employee.ID, employee.FullName, employee.Email,
-		employee.Role, employee.CRMNumber, employee.FHIRResourceID, employee.CreatedBy, employee.IsActive, employee.CreatedAt, employee.UpdatedAt,
+		employee.Role, employee.CRMNumber, employee.FHIRResourceID, employee.DepartmentID, employee.CreatedBy, employee.IsActive, employee.CreatedAt, employee.UpdatedAt,
 	)
 	if err != nil {
 		var postgresError *pgconn.PgError
 		if errors.As(err, &postgresError) && postgresError.Code == "23505" {
 			return apperrors.ErrEmployeeAlreadyExists
+		}
+		if errors.As(err, &postgresError) && postgresError.Code == "23503" {
+			return apperrors.InvalidArgument("invalid employee input", map[string]string{"department_id": "unknown department"})
 		}
 	}
 	return err
@@ -52,13 +58,16 @@ func (staffRepository *repository) UpdateEmployeeFHIRResourceID(ctx context.Cont
 }
 
 func (staffRepository *repository) GetEmployeeByID(ctx context.Context, employeeID uuid.UUID) (*Employee, error) {
-	query := `SELECT id, full_name, email, role, crm_number, fhir_resource_id, created_by, is_active, created_at, updated_at
-			  FROM employees WHERE id = $1`
+	query := `SELECT e.id, e.full_name, e.email, e.role, e.crm_number, e.fhir_resource_id, e.department_id, d.name, e.created_by, e.is_active, e.created_at, e.updated_at
+			  FROM employees e
+			  JOIN departments d ON d.id = e.department_id
+			  WHERE e.id = $1`
 
 	employee := &Employee{}
 	err := staffRepository.db.QueryRow(ctx, query, employeeID).Scan(
 		&employee.ID, &employee.FullName, &employee.Email,
-		&employee.Role, &employee.CRMNumber, &employee.FHIRResourceID, &employee.CreatedBy, &employee.IsActive, &employee.CreatedAt, &employee.UpdatedAt,
+		&employee.Role, &employee.CRMNumber, &employee.FHIRResourceID, &employee.DepartmentID, &employee.DepartmentName,
+		&employee.CreatedBy, &employee.IsActive, &employee.CreatedAt, &employee.UpdatedAt,
 	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -70,25 +79,31 @@ func (staffRepository *repository) GetEmployeeByID(ctx context.Context, employee
 }
 
 func (staffRepository *repository) ListEmployees(ctx context.Context, search string, role string) ([]*Employee, error) {
-	query := `SELECT id, full_name, email, role, crm_number, fhir_resource_id, created_by, is_active, created_at, updated_at
-			  FROM employees WHERE is_active = true`
+	query := `SELECT e.id, e.full_name, e.email, e.role, e.crm_number, e.fhir_resource_id, e.department_id, d.name, e.created_by, e.is_active, e.created_at, e.updated_at
+			  FROM employees e
+			  JOIN departments d ON d.id = e.department_id`
 
 	args := []interface{}{}
 	argId := 1
 
 	if role != "" && role != "All" {
-		query += fmt.Sprintf(" AND role = $%d", argId)
+		query += fmt.Sprintf(" WHERE e.role = $%d", argId)
 		args = append(args, role)
 		argId++
 	}
 
 	if search != "" {
-		query += fmt.Sprintf(" AND (full_name ILIKE $%d OR email ILIKE $%d)", argId, argId)
+		searchClause := fmt.Sprintf("(e.full_name ILIKE $%d OR e.email ILIKE $%d)", argId, argId)
+		if role != "" && role != "All" {
+			query += fmt.Sprintf(" AND %s", searchClause)
+		} else {
+			query += fmt.Sprintf(" WHERE %s", searchClause)
+		}
 		args = append(args, "%"+search+"%")
 		argId++
 	}
 
-	query += ` ORDER BY full_name ASC`
+	query += ` ORDER BY e.is_active DESC, e.full_name ASC`
 
 	rows, err := staffRepository.db.Query(ctx, query, args...)
 	if err != nil {
@@ -101,24 +116,79 @@ func (staffRepository *repository) ListEmployees(ctx context.Context, search str
 		employee := &Employee{}
 		err := rows.Scan(
 			&employee.ID, &employee.FullName, &employee.Email,
-			&employee.Role, &employee.CRMNumber, &employee.FHIRResourceID, &employee.CreatedBy, &employee.IsActive, &employee.CreatedAt, &employee.UpdatedAt,
+			&employee.Role, &employee.CRMNumber, &employee.FHIRResourceID, &employee.DepartmentID, &employee.DepartmentName,
+			&employee.CreatedBy, &employee.IsActive, &employee.CreatedAt, &employee.UpdatedAt,
 		)
 		if err != nil {
 			return nil, err
 		}
 		employees = append(employees, employee)
 	}
-	return employees, nil
+	return employees, rows.Err()
 }
 
-func (staffRepository *repository) DeactivateEmployee(ctx context.Context, employeeID uuid.UUID) error {
-	query := `UPDATE employees SET is_active = false, updated_at = NOW() WHERE id = $1`
-	commandTag, err := staffRepository.db.Exec(ctx, query, employeeID)
+func (staffRepository *repository) SetEmployeeActive(ctx context.Context, employeeID uuid.UUID, isActive bool) error {
+	query := `UPDATE employees SET is_active = $1, updated_at = NOW() WHERE id = $2`
+	commandTag, err := staffRepository.db.Exec(ctx, query, isActive, employeeID)
 	if err != nil {
 		return err
 	}
 	if commandTag.RowsAffected() == 0 {
-		return fmt.Errorf("failed to deactivate employee: %w", apperrors.ErrEmployeeNotFound)
+		return fmt.Errorf("failed to update employee status: %w", apperrors.ErrEmployeeNotFound)
 	}
 	return nil
+}
+
+func (staffRepository *repository) GetDepartmentByID(ctx context.Context, departmentID uuid.UUID) (*Department, error) {
+	query := `SELECT id, name, sort_order, is_active, created_at FROM departments WHERE id = $1`
+
+	department := &Department{}
+	err := staffRepository.db.QueryRow(ctx, query, departmentID).Scan(
+		&department.ID, &department.Name, &department.SortOrder, &department.IsActive, &department.CreatedAt,
+	)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, fmt.Errorf("failed to get department: %w", apperrors.ErrDepartmentNotFound)
+		}
+		return nil, err
+	}
+	return department, nil
+}
+
+func (staffRepository *repository) GetDefaultDepartment(ctx context.Context) (*Department, error) {
+	query := `SELECT id, name, sort_order, is_active, created_at FROM departments
+			  WHERE is_active = true ORDER BY sort_order ASC, name ASC LIMIT 1`
+
+	department := &Department{}
+	err := staffRepository.db.QueryRow(ctx, query).Scan(
+		&department.ID, &department.Name, &department.SortOrder, &department.IsActive, &department.CreatedAt,
+	)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, fmt.Errorf("failed to get default department: %w", apperrors.ErrDepartmentNotFound)
+		}
+		return nil, err
+	}
+	return department, nil
+}
+
+func (staffRepository *repository) ListDepartments(ctx context.Context) ([]*Department, error) {
+	query := `SELECT id, name, sort_order, is_active, created_at FROM departments WHERE is_active = true ORDER BY sort_order ASC, name ASC`
+
+	rows, err := staffRepository.db.Query(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	departments := make([]*Department, 0)
+	for rows.Next() {
+		department := &Department{}
+		err := rows.Scan(&department.ID, &department.Name, &department.SortOrder, &department.IsActive, &department.CreatedAt)
+		if err != nil {
+			return nil, err
+		}
+		departments = append(departments, department)
+	}
+	return departments, rows.Err()
 }

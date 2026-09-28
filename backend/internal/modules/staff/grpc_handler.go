@@ -36,12 +36,18 @@ func mapEmployeeToResponse(employee *Employee) *pb.GetEmployeeResponse {
 }
 
 func (handler *GRPCHandler) CreateEmployee(ctx context.Context, req *pb.CreateEmployeeRequest) (*pb.CreateEmployeeResponse, error) {
+	departmentID, departmentErr := handler.service.GetDefaultDepartmentID(ctx)
+	if departmentErr != nil {
+		return nil, apperrors.ToGRPCStatus(departmentErr)
+	}
+
 	input := CreateEmployeeInput{
-		CreatedBy: req.CreatedBy,
-		FullName:  req.FullName,
-		Email:     req.Email,
-		Role:      req.Role,
-		CRMNumber: req.CrmNumber,
+		CreatedBy:    req.CreatedBy,
+		FullName:     req.FullName,
+		Email:        req.Email,
+		Role:         req.Role,
+		CRMNumber:    req.CrmNumber,
+		DepartmentID: departmentID.String(),
 	}
 
 	employee, err := handler.service.CreateEmployee(ctx, input)
@@ -84,14 +90,12 @@ func (handler *GRPCHandler) ListEmployees(ctx context.Context, req *pb.ListEmplo
 }
 
 func (handler *GRPCHandler) DeactivateEmployee(ctx context.Context, req *pb.DeactivateEmployeeRequest) (*pb.DeactivateEmployeeResponse, error) {
-	employeeID, err := uuid.Parse(req.EmployeeId)
-	if err != nil {
-		return nil, apperrors.ErrBadRequest.ToGRPC()
-	}
-
-	err = handler.service.DeactivateEmployee(ctx, employeeID)
-	if err != nil {
-		return nil, apperrors.ToGRPCStatus(err)
+	_, statusErr := handler.service.SetEmployeeActive(ctx, SetEmployeeActiveInput{
+		EmployeeID: req.EmployeeId,
+		IsActive:   false,
+	})
+	if statusErr != nil {
+		return nil, apperrors.ToGRPCStatus(statusErr)
 	}
 
 	return &pb.DeactivateEmployeeResponse{}, nil

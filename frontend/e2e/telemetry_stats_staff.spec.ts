@@ -114,11 +114,12 @@ test.describe("Hospital Staff Management Module", () => {
     await page.getByRole("button", { name: "Cadastrar Profissional" }).click()
 
     await page.getByPlaceholder("Ex: Dr. André Silva de Araujo").fill("Dra. Paula Albuquerque")
-    await page.getByRole("combobox").click()
-    await page.getByRole("option", { name: "NURSE" }).click()
+    await page.locator("#staff-role").click()
+    await page.getByRole("option", { name: "enfermeiro" }).click()
     await page.getByPlaceholder("Ex: CRM-SP 12345").fill("CRM-SP 777777")
     await page.getByPlaceholder("Ex: nome@hospital.com").fill("paula.albuquerque@hospital.com")
-    await page.getByPlaceholder("Ex: Cardiologia").fill("Neurologia")
+    await page.locator("#staff-department").click()
+    await page.getByRole("option", { name: "Neurologia" }).click()
 
     await page.getByRole("button", { name: "Salvar Cadastro" }).click()
 

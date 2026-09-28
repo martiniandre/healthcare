@@ -1,5 +1,6 @@
+import { useReactTable, getCoreRowModel, flexRender } from "@tanstack/react-table"
 import { useTranslation } from "react-i18next"
-import { Users } from "lucide-react"
+import { UserSearch } from "lucide-react"
 import {
   Table,
   TableHeader,
@@ -9,43 +10,62 @@ import {
   TableCell,
 } from "../../../shared/components/ui/Table"
 import { Skeleton } from "../../../shared/components/ui/Skeleton"
-import { StaffRole } from "../../../shared/types"
+import { useStaffColumns } from "./useStaffColumns"
 import type { StaffMember } from "../types"
 
 interface StaffTableProps {
   isLoading: boolean
   filteredStaff: StaffMember[]
+  onToggleStatus: (member: StaffMember) => void
+  onDelete: (member: StaffMember) => void
+  canManageStatus: boolean
+  canDelete: boolean
+  isPendingEmployeeId: string | null
 }
 
-export const StaffTable = ({ isLoading, filteredStaff }: StaffTableProps) => {
-  console.log({ filteredStaff })
-  const { t } = useTranslation("staff")
+const skeletonRows = Array.from({ length: 5 })
 
-  const getRoleLabel = (role: string) => {
-    switch (role) {
-      case StaffRole.Doctor: return t("table.roles.doctor", "Médico")
-      case StaffRole.Nurse: return t("table.roles.nurse", "Enfermeiro")
-      case StaffRole.Receptionist: return t("table.roles.receptionist", "Recepção")
-      case StaffRole.Admin: return t("table.roles.admin", "Admin")
-      default: return role
-    }
-  }
+export const StaffTable = ({
+  isLoading,
+  filteredStaff,
+  onToggleStatus,
+  onDelete,
+  canManageStatus,
+  canDelete,
+  isPendingEmployeeId,
+}: StaffTableProps) => {
+  const { t } = useTranslation("staff")
+  const columns = useStaffColumns({
+    onToggleStatus,
+    onDelete,
+    canManageStatus,
+    canDelete,
+    isPendingEmployeeId,
+  })
+
+  const table = useReactTable({
+    data: filteredStaff,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+  })
 
   return (
     <div className="overflow-x-auto border border-border rounded-xl w-full bg-card">
-      <Table className="min-w-[700px] md:min-w-0">
+      <Table className="min-w-[860px] md:min-w-0">
         <TableHeader>
-          <TableRow className="hover:bg-transparent">
-            <TableHead>{t("table.professional")}</TableHead>
-            <TableHead>{t("table.role")}</TableHead>
-            <TableHead>{t("table.license")}</TableHead>
-            <TableHead>{t("table.department")}</TableHead>
-            <TableHead>{t("table.status")}</TableHead>
-          </TableRow>
+          {table.getHeaderGroups().map((headerGroup) => (
+            <TableRow key={headerGroup.id} className="hover:bg-transparent">
+              {headerGroup.headers.map((header) => (
+                <TableHead key={header.id}>
+                  {flexRender(header.column.columnDef.header, header.getContext())}
+                </TableHead>
+              ))}
+            </TableRow>
+          ))}
         </TableHeader>
         <TableBody>
           {isLoading ? (
-            Array.from({ length: 5 }).map((_, index) => (
+            skeletonRows.map((_, index) => (
               <TableRow key={`skeleton-${index}`}>
                 <TableCell>
                   <div className="flex items-center gap-3">
@@ -60,34 +80,26 @@ export const StaffTable = ({ isLoading, filteredStaff }: StaffTableProps) => {
                 <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                 <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                 <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                <TableCell><Skeleton className="h-8 w-16" /></TableCell>
               </TableRow>
             ))
+          ) : table.getRowModel().rows.length === 0 ? (
+            <TableRow className="hover:bg-transparent">
+              <TableCell colSpan={columns.length}>
+                <div className="flex flex-col items-center justify-center gap-2 py-12">
+                  <UserSearch className="w-6 h-6 text-gray-300" />
+                  <span className="text-xs text-muted">{t("emptyState")}</span>
+                </div>
+              </TableCell>
+            </TableRow>
           ) : (
-            filteredStaff.map((member) => (
-              <TableRow key={member.id} className="group">
-                <TableCell>
-                  <div className="flex items-center gap-3">
-                    <div className="bg-primary/8 p-2 rounded-lg border border-primary/10">
-                      <Users className="w-4 h-4 text-primary" />
-                    </div>
-                    <div className="flex flex-col min-w-0">
-                      <span className="font-extrabold text-gray-900 truncate">{member.fullName}</span>
-                      <span className="text-[10px] text-gray-500 truncate mt-0.5">{member.email}</span>
-                    </div>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <span className="font-semibold text-gray-700 text-xs">{getRoleLabel(member.role)}</span>
-                </TableCell>
-                <TableCell className="font-mono text-xs text-gray-600">
-                  {member.license}
-                </TableCell>
-                <TableCell className="text-xs font-medium text-gray-600">
-                  {member.department}
-                </TableCell>
-                <TableCell>
-                  <span className="text-xs font-semibold text-gray-700">{member.status}</span>
-                </TableCell>
+            table.getRowModel().rows.map((row) => (
+              <TableRow key={row.id} className="group">
+                {row.getVisibleCells().map((cell) => (
+                  <TableCell key={cell.id}>
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </TableCell>
+                ))}
               </TableRow>
             ))
           )}

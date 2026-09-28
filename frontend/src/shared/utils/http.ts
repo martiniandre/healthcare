@@ -22,6 +22,14 @@ export const http = {
     return await api.put<TResponse>(url, body, config).then((responseData) => responseData.data)
   },
 
+  async patch<TResponse, TBody = unknown>(
+    url: string,
+    body?: TBody,
+    config?: AxiosRequestConfig,
+  ): Promise<TResponse> {
+    return await api.patch<TResponse>(url, body, config).then((responseData) => responseData.data)
+  },
+
   async delete<TResponse>(url: string, config?: AxiosRequestConfig): Promise<TResponse> {
     return await api.delete<TResponse>(url, config).then((responseData) => responseData.data)
   },
