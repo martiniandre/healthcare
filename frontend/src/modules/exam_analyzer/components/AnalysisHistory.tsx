@@ -41,13 +41,19 @@ export const AnalysisHistory = ({
 
   const normalizedSearchTerm = searchTerm.trim().toLowerCase()
 
-  const filteredHistory = history.filter((item) => {
+  const matchesSearchTerm = (item: ExamAnalysis): boolean => {
     if (normalizedSearchTerm.length === 0) return true
+
+    const statusLabel = t(resolveHistoryStatus(item.status).translationKey).toLowerCase()
+
     return (
       item.file_name?.toLowerCase().includes(normalizedSearchTerm) === true ||
-      item.exam_type?.toLowerCase().includes(normalizedSearchTerm) === true
+      item.exam_type?.toLowerCase().includes(normalizedSearchTerm) === true ||
+      statusLabel.includes(normalizedSearchTerm)
     )
-  })
+  }
+
+  const filteredHistory = history.filter(matchesSearchTerm)
 
   return (
     <div className="flex h-fit w-full shrink-0 flex-col gap-4 rounded-xl border border-border bg-card p-4 md:sticky md:top-6 md:max-h-[calc(100vh-120px)] md:w-[320px]">
@@ -56,7 +62,7 @@ export const AnalysisHistory = ({
           <Database className="h-4 w-4 text-primary" aria-hidden="true" />
           {t("history.title")}
         </h3>
-        <span className="rounded-full border border-border bg-gray-50 px-2 py-0.5 text-[10px] font-bold text-muted-foreground">
+        <span className="rounded-full border border-border bg-gray-50 px-2 py-0.5 text-[11px] font-bold text-muted-foreground">
           {t("history.exams", { count: filteredHistory.length })}
         </span>
       </div>
@@ -124,11 +130,11 @@ export const AnalysisHistory = ({
                     {fileName}
                   </span>
 
-                  <span className="mt-1 block text-[10px] font-medium text-gray-600">
+                  <span className="mt-1 block text-[11px] font-medium text-gray-600">
                     {secondaryLabel}
                   </span>
 
-                  <span className="mt-1.5 flex items-center gap-2.5 text-[10px] text-muted-foreground">
+                  <span className="mt-1.5 flex items-center gap-2.5 text-[11px] text-muted-foreground">
                     <span className="flex items-center gap-1">
                       <Calendar className="h-3 w-3 shrink-0" aria-hidden="true" />
                       {item.created_at ? formatDateTime(item.created_at) : "—"}

@@ -74,6 +74,32 @@ test.describe("Exam Analyzer Module", () => {
     await expect(lowSeverityFinding).toContainText("Informativo")
   })
 
+  test("should present quality notes as neutral observations rather than alerts", async ({ page }) => {
+    await page.getByRole("button", { name: "Ver análise de rx_torax.png" }).click()
+
+    await expect(
+      page.getByText("Observações sobre a Qualidade da Imagem", { exact: true })
+    ).toBeVisible()
+    await expect(
+      page.getByText("Inspiração adequada. Sem artefatos de movimento.")
+    ).toBeVisible()
+    await expect(page.getByText("Alertas de Qualidade")).toBeHidden()
+  })
+
+  test("should filter the history by status as well as by name and type", async ({ page }) => {
+    const filter = page.getByPlaceholder("Filtrar por nome, tipo ou status...")
+    await expect(filter).toBeVisible()
+
+    await filter.fill("conclu")
+    await expect(page.getByText("rx_torax.png")).toBeVisible()
+
+    await filter.fill("falha")
+    await expect(page.getByText("Nenhum resultado encontrado")).toBeVisible()
+
+    await filter.fill("")
+    await expect(page.getByText("rx_torax.png")).toBeVisible()
+  })
+
   test("should keep the history selectable and deletable with the keyboard", async ({ page }) => {
     const selectButton = page.getByRole("button", { name: "Ver análise de rx_torax.png" })
     await expect(selectButton).toBeVisible()

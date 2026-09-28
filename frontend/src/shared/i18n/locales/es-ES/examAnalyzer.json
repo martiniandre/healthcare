@@ -47,7 +47,7 @@
       "fair": "Legible con reservas",
       "poor": "Calidad insuficiente"
     },
-    "warnings": "Alertas de Calidad de la Imagen",
+    "qualityObservations": "Observaciones sobre la Calidad de la Imagen",
     "urgencyTitle": "Conducta Sugerida",
     "urgencyCaption": "Clasificación de urgencia según el análisis asistido. Confirme antes de actuar.",
     "urgencyUrgent": "Urgencia Médica",
@@ -83,7 +83,7 @@
     "title": "Historial de Análisis",
     "exams_one": "{{count}} examen",
     "exams_other": "{{count}} exámenes",
-    "filterPlaceholder": "Filtrar por nombre o tipo...",
+    "filterPlaceholder": "Filtrar por nombre, tipo o estado...",
     "loading": "Cargando historial...",
     "noResults": "No se encontraron resultados",
     "empty": "Todavía no hay exámenes analizados",
