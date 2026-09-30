@@ -62,9 +62,14 @@ CHECK (
     AND failed_instances >= 0
 );
 
+DELETE FROM imaging_studies
+WHERE study_instance_uid IS NULL;
+
+ALTER TABLE imaging_studies
+ALTER COLUMN study_instance_uid SET NOT NULL;
+
 CREATE UNIQUE INDEX IF NOT EXISTS uq_imaging_studies_study_instance_uid
-ON imaging_studies(study_instance_uid)
-WHERE study_instance_uid IS NOT NULL;
+ON imaging_studies(study_instance_uid);
 
 CREATE INDEX IF NOT EXISTS idx_imaging_studies_status_ready_at
 ON imaging_studies(status, ready_at);

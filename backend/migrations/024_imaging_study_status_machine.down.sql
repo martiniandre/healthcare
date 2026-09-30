@@ -3,6 +3,9 @@ DROP INDEX IF EXISTS idx_imaging_studies_status_ready_at;
 DROP INDEX IF EXISTS uq_imaging_studies_study_instance_uid;
 
 ALTER TABLE imaging_studies
+ALTER COLUMN study_instance_uid DROP NOT NULL;
+
+ALTER TABLE imaging_studies
 DROP CONSTRAINT IF EXISTS imaging_studies_counters_check;
 
 ALTER TABLE imaging_studies
@@ -50,7 +53,6 @@ WHERE modality IS NULL OR title IS NULL;
 UPDATE imaging_studies
 SET status = 'PROCESSED'
 WHERE status = 'READY';
-
 UPDATE imaging_studies
 SET status = 'PENDING'
 WHERE status = 'RECEIVING';
