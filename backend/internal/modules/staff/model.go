@@ -12,6 +12,7 @@ type Employee struct {
 	FullName       string     `db:"full_name"`
 	Email          string     `db:"email"`
 	Role           role.Role  `db:"role"`
+	RoleID         uuid.UUID  `db:"role_id"`
 	CRMNumber      *string    `db:"crm_number"`
 	FHIRResourceID *string    `db:"fhir_resource_id"`
 	DepartmentID   uuid.UUID  `db:"department_id"`
@@ -20,6 +21,15 @@ type Employee struct {
 	IsActive       bool       `db:"is_active"`
 	CreatedAt      time.Time  `db:"created_at"`
 	UpdatedAt      time.Time  `db:"updated_at"`
+}
+
+type Role struct {
+	ID        uuid.UUID `db:"id"`
+	Code      string    `db:"code"`
+	Name      string    `db:"name"`
+	SortOrder int       `db:"sort_order"`
+	IsActive  bool      `db:"is_active"`
+	CreatedAt time.Time `db:"created_at"`
 }
 
 type Department struct {

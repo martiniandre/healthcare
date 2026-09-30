@@ -109,6 +109,12 @@ var (
 		Message:  "department not found",
 	}
 
+	ErrRoleNotFound = AppError{
+		GRPCCode: codes.NotFound,
+		HTTPCode: http.StatusNotFound,
+		Message:  "role not found",
+	}
+
 	ErrPatientNotFound = AppError{
 		GRPCCode: codes.NotFound,
 		HTTPCode: http.StatusNotFound,
