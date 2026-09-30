@@ -163,8 +163,9 @@ func seedDoctorEmployee(t *testing.T, db *pgxpool.Pool) uuid.UUID {
 
 	var employeeID uuid.UUID
 	insertError := db.QueryRow(ctx, `
-		INSERT INTO employees (id, full_name, email, role, crm_number, department_id, is_active, created_at, updated_at)
-		VALUES (uuid_generate_v4(), 'Médico Teste', 'medico.teste@clinica.com', 'DOCTOR', 'CRM 123456',
+		INSERT INTO employees (id, full_name, email, role_id, crm_number, department_id, is_active, created_at, updated_at)
+		VALUES (uuid_generate_v4(), 'Médico Teste', 'medico.teste@clinica.com',
+			(SELECT id FROM roles WHERE code = 'DOCTOR'), 'CRM 123456',
 			(SELECT id FROM departments WHERE name = 'Clínica Geral'), true, NOW(), NOW())
 		RETURNING id`).Scan(&employeeID)
 	if insertError != nil {
