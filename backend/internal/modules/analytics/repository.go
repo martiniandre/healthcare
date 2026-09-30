@@ -154,7 +154,10 @@ func (analyticsRepository *repository) GetConsultationsPerDoctor(contextParamete
 	}
 
 	employeeRows, queryError := analyticsRepository.dbPool.Query(contextParameter,
-		`SELECT id, full_name, COALESCE(crm_number, '') FROM employees WHERE role = 'doctor' AND is_active = true`)
+		`SELECT e.id, e.full_name, COALESCE(e.crm_number, '')
+		 FROM employees e
+		 JOIN roles r ON r.id = e.role_id
+		 WHERE r.code = 'DOCTOR' AND e.is_active = true`)
 	if queryError != nil {
 		return nil, queryError
 	}
