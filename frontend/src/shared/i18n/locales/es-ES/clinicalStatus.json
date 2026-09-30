@@ -1,0 +1,73 @@
+{
+  "encounter": {
+    "planned": "Planificado",
+    "arrived": "Ha llegado",
+    "triaged": "Triado",
+    "in-progress": "En curso",
+    "onleave": "Ausente",
+    "finished": "Finalizado",
+    "cancelled": "Cancelado",
+    "entered-in-error": "Registrado por error",
+    "unknown": "Desconocido"
+  },
+  "condition": {
+    "active": "Activa",
+    "recurrence": "Recurrente",
+    "relapse": "En recaída",
+    "inactive": "Inactiva",
+    "remission": "En remisión",
+    "resolved": "Resuelta"
+  },
+  "medicationRequest": {
+    "active": "Activa",
+    "on-hold": "En espera",
+    "cancelled": "Cancelada",
+    "completed": "Completada",
+    "entered-in-error": "Registrada por error",
+    "stopped": "Suspendida",
+    "draft": "Borrador",
+    "unknown": "Desconocida"
+  },
+  "diagnosticReport": {
+    "registered": "Registrado",
+    "partial": "Parcial",
+    "preliminary": "Preliminar",
+    "final": "Final",
+    "amended": "Revisado",
+    "corrected": "Corregido",
+    "appended": "Complementado",
+    "cancelled": "Cancelado",
+    "entered-in-error": "Registrado por error",
+    "unknown": "Desconocido"
+  },
+  "imagingStudy": {
+    "registered": "Registrado",
+    "available": "Disponible",
+    "cancelled": "Cancelado",
+    "entered-in-error": "Registrado por error",
+    "unknown": "Desconocido"
+  },
+  "allergy": {
+    "active": "Activa",
+    "inactive": "Inactiva",
+    "resolved": "Resuelta"
+  },
+  "dicomModality": {
+    "CT": "TC (Tomografía Computarizada)",
+    "MR": "RM (Resonancia Magnética)",
+    "US": "US (Ecografía)",
+    "DX": "DX (Radiología Digital)",
+    "CR": "CR (Radiología Computarizada)",
+    "XA": "XA (Angiografía por Rayos X)",
+    "PT": "PT (Fluoroscopia)",
+    "MG": "MG (Mamografía)",
+    "SR": "SR (Informe Estructurado)"
+  },
+  "cardiacCondition": {
+    "normal": "Normal",
+    "bradycardia": "Bradicardia",
+    "tachycardia": "Taquicardia",
+    "cardiac-arrest": "Parada Cardíaca"
+  },
+  "notInformed": "N/D"
+}

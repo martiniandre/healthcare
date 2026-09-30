@@ -19,8 +19,7 @@ func TestCreateNotification(testingInstance *testing.T) {
 	createdNotification, createError := notificationService.CreateNotification(
 		contextParam,
 		notifications.NotificationTypeSystem,
-		"Test Title",
-		"Test Body",
+		notifications.NotificationContent{Title: "Test Title", Body: "Test Body"},
 		nil,
 		"",
 		"",
@@ -48,8 +47,7 @@ func TestCreateNotificationByRole(testingInstance *testing.T) {
 	createdNotification, createError := notificationService.CreateNotificationByRole(
 		contextParam,
 		notifications.NotificationTypeSystem,
-		"System Update",
-		"System maintenance scheduled",
+		notifications.NotificationContent{Title: "System Update", Body: "System maintenance scheduled"},
 		nil,
 		"",
 		"",
@@ -71,8 +69,7 @@ func TestCreateNotificationByRole_RoutesReportReadyToPatients(testingInstance *t
 	createdNotification, createError := notificationService.CreateNotificationByRole(
 		contextParam,
 		notifications.NotificationTypeReportReady,
-		"Laudo Disponível",
-		"O laudo está pronto para consulta.",
+		notifications.NotificationContent{Title: "Laudo Disponível", Body: "O laudo está pronto para consulta."},
 		nil,
 		"diagnostic_report",
 		"report-123",
@@ -94,8 +91,7 @@ func TestCreateNotification_InvalidType(testingInstance *testing.T) {
 	_, createError := notificationService.CreateNotificationByRole(
 		contextParam,
 		notifications.NotificationType("invalid_type"),
-		"Test",
-		"Test",
+		notifications.NotificationContent{Title: "Test", Body: "Test"},
 		nil,
 		"",
 		"",
@@ -140,8 +136,7 @@ func TestSubscribeAndBroadcast(testingInstance *testing.T) {
 	createdNotification, createError := notificationService.CreateNotification(
 		contextParam,
 		notifications.NotificationTypeSystem,
-		"Broadcast Test",
-		"Test body",
+		notifications.NotificationContent{Title: "Broadcast Test", Body: "Test body"},
 		nil,
 		"",
 		"",
@@ -171,8 +166,7 @@ func TestBroadcastDoesNotDeliverToNonRecipients(testingInstance *testing.T) {
 	createdNotification, createError := notificationService.CreateNotification(
 		contextParam,
 		notifications.NotificationTypeTelemetryAlert,
-		"Clinical Alert",
-		"Paciente X apresenta condição crítica",
+		notifications.NotificationContent{Title: "Clinical Alert", Body: "Paciente X apresenta condição crítica"},
 		nil,
 		"bed",
 		uuid.New().String(),
@@ -204,8 +198,7 @@ func TestBroadcastFailsClosedWhenRecipientLookupFails(testingInstance *testing.T
 	_, createError := notificationService.CreateNotification(
 		contextParam,
 		notifications.NotificationTypeSystem,
-		"Failing Lookup",
-		"Test body",
+		notifications.NotificationContent{Title: "Failing Lookup", Body: "Test body"},
 		nil,
 		"",
 		"",

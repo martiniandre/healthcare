@@ -60,8 +60,10 @@ func (encounterService *service) CreateEncounter(ctx context.Context, input Crea
 		encounterService.eventBus.Publish(ctx, eventbus.Event{
 			Name: "encounter.created",
 			Data: map[string]any{
-				"title":         "Novo Atendimento Criado",
-				"body":          "Atendimento para paciente " + createdEncounter.PatientFHIRID + " foi registrado.",
+				"title_key":     "notifications:event.encounterCreated.title",
+				"body_key":      "notifications:event.encounterCreated.body",
+				"params":        map[string]any{},
+				"patient_id":    createdEncounter.PatientFHIRID,
 				"resource_type": "encounter",
 				"resource_id":   createdEncounter.FHIRResourceID,
 			},

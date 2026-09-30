@@ -1,14 +1,15 @@
 import { useTranslation } from "react-i18next"
 import { Card } from "../../../shared/components/ui/Card"
 import { Bell } from "lucide-react"
-import { BedStatus } from "../../../shared/types"
+import { BedStatus, type CardiacCondition } from "../../../shared/types"
+import { useClinicalStatusLabels } from "../../../shared/hooks/useClinicalStatusLabels"
 
 interface Bed {
   id: string
   bedNumber: string
   patientName: string
   status: BedStatus
-  condition: string
+  condition: CardiacCondition
   bpm: number
   spo2: number
 }
@@ -21,6 +22,7 @@ interface TelemetryBedListProps {
 
 export const TelemetryBedList = ({ beds, selectedBedId, setSelectedBedId }: TelemetryBedListProps) => {
   const { t } = useTranslation("telemetry")
+  const { cardiacConditionLabel } = useClinicalStatusLabels()
 
   return (
     <div className="flex flex-col gap-4 lg:col-span-1 text-left">
@@ -56,7 +58,7 @@ export const TelemetryBedList = ({ beds, selectedBedId, setSelectedBedId }: Tele
                         ? "bg-amber-100 text-amber-600"
                         : "bg-emerald-100 text-emerald-600"
                   }`}>
-                    {bedItem.condition}
+                    {cardiacConditionLabel(bedItem.condition)}
                   </span>
                 </div>
 
@@ -65,8 +67,8 @@ export const TelemetryBedList = ({ beds, selectedBedId, setSelectedBedId }: Tele
                 </h4>
 
                 <div className="flex items-center justify-between mt-3 text-xs">
-                  <span className="text-gray-500">FC: <strong className="text-gray-800">{bedItem.bpm > 0 ? `${bedItem.bpm} BPM` : "---"}</strong></span>
-                  <span className="text-gray-500">SpO₂: <strong className="text-gray-800">{bedItem.spo2 > 0 ? `${bedItem.spo2}%` : "---"}</strong></span>
+                  <span className="text-gray-500">{t("sensors.ecg")}: <strong className="text-gray-800">{bedItem.bpm > 0 ? `${bedItem.bpm} BPM` : "---"}</strong></span>
+                  <span className="text-gray-500">{t("sensors.spo2")}: <strong className="text-gray-800">{bedItem.spo2 > 0 ? `${bedItem.spo2}%` : "---"}</strong></span>
                 </div>
               </div>
             )

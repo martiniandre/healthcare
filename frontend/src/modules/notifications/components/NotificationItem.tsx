@@ -1,6 +1,7 @@
 import { cn } from "../../../shared/utils/cn"
 import { formatRelativeTime } from "../../../shared/utils/dates"
 import { useLocale } from "../../../shared/hooks/useLocale"
+import { useNotificationText } from "../hooks/useNotificationText"
 import type { NotificationItem as NotificationItemType, NotificationPriority } from "../types"
 
 const priorityConfig: Record<NotificationPriority, { dot: string; bg: string }> = {
@@ -18,6 +19,7 @@ interface NotificationItemProps {
 export function NotificationItem({ notification, onMarkRead }: NotificationItemProps) {
   const config = priorityConfig[notification.priority] ?? priorityConfig.low
   const locale = useLocale()
+  const { notificationTitle, notificationBody } = useNotificationText()
   const timeAgo = formatRelativeTime(notification.created_at, locale)
 
   return (
@@ -37,9 +39,9 @@ export function NotificationItem({ notification, onMarkRead }: NotificationItemP
               !notification.is_read ? "font-semibold text-gray-900" : "font-medium text-gray-700",
             )}
           >
-            {notification.title}
+            {notificationTitle(notification)}
           </p>
-          <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{notification.body}</p>
+          <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{notificationBody(notification)}</p>
           <p className="text-[10px] text-gray-400 mt-1">{timeAgo}</p>
         </div>
       </div>

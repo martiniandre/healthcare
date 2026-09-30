@@ -9,6 +9,11 @@
     "reset": "Redefinir",
     "measure": "Medir"
   },
+  "presets": {
+    "softTissue": "Tecido Mole",
+    "bone": "Osso",
+    "lung": "Pulmão"
+  },
   "studyDetails": "Detalhes do Estudo",
   "series": "Série",
   "instance": "Instância",
@@ -28,6 +33,8 @@
   "loadError": "Não foi possível carregar o estudo de imagem. Verifique se ele existe ou tente novamente.",
   "backToRecord": "Voltar Prontuário",
   "titleConsole": "Console Clínico PACS",
+  "studyLabel": "Estudo",
+  "uidLabel": "UID",
   "uploadDcm": "Upload Novo .DCM",
   "details": {
     "viewportAriaLabel": "Visualizador interativo de estudos médicos DICOM do prontuário eletrônico",

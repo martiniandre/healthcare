@@ -39,14 +39,18 @@ const ClinicalAllergies = lazy(() => import("./components/ClinicalAllergies"))
 
 import { PACSStudies } from "./components/PACSStudies"
 
-const TabFallback = () => (
-  <Card className="flex items-center justify-center min-h-[450px]">
-    <div className="flex flex-col items-center gap-2">
-      <Loader2 className="w-8 h-8 text-primary animate-spin" />
-      <span className="text-sm text-gray-500 font-medium">Carregando componente...</span>
-    </div>
-  </Card>
-)
+const TabFallback = () => {
+  const { t } = useTranslation("patients")
+
+  return (
+    <Card className="flex items-center justify-center min-h-[450px]">
+      <div className="flex flex-col items-center gap-2">
+        <Loader2 className="w-8 h-8 text-primary animate-spin" />
+        <span className="text-sm text-gray-500 font-medium">{t("loadingComponent")}</span>
+      </div>
+    </Card>
+  )
+}
 
 export const PatientDetails = () => {
   const { id = "" } = useParams<{ id: string }>()
@@ -183,7 +187,7 @@ export const PatientDetails = () => {
               className="gap-2 shrink-0 self-start xl:self-auto bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20 hover:border-primary/40 font-bold"
             >
               <Sparkles className="w-4 h-4 text-primary" />
-              Analisar Exame com IA
+              {t("analyzeExamWithAi")}
             </Button>
           </Can>
         }

@@ -29,13 +29,6 @@ export interface UpdateAppointmentPayload {
   reason?: string
 }
 
-export const AppointmentStatusLabel = {
-  scheduled: "scheduled",
-  confirmed: "confirmed",
-  cancelled: "cancelled",
-  finished: "finished",
-} as const
-
 export interface StaffUnavailability {
   id: string
   staff_id: string

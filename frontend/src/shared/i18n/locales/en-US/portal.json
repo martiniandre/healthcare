@@ -1,4 +1,48 @@
 {
   "emptyEncounters": "No encounters found.",
-  "emptyConditions": "No conditions registered."
+  "emptyConditions": "No conditions registered.",
+  "title": "Patient Portal",
+  "navigation": "Navigation",
+  "loading": "Loading portal...",
+  "tabs": {
+    "dashboard": "Overview",
+    "appointments": "Appointments",
+    "encounters": "Encounters",
+    "observations": "Vital Signs",
+    "conditions": "Conditions",
+    "medications": "Medications",
+    "reports": "Reports",
+    "imaging": "Imaging"
+  },
+  "greeting": "Hello, {{firstName}}!",
+  "welcome": "Welcome to your health portal. Here you find all of your clinical information.",
+  "summary": {
+    "totalEncounters": "Total Encounters",
+    "activeConditions": "Active Conditions",
+    "activeMedications": "Active Medications",
+    "recentReports": "Recent Reports"
+  },
+  "upcomingEncounters": "Upcoming Encounters",
+  "recentVitalSigns": "Latest Vital Signs",
+  "table": {
+    "date": "Date",
+    "reason": "Reason",
+    "status": "Status",
+    "medication": "Medication",
+    "exam": "Report",
+    "prescribedAt": "Prescribed at:",
+    "onset": "Onset:"
+  },
+  "empty": {
+    "medications": "No medications prescribed.",
+    "reports": "No reports found.",
+    "imaging": "No imaging studies found.",
+    "observations": "No vital signs recorded."
+  },
+  "fallback": {
+    "encounter": "Encounter",
+    "medication": "Medication",
+    "exam": "Report",
+    "imagingStudy": "Imaging Study"
+  }
 }

@@ -1,0 +1,9 @@
+{
+  "appTitle": "Portal HealthCare",
+  "close": "Cerrar",
+  "toast": {
+    "success": "Éxito",
+    "error": "Error",
+    "info": "Aviso"
+  }
+}

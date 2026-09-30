@@ -1,12 +1,16 @@
+import { useTranslation } from "react-i18next"
 import { usePortalImagingQuery } from "./queries"
 import { Card } from "../../shared/components/ui/Card"
 import { Loader2 } from "lucide-react"
 import { formatDate } from "../../shared/utils/dates"
 import { useLocale } from "../../shared/hooks/useLocale"
+import { useClinicalStatusLabels } from "../../shared/hooks/useClinicalStatusLabels"
 
 export const PortalImaging = () => {
+  const { t } = useTranslation("portal")
   const { data: imagingStudies, isLoading } = usePortalImagingQuery()
   const locale = useLocale()
+  const { dicomModality, imagingStudyStatus, notInformed } = useClinicalStatusLabels()
 
   if (isLoading) {
     return (
@@ -19,7 +23,7 @@ export const PortalImaging = () => {
   if (!imagingStudies || imagingStudies.length === 0) {
     return (
       <Card className="py-16 text-center">
-        <p className="text-sm text-gray-500">Nenhum exame de imagem encontrado.</p>
+        <p className="text-sm text-gray-500">{t("empty.imaging")}</p>
       </Card>
     )
   }
@@ -33,7 +37,7 @@ export const PortalImaging = () => {
         >
           <div className="flex items-start justify-between mb-3">
             <span className="text-xs font-bold px-2 py-0.5 rounded bg-gray-100 text-gray-600 uppercase">
-              {study.modality || "N/I"}
+              {study.modality ? dicomModality(study.modality) : notInformed()}
             </span>
             <span className="text-xs text-gray-400">
               {study.created_at
@@ -42,10 +46,10 @@ export const PortalImaging = () => {
             </span>
           </div>
           <p className="text-sm font-bold text-gray-900 mb-2">
-            {study.title || "Estudo de Imagem"}
+            {study.title || t("fallback.imagingStudy")}
           </p>
-          <span className="text-xs font-bold px-2.5 py-1 rounded-full capitalize bg-blue-100 text-blue-700">
-            {study.status}
+          <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-blue-100 text-blue-700">
+            {imagingStudyStatus(study.status)}
           </span>
         </div>
       ))}

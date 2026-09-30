@@ -26,11 +26,11 @@ describe('ToastContainer', () => {
       toasts: [{ id: 'toast-1', message: 'Operação concluída', type: 'success' }],
     })
     render(<ToastContainer />)
-    expect(screen.getByText('Sucesso')).toBeInTheDocument()
+    expect(screen.getByText('Success')).toBeInTheDocument()
   })
 
   it('should render nothing when there are no toasts', () => {
     render(<ToastContainer />)
-    expect(screen.queryByText('Sucesso')).not.toBeInTheDocument()
+    expect(screen.queryByText('Success')).not.toBeInTheDocument()
   })
 })

@@ -22,14 +22,18 @@ const VitalSigns = lazy(() => import("./components/VitalSigns"))
 const ClinicalReports = lazy(() => import("./components/ClinicalReports"))
 const ClinicalMedications = lazy(() => import("./components/ClinicalMedications"))
 
-const TabFallback = () => (
-  <Card className="flex items-center justify-center min-h-[450px]">
-    <div className="flex flex-col items-center gap-2">
-      <Loader2 className="w-8 h-8 text-primary animate-spin" />
-      <span className="text-sm text-gray-500 font-medium">Carregando componente...</span>
-    </div>
-  </Card>
-)
+const TabFallback = () => {
+  const { t } = useTranslation("patients")
+
+  return (
+    <Card className="flex items-center justify-center min-h-[450px]">
+      <div className="flex flex-col items-center gap-2">
+        <Loader2 className="w-8 h-8 text-primary animate-spin" />
+        <span className="text-sm text-gray-500 font-medium">{t("loadingComponent")}</span>
+      </div>
+    </Card>
+  )
+}
 
 export function EncounterDetail() {
   const { id = "", encounterId = "" } = useParams<{ id: string; encounterId: string }>()

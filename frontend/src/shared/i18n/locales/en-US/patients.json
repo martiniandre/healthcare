@@ -5,9 +5,13 @@
   "cards": {
     "total": "Total Registered",
     "standard": "Data Standard",
-    "integration": "Integration"
+    "integration": "Integration",
+    "fhirCompliant": "FHIR R4 Compliant",
+    "cloudIntegration": "Cloud Healthcare API"
   },
-  "searchPlaceholder": "Search by name, document or phone...",
+    "loadingComponent": "Loading component...",
+  "analyzeExamWithAi": "Analyze Exam with AI",
+"searchPlaceholder": "Search by name, document or phone...",
   "filterResults_one": "{{count}} result",
   "filterResults_other": "{{count}} results",
   "loading": "Loading clinical records...",

@@ -9,6 +9,11 @@
     "reset": "Restablecer",
     "measure": "Medir"
   },
+  "presets": {
+    "softTissue": "Tejido Blando",
+    "bone": "Hueso",
+    "lung": "Pulmón"
+  },
   "studyDetails": "Detalles del Estudio",
   "series": "Serie",
   "instance": "Instancia",
@@ -28,6 +33,8 @@
   "loadError": "No se pudo cargar el estudio de imagen. Verifique que exista o intente nuevamente.",
   "backToRecord": "Volver al Historial Clínico",
   "titleConsole": "Consola Quirúrgica PACS",
+  "studyLabel": "Estudio",
+  "uidLabel": "UID",
   "uploadDcm": "Subir Nuevo .DCM",
   "details": {
     "viewportAriaLabel": "Visualizador interactivo de estudios médicos DICOM del historial clínico electrónico",

@@ -1,8 +1,7 @@
-package telemetry
+﻿package telemetry
 
 import (
 	"context"
-	"fmt"
 	"strings"
 
 	"github.com/google/uuid"
@@ -95,12 +94,19 @@ func (telemetryService *service) UpdateBedCondition(ctx context.Context, input U
 		return err
 	}
 
-	if input.Status == "danger" && previousStatus != "danger" && telemetryService.eventBus != nil {
+	if input.Status == BedStatusDanger && previousStatus != BedStatusDanger && telemetryService.eventBus != nil {
 		telemetryService.eventBus.Publish(ctx, eventbus.Event{
 			Name: "telemetry.alert",
 			Data: map[string]any{
-				"title":         "Alerta Clínico - Leito " + bed.BedNumber,
-				"body":          fmt.Sprintf("Paciente %s apresenta condição %s (BPM: %d, SpO2: %d%%).", bed.PatientName, input.Condition, input.Bpm, input.Spo2),
+				"title_key": "notifications:event.telemetryAlert.title",
+				"body_key":  "notifications:event.telemetryAlert.body",
+				"params": map[string]any{
+					"bedNumber":   bed.BedNumber,
+					"condition":   string(input.Condition),
+					"patientName": bed.PatientName,
+					"bpm":         input.Bpm,
+					"spo2":        input.Spo2,
+				},
 				"resource_type": "bed",
 				"resource_id":   bed.ID.String(),
 			},
@@ -135,10 +141,10 @@ func validateBedConditionInput(input UpdateBedConditionInput) map[string]string 
 	if input.Temperature < 30.0 || input.Temperature > 45.0 {
 		fieldViolations["temperature"] = "out of clinical range (30-45)"
 	}
-	if strings.TrimSpace(input.Status) == "" {
+	if input.Status == "" {
 		fieldViolations["status"] = "is required"
 	}
-	if strings.TrimSpace(input.Condition) == "" {
+	if input.Condition == "" {
 		fieldViolations["condition"] = "is required"
 	}
 	return fieldViolations

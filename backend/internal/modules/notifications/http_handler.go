@@ -30,15 +30,35 @@ func (handler *HTTPHandler) RegisterRoutes(mux *http.ServeMux) {
 }
 
 type notificationResponse struct {
-	ID           string `json:"id"`
-	Type         string `json:"type"`
-	Priority     string `json:"priority"`
-	Title        string `json:"title"`
-	Body         string `json:"body"`
-	ResourceType string `json:"resource_type"`
-	ResourceID   string `json:"resource_id"`
-	IsRead       bool   `json:"is_read"`
-	CreatedAt    string `json:"created_at"`
+	ID           string         `json:"id"`
+	Type         string         `json:"type"`
+	Priority     string         `json:"priority"`
+	Title        string         `json:"title"`
+	Body         string         `json:"body"`
+	TitleKey     string         `json:"title_key"`
+	BodyKey      string         `json:"body_key"`
+	Params       map[string]any `json:"params"`
+	ResourceType string         `json:"resource_type"`
+	ResourceID   string         `json:"resource_id"`
+	IsRead       bool           `json:"is_read"`
+	CreatedAt    string         `json:"created_at"`
+}
+
+func toNotificationResponse(notification *Notification) notificationResponse {
+	return notificationResponse{
+		ID:           notification.ID.String(),
+		Type:         string(notification.Type),
+		Priority:     string(notification.Priority),
+		Title:        notification.Title,
+		Body:         notification.Body,
+		TitleKey:     notification.TitleKey,
+		BodyKey:      notification.BodyKey,
+		Params:       notification.Params,
+		ResourceType: notification.ResourceType,
+		ResourceID:   notification.ResourceID,
+		IsRead:       notification.IsRead,
+		CreatedAt:    notification.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
+	}
 }
 
 func (handler *HTTPHandler) ListNotifications(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
@@ -77,17 +97,7 @@ func (handler *HTTPHandler) ListNotifications(httpResponseWriter http.ResponseWr
 
 	responseItems := make([]notificationResponse, 0, len(notifications))
 	for _, notification := range notifications {
-		responseItems = append(responseItems, notificationResponse{
-			ID:           notification.ID.String(),
-			Type:         string(notification.Type),
-			Priority:     string(notification.Priority),
-			Title:        notification.Title,
-			Body:         notification.Body,
-			ResourceType: notification.ResourceType,
-			ResourceID:   notification.ResourceID,
-			IsRead:       notification.IsRead,
-			CreatedAt:    notification.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
-		})
+		responseItems = append(responseItems, toNotificationResponse(notification))
 	}
 
 	render.JSON(httpResponseWriter, http.StatusOK, map[string]any{
@@ -202,17 +212,7 @@ func (handler *HTTPHandler) StreamNotifications(httpResponseWriter http.Response
 				return
 			}
 
-			eventData, jsonError := json.Marshal(notificationResponse{
-				ID:           notification.ID.String(),
-				Type:         string(notification.Type),
-				Priority:     string(notification.Priority),
-				Title:        notification.Title,
-				Body:         notification.Body,
-				ResourceType: notification.ResourceType,
-				ResourceID:   notification.ResourceID,
-				IsRead:       notification.IsRead,
-				CreatedAt:    notification.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
-			})
+			eventData, jsonError := json.Marshal(toNotificationResponse(notification))
 			if jsonError != nil {
 				slog.Error("failed to marshal SSE event", "error", jsonError)
 				continue

@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next"
 import { Ruler, Sun, ZoomIn } from "lucide-react"
 import { Button } from "../../../shared/components/ui/Button"
 import type { ImagingPreset, ImagingTool } from "../hooks/useDicomViewer"
@@ -9,6 +10,8 @@ interface DicomToolControlsProperties {
 }
 
 export const DicomToolControls = ({ activeTool, onToolChange, onPresetChange }: DicomToolControlsProperties) => {
+  const { t } = useTranslation("imaging")
+
   return (
     <div className="flex flex-wrap items-center justify-between w-full border-t border-border pt-4 gap-4">
       <div className="flex gap-2.5">
@@ -18,7 +21,7 @@ export const DicomToolControls = ({ activeTool, onToolChange, onPresetChange }: 
           className="px-3.5 gap-2 text-xs font-bold"
         >
           <ZoomIn className="w-4 h-4" />
-          Zoom (Arrastar)
+          {t("tools.zoom")}
         </Button>
         <Button
           variantType={activeTool === "contrast" ? "primary" : "outline"}
@@ -26,7 +29,7 @@ export const DicomToolControls = ({ activeTool, onToolChange, onPresetChange }: 
           className="px-3.5 gap-2 text-xs font-bold"
         >
           <Sun className="w-4 h-4" />
-          Luminosidade
+          {t("tools.contrast")}
         </Button>
         <Button
           variantType={activeTool === "ruler" ? "primary" : "outline"}
@@ -34,19 +37,19 @@ export const DicomToolControls = ({ activeTool, onToolChange, onPresetChange }: 
           className="px-3.5 gap-2 text-xs font-bold"
         >
           <Ruler className="w-4 h-4" />
-          Régua (Medir)
+          {t("tools.measure")}
         </Button>
       </div>
 
       <div className="flex gap-2">
         <Button variantType="outline" onClick={() => onPresetChange("soft")} className="px-3 py-1.5 text-xs">
-          Tecido Mole
+          {t("presets.softTissue")}
         </Button>
         <Button variantType="outline" onClick={() => onPresetChange("bone")} className="px-3 py-1.5 text-xs">
-          Osso
+          {t("presets.bone")}
         </Button>
         <Button variantType="outline" onClick={() => onPresetChange("lung")} className="px-3 py-1.5 text-xs">
-          Pulmão
+          {t("presets.lung")}
         </Button>
       </div>
     </div>

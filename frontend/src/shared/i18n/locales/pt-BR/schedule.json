@@ -23,7 +23,14 @@
     "noStaff": "Nenhum profissional disponível."
   },
   "calendar": {
-    "staffFilters": "Profissionais"
+    "staffFilters": "Profissionais",
+    "viewLabel": "Visualização do calendário",
+    "views": {
+      "week": "Semana",
+      "day": "Dia",
+      "month": "Mês",
+      "year": "Ano"
+    }
   },
   "modals": {
     "create": {

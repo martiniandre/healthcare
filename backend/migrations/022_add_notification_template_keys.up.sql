@@ -1,0 +1,4 @@
+ALTER TABLE notifications
+    ADD COLUMN title_key VARCHAR(255) NOT NULL DEFAULT '',
+    ADD COLUMN body_key VARCHAR(255) NOT NULL DEFAULT '',
+    ADD COLUMN params JSONB NOT NULL DEFAULT '{}'::jsonb;

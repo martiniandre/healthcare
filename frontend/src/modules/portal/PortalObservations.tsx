@@ -8,7 +8,7 @@ import { findVitalSignDisplay } from "../patients/components/vitalSignDisplay"
 import { VitalSignValueDisplay } from "../patients/components/VitalSignValueDisplay"
 
 export const PortalObservations = () => {
-  const { t } = useTranslation("patients")
+  const { t } = useTranslation(["portal", "patients"])
   const { data: observations, isLoading } = usePortalObservationsQuery()
   const locale = useLocale()
 
@@ -23,7 +23,7 @@ export const PortalObservations = () => {
   if (!observations || observations.length === 0) {
     return (
       <Card className="py-16 text-center">
-        <p className="text-sm text-gray-500">Nenhum sinal vital registrado.</p>
+        <p className="text-sm text-gray-500">{t("portal:empty.observations")}</p>
       </Card>
     )
   }
@@ -38,7 +38,7 @@ export const PortalObservations = () => {
             className="bg-card border border-border rounded-xl p-5"
           >
             <p className="text-xs text-gray-500 font-medium mb-1">
-              {displayMetadata?.labelKey ? t(displayMetadata.labelKey) : observation.code_display}
+              {displayMetadata?.labelKey ? t(`patients:${displayMetadata.labelKey}`) : observation.code_display}
             </p>
             <VitalSignValueDisplay
               notPerformed={observation.not_performed}

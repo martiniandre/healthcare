@@ -5,5 +5,31 @@
   "listError": "No se pudieron cargar las notificaciones.",
   "markReadError": "Error al marcar la notificación como leída.",
   "markRead": "Marcar como leída",
-  "relativeNow": "ahora"
+  "relativeNow": "ahora",
+  "event": {
+    "telemetryAlert": {
+      "title": "Alerta Clínico - Cama {{bedNumber}}",
+      "body": "{{patientName}}: {{condition}} (FC: {{bpm}} lpm, SpO₂: {{spo2}}%)"
+    },
+    "examComplete": {
+      "title": "Análisis de Examen Completado",
+      "body": "El análisis del examen {{examType}} se ha completado."
+    },
+    "encounterCreated": {
+      "title": "Nueva Consulta Creada",
+      "body": "Se ha registrado una nueva consulta en el historial clínico."
+    },
+    "patientCreated": {
+      "title": "Nuevo Paciente Registrado",
+      "body": "El paciente {{patientName}} se ha registrado con éxito."
+    },
+    "reportReady": {
+      "title": "Informe Disponible",
+      "body": "Hay un nuevo informe disponible en la versión {{version}}."
+    },
+    "loginSucceeded": {
+      "title": "Inicio de Sesión Realizado",
+      "body": "Inicio de sesión realizado con éxito."
+    }
+  }
 }

@@ -49,7 +49,8 @@ func TestCreateEncounter_ValidInput_DefaultsToInProgressAndPublishesEvent(testin
 	assert.Equal(testingInstance, "Routine check-up", result.ReasonDisplay)
 	require.Len(testingInstance, eventBus.PublishedEvents, 1)
 	assert.Equal(testingInstance, "encounter.created", eventBus.PublishedEvents[0].Name)
-	assert.Equal(testingInstance, "Novo Atendimento Criado", eventBus.PublishedEvents[0].Data["title"])
+	assert.Equal(testingInstance, "notifications:event.encounterCreated.title", eventBus.PublishedEvents[0].Data["title_key"])
+	assert.Equal(testingInstance, "notifications:event.encounterCreated.body", eventBus.PublishedEvents[0].Data["body_key"])
 	assert.Equal(testingInstance, "encounter", eventBus.PublishedEvents[0].Data["resource_type"])
 }
 

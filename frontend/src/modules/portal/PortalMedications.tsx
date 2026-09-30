@@ -1,10 +1,13 @@
+import { useTranslation } from "react-i18next"
 import { usePortalMedicationsQuery } from "./queries"
 import { Card } from "../../shared/components/ui/Card"
 import { Loader2 } from "lucide-react"
 import { formatDate } from "../../shared/utils/dates"
 import { useLocale } from "../../shared/hooks/useLocale"
+import { useClinicalStatusLabels } from "../../shared/hooks/useClinicalStatusLabels"
+import type { MedicationRequestStatus } from "../../shared/types"
 
-const statusBadgeClass = (status: string) => {
+const statusBadgeClass = (status: MedicationRequestStatus) => {
   switch (status) {
     case "active":
       return "bg-green-100 text-green-700"
@@ -21,8 +24,10 @@ const statusBadgeClass = (status: string) => {
 }
 
 export const PortalMedications = () => {
+  const { t } = useTranslation("portal")
   const { data: medications, isLoading } = usePortalMedicationsQuery()
   const locale = useLocale()
+  const { medicationRequestStatus, notInformed } = useClinicalStatusLabels()
 
   if (isLoading) {
     return (
@@ -35,7 +40,7 @@ export const PortalMedications = () => {
   if (!medications || medications.length === 0) {
     return (
       <Card className="py-16 text-center">
-        <p className="text-sm text-gray-500">Nenhum medicamento prescrito.</p>
+        <p className="text-sm text-gray-500">{t("empty.medications")}</p>
       </Card>
     )
   }
@@ -49,18 +54,18 @@ export const PortalMedications = () => {
         >
           <div className="flex items-start justify-between mb-2">
             <div>
-              <p className="text-sm font-bold text-gray-900">{medication.medication_name || "Medicamento"}</p>
+              <p className="text-sm font-bold text-gray-900">{medication.medication_name || t("fallback.medication")}</p>
               <p className="text-xs text-gray-500 mt-0.5">
-                Prescrito em:{" "}
+                {t("table.prescribedAt")}{" "}
                 {medication.issued_at
                   ? formatDate(medication.issued_at, locale)
-                  : "N/I"}
+                  : notInformed()}
               </p>
             </div>
             <span
-              className={`text-xs font-bold px-2.5 py-1 rounded-full capitalize ${statusBadgeClass(medication.status)}`}
+              className={`text-xs font-bold px-2.5 py-1 rounded-full ${statusBadgeClass(medication.status)}`}
             >
-              {medication.status}
+              {medicationRequestStatus(medication.status)}
             </span>
           </div>
           {medication.dosage_instructions && (

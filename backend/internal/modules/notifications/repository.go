@@ -2,6 +2,7 @@ package notifications
 
 import (
 	"context"
+	"encoding/json"
 	"time"
 
 	"github.com/google/uuid"
@@ -34,12 +35,16 @@ func (notificationRepository *repository) Create(ctx context.Context, notificati
 	}
 	defer tx.Rollback(ctx)
 
-	insertNotificationQuery := `INSERT INTO notifications (id, type, priority, title, body, actor_id, resource_type, resource_id, created_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`
+	insertNotificationQuery := `INSERT INTO notifications (id, type, priority, title, body, title_key, body_key, params, actor_id, resource_type, resource_id, created_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`
+	encodedParams, err := json.Marshal(notification.Params)
+	if err != nil {
+		return err
+	}
 	_, err = tx.Exec(ctx, insertNotificationQuery,
 		notification.ID, notification.Type, notification.Priority,
-		notification.Title, notification.Body, notification.ActorID,
-		notification.ResourceType, notification.ResourceID, notification.CreatedAt,
+		notification.Title, notification.Body, notification.TitleKey, notification.BodyKey, encodedParams,
+		notification.ActorID, notification.ResourceType, notification.ResourceID, notification.CreatedAt,
 	)
 	if err != nil {
 		return err
@@ -65,6 +70,9 @@ type notificationRow struct {
 	Priority     string
 	Title        string
 	Body         string
+	TitleKey     string
+	BodyKey      string
+	Params       []byte
 	ActorID      *uuid.UUID
 	ResourceType string
 	ResourceID   string
@@ -82,7 +90,7 @@ func (notificationRepository *repository) ListByUserID(ctx context.Context, user
 		return nil, 0, err
 	}
 
-	listQuery := `SELECT n.id, n.type, n.priority, n.title, n.body, n.actor_id, n.resource_type, n.resource_id, n.created_at, nr.is_read
+	listQuery := `SELECT n.id, n.type, n.priority, n.title, n.body, n.title_key, n.body_key, n.params, n.actor_id, n.resource_type, n.resource_id, n.created_at, nr.is_read
 		FROM notifications n
 		INNER JOIN notification_recipients nr ON nr.notification_id = n.id
 		WHERE nr.user_id = $1
@@ -100,10 +108,17 @@ func (notificationRepository *repository) ListByUserID(ctx context.Context, user
 		var row notificationRow
 		err := rows.Scan(
 			&row.ID, &row.Type, &row.Priority, &row.Title, &row.Body,
+			&row.TitleKey, &row.BodyKey, &row.Params,
 			&row.ActorID, &row.ResourceType, &row.ResourceID, &row.CreatedAt, &row.IsRead,
 		)
 		if err != nil {
 			return nil, 0, err
+		}
+		notificationParams := map[string]any{}
+		if len(row.Params) > 0 {
+			if unmarshalError := json.Unmarshal(row.Params, &notificationParams); unmarshalError != nil {
+				notificationParams = map[string]any{}
+			}
 		}
 		notifications = append(notifications, &Notification{
 			ID:           row.ID,
@@ -111,6 +126,9 @@ func (notificationRepository *repository) ListByUserID(ctx context.Context, user
 			Priority:     NotificationPriority(row.Priority),
 			Title:        row.Title,
 			Body:         row.Body,
+			TitleKey:     row.TitleKey,
+			BodyKey:      row.BodyKey,
+			Params:       notificationParams,
 			ActorID:      row.ActorID,
 			ResourceType: row.ResourceType,
 			ResourceID:   row.ResourceID,

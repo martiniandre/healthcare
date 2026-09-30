@@ -4,8 +4,10 @@ import { Card } from "../../shared/components/ui/Card"
 import { Loader2 } from "lucide-react"
 import { formatDate } from "../../shared/utils/dates"
 import { useLocale } from "../../shared/hooks/useLocale"
+import { useClinicalStatusLabels } from "../../shared/hooks/useClinicalStatusLabels"
+import type { ConditionClinicalStatus } from "../../shared/types"
 
-const statusBadgeClass = (status: string) => {
+const statusBadgeClass = (status: ConditionClinicalStatus) => {
   switch (status) {
     case "active":
       return "bg-red-100 text-red-700"
@@ -27,6 +29,7 @@ export const PortalConditions = () => {
   const { t } = useTranslation("portal")
   const { data: conditions, isLoading } = usePortalConditionsQuery()
   const locale = useLocale()
+  const { conditionStatus, notInformed } = useClinicalStatusLabels()
 
   if (isLoading) {
     return (
@@ -55,13 +58,13 @@ export const PortalConditions = () => {
             <p className="text-sm font-bold text-gray-900">{condition.code_display}</p>
             <p className="text-xs text-gray-500 mt-0.5">
               {condition.icd10_code && <span className="font-mono">{condition.icd10_code} | </span>}
-              Início: {condition.onset_at ? formatDate(condition.onset_at, locale) : "N/I"}
+              {t("table.onset")} {condition.onset_at ? formatDate(condition.onset_at, locale) : notInformed()}
             </p>
           </div>
           <span
-            className={`text-xs font-bold px-2.5 py-1 rounded-full capitalize ${statusBadgeClass(condition.clinical_status)}`}
+            className={`text-xs font-bold px-2.5 py-1 rounded-full ${statusBadgeClass(condition.clinical_status)}`}
           >
-            {condition.clinical_status}
+            {conditionStatus(condition.clinical_status)}
           </span>
         </div>
       ))}

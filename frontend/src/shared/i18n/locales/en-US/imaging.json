@@ -9,6 +9,11 @@
     "reset": "Reset",
     "measure": "Measure"
   },
+  "presets": {
+    "softTissue": "Soft Tissue",
+    "bone": "Bone",
+    "lung": "Lung"
+  },
   "studyDetails": "Study Details",
   "series": "Series",
   "instance": "Instance",
@@ -27,6 +32,8 @@
   "loading": "Loading PACS viewer...",
   "loadError": "Unable to load the imaging study. Check that it exists or try again.",
   "backToRecord": "Back to Medical Record",
+  "studyLabel": "Study",
+  "uidLabel": "UID",
   "titleConsole": "PACS Surgical Console",
   "uploadDcm": "Upload New .DCM",
   "details": {

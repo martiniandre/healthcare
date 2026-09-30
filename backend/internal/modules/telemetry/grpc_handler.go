@@ -66,8 +66,8 @@ func (handler *GRPCHandler) GetBeds(ctx context.Context, req *pb.GetBedsRequest)
 			Bpm:         bed.Bpm,
 			Spo2:        bed.Spo2,
 			Temperature: bed.Temperature,
-			Status:      bed.Status,
-			Condition:   bed.Condition,
+			Status:      string(bed.Status),
+			Condition:   string(bed.Condition),
 		})
 	}
 
@@ -80,8 +80,8 @@ func (handler *GRPCHandler) UpdateBedCondition(ctx context.Context, req *pb.Upda
 		Bpm:         req.Bpm,
 		Spo2:        req.Spo2,
 		Temperature: req.Temperature,
-		Status:      req.Status,
-		Condition:   req.Condition,
+		Status:      NormalizeBedStatus(req.Status),
+		Condition:   NormalizeCardiacCondition(req.Condition),
 	})
 	if err != nil {
 		return nil, apperrors.ToGRPCStatus(err)

@@ -107,8 +107,9 @@ func (authService *service) Login(ctx context.Context, email, password string) (
 		authService.eventBus.Publish(ctx, eventbus.Event{
 			Name: "system.notification",
 			Data: map[string]any{
-				"title":         "Login Realizado",
-				"body":          "Login realizado com sucesso",
+				"title_key":     "notifications:event.loginSucceeded.title",
+				"body_key":      "notifications:event.loginSucceeded.body",
+				"params":        map[string]any{},
 				"resource_type": "user",
 				"resource_id":   user.ID.String(),
 				"actor_id":      user.ID.String(),

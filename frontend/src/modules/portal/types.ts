@@ -1,3 +1,12 @@
+import type {
+  ConditionClinicalStatus,
+  DicomModality,
+  DiagnosticReportStatus,
+  EncounterStatus,
+  ImagingStudyStatus,
+  MedicationRequestStatus,
+} from "../../shared/types"
+
 export interface PortalDashboard {
   patient_info: PatientInfo
   upcoming_encounters: PortalEncounter[]
@@ -17,7 +26,7 @@ export interface PatientInfo {
 
 export interface PortalEncounter {
   fhir_resource_id: string
-  status: string
+  status: EncounterStatus
   reason_display: string
   started_at: string
   ended_at?: string
@@ -37,7 +46,7 @@ export interface PortalCondition {
   fhir_resource_id: string
   code_display: string
   icd10_code: string
-  clinical_status: string
+  clinical_status: ConditionClinicalStatus
   onset_at: string
 }
 
@@ -45,14 +54,14 @@ export interface PortalMedication {
   fhir_resource_id: string
   medication_name: string
   dosage_instructions: string
-  status: string
+  status: MedicationRequestStatus
   issued_at: string
 }
 
 export interface PortalReport {
   fhir_resource_id: string
   report_display: string
-  status: string
+  status: DiagnosticReportStatus
   conclusion: string
   version?: string
   issued_at: string
@@ -61,7 +70,7 @@ export interface PortalReport {
 export interface PortalImaging {
   fhir_resource_id: string
   title: string
-  modality: string
-  status: string
+  modality: DicomModality
+  status: ImagingStudyStatus
   created_at: string
 }

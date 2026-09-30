@@ -16,17 +16,17 @@ type Room struct {
 }
 
 type Bed struct {
-	ID          uuid.UUID `db:"id" json:"id"`
-	RoomID      uuid.UUID `db:"room_id" json:"roomId"`
-	BedNumber   string    `db:"bed_number" json:"bedNumber"`
-	PatientName string    `db:"patient_name" json:"patientName"`
-	Age         int32     `db:"age" json:"age"`
-	Gender      string    `db:"gender" json:"gender"`
-	Bpm         int32     `db:"bpm" json:"bpm"`
-	Spo2        int32     `db:"spo2" json:"spo2"`
-	Temperature float64   `db:"temperature" json:"temperature"`
-	Status      string    `db:"status" json:"status"`
-	Condition   string    `db:"condition" json:"condition"`
-	CreatedAt   time.Time `db:"created_at" json:"-"`
-	UpdatedAt   time.Time `db:"updated_at" json:"-"`
+	ID          uuid.UUID        `db:"id" json:"id"`
+	RoomID      uuid.UUID        `db:"room_id" json:"roomId"`
+	BedNumber   string           `db:"bed_number" json:"bedNumber"`
+	PatientName string           `db:"patient_name" json:"patientName"`
+	Age         int32            `db:"age" json:"age"`
+	Gender      string           `db:"gender" json:"gender"`
+	Bpm         int32            `db:"bpm" json:"bpm"`
+	Spo2        int32            `db:"spo2" json:"spo2"`
+	Temperature float64          `db:"temperature" json:"temperature"`
+	Status      BedStatus        `db:"status" json:"status"`
+	Condition   CardiacCondition `db:"condition" json:"condition"`
+	CreatedAt   time.Time        `db:"created_at" json:"-"`
+	UpdatedAt   time.Time        `db:"updated_at" json:"-"`
 }
