@@ -34,6 +34,7 @@ func TestCreateEmployee_ValidInput_CreatesEmployee(testingInstance *testing.T) {
 	assert.NotNil(testingInstance, employee)
 	assert.Equal(testingInstance, "Dr. João Silva", employee.FullName)
 	assert.Equal(testingInstance, role.RoleDoctor, employee.Role)
+	assert.Equal(testingInstance, mockRepository.RoleCatalog[string(role.RoleDoctor)].ID, employee.RoleID)
 	require.NotNil(testingInstance, employee.CRMNumber)
 	assert.Equal(testingInstance, "CRM-12345", *employee.CRMNumber)
 	assert.Equal(testingInstance, department.ID, employee.DepartmentID)
@@ -180,6 +181,27 @@ func TestCreateEmployee_UnknownDepartment_ReturnsError(testingInstance *testing.
 	var appError apperrors.AppError
 	require.True(testingInstance, errors.As(err, &appError))
 	assert.Contains(testingInstance, appError.Message, "department_id")
+}
+
+func TestCreateEmployee_RoleMissingFromCatalog_ReturnsError(testingInstance *testing.T) {
+	mockRepository := mocks.NewMockStaffRepository()
+	delete(mockRepository.RoleCatalog, string(role.RoleDoctor))
+	department := mockRepository.SeedDepartment("Cardiologia")
+	staffService := staff.NewService(mockRepository, nil)
+
+	result, err := staffService.CreateEmployee(context.Background(), staff.CreateEmployeeInput{
+		CreatedBy:    uuid.New().String(),
+		FullName:     "Dr. João Silva",
+		Email:        "joao@clinic.com",
+		Role:         string(role.RoleDoctor),
+		CRMNumber:    "CRM-12345",
+		DepartmentID: department.ID.String(),
+	})
+
+	assert.Nil(testingInstance, result)
+	var appError apperrors.AppError
+	require.True(testingInstance, errors.As(err, &appError))
+	assert.Contains(testingInstance, appError.Message, "role")
 }
 
 func TestCreateEmployee_RepositoryFailure_ReturnsError(testingInstance *testing.T) {

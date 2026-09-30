@@ -52,11 +52,20 @@ func (staffService *service) CreateEmployee(ctx context.Context, input CreateEmp
 		return nil, departmentErr
 	}
 
+	roleID, roleLookupErr := staffService.repo.GetRoleIDByCode(ctx, parsedRole.String())
+	if roleLookupErr != nil {
+		if errors.Is(roleLookupErr, apperrors.ErrRoleNotFound) {
+			return nil, apperrors.InvalidArgument("invalid employee input", map[string]string{"role": "unknown role"})
+		}
+		return nil, roleLookupErr
+	}
+
 	employee := &Employee{
 		ID:             uuid.New(),
 		FullName:       input.FullName,
 		Email:          input.Email,
 		Role:           parsedRole,
+		RoleID:         roleID,
 		CRMNumber:      nil,
 		DepartmentID:   parsedDepartmentID,
 		DepartmentName: department.Name,
