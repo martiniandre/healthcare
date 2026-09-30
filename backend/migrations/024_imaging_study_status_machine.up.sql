@@ -20,10 +20,7 @@ ALTER TABLE imaging_studies
 ALTER COLUMN modality DROP NOT NULL;
 
 ALTER TABLE imaging_studies
-ADD COLUMN study_date DATE;
-
-ALTER TABLE imaging_studies
-ADD COLUMN study_time TIME;
+ADD COLUMN study_datetime TIMESTAMP WITH TIME ZONE;
 
 ALTER TABLE imaging_studies
 ADD COLUMN accession_number VARCHAR(64);

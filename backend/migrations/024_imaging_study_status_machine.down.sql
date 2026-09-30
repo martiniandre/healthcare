@@ -36,10 +36,7 @@ ALTER TABLE imaging_studies
 DROP COLUMN IF EXISTS accession_number;
 
 ALTER TABLE imaging_studies
-DROP COLUMN IF EXISTS study_time;
-
-ALTER TABLE imaging_studies
-DROP COLUMN IF EXISTS study_date;
+DROP COLUMN IF EXISTS study_datetime;
 
 ALTER TABLE imaging_studies
 ALTER COLUMN modality SET NOT NULL;
