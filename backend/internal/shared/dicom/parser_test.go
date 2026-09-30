@@ -72,6 +72,7 @@ func buildExplicitVRLittleEndianInstance() []byte {
 
 	buildExplicitElement(&instanceBuffer, 0x0008, 0x0020, "DA", []byte("20260115"))
 	buildExplicitElement(&instanceBuffer, 0x0008, 0x0030, "TM", []byte("101500"))
+	buildExplicitElement(&instanceBuffer, 0x0008, 0x0050, "SH", []byte("ACC-2026-0042"))
 	buildExplicitElement(&instanceBuffer, 0x0008, 0x0060, "CS", []byte("CT"))
 	buildExplicitElement(&instanceBuffer, 0x0008, 0x1030, "LO", []byte("CHEST WITHOUT CONTRAST"))
 	buildExplicitElement(&instanceBuffer, 0x0008, 0x103E, "LO", []byte("AXIAL 1.0MM"))
@@ -137,6 +138,7 @@ func TestParseInstanceReadsExplicitVRLittleEndianMetadata(testingInstance *testi
 	assert.Equal(testingInstance, 0, metadata.PixelRepresentation)
 	assert.Equal(testingInstance, "20260115", metadata.StudyDate)
 	assert.Equal(testingInstance, "101500", metadata.StudyTime)
+	assert.Equal(testingInstance, "ACC-2026-0042", metadata.AccessionNumber)
 	assert.False(testingInstance, metadata.ScanTruncatedBeforePixels)
 }
 

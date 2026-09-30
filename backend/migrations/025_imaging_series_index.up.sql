@@ -5,7 +5,6 @@ CREATE TABLE IF NOT EXISTS imaging_series (
     series_number INTEGER,
     series_description VARCHAR(255),
     modality VARCHAR(32),
-    body_part_examined VARCHAR(64),
     instance_count INTEGER NOT NULL DEFAULT 0,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,

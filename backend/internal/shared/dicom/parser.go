@@ -83,6 +83,7 @@ type InstanceMetadata struct {
 	ImageOrientationPatient   []string
 	StudyDate                 string
 	StudyTime                 string
+	AccessionNumber           string
 	ScanTruncatedBeforePixels bool
 }
 
@@ -336,7 +337,7 @@ func isStreamEnd(readError error) bool {
 
 func isCollectedDatasetTag(tagValue uint32) bool {
 	switch tagValue {
-	case 0x00080020, 0x00080030, 0x00080060, 0x00081030, 0x0008103E,
+	case 0x00080020, 0x00080030, 0x00080050, 0x00080060, 0x00081030, 0x0008103E,
 		0x0020000D, 0x0020000E, 0x00200011, 0x00200013,
 		0x00200032, 0x00200037, 0x00280008, 0x00280010, 0x00280011,
 		0x00280030, 0x00280100, 0x00280101, 0x00280102, 0x00280103:
@@ -353,6 +354,8 @@ func applyDatasetValue(metadata *InstanceMetadata, tagValue uint32, valueBytes [
 		metadata.StudyDate = decodedValue
 	case 0x00080030:
 		metadata.StudyTime = decodedValue
+	case 0x00080050:
+		metadata.AccessionNumber = decodedValue
 	case 0x00080060:
 		metadata.Modality = decodedValue
 	case 0x00081030:
