@@ -23,7 +23,14 @@
     "noStaff": "No staff members available."
   },
   "calendar": {
-    "staffFilters": "Staff"
+    "staffFilters": "Staff",
+    "viewLabel": "Calendar view",
+    "views": {
+      "week": "Week",
+      "day": "Day",
+      "month": "Month",
+      "year": "Year"
+    }
   },
   "modals": {
     "create": {

@@ -5,5 +5,31 @@
   "listError": "Unable to load notifications.",
   "markReadError": "Failed to mark the notification as read.",
   "markRead": "Mark as read",
-  "relativeNow": "just now"
+  "relativeNow": "just now",
+  "event": {
+    "telemetryAlert": {
+      "title": "Clinical Alert - Bed {{bedNumber}}",
+      "body": "{{patientName}}: {{condition}} (HR: {{bpm}} bpm, SpO₂: {{spo2}}%)"
+    },
+    "examComplete": {
+      "title": "Exam Analysis Completed",
+      "body": "The analysis of the {{examType}} exam has been completed."
+    },
+    "encounterCreated": {
+      "title": "New Encounter Created",
+      "body": "A new encounter was recorded in the medical record."
+    },
+    "patientCreated": {
+      "title": "New Patient Registered",
+      "body": "The patient {{patientName}} was successfully registered."
+    },
+    "reportReady": {
+      "title": "Report Available",
+      "body": "A new report is available in version {{version}}."
+    },
+    "loginSucceeded": {
+      "title": "Login Completed",
+      "body": "Signed in successfully."
+    }
+  }
 }

@@ -1,4 +1,48 @@
 {
   "emptyEncounters": "Nenhuma consulta encontrada.",
-  "emptyConditions": "Nenhuma condição registrada."
+  "emptyConditions": "Nenhuma condição registrada.",
+  "title": "Portal do Paciente",
+  "navigation": "Navegação",
+  "loading": "Carregando portal...",
+  "tabs": {
+    "dashboard": "Visão Geral",
+    "appointments": "Agendamentos",
+    "encounters": "Consultas",
+    "observations": "Sinais Vitais",
+    "conditions": "Condições",
+    "medications": "Medicamentos",
+    "reports": "Exames",
+    "imaging": "Imagens"
+  },
+  "greeting": "Olá, {{firstName}}!",
+  "welcome": "Bem-vindo ao seu portal de saúde. Aqui você encontra todas as suas informações clínicas.",
+  "summary": {
+    "totalEncounters": "Total de Consultas",
+    "activeConditions": "Condições Ativas",
+    "activeMedications": "Medicamentos Ativos",
+    "recentReports": "Exames Recentes"
+  },
+  "upcomingEncounters": "Próximas Consultas",
+  "recentVitalSigns": "Últimos Sinais Vitais",
+  "table": {
+    "date": "Data",
+    "reason": "Motivo",
+    "status": "Status",
+    "medication": "Medicamento",
+    "exam": "Exame",
+    "prescribedAt": "Prescrito em:",
+    "onset": "Início:"
+  },
+  "empty": {
+    "medications": "Nenhum medicamento prescrito.",
+    "reports": "Nenhum exame encontrado.",
+    "imaging": "Nenhum exame de imagem encontrado.",
+    "observations": "Nenhum sinal vital registrado."
+  },
+  "fallback": {
+    "encounter": "Consulta",
+    "medication": "Medicamento",
+    "exam": "Exame",
+    "imagingStudy": "Estudo de Imagem"
+  }
 }

@@ -55,8 +55,8 @@ func TestService_Login_PublishesEvent(testingInstance *testing.T) {
 
 	assert.Len(testingInstance, eventBus.PublishedEvents, 1)
 	assert.Equal(testingInstance, "system.notification", eventBus.PublishedEvents[0].Name)
-	assert.Equal(testingInstance, "Login Realizado", eventBus.PublishedEvents[0].Data["title"])
-	assert.Equal(testingInstance, "Login realizado com sucesso", eventBus.PublishedEvents[0].Data["body"])
+	assert.Equal(testingInstance, "notifications:event.loginSucceeded.title", eventBus.PublishedEvents[0].Data["title_key"])
+	assert.Equal(testingInstance, "notifications:event.loginSucceeded.body", eventBus.PublishedEvents[0].Data["body_key"])
 	assert.Equal(testingInstance, "user", eventBus.PublishedEvents[0].Data["resource_type"])
 }
 

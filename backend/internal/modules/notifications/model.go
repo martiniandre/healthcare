@@ -35,6 +35,9 @@ type Notification struct {
 	Priority     NotificationPriority `db:"priority"`
 	Title        string               `db:"title"`
 	Body         string               `db:"body"`
+	TitleKey     string               `db:"title_key"`
+	BodyKey      string               `db:"body_key"`
+	Params       map[string]any       `db:"params"`
 	ActorID      *uuid.UUID           `db:"actor_id"`
 	ResourceType string               `db:"resource_type"`
 	ResourceID   string               `db:"resource_id"`

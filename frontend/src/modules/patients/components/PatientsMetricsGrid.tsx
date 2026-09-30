@@ -32,7 +32,7 @@ export const PatientsMetricsGrid = ({ totalPatients }: PatientsMetricsGridProps)
           <span className="text-[10px] text-muted font-semibold uppercase tracking-wider block">
             {t("cards.standard")}
           </span>
-          <span className="text-sm font-bold text-gray-800 mt-0.5 block">FHIR R4 Compliant</span>
+          <span className="text-sm font-bold text-gray-800 mt-0.5 block">{t("cards.fhirCompliant")}</span>
         </div>
       </div>
 
@@ -44,7 +44,7 @@ export const PatientsMetricsGrid = ({ totalPatients }: PatientsMetricsGridProps)
           <span className="text-[10px] text-muted font-semibold uppercase tracking-wider block">
             {t("cards.integration")}
           </span>
-          <span className="text-sm font-bold text-gray-800 mt-0.5 block">Cloud Healthcare API</span>
+          <span className="text-sm font-bold text-gray-800 mt-0.5 block">{t("cards.cloudIntegration")}</span>
         </div>
       </div>
     </div>

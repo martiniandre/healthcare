@@ -5,9 +5,13 @@
   "cards": {
     "total": "Total Cadastrados",
     "standard": "Padrão de Dados",
-    "integration": "Integração"
+    "integration": "Integração",
+    "fhirCompliant": "FHIR R4 Compliant",
+    "cloudIntegration": "Cloud Healthcare API"
   },
-  "searchPlaceholder": "Buscar por nome, CPF ou telefone...",
+    "loadingComponent": "Carregando componente...",
+  "analyzeExamWithAi": "Analisar Exame com IA",
+"searchPlaceholder": "Buscar por nome, CPF ou telefone...",
   "filterResults_one": "{{count}} resultado",
   "filterResults_other": "{{count}} resultados",
   "loading": "Carregando registros clínicos...",

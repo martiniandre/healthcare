@@ -59,8 +59,9 @@ func (patientService *service) CreatePatient(ctx context.Context, input CreatePa
 		patientService.eventBus.Publish(ctx, eventbus.Event{
 			Name: "patient.created",
 			Data: map[string]any{
-				"title":         "Novo Paciente Cadastrado",
-				"body":          "Paciente " + createdPatient.FullName + " foi cadastrado no sistema.",
+				"title_key":     "notifications:event.patientCreated.title",
+				"body_key":      "notifications:event.patientCreated.body",
+				"params":        map[string]any{"patientName": createdPatient.FullName},
 				"resource_type": "patient",
 				"resource_id":   createdPatient.ID.String(),
 			},

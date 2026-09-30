@@ -12,10 +12,10 @@ describe("ScheduleViewToggle", () => {
 
   it("should render the week, day, month and year options", () => {
     render(<ScheduleViewToggle value="week" onChange={vi.fn()} />)
-    expect(screen.getByRole("option", { name: "week" })).toBeInTheDocument()
-    expect(screen.getByRole("option", { name: "day" })).toBeInTheDocument()
-    expect(screen.getByRole("option", { name: "month" })).toBeInTheDocument()
-    expect(screen.getByRole("option", { name: "year" })).toBeInTheDocument()
+    expect(screen.getByRole("option", { name: "Week" })).toBeInTheDocument()
+    expect(screen.getByRole("option", { name: "Day" })).toBeInTheDocument()
+    expect(screen.getByRole("option", { name: "Month" })).toBeInTheDocument()
+    expect(screen.getByRole("option", { name: "Year" })).toBeInTheDocument()
   })
 
   it("should call onChange with the selected view when a new option is chosen", () => {

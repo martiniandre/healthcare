@@ -1,8 +1,10 @@
+import { useTranslation } from "react-i18next"
 import { useToastStore, type ToastItem } from "../../store/toast_store"
 import { CheckCircle2, AlertCircle, Info, X } from "lucide-react"
 import { cn } from "../../utils/cn"
 
 export const ToastContainer = () => {
+  const { t } = useTranslation("common")
   const toastStore = useToastStore()
 
   return (
@@ -33,9 +35,9 @@ export const ToastContainer = () => {
 
             <div className="flex-1 min-w-0">
               <span className="text-[13px] font-bold text-gray-900 block">
-                {toastItem.type === "success" && "Sucesso"}
-                {toastItem.type === "error" && "Erro"}
-                {toastItem.type === "info" && "Aviso"}
+                {toastItem.type === "success" && t("toast.success")}
+                {toastItem.type === "error" && t("toast.error")}
+                {toastItem.type === "info" && t("toast.info")}
               </span>
               <p className="text-xs text-gray-600 mt-0.5 leading-relaxed break-words">
                 {toastItem.message}
@@ -44,6 +46,7 @@ export const ToastContainer = () => {
 
             <button
               onClick={handleDismiss}
+              aria-label={t("close")}
               className="flex-shrink-0 p-0.5 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
             >
               <X className="w-4 h-4" />

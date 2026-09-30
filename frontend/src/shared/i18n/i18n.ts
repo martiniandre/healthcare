@@ -6,6 +6,11 @@ import ptBRResource from "./locales/pt-BR"
 import enUSResource from "./locales/en-US"
 import esESResource from "./locales/es-ES"
 
+const syncDocumentLanguage = (activeLanguage: string) => {
+  document.documentElement.lang = activeLanguage
+  document.title = i18n.t("common:appTitle")
+}
+
 i18n
   .use(LanguageDetector)
   .use(initReactI18next)
@@ -20,6 +25,11 @@ i18n
       escapeValue: false
     }
   })
+  .then(() => {
+    syncDocumentLanguage(i18n.resolvedLanguage ?? i18n.language)
+  })
+
+i18n.on("languageChanged", syncDocumentLanguage)
 
 export const createModuleTranslator =
   (namespace: string) =>

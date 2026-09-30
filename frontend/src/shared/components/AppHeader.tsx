@@ -2,12 +2,14 @@ import { useState, useEffect } from "react"
 import { useTranslation } from "react-i18next"
 import { useAuthStore } from "../store/auth_store"
 import { useLayoutStore } from "../store/layout_store"
+import { useAuthRoleLabel } from "../hooks/useAuthRoleLabel"
 import { Menu, ShieldCheck, WifiOff } from "lucide-react"
 import { NotificationBell } from "../../modules/notifications/components/NotificationBell"
 
 export const AppHeader = () => {
   const { t } = useTranslation("header")
   const { role, email } = useAuthStore()
+  const translateRole = useAuthRoleLabel()
   const toggleMobileSidebar = useLayoutStore((state) => state.toggleMobileSidebar)
   const [isOnline, setIsOnline] = useState(navigator.onLine)
 
@@ -23,13 +25,6 @@ export const AppHeader = () => {
       window.removeEventListener("offline", handleOffline)
     }
   }, [])
-
-  const translateRole = (userRole: string | null) => {
-    if (!userRole) {
-      return t("roles.RoleDefault")
-    }
-    return t(`roles.${userRole}`, { defaultValue: t("roles.RoleDefault") })
-  }
 
   return (
     <header className="w-full border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-50 px-4 md:px-6 py-2.5 flex items-center justify-end gap-3">

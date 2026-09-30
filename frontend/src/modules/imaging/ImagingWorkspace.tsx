@@ -95,7 +95,7 @@ export const ImagingWorkspace = ({ studyId, onBack }: ImagingWorkspaceProps) => 
               {t("titleConsole")}
             </h2>
             <span className="text-xs text-muted mt-1.5 block">
-              Estudo: {study.title} • UID: {study.study_instance_uid}
+              {t("studyLabel")}: {study.title} • {t("uidLabel")}: {study.study_instance_uid}
             </span>
           </div>
         </div>

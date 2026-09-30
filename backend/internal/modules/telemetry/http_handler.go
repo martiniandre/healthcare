@@ -137,8 +137,8 @@ func (handler *HTTPHandler) UpdateBedCondition(httpResponseWriter http.ResponseW
 		Bpm:         payload.Bpm,
 		Spo2:        payload.Spo2,
 		Temperature: payload.Temperature,
-		Status:      payload.Status,
-		Condition:   payload.Condition,
+		Status:      NormalizeBedStatus(payload.Status),
+		Condition:   NormalizeCardiacCondition(payload.Condition),
 	})
 	if updateErr != nil {
 		slog.Error("failed to update bed condition", "error", updateErr, "bed_id", httpRequest.PathValue("bedId"), "request_id", middleware.GetRequestID(httpRequest.Context()))
@@ -165,14 +165,14 @@ type UnlockRoomResponse struct {
 }
 
 type TelemetryBedResponse struct {
-	ID          string  `json:"id"`
-	RoomID      string  `json:"room_id"`
-	BedLabel    string  `json:"bed_label"`
-	Bpm         int32   `json:"bpm"`
-	Spo2        int32   `json:"spo2"`
-	Temperature float64 `json:"temperature"`
-	Status      string  `json:"status"`
-	Condition   string  `json:"condition"`
+	ID          string           `json:"id"`
+	RoomID      string           `json:"room_id"`
+	BedLabel    string           `json:"bed_label"`
+	Bpm         int32            `json:"bpm"`
+	Spo2        int32            `json:"spo2"`
+	Temperature float64          `json:"temperature"`
+	Status      BedStatus        `json:"status"`
+	Condition   CardiacCondition `json:"condition"`
 }
 
 type UpdateBedConditionRequest struct {

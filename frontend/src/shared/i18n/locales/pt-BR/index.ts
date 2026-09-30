@@ -6,6 +6,8 @@ import telemetry from "./telemetry.json"
 import imaging from "./imaging.json"
 import examAnalyzer from "./examAnalyzer.json"
 import analytics from "./analytics.json"
+import common from "./common.json"
+import clinicalStatus from "./clinicalStatus.json"
 import staff from "./staff.json"
 import auditLogs from "./auditLogs.json"
 import notifications from "./notifications.json"
@@ -21,6 +23,8 @@ const ptBRResource = {
   imaging,
   examAnalyzer,
   analytics,
+  common,
+  clinicalStatus,
   staff,
   auditLogs,
   notifications,

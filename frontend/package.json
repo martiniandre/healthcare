@@ -9,7 +9,8 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "i18n:check": "node scripts/check-locale-parity.mjs"
   },
   "dependencies": {
     "@casl/ability": "^7.0.0",

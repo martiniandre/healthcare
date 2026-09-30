@@ -41,9 +41,17 @@ func (sub *subscriber) ID() string                  { return sub.id }
 func (sub *subscriber) UserID() uuid.UUID           { return sub.userID }
 func (sub *subscriber) Channel() chan *Notification { return sub.channel }
 
+type NotificationContent struct {
+	Title    string
+	Body     string
+	TitleKey string
+	BodyKey  string
+	Params   map[string]any
+}
+
 type Service interface {
-	CreateNotification(ctx context.Context, notifType NotificationType, title, body string, actorID *uuid.UUID, resourceType, resourceID string, recipientIDs []uuid.UUID) (*Notification, error)
-	CreateNotificationByRole(ctx context.Context, notifType NotificationType, title, body string, actorID *uuid.UUID, resourceType, resourceID string) (*Notification, error)
+	CreateNotification(ctx context.Context, notifType NotificationType, content NotificationContent, actorID *uuid.UUID, resourceType, resourceID string, recipientIDs []uuid.UUID) (*Notification, error)
+	CreateNotificationByRole(ctx context.Context, notifType NotificationType, content NotificationContent, actorID *uuid.UUID, resourceType, resourceID string) (*Notification, error)
 	ListNotifications(ctx context.Context, userID uuid.UUID, limit, offset int32) ([]*Notification, int32, error)
 	ListNotificationEventDefinitions(ctx context.Context) ([]NotificationEventDefinition, error)
 	MarkRead(ctx context.Context, notificationID, userID uuid.UUID) error
@@ -65,18 +73,26 @@ func NewService(repo Repository) Service {
 	}
 }
 
-func (notificationService *service) CreateNotification(ctx context.Context, notifType NotificationType, title, body string, actorID *uuid.UUID, resourceType, resourceID string, recipientIDs []uuid.UUID) (*Notification, error) {
+func (notificationService *service) CreateNotification(ctx context.Context, notifType NotificationType, content NotificationContent, actorID *uuid.UUID, resourceType, resourceID string, recipientIDs []uuid.UUID) (*Notification, error) {
 	priority, exists := notificationPriorityDefaults[notifType]
 	if !exists {
 		priority = PriorityMedium
+	}
+
+	notificationParams := content.Params
+	if notificationParams == nil {
+		notificationParams = map[string]any{}
 	}
 
 	notification := &Notification{
 		ID:           uuid.New(),
 		Type:         notifType,
 		Priority:     priority,
-		Title:        title,
-		Body:         body,
+		Title:        content.Title,
+		Body:         content.Body,
+		TitleKey:     content.TitleKey,
+		BodyKey:      content.BodyKey,
+		Params:       notificationParams,
 		ActorID:      actorID,
 		ResourceType: resourceType,
 		ResourceID:   resourceID,
@@ -92,7 +108,7 @@ func (notificationService *service) CreateNotification(ctx context.Context, noti
 	return notification, nil
 }
 
-func (notificationService *service) CreateNotificationByRole(ctx context.Context, notifType NotificationType, title, body string, actorID *uuid.UUID, resourceType, resourceID string) (*Notification, error) {
+func (notificationService *service) CreateNotificationByRole(ctx context.Context, notifType NotificationType, content NotificationContent, actorID *uuid.UUID, resourceType, resourceID string) (*Notification, error) {
 	roles, exists := policy.RolesForNotificationType(string(notifType))
 	if !exists {
 		return nil, ErrInvalidNotificationType
@@ -118,7 +134,7 @@ func (notificationService *service) CreateNotificationByRole(ctx context.Context
 		}
 	}
 
-	return notificationService.CreateNotification(ctx, notifType, title, body, actorID, resourceType, resourceID, recipientIDs)
+	return notificationService.CreateNotification(ctx, notifType, content, actorID, resourceType, resourceID, recipientIDs)
 }
 
 func (notificationService *service) ListNotifications(ctx context.Context, userID uuid.UUID, limit, offset int32) ([]*Notification, int32, error) {

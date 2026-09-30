@@ -1,8 +1,7 @@
-package telemetry
+﻿package telemetry
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 	"math/rand"
 	"time"
@@ -75,16 +74,23 @@ func (simulator *Simulator) tick(ctx context.Context) {
 				continue
 			}
 
-			if bed.Status == "danger" && previousStatus != "danger" && simulator.eventBus != nil {
-				simulator.eventBus.Publish(ctx, eventbus.Event{
-					Name: "telemetry.alert",
-					Data: map[string]any{
-						"title":         "Alerta Clínico - Leito " + bed.BedNumber,
-						"body":          fmt.Sprintf("Paciente %s apresenta condição %s (BPM: %d, SpO2: %d%%).", bed.PatientName, bed.Condition, bed.Bpm, bed.Spo2),
-						"resource_type": "bed",
-						"resource_id":   bed.ID.String(),
+		if bed.Status == BedStatusDanger && previousStatus != BedStatusDanger && simulator.eventBus != nil {
+			simulator.eventBus.Publish(ctx, eventbus.Event{
+				Name: "telemetry.alert",
+				Data: map[string]any{
+					"title_key": "notifications:event.telemetryAlert.title",
+					"body_key":  "notifications:event.telemetryAlert.body",
+					"params": map[string]any{
+						"bedNumber":   bed.BedNumber,
+						"condition":   string(bed.Condition),
+						"patientName": bed.PatientName,
+						"bpm":         bed.Bpm,
+						"spo2":        bed.Spo2,
 					},
-				})
+					"resource_type": "bed",
+					"resource_id":   bed.ID.String(),
+				},
+			})
 
 				slog.Warn("telemetry alert published",
 					"bed_id", bed.ID,
@@ -99,29 +105,29 @@ func (simulator *Simulator) tick(ctx context.Context) {
 
 func (simulator *Simulator) fluctuateVitals(bed *Bed) {
 	switch bed.Condition {
-	case "Bradicardia":
+	case CardiacConditionBradycardia:
 		bed.Bpm = randomInt32(48, 58)
 		bed.Spo2 = randomInt32(94, 97)
 		bed.Temperature = randomFloat64(36.4, 37.2)
-		bed.Status = "warning"
+		bed.Status = BedStatusWarning
 
-	case "Taquicardia":
+	case CardiacConditionTachycardia:
 		bed.Bpm = randomInt32(105, 130)
 		bed.Spo2 = randomInt32(88, 94)
 		bed.Temperature = randomFloat64(37.8, 39.1)
-		bed.Status = "danger"
+		bed.Status = BedStatusDanger
 
-	case "Parada Cardíaca":
+	case CardiacConditionCardiacArrest:
 		bed.Bpm = 0
 		bed.Spo2 = 0
 		bed.Temperature = randomFloat64(34.0, 35.5)
-		bed.Status = "danger"
+		bed.Status = BedStatusDanger
 
 	default:
 		bed.Bpm = randomInt32(65, 95)
 		bed.Spo2 = randomInt32(96, 100)
 		bed.Temperature = randomFloat64(36.2, 37.3)
-		bed.Status = "normal"
+		bed.Status = BedStatusNormal
 	}
 }
 

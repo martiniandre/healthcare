@@ -17,6 +17,9 @@ export interface NotificationItem {
   priority: NotificationPriority
   title: string
   body: string
+  title_key?: string
+  body_key?: string
+  params?: Record<string, unknown>
   resource_type: string
   resource_id: string
   is_read: boolean

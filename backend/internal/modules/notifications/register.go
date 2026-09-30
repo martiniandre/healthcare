@@ -36,14 +36,38 @@ var notificationEventDefinitions = []NotificationEventDefinition{
 
 func subscribeByRoleHandler(svc Service, notificationType NotificationType) func(ctx context.Context, event eventbus.Event) error {
 	return func(ctx context.Context, event eventbus.Event) error {
-		title, _ := event.Data["title"].(string)
-		body, _ := event.Data["body"].(string)
+		content := notificationContentFromEvent(event)
 		actorID := parseActorID(event.Data)
 		resourceType, _ := event.Data["resource_type"].(string)
 		resourceID, _ := event.Data["resource_id"].(string)
-		_, err := svc.CreateNotificationByRole(ctx, notificationType, title, body, actorID, resourceType, resourceID)
+		_, err := svc.CreateNotificationByRole(ctx, notificationType, content, actorID, resourceType, resourceID)
 		return err
 	}
+}
+
+func notificationContentFromEvent(event eventbus.Event) NotificationContent {
+	content := NotificationContent{
+		Params: map[string]any{},
+	}
+	content.Title, _ = event.Data["title"].(string)
+	content.Body, _ = event.Data["body"].(string)
+	content.TitleKey, _ = event.Data["title_key"].(string)
+	content.BodyKey, _ = event.Data["body_key"].(string)
+	if content.TitleKey == "" && content.BodyKey == "" {
+		return content
+	}
+	if eventParams, paramsAreMap := event.Data["params"].(map[string]any); paramsAreMap {
+		for paramName, paramValue := range eventParams {
+			content.Params[paramName] = paramValue
+		}
+	}
+	if content.Title == "" {
+		content.Title = content.TitleKey
+	}
+	if content.Body == "" {
+		content.Body = content.BodyKey
+	}
+	return content
 }
 
 func parseActorID(data map[string]any) *uuid.UUID {

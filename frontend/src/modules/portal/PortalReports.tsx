@@ -1,10 +1,13 @@
+import { useTranslation } from "react-i18next"
 import { usePortalReportsQuery } from "./queries"
 import { Card } from "../../shared/components/ui/Card"
 import { Loader2 } from "lucide-react"
 import { formatDate } from "../../shared/utils/dates"
 import { useLocale } from "../../shared/hooks/useLocale"
+import { useClinicalStatusLabels } from "../../shared/hooks/useClinicalStatusLabels"
+import type { DiagnosticReportStatus } from "../../shared/types"
 
-const statusBadgeClass = (status: string) => {
+const statusBadgeClass = (status: DiagnosticReportStatus) => {
   switch (status) {
     case "final":
       return "bg-green-100 text-green-700"
@@ -23,8 +26,10 @@ const statusBadgeClass = (status: string) => {
 }
 
 export const PortalReports = () => {
+  const { t } = useTranslation("portal")
   const { data: reports, isLoading } = usePortalReportsQuery()
   const locale = useLocale()
+  const { diagnosticReportStatus, notInformed } = useClinicalStatusLabels()
 
   if (isLoading) {
     return (
@@ -37,7 +42,7 @@ export const PortalReports = () => {
   if (!reports || reports.length === 0) {
     return (
       <Card className="py-16 text-center">
-        <p className="text-sm text-gray-500">Nenhum exame encontrado.</p>
+        <p className="text-sm text-gray-500">{t("empty.reports")}</p>
       </Card>
     )
   }
@@ -51,11 +56,11 @@ export const PortalReports = () => {
         >
           <div className="flex items-start justify-between mb-2">
             <div>
-              <p className="text-sm font-bold text-gray-900">{report.report_display || "Exame"}</p>
+              <p className="text-sm font-bold text-gray-900">{report.report_display || t("fallback.exam")}</p>
               <p className="text-xs text-gray-500 mt-0.5">
                 {report.issued_at
                   ? formatDate(report.issued_at, locale)
-                  : "N/I"}
+                  : notInformed()}
               </p>
             </div>
             <div className="flex items-center gap-2">
@@ -65,9 +70,9 @@ export const PortalReports = () => {
                 </span>
               )}
               <span
-                className={`text-xs font-bold px-2.5 py-1 rounded-full capitalize ${statusBadgeClass(report.status)}`}
+                className={`text-xs font-bold px-2.5 py-1 rounded-full ${statusBadgeClass(report.status)}`}
               >
-                {report.status}
+                {diagnosticReportStatus(report.status)}
               </span>
             </div>
           </div>

@@ -127,8 +127,8 @@ func (worker *Worker) processAnalysisJob(ctx context.Context, analysisID uuid.UU
 	if statusResult == "insufficient_data" {
 		analysisRecord.Status = "insufficient_data"
 		insufficientResponseBytes, _ := json.Marshal(map[string]string{
-			"status":  "insufficient_data",
-			"message": "Não foi possível gerar análise confiável devido à qualidade ou ilegibilidade do arquivo enviado.",
+			"status":     "insufficient_data",
+			"messageKey": "examAnalyzer:result.insufficientData",
 		})
 		analysisRecord.AnalysisResponse = json.RawMessage(insufficientResponseBytes)
 	} else {
@@ -174,8 +174,9 @@ func (worker *Worker) processAnalysisJob(ctx context.Context, analysisID uuid.UU
 		worker.eventBus.Publish(ctx, eventbus.Event{
 			Name: "exam.complete",
 			Data: map[string]any{
-				"title":         "Análise de Exame Concluída",
-				"body":          "Laudo disponível para revisão: " + examType,
+				"title_key":     "notifications:event.examComplete.title",
+				"body_key":      "notifications:event.examComplete.body",
+				"params":        map[string]any{"examType": examType},
 				"resource_type": "exam_analysis",
 				"resource_id":   analysisID.String(),
 			},

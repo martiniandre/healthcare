@@ -5,5 +5,31 @@
   "listError": "Não foi possível carregar as notificações.",
   "markReadError": "Falha ao marcar a notificação como lida.",
   "markRead": "Marcar como lida",
-  "relativeNow": "agora"
+  "relativeNow": "agora",
+  "event": {
+    "telemetryAlert": {
+      "title": "Alerta Clínico - Leito {{bedNumber}}",
+      "body": "{{patientName}}: {{condition}} (FC: {{bpm}} bpm, SpO₂: {{spo2}}%)"
+    },
+    "examComplete": {
+      "title": "Análise de Exame Concluída",
+      "body": "A análise do exame {{examType}} foi concluída."
+    },
+    "encounterCreated": {
+      "title": "Novo Atendimento Criado",
+      "body": "Um novo atendimento foi registrado no prontuário."
+    },
+    "patientCreated": {
+      "title": "Novo Paciente Cadastrado",
+      "body": "O paciente {{patientName}} foi cadastrado com sucesso."
+    },
+    "reportReady": {
+      "title": "Exame Disponível",
+      "body": "Um novo exame está disponível na versão {{version}}."
+    },
+    "loginSucceeded": {
+      "title": "Login Realizado",
+      "body": "Login realizado com sucesso."
+    }
+  }
 }

@@ -1,4 +1,5 @@
 import { useSearchParams } from "react-router-dom"
+import { useTranslation } from "react-i18next"
 import { usePortalDashboardQuery } from "./queries"
 import { PortalDashboardOverview } from "./PortalDashboardOverview"
 import { PortalEncounters } from "./PortalEncounters"
@@ -33,18 +34,19 @@ const PortalTab = {
 
 type PortalTab = (typeof PortalTab)[keyof typeof PortalTab]
 
-const sidebarItems: { key: PortalTab; label: string; icon: React.ReactNode }[] = [
-  { key: "dashboard", label: "Visão Geral", icon: <LayoutDashboard className="w-4 h-4 shrink-0" /> },
-  { key: "appointments", label: "Agendamentos", icon: <CalendarClock className="w-4 h-4 shrink-0" /> },
-  { key: "encounters", label: "Consultas", icon: <History className="w-4 h-4 shrink-0" /> },
-  { key: "observations", label: "Sinais Vitais", icon: <Heart className="w-4 h-4 shrink-0" /> },
-  { key: "conditions", label: "Condições", icon: <Activity className="w-4 h-4 shrink-0" /> },
-  { key: "medications", label: "Medicamentos", icon: <Pill className="w-4 h-4 shrink-0" /> },
-  { key: "reports", label: "Exames", icon: <FileText className="w-4 h-4 shrink-0" /> },
-  { key: "imaging", label: "Imagens", icon: <Image className="w-4 h-4 shrink-0" /> },
+const sidebarItems: { key: PortalTab; labelKey: string; icon: React.ReactNode }[] = [
+  { key: "dashboard", labelKey: "tabs.dashboard", icon: <LayoutDashboard className="w-4 h-4 shrink-0" /> },
+  { key: "appointments", labelKey: "tabs.appointments", icon: <CalendarClock className="w-4 h-4 shrink-0" /> },
+  { key: "encounters", labelKey: "tabs.encounters", icon: <History className="w-4 h-4 shrink-0" /> },
+  { key: "observations", labelKey: "tabs.observations", icon: <Heart className="w-4 h-4 shrink-0" /> },
+  { key: "conditions", labelKey: "tabs.conditions", icon: <Activity className="w-4 h-4 shrink-0" /> },
+  { key: "medications", labelKey: "tabs.medications", icon: <Pill className="w-4 h-4 shrink-0" /> },
+  { key: "reports", labelKey: "tabs.reports", icon: <FileText className="w-4 h-4 shrink-0" /> },
+  { key: "imaging", labelKey: "tabs.imaging", icon: <Image className="w-4 h-4 shrink-0" /> },
 ]
 
 export const PortalPage = () => {
+  const { t } = useTranslation("portal")
   const [searchParameters, setSearchParameters] = useSearchParams()
   const activeTab = (searchParameters.get("tab") || PortalTab.Dashboard) as PortalTab
   const setActiveTab = (tabName: PortalTab) => {
@@ -58,7 +60,7 @@ export const PortalPage = () => {
       <div className="flex-1 p-4 sm:p-6 md:p-8 flex items-center justify-center">
         <div className="flex flex-col items-center gap-2">
           <Loader2 className="w-8 h-8 text-primary animate-spin" />
-          <span className="text-sm text-gray-500 font-medium">Carregando portal...</span>
+          <span className="text-sm text-gray-500 font-medium">{t("loading")}</span>
         </div>
       </div>
     )
@@ -77,7 +79,7 @@ export const PortalPage = () => {
           </div>
           <div>
             <h1 className="text-xl font-display font-bold text-gray-900">{patientName}</h1>
-            <p className="text-sm text-gray-500">Portal do Paciente</p>
+            <p className="text-sm text-gray-500">{t("title")}</p>
           </div>
         </div>
       </div>
@@ -85,7 +87,7 @@ export const PortalPage = () => {
       <div className="flex flex-col md:flex-row gap-6 items-start">
         <div className="w-full md:w-56 shrink-0 bg-card border border-border p-4 rounded-xl flex flex-col gap-4">
           <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-3 text-left">
-            Navegação
+            {t("navigation")}
           </span>
           <div className="flex flex-col gap-2">
             {sidebarItems.map((item) => (
@@ -99,7 +101,7 @@ export const PortalPage = () => {
                 }`}
               >
                 {item.icon}
-                {item.label}
+                {t(item.labelKey)}
               </button>
             ))}
           </div>

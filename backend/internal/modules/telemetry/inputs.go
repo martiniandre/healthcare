@@ -14,6 +14,6 @@ type UpdateBedConditionInput struct {
 	Bpm         int32
 	Spo2        int32
 	Temperature float64
-	Status      string
-	Condition   string
+	Status      BedStatus
+	Condition   CardiacCondition
 }

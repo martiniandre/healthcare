@@ -8,6 +8,7 @@
     "RoleDoctor": "Doctor",
     "RoleNurse": "Nurse",
     "RoleReception": "Receptionist",
+    "RolePatient": "Patient",
     "RoleDefault": "Professional"
   },
   "errorBoundary": {

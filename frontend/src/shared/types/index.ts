@@ -1,8 +1,8 @@
 export const CardiacCondition = {
-  Normal: "Normal",
-  Bradycardia: "Bradicardia",
-  Tachycardia: "Taquicardia",
-  CardiacArrest: "Parada Cardíaca"
+  Normal: "normal",
+  Bradycardia: "bradycardia",
+  Tachycardia: "tachycardia",
+  CardiacArrest: "cardiac-arrest"
 } as const
 
 export type CardiacCondition = typeof CardiacCondition[keyof typeof CardiacCondition]
@@ -25,8 +25,8 @@ export const StaffRole = {
 export type StaffRole = typeof StaffRole[keyof typeof StaffRole]
 
 export const StaffStatus = {
-  OnDuty: "Plantonista",
-  OffDuty: "Fora de Escala"
+  OnDuty: "on-duty",
+  OffDuty: "off-duty"
 } as const
 
 export type StaffStatus = typeof StaffStatus[keyof typeof StaffStatus]
@@ -101,14 +101,6 @@ export const MedicationRequestStatus = {
 } as const
 
 export type MedicationRequestStatus = typeof MedicationRequestStatus[keyof typeof MedicationRequestStatus]
-
-export const LoincCode = {
-  HeartRate: "8867-4",
-  BodyTemperature: "8310-5",
-  BloodPressure: "85354-9"
-} as const
-
-export type LoincCode = typeof LoincCode[keyof typeof LoincCode]
 
 export const DicomModality = {
   CT: "CT",

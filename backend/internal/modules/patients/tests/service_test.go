@@ -44,9 +44,12 @@ func TestCreatePatient_ValidInput_PublishesEvent(testingInstance *testing.T) {
 	assert.NotNil(testingInstance, patient)
 	assert.Len(testingInstance, eventBus.PublishedEvents, 1)
 	assert.Equal(testingInstance, "patient.created", eventBus.PublishedEvents[0].Name)
-	assert.Equal(testingInstance, "Novo Paciente Cadastrado", eventBus.PublishedEvents[0].Data["title"])
+	assert.Equal(testingInstance, "notifications:event.patientCreated.title", eventBus.PublishedEvents[0].Data["title_key"])
+	assert.Equal(testingInstance, "notifications:event.patientCreated.body", eventBus.PublishedEvents[0].Data["body_key"])
 	assert.Equal(testingInstance, "patient", eventBus.PublishedEvents[0].Data["resource_type"])
-	assert.Contains(testingInstance, eventBus.PublishedEvents[0].Data["body"], "Maria Oliveira")
+	publishedParams, paramsAreMap := eventBus.PublishedEvents[0].Data["params"].(map[string]any)
+	assert.True(testingInstance, paramsAreMap)
+	assert.Equal(testingInstance, "Maria Oliveira", publishedParams["patientName"])
 }
 
 func TestCreatePatient_ValidInput_ReturnsCreatedPatient(testingInstance *testing.T) {

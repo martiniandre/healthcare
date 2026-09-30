@@ -49,15 +49,21 @@ func TestTelemetryService_UpdateBedCondition_PublishesAlert(testingInstance *tes
 		Spo2:        85,
 		Temperature: 35.1,
 		Status:      "danger",
-		Condition:   "Hipotermia leve com bradicardia",
+		Condition:   "bradycardia",
 	})
 
 	assert.NoError(testingInstance, err)
 	assert.Len(testingInstance, eventBus.PublishedEvents, 1)
-	assert.Equal(testingInstance, "telemetry.alert", eventBus.PublishedEvents[0].Name)
-	assert.Equal(testingInstance, "bed", eventBus.PublishedEvents[0].Data["resource_type"])
-	assert.Contains(testingInstance, eventBus.PublishedEvents[0].Data["title"], "Leito 03")
-	assert.Contains(testingInstance, eventBus.PublishedEvents[0].Data["body"], "Hipotermia")
+	publishedEvent := eventBus.PublishedEvents[0]
+	assert.Equal(testingInstance, "telemetry.alert", publishedEvent.Name)
+	assert.Equal(testingInstance, "bed", publishedEvent.Data["resource_type"])
+	assert.Equal(testingInstance, "notifications:event.telemetryAlert.title", publishedEvent.Data["title_key"])
+	assert.Equal(testingInstance, "notifications:event.telemetryAlert.body", publishedEvent.Data["body_key"])
+	publishedParams, paramsAreMap := publishedEvent.Data["params"].(map[string]any)
+	assert.True(testingInstance, paramsAreMap)
+	assert.Equal(testingInstance, "Leito 03", publishedParams["bedNumber"])
+	assert.Equal(testingInstance, "bradycardia", publishedParams["condition"])
+	assert.Equal(testingInstance, "Carlos Souza", publishedParams["patientName"])
 }
 
 func TestTelemetryService_UpdateBedCondition_NoAlertOnSameStatus(testingInstance *testing.T) {
@@ -272,12 +278,12 @@ func TestTelemetryService_UpdateBedCondition(testingInstance *testing.T) {
 		Spo2:        95,
 		Temperature: 37.1,
 		Status:      "warning",
-		Condition:   "Bradicardia",
+		Condition:   "bradycardia",
 	})
 	assert.NoError(testingInstance, err)
 
 	updatedBed := mockRepository.Beds[bedID]
 	assert.Equal(testingInstance, int32(52), updatedBed.Bpm)
-	assert.Equal(testingInstance, "warning", updatedBed.Status)
-	assert.Equal(testingInstance, "Bradicardia", updatedBed.Condition)
+	assert.Equal(testingInstance, telemetry.BedStatusWarning, updatedBed.Status)
+	assert.Equal(testingInstance, telemetry.CardiacConditionBradycardia, updatedBed.Condition)
 }
