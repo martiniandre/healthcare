@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest"
+import { describe, it, expect, vi, beforeEach } from "vitest"
 import { render, screen, fireEvent, waitFor } from "@testing-library/react"
 import { EncounterModal } from "./EncounterModal"
 import { createModuleTranslator } from "../../../../shared/i18n/i18n"
@@ -13,15 +13,37 @@ vi.mock("react-i18next", async (importOriginal) => {
   }
 })
 
+const doctorsState = vi.hoisted(() => ({
+  doctors: [] as Array<{ id: string; fullName: string; fhirResourceId: string }>,
+}))
+
+const anaSouza = { id: "staff-1", fullName: "Dr. Ana Souza", fhirResourceId: "fhir-doctor-1" }
+const brunoLima = { id: "staff-2", fullName: "Dr. Bruno Lima", fhirResourceId: "fhir-doctor-2" }
+
 vi.mock("../../../staff/queries", () => ({
-  useStaffListQuery: () => ({
-    data: [
-      { id: "staff-1", fullName: "Dr. Ana Souza", fhirResourceId: "fhir-doctor-1" },
-    ],
-  }),
+  useStaffListQuery: () => ({ data: doctorsState.doctors }),
 }))
 
 describe("EncounterModal", () => {
+  beforeEach(() => {
+    doctorsState.doctors = [anaSouza, brunoLima]
+  })
+
+  it("should preselect the practitioner when only one doctor is available", async () => {
+    doctorsState.doctors = [anaSouza]
+    const onSubmit = vi.fn()
+    render(<EncounterModal isOpen onClose={vi.fn()} onSubmit={onSubmit} isPending={false} />)
+    fireEvent.change(screen.getByPlaceholderText("modals.encounter.reasonPlaceholder"), {
+      target: { value: "Routine checkup" },
+    })
+    fireEvent.click(screen.getByRole("button", { name: "modals.encounter.confirm" }))
+    await waitFor(() => expect(onSubmit).toHaveBeenCalled())
+    expect(onSubmit.mock.calls[0][0]).toEqual({
+      reasonDisplay: "Routine checkup",
+      practitionerId: "fhir-doctor-1",
+    })
+  })
+
   it("should show validation error when practitioner is not selected", async () => {
     const onSubmit = vi.fn()
     render(<EncounterModal isOpen onClose={vi.fn()} onSubmit={onSubmit} isPending={false} />)

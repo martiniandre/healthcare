@@ -44,7 +44,16 @@
     "phone": "Telefone de Contato",
     "phonePlaceholder": "(11) 98765-4321",
     "cancel": "Cancelar",
-    "confirm": "Confirmar Cadastro"
+    "confirm": "Confirmar Cadastro",
+    "description": "Preencha os dados básicos. O prontuário pode ser completado depois.",
+    "sections": {
+      "identification": "Identificação",
+      "contact": "Contato"
+    },
+    "nameHint": "Como consta no documento de identidade.",
+    "birthDateHint": "Digite apenas números: dia, mês e ano.",
+    "documentHint": "Somente os 11 números; a pontuação é automática.",
+    "phoneHint": "Com DDD. Celulares têm 9 dígitos."
   },
   "toast": {
     "createSuccess": "Paciente cadastrado com sucesso!",
@@ -177,7 +186,11 @@
       "displayPlaceholder": "Ex: Alergia a Penicilina, Alergia a Amendoim",
       "reaction": "Reação Adversa Relatada",
       "reactionPlaceholder": "Ex: Urticária severa, Choque anafilático",
-      "confirm": "Registrar Alergia"
+      "confirm": "Registrar Alergia",
+      "description": "Registre uma alergia ou intolerância confirmada do paciente.",
+      "displayHint": "Nome do alérgeno ou da alergia, como aparecerá no prontuário.",
+      "codeHint": "Código SNOMED CT do alérgeno. Ex: 300916003 (penicilina).",
+      "reactionHint": "O que o paciente apresenta e a gravidade. Ex: urticária intensa."
     },
     "condition": {
       "title": "Registrar Comorbidade",
@@ -185,7 +198,10 @@
       "codePlaceholder": "Ex: I10, E11.9, J45",
       "display": "Descrição do Diagnóstico",
       "displayPlaceholder": "Ex: Hipertensão essencial, Diabetes mellitus tipo 2",
-      "confirm": "Registrar Diagnóstico"
+      "confirm": "Registrar Diagnóstico",
+      "description": "Registre um diagnóstico ou comorbidade do paciente.",
+      "codeHint": "Uma letra seguida de números. Ex: I10 ou E11.9.",
+      "displayHint": "Nome do diagnóstico, como aparecerá no prontuário."
     },
     "encounter": {
       "title": "Registrar Nova Consulta",
@@ -193,7 +209,10 @@
       "reasonPlaceholder": "Ex: Consulta de rotina cardiologia, Check-up anual",
       "practitioner": "Médico",
       "selectPractitioner": "Selecione um médico...",
-      "confirm": "Confirmar Consulta"
+      "confirm": "Confirmar Consulta",
+      "description": "Abra um novo atendimento para este paciente.",
+      "reasonHint": "Motivo principal do atendimento, em poucas palavras.",
+      "practitionerHint": "Médico que conduzirá a consulta."
     },
     "medication": {
       "title": "Prescrever Medicamento",
@@ -201,7 +220,9 @@
       "namePlaceholder": "Ex: Amoxicilina 500mg, Losartana Potássica 50mg",
       "dosage": "Instrução de Dosagem",
       "dosagePlaceholder": "Ex: Tomar 1 comprimido via oral de 8 em 8 horas por 7 dias",
-      "confirm": "Prescrever"
+      "confirm": "Prescrever",
+      "nameHint": "Nome do medicamento com a concentração. Ex: Amoxicilina 500 mg.",
+      "dosageHint": "Dose, via, frequência e duração do tratamento."
     },
     "observation": {
       "title": "Registrar Sinais Vitais",
@@ -215,6 +236,11 @@
         "respiratoryRate": "Frequência Respiratória (irpm)",
         "weightKg": "Peso (kg)",
         "heightCm": "Altura (cm)"
+      },
+      "description": "Preencha apenas o que foi aferido. Informe pelo menos um valor.",
+      "sections": {
+        "cardiorespiratory": "Cardiorrespiratório",
+        "body": "Medidas corporais"
       }
     },
     "report": {
@@ -231,7 +257,11 @@
       "examPlaceholder": "Ex: Hemograma Completo, Radiografia de Tórax PA",
       "conclusion": "Conclusão e Diagnóstico do Laudo",
       "conclusionPlaceholder": "Descreva as conclusões e observações clínicas do exame...",
-      "confirm": "Salvar Laudo"
+      "confirm": "Salvar Laudo",
+      "description": "Registre o resultado de um exame deste atendimento.",
+      "examTypeHint": "Ao escolher o tipo, o nome do exame é preenchido para você.",
+      "examHint": "Nome do exame como aparecerá no laudo.",
+      "conclusionHint": "Resultado e interpretação clínica do exame."
     },
     "reportVersions": {
       "title": "Histórico de Versões do Laudo",
@@ -247,28 +277,31 @@
     }
   },
   "validation": {
-    "fullNameMin": "O nome deve ter no mínimo 3 caracteres",
-    "birthDateReq": "Data de nascimento obrigatória",
-    "birthDatePast": "A data de nascimento deve ser no passado",
-    "documentMin": "CPF deve ter no mínimo 11 caracteres",
-    "documentInvalid": "CPF inválido",
-    "phoneFormat": "Formato de telefone inválido. Ex: (11) 98765-4321",
-    "reasonMin": "O motivo deve ter no mínimo 3 caracteres",
+    "fullNameMin": "Informe o nome completo (mínimo de 3 caracteres)",
+    "birthDateReq": "Informe a data de nascimento completa no formato DD/MM/AAAA",
+    "birthDatePast": "Informe uma data de nascimento válida que já tenha passado",
+    "documentMin": "Digite os 11 números do CPF",
+    "documentInvalid": "CPF inválido: confira os números digitados",
+    "phoneFormat": "Telefone incompleto. Use DDD + número, ex: (11) 98765-4321",
+    "reasonMin": "Descreva o motivo com pelo menos 3 caracteres",
     "practitionerReq": "Selecione o médico responsável",
     "vitalSignsRange": "valor fora do intervalo clínico permitido",
     "vitalSignsAtLeastOne": "Informe pelo menos um sinal vital para registrar a observação",
-    "reportCodeReq": "Selecione o tipo de exame",
-    "reportTitleMin": "O título do laudo deve ter no mínimo 3 caracteres",
-    "conclusionMin": "A conclusão deve ter no mínimo 5 caracteres",
-    "icdCodeMin": "O código CID-10 deve ter no mínimo 3 caracteres",
-    "icdFormat": "Formato CID-10 inválido. Ex: I10, E11.9",
-    "icdDisplayMin": "A descrição do diagnóstico deve ter no mínimo 3 caracteres",
-    "allergenCodeMin": "O código do alérgeno deve ter no mínimo 3 caracteres",
-    "allergenDisplayMin": "A descrição do alérgeno deve ter no mínimo 3 caracteres",
-    "reactionMin": "A reação relatada deve ter no mínimo 3 caracteres",
-    "medicationMin": "O nome da medicação deve ter no mínimo 3 caracteres",
-    "dosageMin": "A instrução de dosagem deve ter no mínimo 3 caracteres",
-    "maxLength": "Valor excede o limite máximo de caracteres"
+    "reportCodeReq": "Selecione o tipo de exame na lista",
+    "reportTitleMin": "Informe o nome do exame (mínimo de 3 caracteres)",
+    "conclusionMin": "Descreva a conclusão com pelo menos 5 caracteres",
+    "icdCodeMin": "Informe o código CID-10 (mínimo de 3 caracteres). Ex: I10",
+    "icdFormat": "Formato CID-10 inválido. Use uma letra seguida de números, ex: I10, E11.9",
+    "icdDisplayMin": "Descreva o diagnóstico com pelo menos 3 caracteres",
+    "allergenCodeMin": "Informe o código do alérgeno (mínimo de 3 caracteres)",
+    "allergenDisplayMin": "Informe o nome do alérgeno (mínimo de 3 caracteres)",
+    "reactionMin": "Descreva a reação com pelo menos 3 caracteres",
+    "medicationMin": "Informe o nome da medicação (mínimo de 3 caracteres)",
+    "dosageMin": "Informe a dosagem, via e frequência (mínimo de 3 caracteres)",
+    "maxLength": "Texto longo demais: reduza para caber no limite de caracteres",
+    "overrideJustificationMin": "A justificativa deve ter pelo menos 10 caracteres",
+    "riskAcknowledgementRequired": "É necessário confirmar ciência do risco para continuar",
+    "unverifiedAcknowledgementRequired": "Confirme que deseja prescrever sem verificação de segurança"
   },
   "states": {
     "loading": "Carregando...",
@@ -333,5 +366,59 @@
     "loadingList": "Carregando linha do tempo...",
     "clinicalDate": "Data clínica: {{date}}",
     "openEncounter": "Abrir encontro"
+  },
+  "medicationSafety": {
+    "title": "Verificação de segurança",
+    "checking": "Verificando alergias e interações...",
+    "blockedByServer": "Prescrição bloqueada: o paciente tem uma alergia ativa. É necessária uma justificativa.",
+    "warningsSummary": "Prescrição salva com alertas de segurança ({{count}}).",
+    "kind": {
+      "allergy": "Alergia",
+      "interaction": "Interação medicamentosa"
+    },
+    "severity": {
+      "info": "Informativo",
+      "moderate": "Moderada",
+      "major": "Grave",
+      "contraindicated": "Contraindicada"
+    },
+    "checkFailed": {
+      "title": "Não foi possível verificar a segurança",
+      "description": "A verificação de alergias e interações falhou. Tente novamente ou prescreva sem verificação, sob sua responsabilidade.",
+      "retry": "Tentar verificar novamente",
+      "acknowledge": "Prescrever sem verificação de segurança"
+    },
+    "messages": {
+      "generic": "Alerta de segurança para {{medication}}. Revise antes de prescrever.",
+      "allergy": {
+        "activeIngredient": "O paciente tem alergia ativa a {{allergen}}, um componente de {{medication}}.",
+        "sameClass": "O paciente é alérgico a {{allergen}}, que pode ter reação cruzada com {{medication}} (classe {{drugClass}})."
+      },
+      "interaction": {
+        "moderate": "{{medication}} tem interação moderada com outro medicamento ativo ({{drugClass}}).",
+        "major": "{{medication}} tem interação grave com outro medicamento ativo ({{drugClass}}).",
+        "contraindicated": "{{medication}} é contraindicado com outro medicamento ativo ({{drugClass}})."
+      }
+    },
+    "override": {
+      "title": "Sobreposição necessária",
+      "description": "Esta prescrição está bloqueada por um alerta de segurança. Médicos podem sobrepor com uma justificativa, registrada na auditoria.",
+      "serverBlocked": "O servidor bloqueou esta prescrição por uma alergia ativa. Informe uma justificativa para sobrepor.",
+      "justification": "Justificativa da sobreposição",
+      "justificationPlaceholder": "Explique por que o benefício supera o risco (mín. 10 caracteres)",
+      "acknowledgeRisk": "Estou ciente do risco",
+      "blockedTitle": "Prescrição bloqueada",
+      "notPermitted": "Seu perfil não pode sobrepor bloqueios de segurança. Peça a um médico para revisar esta prescrição.",
+      "confirm": "Prescrever com sobreposição"
+    }
+  },
+  "form": {
+    "required": "obrigatório",
+    "optional": "(opcional)",
+    "requiredLegend": "Campos com * são obrigatórios.",
+    "submitError": "Não foi possível salvar. Seus dados foram mantidos: verifique a conexão e tente novamente.",
+    "errorSummaryTitle": "Revise os campos abaixo para continuar:",
+    "characterCount": "{{current}} / {{max}} caracteres",
+    "range": "Valores válidos: {{min}} a {{max}}"
   }
 }

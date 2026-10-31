@@ -7,10 +7,11 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogFooter,
 } from "@/shared/components/ui/dialog"
 import type { Appointment } from "../types"
-import { formatDateTime } from "../../../shared/utils/dates"
+import { formatDateTime, formatTime } from "../../../shared/utils/dates"
 
 interface CancelAppointmentModalProps {
   isOpen: boolean
@@ -34,7 +35,7 @@ export const CancelAppointmentModal = ({
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && !isPending && onClose()}>
       <DialogContent className="sm:max-w-[420px]">
         <DialogHeader>
           <DialogTitle className="text-left flex items-center gap-2">
@@ -42,17 +43,21 @@ export const CancelAppointmentModal = ({
             {t("modals.cancel.title")}
           </DialogTitle>
         </DialogHeader>
-        <div className="flex flex-col gap-2 text-left mt-4 text-sm text-foreground">
-          <p>{t("modals.cancel.description")}</p>
-          <p className="font-mono text-xs text-muted-foreground">
-            {formatDateTime(appointment.starts_at)} — {appointment.reason || "-"}
-          </p>
+        <DialogDescription className="text-left text-foreground">
+          {t("modals.cancel.description")}
+        </DialogDescription>
+        <div className="flex flex-col gap-1 rounded-md border bg-muted/50 px-3 py-2 text-left text-sm">
+          <span className="font-medium text-foreground">
+            {formatDateTime(appointment.starts_at)} – {formatTime(appointment.ends_at)}
+          </span>
+          <span className="text-xs text-muted-foreground">{appointment.reason || t("cards.noReason")}</span>
         </div>
-        <DialogFooter className="mt-6">
-          <Button variant="outline" type="button" onClick={onClose}>
+        <p className="text-left text-xs text-muted-foreground">{t("modals.cancel.hint")}</p>
+        <DialogFooter>
+          <Button variant="outline" type="button" autoFocus className="h-11 md:h-9" disabled={isPending} onClick={onClose}>
             {t("modals.cancel.back")}
           </Button>
-          <Button variant="destructive" type="button" disabled={isPending} onClick={() => onConfirm(appointment.id)}>
+          <Button variant="destructive" type="button" className="h-11 md:h-9" disabled={isPending} aria-busy={isPending} onClick={() => onConfirm(appointment.id)}>
             {isPending && <Spinner />}
             {t("modals.cancel.confirm")}
           </Button>

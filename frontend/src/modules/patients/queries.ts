@@ -1,5 +1,8 @@
 import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from "@tanstack/react-query"
+import { useCallback } from "react"
 import { patientsApi } from "./api"
+import { useDebounce } from "../../shared/hooks/useDebounce"
+import type { MedicationSafetyAlert, CreateMedicationPayload } from "./types"
 import type { NewVitalSignsPanelFormData } from "./patient_schemas"
 import { resolveTimelineRange, TIMELINE_PAGE_SIZE, type TimelineFilterState } from "./components/timeline/timelineModel"
 
@@ -13,6 +16,7 @@ export const patientQueryKeys = {
   reportVersions: (reportFhirId: string) => [...patientQueryKeys.all, "reportVersions", reportFhirId] as const,
   timeline: (patientFhirId: string, filters: TimelineFilterState) => [...patientQueryKeys.all, "timeline", patientFhirId, filters] as const,
   medications: (encounterFhirId: string) => [...patientQueryKeys.all, "medications", encounterFhirId] as const,
+  medicationSafety: (patientFhirId: string, medicationName: string) => [...patientQueryKeys.all, "medicationSafety", patientFhirId, medicationName] as const,
 }
 
 export const usePatientsQuery = (
@@ -202,16 +206,66 @@ export const useMedicationsQuery = (encounterId: string) => {
 export const useCreateMedicationMutation = () => {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (payload: {
-      encounter_fhir_id: string
-      patient_fhir_id: string
-      medication_name: string
-      dosage_instructions: string
-    }) => patientsApi.createMedication(payload),
+    mutationFn: (payload: CreateMedicationPayload) => patientsApi.createMedication(payload),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: patientQueryKeys.medications(variables.encounter_fhir_id) })
     },
   })
+}
+
+export type MedicationSafetyStatus = "idle" | "loading" | "error" | "ready"
+
+export type MedicationSafetyVerification = { verified: true; alerts: MedicationSafetyAlert[] } | { verified: false }
+
+const MEDICATION_SAFETY_MIN_LENGTH = 3
+const MEDICATION_SAFETY_DEBOUNCE_MS = 500
+
+export const useMedicationSafetyCheck = (patientId: string, medicationName: string, enabled = true) => {
+  const queryClient = useQueryClient()
+  const trimmedName = medicationName.trim()
+  const debouncedName = useDebounce(trimmedName, MEDICATION_SAFETY_DEBOUNCE_MS)
+  const isCheckable = enabled && !!patientId && debouncedName.length >= MEDICATION_SAFETY_MIN_LENGTH
+
+  const query = useQuery({
+    queryKey: patientQueryKeys.medicationSafety(patientId, debouncedName),
+    queryFn: () => patientsApi.checkMedicationSafety(patientId, { medicationCode: "", medicationName: debouncedName }),
+    enabled: isCheckable,
+    retry: false,
+    staleTime: 0,
+    gcTime: 0,
+  })
+
+  const isDebouncing = enabled && trimmedName !== debouncedName && trimmedName.length >= MEDICATION_SAFETY_MIN_LENGTH
+
+  let status: MedicationSafetyStatus = "idle"
+  if (isCheckable) {
+    if (isDebouncing || query.isPending || query.isFetching) status = "loading"
+    else if (query.isError) status = "error"
+    else status = "ready"
+  } else if (isDebouncing) {
+    status = "loading"
+  }
+
+  const alerts = status === "ready" ? query.data?.alerts ?? [] : []
+
+  const verifyNow = useCallback(async (): Promise<MedicationSafetyVerification> => {
+    try {
+      const response = await queryClient.fetchQuery({
+        queryKey: patientQueryKeys.medicationSafety(patientId, trimmedName),
+        queryFn: () => patientsApi.checkMedicationSafety(patientId, { medicationCode: "", medicationName: trimmedName }),
+        staleTime: 0,
+      })
+      return { verified: true, alerts: response.alerts }
+    } catch {
+      return { verified: false }
+    }
+  }, [queryClient, patientId, trimmedName])
+
+  const retry = useCallback(() => {
+    void query.refetch()
+  }, [query])
+
+  return { status, alerts, verifyNow, retry }
 }
 
 export type { DiagnosticReport, DiagnosticReportVersion, Encounter, Observation, Patient, PatientsPage, AllergyIntolerance, MedicationRequest } from "./types"

@@ -271,6 +271,40 @@ describe("patientsApi", () => {
     })
   })
 
+  it("should send the override justification when creating a medication", async () => {
+    vi.mocked(http.post).mockResolvedValue({ fhir_id: "med-1" })
+
+    await patientsApi.createMedication({
+      encounter_fhir_id: "enc-1",
+      patient_fhir_id: "patient-1",
+      medication_name: "Amoxicilina",
+      dosage_instructions: "8/8h",
+      overrideJustification: "Beneficio supera o risco",
+    })
+
+    expect(http.post).toHaveBeenCalledWith("/encounters/enc-1/medications", {
+      patient_fhir_id: "patient-1",
+      medication_name: "Amoxicilina",
+      dosage_instructions: "8/8h",
+      overrideJustification: "Beneficio supera o risco",
+    })
+  })
+
+  it("should check the medication safety for a patient", async () => {
+    vi.mocked(http.post).mockResolvedValue({ alerts: [] })
+
+    const response = await patientsApi.checkMedicationSafety("patient-1", {
+      medicationCode: "",
+      medicationName: "Amoxicilina",
+    })
+
+    expect(http.post).toHaveBeenCalledWith("/patients/patient-1/medications/check", {
+      medicationCode: "",
+      medicationName: "Amoxicilina",
+    })
+    expect(response).toEqual({ alerts: [] })
+  })
+
   it("should request the timeline without query params by default", async () => {
     vi.mocked(http.get).mockResolvedValue({ items: [], nextCursor: null })
 

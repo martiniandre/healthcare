@@ -16,7 +16,8 @@ export const examAnalyzerApi = {
     consent: boolean,
     anonymize: boolean,
     patientFhirId?: string,
-    onUploadProgress?: (progressPercentage: number) => void
+    onUploadProgress?: (progressPercentage: number) => void,
+    signal?: AbortSignal
   ): Promise<ExamAnalysis> => {
     const formData = new FormData()
     formData.append("file", file)
@@ -27,6 +28,7 @@ export const examAnalyzerApi = {
     }
 
     return http.post<ExamAnalysis, FormData>("/exam-analyses", formData, {
+      signal,
       onUploadProgress: (progressEvent) => {
         if (onUploadProgress && progressEvent.total) {
           const percentage = Math.round((progressEvent.loaded * 100) / progressEvent.total)

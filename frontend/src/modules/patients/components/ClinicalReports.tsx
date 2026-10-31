@@ -73,6 +73,7 @@ export default function ClinicalReports({ patientId, encounterId }: ClinicalRepo
         onClose={() => setIsModalOpen(false)}
         onSubmit={handleCreateReport}
         isPending={createReportMutation.isPending}
+        hasSubmitError={createReportMutation.isError}
       />
 
       <ReportVersionsModal

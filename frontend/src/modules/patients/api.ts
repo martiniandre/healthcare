@@ -1,5 +1,5 @@
 import { http } from "../../shared/utils/http"
-import type { DiagnosticReport, DiagnosticReportVersion, Encounter, Observation, Patient, Condition, CreatePatientResponse, PatientsPage, AllergyIntolerance, MedicationRequest, TimelinePage, TimelineRequest } from "./types"
+import type { DiagnosticReport, DiagnosticReportVersion, Encounter, Observation, Patient, Condition, CreatePatientResponse, PatientsPage, AllergyIntolerance, MedicationRequest, MedicationRequestWithWarnings, MedicationSafetyCheckRequest, MedicationSafetyCheckResponse, CreateMedicationPayload, TimelinePage, TimelineRequest } from "./types"
 import type { NewVitalSignsPanelFormData } from "./patient_schemas"
 
 export const patientsApi = {
@@ -124,11 +124,22 @@ export const patientsApi = {
     return http.get<MedicationRequest[]>(`/encounters/${encounterFhirId}/medications`)
   },
 
-  createMedication: async (medicationData: Omit<MedicationRequest, "fhir_id" | "created_at" | "status">): Promise<MedicationRequest> => {
-    return http.post<MedicationRequest>(`/encounters/${medicationData.encounter_fhir_id}/medications`, {
+  createMedication: async (medicationData: CreateMedicationPayload): Promise<MedicationRequestWithWarnings> => {
+    return http.post<MedicationRequestWithWarnings>(`/encounters/${medicationData.encounter_fhir_id}/medications`, {
       patient_fhir_id: medicationData.patient_fhir_id,
       medication_name: medicationData.medication_name,
       dosage_instructions: medicationData.dosage_instructions,
+      ...(medicationData.overrideJustification ? { overrideJustification: medicationData.overrideJustification } : {}),
     })
+  },
+
+  checkMedicationSafety: async (
+    patientFhirId: string,
+    request: MedicationSafetyCheckRequest,
+  ): Promise<MedicationSafetyCheckResponse> => {
+    return http.post<MedicationSafetyCheckResponse, MedicationSafetyCheckRequest>(
+      `/patients/${patientFhirId}/medications/check`,
+      request,
+    )
   },
 }

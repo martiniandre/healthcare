@@ -7,15 +7,17 @@ interface ReportModalProps {
   onClose: () => void
   onSubmit: (formData: NewReportFormData) => void
   isPending: boolean
+  hasSubmitError?: boolean
 }
 
-export const ReportModal = ({ isOpen, onClose, onSubmit, isPending }: ReportModalProps) => {
+export const ReportModal = ({ isOpen, onClose, onSubmit, isPending, hasSubmitError }: ReportModalProps) => {
   return (
     <ClinicalFormModal
       isOpen={isOpen}
       onClose={onClose}
       onSubmit={onSubmit}
       isPending={isPending}
+      hasSubmitError={hasSubmitError}
       config={reportFormConfig}
     />
   )

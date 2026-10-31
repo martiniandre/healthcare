@@ -239,8 +239,9 @@ export const Schedule = () => {
     try {
       await createUnavailabilityMutation.mutateAsync(payload)
       toast.success(t("unavailability.toasts.createSuccess"))
-    } catch {
+    } catch (createError) {
       toast.error(t("unavailability.toasts.createError"))
+      throw createError
     }
   }
 
@@ -413,6 +414,7 @@ export const Schedule = () => {
         onSubmit={handleCreateUnavailability}
         isPending={createUnavailabilityMutation.isPending}
         staffId={focusedStaffId}
+        staffName={staffMembers.find((staffMember) => staffMember.id === focusedStaffId)?.fullName}
         defaultDate={todayDate()}
       />
 

@@ -7,15 +7,17 @@ interface ObservationModalProps {
   onClose: () => void
   onSubmit: (panelFormData: NewVitalSignsPanelFormData) => void
   isPending: boolean
+  hasSubmitError?: boolean
 }
 
-export const ObservationModal = ({ isOpen, onClose, onSubmit, isPending }: ObservationModalProps) => {
+export const ObservationModal = ({ isOpen, onClose, onSubmit, isPending, hasSubmitError }: ObservationModalProps) => {
   return (
     <ClinicalFormModal
       isOpen={isOpen}
       onClose={onClose}
       onSubmit={onSubmit}
       isPending={isPending}
+      hasSubmitError={hasSubmitError}
       config={vitalSignsPanelFormConfig}
     />
   )

@@ -33,17 +33,17 @@ export const StaffFilters = ({
   return (
     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
       <div className="relative flex-1 max-w-md">
-        <Search className="size-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
+        <Search aria-hidden="true" className="size-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
         <Input
           type="text"
           placeholder={t("searchPlaceholder")}
           value={searchQuery === " " ? "" : searchQuery}
           onChange={(event) => onSearchChange(event.target.value)}
-          className="pl-9 text-xs"
+          className="h-11 pl-9 text-xs md:h-9"
         />
       </div>
 
-      <div className="flex gap-2 flex-wrap">
+      <div role="group" aria-label={t("filterByRole")} className="flex gap-2 flex-wrap">
         {roleFilterOptions.map((roleOption) => (
           <Button
             key={roleOption}
@@ -52,7 +52,7 @@ export const StaffFilters = ({
             variant={filterRole === roleOption ? "default" : "outline"}
             aria-pressed={filterRole === roleOption}
             onClick={() => onFilterChange(roleOption)}
-            className="text-xs font-bold"
+            className="h-11 text-xs font-bold md:h-8"
           >
             {getRoleLabel(roleOption)}
           </Button>

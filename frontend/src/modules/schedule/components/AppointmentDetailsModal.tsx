@@ -8,6 +8,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogFooter,
 } from "@/shared/components/ui/dialog"
 import { useStaffListQuery } from "../../staff/queries"
@@ -52,6 +53,7 @@ export const AppointmentDetailsModal = ({
             <CalendarClock className="size-4 text-primary" />
             {t("modals.details.title")}
           </DialogTitle>
+          <DialogDescription className="sr-only">{t("modals.details.description")}</DialogDescription>
         </DialogHeader>
         <div className="flex flex-col gap-4 text-left mt-4">
           <div className="flex flex-col gap-1 text-sm">
@@ -89,14 +91,14 @@ export const AppointmentDetailsModal = ({
             </StatusBadge>
           </div>
         </div>
-        <DialogFooter className="mt-6">
-          <Button variant="outline" type="button" onClick={() => onEdit(appointment)}>
+        <DialogFooter>
+          <Button variant="outline" type="button" className="h-11 md:h-9" onClick={() => onEdit(appointment)}>
             {t("modals.details.edit")}
           </Button>
-          <Button variant="outline" type="button" onClick={() => onCancel(appointment)}>
+          <Button variant="outline" type="button" className="h-11 md:h-9" onClick={() => onCancel(appointment)}>
             {t("modals.details.cancel")}
           </Button>
-          <Button type="button" onClick={onClose}>
+          <Button type="button" autoFocus className="h-11 md:h-9" onClick={onClose}>
             {t("modals.details.close")}
           </Button>
         </DialogFooter>

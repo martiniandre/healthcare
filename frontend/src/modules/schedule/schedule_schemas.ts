@@ -16,7 +16,38 @@ export const baseAppointmentSchema = z.object({
 
 export type NewAppointmentFormData = z.infer<typeof baseAppointmentSchema>
 
-export const getNewAppointmentSchema = (translateFunction: (key: string) => string) => z.object({
+export type ScheduleTranslate = (key: string, options?: Record<string, string | number>) => string
+
+const getSlotDurationMinutes = (startTimeValue: string, endTimeValue: string): number => {
+  const [startHour, startMinute] = startTimeValue.split(":").map(Number)
+  const [endHour, endMinute] = endTimeValue.split(":").map(Number)
+  return endHour * 60 + endMinute - (startHour * 60 + startMinute)
+}
+
+const addMinutesToTime = (timeValue: string, minutesToAdd: number): string => {
+  const [hour, minute] = timeValue.split(":").map(Number)
+  const totalMinutes = hour * 60 + minute + minutesToAdd
+  const resultHour = Math.floor(totalMinutes / 60) % 24
+  const resultMinute = totalMinutes % 60
+  return `${String(resultHour).padStart(2, "0")}:${String(resultMinute).padStart(2, "0")}`
+}
+
+const isStartTimeInThePast = (dateValue: string, startTimeValue: string): boolean => {
+  if (dateValue !== todayDateString()) {
+    return false
+  }
+  const [startHour, startMinute] = startTimeValue.split(":").map(Number)
+  const currentDate = new Date()
+  if (startHour > currentDate.getHours()) {
+    return false
+  }
+  if (startHour === currentDate.getHours()) {
+    return startMinute <= currentDate.getMinutes()
+  }
+  return true
+}
+
+export const getNewAppointmentSchema = (translateFunction: ScheduleTranslate) => z.object({
   patientFhirId: z.string().min(1, translateFunction("validation.patientRequired")),
   staffId: z.string().min(1, translateFunction("validation.staffRequired")),
   date: z
@@ -26,72 +57,45 @@ export const getNewAppointmentSchema = (translateFunction: (key: string) => stri
   startTime: z.string().min(1, translateFunction("validation.startTimeRequired")),
   endTime: z.string().min(1, translateFunction("validation.endTimeRequired")),
   reason: z.string().max(500, translateFunction("validation.reasonMax")).optional(),
-}).refine(
-  (formData) => {
-    if (!formData.startTime || !formData.endTime) {
-      return true
-    }
-    return formData.endTime > formData.startTime
-  },
-  {
-    message: translateFunction("validation.endAfterStart"),
-    path: ["endTime"],
-  }
-).refine(
-  (formData) => {
-    if (!formData.startTime) {
-      return true
-    }
+}).superRefine((formData, context) => {
+  if (formData.startTime) {
     const minutePart = formData.startTime.split(":")[1]
-    return (allowedAppointmentStartMinutes as readonly string[]).includes(minutePart)
-  },
-  {
-    message: translateFunction("validation.startTimeAligned"),
-    path: ["startTime"],
-  }
-).refine(
-  (formData) => {
-    if (!formData.startTime || !formData.endTime) {
-      return true
+    if (!(allowedAppointmentStartMinutes as readonly string[]).includes(minutePart)) {
+      context.addIssue({
+        code: "custom",
+        message: translateFunction("validation.startTimeAligned"),
+        path: ["startTime"],
+      })
     }
+  }
+  if (formData.startTime && formData.endTime) {
     if (formData.endTime <= formData.startTime) {
-      return true
+      context.addIssue({
+        code: "custom",
+        message: translateFunction("validation.endAfterStart", { startTime: formData.startTime }),
+        path: ["endTime"],
+      })
+    } else if (!(allowedAppointmentDurations as readonly number[]).includes(getSlotDurationMinutes(formData.startTime, formData.endTime))) {
+      context.addIssue({
+        code: "custom",
+        message: translateFunction("validation.slotDuration", {
+          startTime: formData.startTime,
+          suggestions: allowedAppointmentDurations
+            .map((durationMinutes) => addMinutesToTime(formData.startTime, durationMinutes))
+            .join(" / "),
+        }),
+        path: ["endTime"],
+      })
     }
-    return (allowedAppointmentDurations as readonly number[]).includes(getSlotDurationMinutes(formData.startTime, formData.endTime))
-  },
-  {
-    message: translateFunction("validation.slotDuration"),
-    path: ["endTime"],
   }
-).refine(
-  (formData) => {
-    if (!formData.date || !formData.startTime) {
-      return true
-    }
-    if (formData.date !== todayDateString()) {
-      return true
-    }
-    const [startHour, startMinute] = formData.startTime.split(":").map(Number)
-    const currentDate = new Date()
-    if (startHour > currentDate.getHours()) {
-      return true
-    }
-    if (startHour === currentDate.getHours()) {
-      return startMinute > currentDate.getMinutes()
-    }
-    return false
-  },
-  {
-    message: translateFunction("validation.startTimePast"),
-    path: ["startTime"],
+  if (formData.date && formData.startTime && isStartTimeInThePast(formData.date, formData.startTime)) {
+    context.addIssue({
+      code: "custom",
+      message: translateFunction("validation.startTimePast"),
+      path: ["startTime"],
+    })
   }
-)
-
-const getSlotDurationMinutes = (startTimeValue: string, endTimeValue: string): number => {
-  const [startHour, startMinute] = startTimeValue.split(":").map(Number)
-  const [endHour, endMinute] = endTimeValue.split(":").map(Number)
-  return endHour * 60 + endMinute - (startHour * 60 + startMinute)
-}
+})
 
 export type UnavailabilityFormData = {
   date: string
@@ -100,21 +104,18 @@ export type UnavailabilityFormData = {
   reason?: string
 }
 
-export const getUnavailabilitySchema = (translateFunction: (key: string) => string) => z.object({
+export const getUnavailabilitySchema = (translateFunction: ScheduleTranslate) => z.object({
   date: z.string().min(1, translateFunction("validation.dateRequired"))
     .refine(isTodayOrFutureDate, translateFunction("validation.dateFuture")),
   startTime: z.string().min(1, translateFunction("validation.startTimeRequired")),
   endTime: z.string().min(1, translateFunction("validation.endTimeRequired")),
   reason: z.string().max(500, translateFunction("validation.reasonMax")).optional(),
-}).refine(
-  (formData) => {
-    if (!formData.startTime || !formData.endTime) {
-      return true
-    }
-    return formData.endTime > formData.startTime
-  },
-  {
-    message: translateFunction("validation.endAfterStart"),
-    path: ["endTime"],
+}).superRefine((formData, context) => {
+  if (formData.startTime && formData.endTime && formData.endTime <= formData.startTime) {
+    context.addIssue({
+      code: "custom",
+      message: translateFunction("validation.endAfterStart", { startTime: formData.startTime }),
+      path: ["endTime"],
+    })
   }
-)
+})

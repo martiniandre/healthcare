@@ -5,7 +5,7 @@
   "searchPlaceholder": "Search by name, email or specialty...",
   "filterAll": "All",
   "loading": "Loading clinical staff...",
-  "requiredHint": "All fields are required",
+  "requiredHint": "Fields marked with * are required.",
   "emptyState": "No professional matches the current filters.",
   "table": {
     "professional": "Professional",
@@ -41,23 +41,50 @@
     "department": "Department",
     "departmentPlaceholder": "Select the department",
     "cancel": "Cancel",
-    "confirm": "Save Registration"
+    "confirm": "Save Registration",
+    "requiredLabel": "(required)",
+    "saving": "Saving...",
+    "nameHint": "As shown on the professional registration.",
+    "emailHint": "Used to sign in and receive notices.",
+    "roleHints": {
+      "doctor": "Prescribes, writes progress notes and orders exams.",
+      "nurse": "Records vital signs and administers medications.",
+      "receptionist": "Handles scheduling and patient registration.",
+      "admin": "Manages teams, profiles and settings."
+    },
+    "departmentHint": "Unit where the professional works.",
+    "departmentLoading": "Loading departments...",
+    "licenseHints": {
+      "doctor": "CRM + state + number. Ex: CRM-SP 12345",
+      "nurse": "COREN + state + number. Ex: COREN-SP 123456",
+      "other": "Enter a valid CRM or COREN. Ex: COREN-SP 123456"
+    },
+    "sections": {
+      "identity": "Identification",
+      "assignment": "Category and department",
+      "registration": "Professional registration"
+    },
+    "errorSummary": {
+      "title_one": "Fix 1 field to continue",
+      "title_other": "Fix {{count}} fields to continue"
+    }
   },
   "deleteModal": {
     "title": "Delete professional",
     "description": "The professional will be deactivated and lose operational access. The record is preserved for auditing.",
     "confirm": "Delete",
-    "back": "Back"
+    "back": "Back",
+    "deleting": "Deleting..."
   },
   "validation": {
-    "nameMinLength": "The name must be at least 3 characters long",
+    "nameMinLength": "Enter the full name, with at least 3 characters",
     "nameMaxLength": "The name must be at most 255 characters long",
-    "roleRequired": "Select a valid category",
+    "roleRequired": "Select a category",
     "licenseRequired": "Enter the professional license",
-    "licenseFormat": "Invalid format. Ex: CRM-SP 12345",
+    "licenseFormat": "Invalid format. Use CRM or COREN, state and number. Ex: CRM-SP 12345",
     "licenseMaxLength": "The license must be at most 50 characters long",
     "emailRequired": "Enter the corporate e-mail",
-    "emailInvalid": "Invalid e-mail",
+    "emailInvalid": "Enter a valid e-mail, such as name@hospital.com",
     "emailMaxLength": "The e-mail must be at most 255 characters long",
     "departmentRequired": "Select a department"
   },
@@ -76,5 +103,7 @@
     "title": "Could not load the clinical staff",
     "description": "The professionals list could not be retrieved. Check your connection and try again.",
     "retry": "Try again"
-  }
+  },
+  "searchLabel": "Search professionals",
+  "filterByRole": "Filter by category"
 }

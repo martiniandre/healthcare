@@ -41,7 +41,7 @@ describe("imagingApi", () => {
       dicomBlob,
     })
 
-    expect(http.post).toHaveBeenCalledWith("/patients/patient-1/studies", expect.any(FormData))
+    expect(http.post).toHaveBeenCalledWith("/patients/patient-1/studies", expect.any(FormData), expect.any(Object))
     const formData = vi.mocked(http.post).mock.calls[0][1] as FormData
     expect(formData.get("title")).toBe("Raio-X tórax")
     expect(formData.get("modality")).toBe("CT")

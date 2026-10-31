@@ -62,6 +62,7 @@ export default function ClinicalAllergies({ patientId }: ClinicalAllergiesProps)
         onClose={() => setIsModalOpen(false)}
         onSubmit={handleCreateAllergy}
         isPending={createAllergyMutation.isPending}
+        hasSubmitError={createAllergyMutation.isError}
       />
     </>
   )

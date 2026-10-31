@@ -6,6 +6,12 @@
     "comfortable": "Linhas confortáveis"
   },
   "loading": "Carregando",
+  "discardChanges": {
+    "title": "Descartar alterações?",
+    "description": "Você tem alterações não salvas. Se sair agora, elas serão perdidas.",
+    "keepEditing": "Continuar editando",
+    "discard": "Descartar"
+  },
   "pagination": {
     "label": "Paginação",
     "previousPage": "Ir para a página anterior",

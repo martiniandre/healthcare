@@ -62,3 +62,55 @@ export const isTimeOnFifteenMinuteGrid = (timeValue: string): boolean => {
   const minutePart = timeValue.split(":")[1]
   return (MINUTES_ON_FIFTEEN_MINUTE_GRID as readonly number[]).includes(Number(minutePart))
 }
+export const getDefaultAppointmentEndTime = (startTimeValue: string): string => {
+  return getEndTimeOptionsForStart(startTimeValue)[0]?.value ?? ""
+}
+
+export const getSlotOptionsAfter = (startTimeValue: string): readonly TimeSlotOption[] => {
+  if (!startTimeValue) {
+    return getTimeSlotOptions()
+  }
+  return getTimeSlotOptions().filter((timeSlot) => timeSlot.value > startTimeValue)
+}
+
+export const getDefaultBlockedPeriodEndTime = (startTimeValue: string, durationMinutes: number): string => {
+  if (!startTimeValue) {
+    return ""
+  }
+  const [startHour, startMinute] = startTimeValue.split(":").map(Number)
+  const endTotalMinutes = startHour * 60 + startMinute + durationMinutes
+  if (endTotalMinutes >= 24 * 60) {
+    return getSlotOptionsAfter(startTimeValue).at(-1)?.value ?? ""
+  }
+  return formatSlotValue(Math.floor(endTotalMinutes / 60), endTotalMinutes % 60)
+}
+
+const toTotalMinutes = (timeValue: string): number => {
+  const [hour, minute] = timeValue.split(":").map(Number)
+  return hour * 60 + minute
+}
+
+export const getAppointmentEndTimeForNewStart = (
+  previousStartTime: string,
+  previousEndTime: string,
+  nextStartTime: string
+): string => {
+  const endTimeOptions = getEndTimeOptionsForStart(nextStartTime)
+  if (previousStartTime && previousEndTime) {
+    const previousDuration = toTotalMinutes(previousEndTime) - toTotalMinutes(previousStartTime)
+    const keptDurationOption = endTimeOptions.find(
+      (timeSlot) => toTotalMinutes(timeSlot.value) - toTotalMinutes(nextStartTime) === previousDuration
+    )
+    if (keptDurationOption) {
+      return keptDurationOption.value
+    }
+  }
+  return endTimeOptions[0]?.value ?? ""
+}
+
+export const getDurationInMinutes = (startTimeValue: string, endTimeValue: string): number => {
+  if (!startTimeValue || !endTimeValue) {
+    return 0
+  }
+  return toTotalMinutes(endTimeValue) - toTotalMinutes(startTimeValue)
+}

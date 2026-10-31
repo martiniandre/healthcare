@@ -108,6 +108,36 @@ export interface MedicationRequest {
   created_at: string
 }
 
+export type MedicationAlertKind = "allergy" | "interaction"
+
+export type MedicationAlertSeverity = "info" | "moderate" | "major" | "contraindicated"
+
+export interface MedicationSafetyAlert {
+  kind: MedicationAlertKind
+  severity: MedicationAlertSeverity
+  blocking: boolean
+  messageKey: string
+  params: Record<string, string>
+  relatedResourceId: string
+}
+
+export interface MedicationSafetyCheckRequest {
+  medicationCode: string
+  medicationName: string
+}
+
+export interface MedicationSafetyCheckResponse {
+  alerts: MedicationSafetyAlert[]
+}
+
+export interface MedicationRequestWithWarnings extends MedicationRequest {
+  warnings?: MedicationSafetyAlert[]
+}
+
+export type CreateMedicationPayload = Omit<MedicationRequest, "fhir_id" | "created_at" | "status"> & {
+  overrideJustification?: string
+}
+
 export const TimelineEntryType = {
   Encounter: "encounter",
   Observation: "observation",

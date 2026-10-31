@@ -5,7 +5,7 @@
   "searchPlaceholder": "Buscar por nome, e-mail ou especialidade...",
   "filterAll": "Todos",
   "loading": "Carregando corpo clínico...",
-  "requiredHint": "Todos os campos são obrigatórios",
+  "requiredHint": "Campos marcados com * são obrigatórios.",
   "emptyState": "Nenhum profissional encontrado com os filtros atuais.",
   "table": {
     "professional": "Profissional",
@@ -41,23 +41,50 @@
     "department": "Departamento",
     "departmentPlaceholder": "Selecione o departamento",
     "cancel": "Cancelar",
-    "confirm": "Salvar Cadastro"
+    "confirm": "Salvar Cadastro",
+    "requiredLabel": "(obrigatório)",
+    "saving": "Salvando...",
+    "nameHint": "Como consta no registro profissional.",
+    "emailHint": "Será usado para acessar o sistema e receber avisos.",
+    "roleHints": {
+      "doctor": "Prescreve, evolui prontuários e solicita exames.",
+      "nurse": "Registra sinais vitais e administra medicações.",
+      "receptionist": "Cuida de agendamentos e cadastro de pacientes.",
+      "admin": "Gerencia equipes, perfis e configurações."
+    },
+    "departmentHint": "Setor onde o profissional atua.",
+    "departmentLoading": "Carregando departamentos...",
+    "licenseHints": {
+      "doctor": "CRM + UF + número. Ex: CRM-SP 12345",
+      "nurse": "COREN + UF + número. Ex: COREN-SP 123456",
+      "other": "Informe um CRM ou COREN válido. Ex: COREN-SP 123456"
+    },
+    "sections": {
+      "identity": "Identificação",
+      "assignment": "Categoria e departamento",
+      "registration": "Registro profissional"
+    },
+    "errorSummary": {
+      "title_one": "Corrija 1 campo para continuar",
+      "title_other": "Corrija {{count}} campos para continuar"
+    }
   },
   "deleteModal": {
     "title": "Excluir profissional",
     "description": "O profissional será desativado e perderá o acesso operacional. O registro é preservado para auditoria.",
     "confirm": "Excluir",
-    "back": "Voltar"
+    "back": "Voltar",
+    "deleting": "Excluindo..."
   },
   "validation": {
-    "nameMinLength": "O nome deve ter no mínimo 3 caracteres",
+    "nameMinLength": "Informe o nome completo, com no mínimo 3 caracteres",
     "nameMaxLength": "O nome deve ter no máximo 255 caracteres",
-    "roleRequired": "Selecione uma categoria válida",
+    "roleRequired": "Selecione uma categoria",
     "licenseRequired": "Informe o registro profissional",
-    "licenseFormat": "Formato inválido. Ex: CRM-SP 12345",
+    "licenseFormat": "Formato inválido. Use CRM ou COREN, UF e número. Ex: CRM-SP 12345",
     "licenseMaxLength": "O registro deve ter no máximo 50 caracteres",
     "emailRequired": "Informe o e-mail corporativo",
-    "emailInvalid": "E-mail inválido",
+    "emailInvalid": "Informe um e-mail válido, como nome@hospital.com",
     "emailMaxLength": "O e-mail deve ter no máximo 255 caracteres",
     "departmentRequired": "Selecione um departamento"
   },
@@ -76,5 +103,7 @@
     "title": "Não foi possível carregar o corpo clínico",
     "description": "A lista de profissionais não pôde ser obtida. Verifique sua conexão e tente novamente.",
     "retry": "Tentar novamente"
-  }
+  },
+  "searchLabel": "Buscar profissionais",
+  "filterByRole": "Filtrar por categoria"
 }

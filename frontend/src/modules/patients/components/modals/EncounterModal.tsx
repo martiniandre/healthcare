@@ -1,3 +1,4 @@
+import { useMemo } from "react"
 import type { NewEncounterFormData } from "../../patient_schemas"
 import { useStaffListQuery } from "../../../staff/queries"
 import { StaffRole } from "../../../../shared/types"
@@ -9,14 +10,18 @@ interface EncounterModalProps {
   onClose: () => void
   onSubmit: (formData: NewEncounterFormData) => void
   isPending: boolean
+  hasSubmitError?: boolean
 }
 
-export const EncounterModal = ({ isOpen, onClose, onSubmit, isPending }: EncounterModalProps) => {
+export const EncounterModal = ({ isOpen, onClose, onSubmit, isPending, hasSubmitError }: EncounterModalProps) => {
   const { data: doctors = [] } = useStaffListQuery("", StaffRole.Doctor)
 
-  const doctorOptions = doctors
-    .filter((doctor) => doctor.fhirResourceId)
-    .map((doctor) => ({ value: doctor.fhirResourceId, label: doctor.fullName }))
+  const encounterFormConfig = useMemo(() => {
+    const doctorOptions = doctors
+      .filter((doctor) => doctor.fhirResourceId)
+      .map((doctor) => ({ value: doctor.fhirResourceId, label: doctor.fullName }))
+    return buildEncounterFormConfig(doctorOptions)
+  }, [doctors])
 
   return (
     <ClinicalFormModal
@@ -24,7 +29,8 @@ export const EncounterModal = ({ isOpen, onClose, onSubmit, isPending }: Encount
       onClose={onClose}
       onSubmit={onSubmit}
       isPending={isPending}
-      config={buildEncounterFormConfig(doctorOptions)}
+      hasSubmitError={hasSubmitError}
+      config={encounterFormConfig}
     />
   )
 }

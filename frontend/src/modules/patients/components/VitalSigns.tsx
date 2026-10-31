@@ -63,6 +63,7 @@ export default function VitalSigns({ patientId, encounterId }: VitalSignsProps) 
         onClose={() => setIsModalOpen(false)}
         onSubmit={handleCreateVitalSignsPanel}
         isPending={createVitalSignsPanelMutation.isPending}
+        hasSubmitError={createVitalSignsPanelMutation.isError}
       />
     </>
   )

@@ -52,5 +52,10 @@
   "loadingBeds": "Carregando leitos...",
   "roomsError": "Não foi possível carregar as salas de monitoramento.",
   "bedsError": "Não foi possível carregar os leitos desta sala.",
-  "noRooms": "Nenhuma sala de monitoramento disponível."
+  "noRooms": "Nenhuma sala de monitoramento disponível.",
+  "requiredLabel": "(obrigatório)",
+  "passcodeRequired": "Digite a senha de escala para liberar a sala.",
+  "passcodeHint": "Peça o código ao responsável pelo plantão.",
+  "togglePasscode": "Exibir",
+  "unlocking": "Verificando..."
 }

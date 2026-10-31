@@ -4,6 +4,11 @@ import {
   getAvailableStartTimeOptions,
   getEndTimeOptionsForStart,
   isTimeOnFifteenMinuteGrid,
+  getDefaultAppointmentEndTime,
+  getAppointmentEndTimeForNewStart,
+  getSlotOptionsAfter,
+  getDefaultBlockedPeriodEndTime,
+  getDurationInMinutes,
 } from "./schedule_time_options"
 
 describe("getTimeSlotOptions", () => {
@@ -113,5 +118,34 @@ describe("isTimeOnFifteenMinuteGrid", () => {
   it("should reject off grid minutes", () => {
     expect(isTimeOnFifteenMinuteGrid("09:07")).toBe(false)
     expect(isTimeOnFifteenMinuteGrid("09:59")).toBe(false)
+  })
+})
+describe('end time helpers', () => {
+  it('should default the appointment end to 30 minutes after the start', () => {
+    expect(getDefaultAppointmentEndTime('09:15')).toBe('09:45')
+    expect(getDefaultAppointmentEndTime('')).toBe('')
+  })
+
+  it('should keep the previous duration when the start changes', () => {
+    expect(getAppointmentEndTimeForNewStart('09:00', '09:45', '10:00')).toBe('10:45')
+    expect(getAppointmentEndTimeForNewStart('', '', '10:00')).toBe('10:30')
+    expect(getAppointmentEndTimeForNewStart('09:00', '10:00', '10:00')).toBe('10:30')
+  })
+
+  it('should only offer blocked period end slots after the start', () => {
+    const options = getSlotOptionsAfter('23:00')
+    expect(options.map((option) => option.value)).toEqual(['23:15', '23:30', '23:45'])
+    expect(getSlotOptionsAfter('')).toHaveLength(96)
+  })
+
+  it('should default the blocked period end and clamp at the end of the day', () => {
+    expect(getDefaultBlockedPeriodEndTime('12:00', 60)).toBe('13:00')
+    expect(getDefaultBlockedPeriodEndTime('23:30', 60)).toBe('23:45')
+    expect(getDefaultBlockedPeriodEndTime('', 60)).toBe('')
+  })
+
+  it('should compute durations in minutes', () => {
+    expect(getDurationInMinutes('09:00', '09:45')).toBe(45)
+    expect(getDurationInMinutes('', '09:45')).toBe(0)
   })
 })

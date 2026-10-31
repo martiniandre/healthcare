@@ -47,5 +47,22 @@
   },
   "retry": "Try again",
   "studyNotFound": "Study not found",
-  "studyNotFoundDesc": "This imaging study does not exist or is no longer available."
+  "studyNotFoundDesc": "This imaging study does not exist or is no longer available.",
+  "upload": {
+    "sectionLabel": "Upload DICOM study",
+    "dropTitle": "Drag a DICOM file here or choose one",
+    "dropActive": "Drop the file to start the upload",
+    "guidelines": "Accepted format: DICOM (.dcm), up to {{maxSize}} GB. The upload starts as soon as you pick the file.",
+    "errorEmpty": "\"{{fileName}}\" is empty (0 bytes). Choose a different file.",
+    "errorType": "\"{{fileName}}\" is not a DICOM file. Choose a file ending in .dcm.",
+    "errorLimit": "\"{{fileName}}\" is {{size}}, above the {{maxSize}} GB limit. Choose a smaller file.",
+    "cancel": "Cancel upload",
+    "retry": "Try again",
+    "successTitle": "DICOM sent. It is being processed.",
+    "successNextStep": "The new images will be available in the imaging studies of this patient shortly.",
+    "failedTitle": "The DICOM file could not be uploaded.",
+    "failedHelp": "\"{{fileName}}\" was kept. Check your connection and try again.",
+    "cancelledTitle": "Upload cancelled.",
+    "cancelledHelp": "Nothing was saved. You can try the same file again."
+  }
 }

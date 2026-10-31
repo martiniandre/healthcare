@@ -23,7 +23,7 @@ export const DeleteStaffModal = ({ member, onClose, onConfirm, isPending }: Dele
   const { t } = useTranslation("staff")
 
   return (
-    <Dialog open={Boolean(member)} onOpenChange={(isOpen) => !isOpen && onClose()}>
+    <Dialog open={Boolean(member)} onOpenChange={(isOpen) => !isOpen && !isPending && onClose()}>
       <DialogContent className="sm:max-w-[420px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -38,12 +38,25 @@ export const DeleteStaffModal = ({ member, onClose, onConfirm, isPending }: Dele
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
-          <Button variant="outline" type="button" onClick={onClose}>
+          <Button
+            variant="outline"
+            type="button"
+            autoFocus
+            onClick={onClose}
+            disabled={isPending}
+            className="h-11 md:h-9"
+          >
             {t("deleteModal.back")}
           </Button>
-          <Button variant="destructive" type="button" onClick={onConfirm} disabled={isPending}>
+          <Button
+            variant="destructive"
+            type="button"
+            onClick={onConfirm}
+            disabled={isPending}
+            className="h-11 md:h-9"
+          >
             {isPending && <Spinner />}
-            {t("deleteModal.confirm")}
+            {isPending ? t("deleteModal.deleting") : t("deleteModal.confirm")}
           </Button>
         </DialogFooter>
       </DialogContent>
