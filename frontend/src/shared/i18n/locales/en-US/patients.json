@@ -165,7 +165,8 @@
         "weightKg": "Weight",
         "heightCm": "Height"
       }
-    }
+    },
+    "timeline": "Timeline"
   },
   "modals": {
     "allergy": {
@@ -291,5 +292,46 @@
     "alertsError": "Alerts unavailable",
     "alertsDetails": "View clinical alerts",
     "notPerformed": "N/A"
+  },
+  "timeline": {
+    "tab": "Timeline",
+    "title": "Clinical timeline",
+    "types": {
+      "encounter": "Encounter",
+      "observation": "Observation",
+      "condition": "Condition",
+      "allergy": "Allergy",
+      "medication": "Medication",
+      "report": "Report",
+      "imaging": "Imaging"
+    },
+    "filters": {
+      "typesLabel": "Record types",
+      "allTypes": "All types",
+      "periodLabel": "Period",
+      "periods": {
+        "last30Days": "Last 30 days",
+        "last6Months": "Last 6 months",
+        "last12Months": "Last 12 months",
+        "all": "Entire history",
+        "custom": "Custom range"
+      },
+      "from": "From",
+      "to": "To"
+    },
+    "empty": {
+      "title": "No records in this period",
+      "description": "Widen the period or remove type filters to see more records."
+    },
+    "partial": {
+      "title": "Incomplete timeline",
+      "description": "Could not load: {{types}}. The remaining records are being shown.",
+      "retry": "Try again"
+    },
+    "loadMore": "Load more",
+    "loadingMore": "Loading more records...",
+    "loadingList": "Loading timeline...",
+    "clinicalDate": "Clinical date: {{date}}",
+    "openEncounter": "Open encounter"
   }
 }

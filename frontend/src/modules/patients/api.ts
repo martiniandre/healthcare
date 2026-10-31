@@ -1,5 +1,5 @@
 import { http } from "../../shared/utils/http"
-import type { DiagnosticReport, DiagnosticReportVersion, Encounter, Observation, Patient, Condition, CreatePatientResponse, PatientsPage, AllergyIntolerance, MedicationRequest } from "./types"
+import type { DiagnosticReport, DiagnosticReportVersion, Encounter, Observation, Patient, Condition, CreatePatientResponse, PatientsPage, AllergyIntolerance, MedicationRequest, TimelinePage, TimelineRequest } from "./types"
 import type { NewVitalSignsPanelFormData } from "./patient_schemas"
 
 export const patientsApi = {
@@ -25,6 +25,17 @@ export const patientsApi = {
       fhir_resource_id: creationResponse.fhir_resource_id,
       ...patientData,
     }
+  },
+
+  getTimeline: async (patientFhirId: string, request: TimelineRequest = {}): Promise<TimelinePage> => {
+    const params = new URLSearchParams()
+    if (request.from) params.append("from", request.from)
+    if (request.to) params.append("to", request.to)
+    if (request.types && request.types.length > 0) params.append("types", request.types.join(","))
+    if (request.cursor) params.append("cursor", request.cursor)
+    if (request.limit) params.append("limit", request.limit.toString())
+    const queryString = params.toString()
+    return http.get<TimelinePage>(`/patients/${patientFhirId}/timeline${queryString ? `?${queryString}` : ""}`)
   },
 
   getEncounters: async (patientFhirId: string): Promise<Encounter[]> => {

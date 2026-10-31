@@ -1,6 +1,7 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
+import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from "@tanstack/react-query"
 import { patientsApi } from "./api"
 import type { NewVitalSignsPanelFormData } from "./patient_schemas"
+import { resolveTimelineRange, TIMELINE_PAGE_SIZE, type TimelineFilterState } from "./components/timeline/timelineModel"
 
 export const patientQueryKeys = {
   all: ["patients"] as const,
@@ -10,6 +11,7 @@ export const patientQueryKeys = {
   observations: (encounterFhirId: string) => [...patientQueryKeys.all, "observations", encounterFhirId] as const,
   reports: (encounterFhirId: string) => [...patientQueryKeys.all, "reports", encounterFhirId] as const,
   reportVersions: (reportFhirId: string) => [...patientQueryKeys.all, "reportVersions", reportFhirId] as const,
+  timeline: (patientFhirId: string, filters: TimelineFilterState) => [...patientQueryKeys.all, "timeline", patientFhirId, filters] as const,
   medications: (encounterFhirId: string) => [...patientQueryKeys.all, "medications", encounterFhirId] as const,
 }
 
@@ -213,3 +215,19 @@ export const useCreateMedicationMutation = () => {
 }
 
 export type { DiagnosticReport, DiagnosticReportVersion, Encounter, Observation, Patient, PatientsPage, AllergyIntolerance, MedicationRequest } from "./types"
+
+export const useTimelineQuery = (patientId: string, filters: TimelineFilterState, enabled = true) => {
+  return useInfiniteQuery({
+    queryKey: patientQueryKeys.timeline(patientId, filters),
+    queryFn: ({ pageParam }) =>
+      patientsApi.getTimeline(patientId, {
+        ...resolveTimelineRange(filters, new Date()),
+        types: filters.types,
+        cursor: pageParam,
+        limit: TIMELINE_PAGE_SIZE,
+      }),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+    enabled: !!patientId && enabled,
+  })
+}

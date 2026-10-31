@@ -270,4 +270,28 @@ describe("patientsApi", () => {
       dosage_instructions: "2x ao dia",
     })
   })
+
+  it("should request the timeline without query params by default", async () => {
+    vi.mocked(http.get).mockResolvedValue({ items: [], nextCursor: null })
+
+    await patientsApi.getTimeline("patient-1")
+
+    expect(http.get).toHaveBeenCalledWith("/patients/patient-1/timeline")
+  })
+
+  it("should map the timeline filters and cursor to the query string", async () => {
+    vi.mocked(http.get).mockResolvedValue({ items: [], nextCursor: null })
+
+    await patientsApi.getTimeline("patient-1", {
+      from: "2026-01-01T00:00:00.000Z",
+      to: "2026-02-01T00:00:00.000Z",
+      types: ["report", "allergy"],
+      cursor: "abc",
+      limit: 30,
+    })
+
+    expect(http.get).toHaveBeenCalledWith(
+      "/patients/patient-1/timeline?from=2026-01-01T00%3A00%3A00.000Z&to=2026-02-01T00%3A00%3A00.000Z&types=report%2Callergy&cursor=abc&limit=30"
+    )
+  })
 })

@@ -107,3 +107,42 @@ export interface MedicationRequest {
   status: MedicationRequestStatus
   created_at: string
 }
+
+export const TimelineEntryType = {
+  Encounter: "encounter",
+  Observation: "observation",
+  Condition: "condition",
+  Allergy: "allergy",
+  Medication: "medication",
+  Report: "report",
+  Imaging: "imaging",
+} as const
+
+export type TimelineEntryType = (typeof TimelineEntryType)[keyof typeof TimelineEntryType]
+
+export interface TimelineItem {
+  id: string
+  type: TimelineEntryType
+  occurredAt: string
+  clinicalDate: string | null
+  title: string
+  summary: string
+  status: string
+  resourceId: string
+  encounterId: string | null
+}
+
+export interface TimelinePage {
+  items: TimelineItem[]
+  nextCursor: string | null
+  partial?: { failedTypes: TimelineEntryType[] } | null
+  window: { from: string; to: string }
+}
+
+export interface TimelineRequest {
+  from?: string
+  to?: string
+  types?: TimelineEntryType[]
+  cursor?: string
+  limit?: number
+}
