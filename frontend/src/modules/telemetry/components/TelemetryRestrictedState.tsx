@@ -1,12 +1,12 @@
-import { type FormEvent } from "react"
+import { useEffect, useRef, useState, type FormEvent } from "react"
 import { useTranslation } from "react-i18next"
 import { Card } from "@/shared/components/ui/card"
 import { Button } from "@/shared/components/ui/button"
 import { Input } from "@/shared/components/ui/input"
-import { Field, FieldError, FieldLabel } from "@/shared/components/ui/field"
+import { Field, FieldDescription, FieldError, FieldLabel } from "@/shared/components/ui/field"
 import { Separator } from "@/shared/components/ui/separator"
 import { Spinner } from "@/shared/components/ui/spinner"
-import { Lock, KeyRound, Hospital, Unlock } from "lucide-react"
+import { Lock, KeyRound, Hospital, Unlock, Eye, EyeOff } from "lucide-react"
 
 interface TelemetryRestrictedStateProps {
   activeRoomName?: string
@@ -26,6 +26,36 @@ export const TelemetryRestrictedState = ({
   handleUnlockRoom
 }: TelemetryRestrictedStateProps) => {
   const { t } = useTranslation("telemetry")
+  const inputReference = useRef<HTMLInputElement | null>(null)
+  const [isPasscodeVisible, setIsPasscodeVisible] = useState(false)
+  const [isEmptyAttempt, setIsEmptyAttempt] = useState(false)
+  const displayedError = isEmptyAttempt ? t("passcodeRequired") : passcodeError
+  const describedBy = displayedError
+    ? "telemetry-passcode-hint telemetry-passcode-error"
+    : "telemetry-passcode-hint"
+
+  useEffect(() => {
+    if (passcodeError && !isPending) {
+      inputReference.current?.focus()
+      inputReference.current?.select()
+    }
+  }, [passcodeError, isPending])
+
+  const handleSubmit = (event: FormEvent) => {
+    if (!passcodeInput.trim()) {
+      event.preventDefault()
+      setIsEmptyAttempt(true)
+      inputReference.current?.focus()
+      return
+    }
+    setIsEmptyAttempt(false)
+    handleUnlockRoom(event)
+  }
+
+  const handlePasscodeChange = (value: string) => {
+    setIsEmptyAttempt(false)
+    setPasscodeInput(value)
+  }
 
   return (
     <Card className="flex-1 min-h-[400px] items-center justify-center gap-5 bg-muted/50 p-8 text-center">
@@ -42,34 +72,68 @@ export const TelemetryRestrictedState = ({
         </p>
       </div>
 
-      <form onSubmit={handleUnlockRoom} className="w-full max-w-[320px] flex flex-col gap-3">
-        <Field data-invalid={passcodeError ? true : undefined} className="text-left">
+      <form
+        onSubmit={handleSubmit}
+        noValidate
+        aria-busy={isPending}
+        className="w-full max-w-[320px] flex flex-col gap-3"
+      >
+        <Field data-invalid={displayedError ? true : undefined} className="text-left">
           <FieldLabel htmlFor="telemetry-passcode" className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
             {t("passcodeLabel")}
+            <span aria-hidden="true" className="text-destructive">*</span>
+            <span className="sr-only">{t("requiredLabel")}</span>
           </FieldLabel>
           <div className="relative">
-            <KeyRound className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+            <KeyRound aria-hidden="true" className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               id="telemetry-passcode"
-              type="password"
+              ref={inputReference}
+              type={isPasscodeVisible ? "text" : "password"}
+              inputMode="numeric"
+              autoComplete="off"
+              autoCapitalize="none"
+              spellCheck={false}
+              maxLength={32}
+              autoFocus
               placeholder={t("passcodePlaceholder")}
               value={passcodeInput}
-              onChange={(event) => setPasscodeInput(event.target.value)}
-              aria-invalid={passcodeError ? true : undefined}
-              className="pl-9 font-mono text-xs"
-              required
+              onChange={(event) => handlePasscodeChange(event.target.value)}
+              readOnly={isPending}
+              aria-required="true"
+              aria-invalid={displayedError ? true : undefined}
+              aria-describedby={describedBy}
+              className="h-11 pl-9 pr-28 font-mono text-base md:h-9 md:text-xs"
             />
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              aria-pressed={isPasscodeVisible}
+              onClick={() => setIsPasscodeVisible((visible) => !visible)}
+              className="absolute right-1 top-1/2 h-9 -translate-y-1/2 gap-1 px-2 text-[11px] text-muted-foreground md:h-7"
+            >
+              {isPasscodeVisible ? <EyeOff /> : <Eye />}
+              {t("togglePasscode")}
+            </Button>
           </div>
-          {passcodeError && <FieldError className="text-[10px] font-bold">{passcodeError}</FieldError>}
+          <FieldDescription id="telemetry-passcode-hint" className="text-[11px]">
+            {t("passcodeHint")}
+          </FieldDescription>
+          {displayedError && (
+            <FieldError id="telemetry-passcode-error" className="text-[11px] font-bold">
+              {displayedError}
+            </FieldError>
+          )}
         </Field>
 
         <Button
           type="submit"
           disabled={isPending}
-          className="w-full text-xs font-bold"
+          className="h-11 w-full text-xs font-bold md:h-9"
         >
           {isPending ? <Spinner /> : <Unlock />}
-          {t("unlockButton")}
+          {isPending ? t("unlocking") : t("unlockButton")}
         </Button>
       </form>
 

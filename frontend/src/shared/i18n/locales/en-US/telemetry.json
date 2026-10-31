@@ -52,5 +52,10 @@
   "loadingBeds": "Loading beds...",
   "roomsError": "Could not load the monitoring rooms.",
   "bedsError": "Could not load the beds for this room.",
-  "noRooms": "No monitoring rooms available."
+  "noRooms": "No monitoring rooms available.",
+  "requiredLabel": "(required)",
+  "passcodeRequired": "Enter the shift passcode to unlock the room.",
+  "passcodeHint": "Ask the shift lead for the code.",
+  "togglePasscode": "Show",
+  "unlocking": "Checking..."
 }

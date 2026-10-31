@@ -52,5 +52,10 @@
   "loadingBeds": "Cargando camas...",
   "roomsError": "No se pudieron cargar las salas de monitoreo.",
   "bedsError": "No se pudieron cargar las camas de esta sala.",
-  "noRooms": "No hay salas de monitoreo disponibles."
+  "noRooms": "No hay salas de monitoreo disponibles.",
+  "requiredLabel": "(obligatorio)",
+  "passcodeRequired": "Ingrese la clave de turno para liberar la sala.",
+  "passcodeHint": "Pida el código al responsable del turno.",
+  "togglePasscode": "Mostrar",
+  "unlocking": "Verificando..."
 }
