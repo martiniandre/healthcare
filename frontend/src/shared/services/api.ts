@@ -1,5 +1,16 @@
 import axios, { type AxiosError, type InternalAxiosRequestConfig } from "axios"
 
+interface RetriableRequestConfig extends InternalAxiosRequestConfig {
+  hasBeenReplayed?: boolean
+}
+
+export interface SessionRefreshResponse {
+  userId: string
+  role: string
+  email: string
+  csrfToken: string
+}
+
 let csrfTokenFromLogin: string | null = null
 
 export function setCsrfToken(token: string): void {
@@ -12,7 +23,7 @@ export function clearCsrfToken(): void {
 
 type UnauthorizedHandler = () => void
 
-const SESSION_ENDPOINT_PATHS = ["/auth/login", "/auth/me", "/auth/logout", "/auth/register"]
+const SESSION_ENDPOINT_PATHS = ["/auth/login", "/auth/me", "/auth/logout", "/auth/register", "/auth/refresh"]
 
 let unauthorizedHandler: UnauthorizedHandler | null = null
 
@@ -54,23 +65,76 @@ api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   return config
 })
 
+let refreshInFlight: Promise<SessionRefreshResponse> | null = null
+let guardedRefreshInFlight: Promise<SessionRefreshResponse> | null = null
+
+export function refreshSession(): Promise<SessionRefreshResponse> {
+  if (!refreshInFlight) {
+    refreshInFlight = api
+      .post<SessionRefreshResponse>("/auth/refresh")
+      .then((refreshResponse) => {
+        if (refreshResponse.data.csrfToken) {
+          setCsrfToken(refreshResponse.data.csrfToken)
+        }
+        return refreshResponse.data
+      })
+      .finally(() => {
+        refreshInFlight = null
+      })
+  }
+  return refreshInFlight
+}
+
+function refreshOrEndSession(): Promise<SessionRefreshResponse> {
+  if (!guardedRefreshInFlight) {
+    guardedRefreshInFlight = refreshSession()
+      .catch((refreshError: unknown) => {
+        clearCsrfToken()
+        unauthorizedHandler?.()
+        throw refreshError
+      })
+      .finally(() => {
+        guardedRefreshInFlight = null
+      })
+  }
+  return guardedRefreshInFlight
+}
+
+function applyServerMessage(requestError: AxiosError): void {
+  if (requestError.response) {
+    const errorPayload = requestError.response.data as { error?: string }
+    if (errorPayload?.error) {
+      requestError.message = errorPayload.error
+    }
+  }
+}
+
 api.interceptors.response.use(
   (successfulResponse) => successfulResponse,
-  (requestError: AxiosError) => {
-    if (
-      requestError.response?.status === 401 &&
-      !isSessionEndpoint(requestError.config?.url) &&
-      unauthorizedHandler
-    ) {
-      clearCsrfToken()
-      unauthorizedHandler()
-    }
-    if (requestError.response) {
-      const errorPayload = requestError.response.data as { error?: string }
-      if (errorPayload?.error) {
-        requestError.message = errorPayload.error
+  async (requestError: AxiosError) => {
+    const originalRequest = requestError.config as RetriableRequestConfig | undefined
+    const isExpiredSession =
+      requestError.response?.status === 401 && !isSessionEndpoint(originalRequest?.url)
+
+    if (isExpiredSession && originalRequest) {
+      if (originalRequest.hasBeenReplayed) {
+        clearCsrfToken()
+        unauthorizedHandler?.()
+      } else {
+        originalRequest.hasBeenReplayed = true
+        try {
+          await refreshOrEndSession()
+        } catch {
+          applyServerMessage(requestError)
+          return Promise.reject(requestError)
+        }
+        return api.request(originalRequest)
       }
+    } else if (isExpiredSession) {
+      clearCsrfToken()
+      unauthorizedHandler?.()
     }
+    applyServerMessage(requestError)
     return Promise.reject(requestError)
   },
 )

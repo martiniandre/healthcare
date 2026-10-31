@@ -1,4 +1,9 @@
-import { api, setCsrfToken, clearCsrfToken, setUnauthorizedHandler } from "./api"
+import { api, setCsrfToken, clearCsrfToken, setUnauthorizedHandler, refreshSession } from "./api"
+
+const apiMocks = vi.hoisted(() => ({
+  post: vi.fn(),
+  request: vi.fn(),
+}))
 
 const interceptorHandlers = vi.hoisted(() => ({
   requestFulfilled: (config: unknown) => config,
@@ -9,6 +14,8 @@ const interceptorHandlers = vi.hoisted(() => ({
 vi.mock("axios", () => {
   const instance = {
     create: vi.fn(),
+    post: apiMocks.post,
+    request: apiMocks.request,
     interceptors: {
       request: {
         use: (fulfilled: (config: unknown) => unknown) => {
@@ -113,44 +120,129 @@ describe("api client", () => {
     clearCsrfToken()
   })
 
-  describe("unauthorized handling", () => {
+
+  describe("silent refresh", () => {
+    const refreshedSession = { userId: "user-1", role: "DOCTOR", email: "a@b.com", csrfToken: "csrf-new" }
+
+    function buildExpiredError(url: string, extra: Record<string, unknown> = {}) {
+      return { config: { url, ...extra }, response: { status: 401, data: {} } }
+    }
+
+    beforeEach(() => {
+      apiMocks.post.mockReset()
+      apiMocks.request.mockReset()
+    })
+
     afterEach(() => {
       setUnauthorizedHandler(null)
+      clearCsrfToken()
     })
 
-    it("should notify the handler when a protected request returns 401", async () => {
+    it("should refresh once and replay the original request", async () => {
+      apiMocks.post.mockResolvedValue({ data: refreshedSession })
+      apiMocks.request.mockResolvedValue({ data: { id: "patient-1" } })
+
+      const replayed = await interceptorHandlers.rejected(buildExpiredError("/patients"))
+
+      expect(apiMocks.post).toHaveBeenCalledTimes(1)
+      expect(apiMocks.post).toHaveBeenCalledWith("/auth/refresh")
+      expect(apiMocks.request).toHaveBeenCalledTimes(1)
+      expect(apiMocks.request.mock.calls[0][0]).toMatchObject({ url: "/patients", hasBeenReplayed: true })
+      expect(replayed).toEqual({ data: { id: "patient-1" } })
+    })
+
+    it("should store the csrf token returned by the refresh", async () => {
+      apiMocks.post.mockResolvedValue({ data: refreshedSession })
+      apiMocks.request.mockResolvedValue({ data: {} })
+
+      await interceptorHandlers.rejected(buildExpiredError("/patients"))
+      const headers = { set: vi.fn() }
+      interceptorHandlers.requestFulfilled({ method: "post", headers })
+
+      expect(headers.set).toHaveBeenCalledWith("X-CSRF-Token", "csrf-new")
+    })
+
+    it("should share one refresh between concurrent 401 responses", async () => {
+      let resolveRefresh: (value: unknown) => void = () => {}
+      apiMocks.post.mockImplementation(
+        () => new Promise((resolve) => {
+          resolveRefresh = resolve
+        }),
+      )
+      apiMocks.request.mockResolvedValue({ data: {} })
+
+      const pendingReplays = [
+        interceptorHandlers.rejected(buildExpiredError("/patients")),
+        interceptorHandlers.rejected(buildExpiredError("/appointments")),
+        interceptorHandlers.rejected(buildExpiredError("/staff")),
+      ]
+      resolveRefresh({ data: refreshedSession })
+      await Promise.all(pendingReplays)
+
+      expect(apiMocks.post).toHaveBeenCalledTimes(1)
+      expect(apiMocks.request).toHaveBeenCalledTimes(3)
+    })
+
+    it("should notify the unauthorized handler once when the refresh fails", async () => {
       const unauthorizedHandler = vi.fn()
       setUnauthorizedHandler(unauthorizedHandler)
-      const expiredSessionError = { config: { url: "/patients" }, response: { status: 401, data: {} } }
+      setCsrfToken("stale-token")
+      apiMocks.post.mockRejectedValue(buildExpiredError("/auth/refresh"))
 
-      await expect(interceptorHandlers.rejected(expiredSessionError)).rejects.toBeDefined()
+      const results = await Promise.allSettled([
+        interceptorHandlers.rejected(buildExpiredError("/patients")),
+        interceptorHandlers.rejected(buildExpiredError("/appointments")),
+      ])
 
+      expect(results.every((result) => result.status === "rejected")).toBe(true)
       expect(unauthorizedHandler).toHaveBeenCalledTimes(1)
+      expect(apiMocks.request).not.toHaveBeenCalled()
+      const headers = { set: vi.fn() }
+      interceptorHandlers.requestFulfilled({ method: "post", headers })
+      expect(headers.set).not.toHaveBeenCalledWith("X-CSRF-Token", "stale-token")
     })
 
-    it("should not notify the handler for failed login or session probe requests", async () => {
+    it("should not refresh for auth endpoints", async () => {
       const unauthorizedHandler = vi.fn()
       setUnauthorizedHandler(unauthorizedHandler)
 
-      await expect(
-        interceptorHandlers.rejected({ config: { url: "/auth/login" }, response: { status: 401, data: {} } }),
-      ).rejects.toBeDefined()
-      await expect(
-        interceptorHandlers.rejected({ config: { url: "/auth/me" }, response: { status: 401, data: {} } }),
-      ).rejects.toBeDefined()
+      for (const url of ["/auth/login", "/auth/me", "/auth/logout", "/auth/register", "/auth/refresh"]) {
+        await expect(interceptorHandlers.rejected(buildExpiredError(url))).rejects.toBeDefined()
+      }
 
+      expect(apiMocks.post).not.toHaveBeenCalled()
       expect(unauthorizedHandler).not.toHaveBeenCalled()
     })
 
-    it("should not notify the handler for 403 responses", async () => {
+    it("should not loop when the replayed request returns 401 again", async () => {
       const unauthorizedHandler = vi.fn()
       setUnauthorizedHandler(unauthorizedHandler)
 
+      await expect(
+        interceptorHandlers.rejected(buildExpiredError("/patients", { hasBeenReplayed: true })),
+      ).rejects.toBeDefined()
+
+      expect(apiMocks.post).not.toHaveBeenCalled()
+      expect(apiMocks.request).not.toHaveBeenCalled()
+      expect(unauthorizedHandler).toHaveBeenCalledTimes(1)
+    })
+
+    it("should not refresh for non-401 failures", async () => {
       await expect(
         interceptorHandlers.rejected({ config: { url: "/patients" }, response: { status: 403, data: {} } }),
       ).rejects.toBeDefined()
 
-      expect(unauthorizedHandler).not.toHaveBeenCalled()
+      expect(apiMocks.post).not.toHaveBeenCalled()
+    })
+
+    it("should expose a shared refreshSession that returns the session", async () => {
+      apiMocks.post.mockResolvedValue({ data: refreshedSession })
+
+      const [first, second] = await Promise.all([refreshSession(), refreshSession()])
+
+      expect(apiMocks.post).toHaveBeenCalledTimes(1)
+      expect(first).toEqual(refreshedSession)
+      expect(second).toEqual(refreshedSession)
     })
   })
 })

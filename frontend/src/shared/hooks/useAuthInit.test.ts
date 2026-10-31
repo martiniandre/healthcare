@@ -6,6 +6,7 @@ import { useAuthStore } from "../store/auth_store"
 const csrfApi = vi.hoisted(() => ({
   setCsrfToken: vi.fn(),
   clearCsrfToken: vi.fn(),
+  refreshSession: vi.fn(),
 }))
 
 vi.mock("../services/api", () => csrfApi)
@@ -68,6 +69,49 @@ describe("useAuthInit", () => {
 
     expect(useAuthStore.getState().isAuthenticated).toBe(false)
     expect(useAuthStore.getState().userId).toBeNull()
+  })
+
+  it("should refresh once and retry me when me returns 401", async () => {
+    vi.mocked(authApi.me)
+      .mockRejectedValueOnce({ response: { status: 401 } })
+      .mockResolvedValueOnce({ userId: "user-4", role: "DOCTOR", email: "m@c.com", isActive: true })
+    csrfApi.refreshSession.mockResolvedValue({ userId: "user-4" })
+
+    const { result } = renderHook(() => useAuthInit())
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false)
+    })
+
+    expect(csrfApi.refreshSession).toHaveBeenCalledTimes(1)
+    expect(authApi.me).toHaveBeenCalledTimes(2)
+    expect(useAuthStore.getState().isAuthenticated).toBe(true)
+  })
+
+  it("should stay logged out when the refresh fails", async () => {
+    vi.mocked(authApi.me).mockRejectedValue({ response: { status: 401 } })
+    csrfApi.refreshSession.mockRejectedValue({ response: { status: 401 } })
+
+    const { result } = renderHook(() => useAuthInit())
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false)
+    })
+
+    expect(authApi.me).toHaveBeenCalledTimes(1)
+    expect(useAuthStore.getState().isAuthenticated).toBe(false)
+  })
+
+  it("should not refresh when me fails with a non-401 error", async () => {
+    vi.mocked(authApi.me).mockRejectedValue({ response: { status: 500 } })
+
+    const { result } = renderHook(() => useAuthInit())
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false)
+    })
+
+    expect(csrfApi.refreshSession).not.toHaveBeenCalled()
   })
 
   it("should finish loading without a csrf token when me omits it", async () => {
