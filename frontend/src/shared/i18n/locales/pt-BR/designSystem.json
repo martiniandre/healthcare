@@ -1,0 +1,168 @@
+{
+  "title": "Design System",
+  "description": "Catálogo vivo dos tokens, da tipografia e dos componentes usados no console.",
+  "nav": {
+    "label": "Seções do design system",
+    "colors": "Cores",
+    "typography": "Tipografia",
+    "components": "Componentes",
+    "guidelines": "Diretrizes"
+  },
+  "colors": {
+    "title": "Cores",
+    "description": "Tokens semânticos resolvidos em tempo de execução. Troque o tema para ver os valores claro e escuro e o contraste.",
+    "sample": "Aa",
+    "against": "Medido contra {{token}}",
+    "ratio": "Contraste {{ratio}}:1",
+    "aaPass": "AA aprovado",
+    "aaFail": "AA reprovado",
+    "aaaPass": "AAA aprovado",
+    "aaaFail": "AAA reprovado",
+    "unavailable": "Contraste indisponível"
+  },
+  "typography": {
+    "title": "Tipografia",
+    "description": "Inter Variable com a escala tipográfica do Tailwind.",
+    "scale": "Escala tipográfica",
+    "sample": "Os sinais vitais do paciente estão estáveis",
+    "tabular": "Números tabulares",
+    "tabularHint": "Use tabular-nums em sinais vitais, tabelas e contadores para manter os dígitos alinhados. A coluna da direita usa o recurso."
+  },
+  "components": {
+    "title": "Componentes",
+    "description": "Exemplos ao vivo com variantes e estados.",
+    "groups": {
+      "actions": "Ações e status",
+      "feedback": "Feedback",
+      "forms": "Formulários",
+      "navigation": "Navegação",
+      "overlays": "Sobreposições",
+      "data": "Exibição de dados"
+    },
+    "button": {
+      "variants": "Variantes do Button",
+      "sizes": "Tamanhos do Button",
+      "states": "Estados do Button",
+      "disabled": "Desabilitado",
+      "loading": "Carregando",
+      "iconLabel": "Adicionar item"
+    },
+    "badge": { "title": "Badge" },
+    "statusBadge": {
+      "title": "StatusBadge",
+      "normal": "Normal",
+      "attention": "Atenção",
+      "critical": "Crítico",
+      "info": "Informação",
+      "neutral": "Neutro"
+    },
+    "alert": {
+      "title": "Alert",
+      "description": "Alertas combinam cor, ícone e texto."
+    },
+    "progress": { "title": "Progress", "label": "Progresso do envio" },
+    "spinner": { "title": "Spinner" },
+    "skeleton": { "title": "Skeleton" },
+    "emptyState": {
+      "title": "EmptyState",
+      "heading": "Nenhum registro encontrado",
+      "description": "Ajuste os filtros ou crie um novo registro.",
+      "action": "Criar registro"
+    },
+    "forms": {
+      "input": "Input com Field",
+      "name": "Nome completo",
+      "namePlaceholder": "Digite o nome do paciente",
+      "hint": "Conforme consta no documento de identidade.",
+      "invalidValue": "A",
+      "error": "Informe ao menos 3 caracteres.",
+      "textarea": "Textarea",
+      "notes": "Notas clínicas",
+      "notesPlaceholder": "Descreva a observação",
+      "select": "Select",
+      "specialty": "Especialidade",
+      "cardiology": "Cardiologia",
+      "neurology": "Neurologia",
+      "toggles": "Checkbox e Switch",
+      "consent": "Aceito os termos",
+      "notifications": "Ativar notificações"
+    },
+    "tabs": {
+      "title": "Tabs",
+      "summary": "Resumo",
+      "history": "Histórico",
+      "summaryContent": "Conteúdo do resumo.",
+      "historyContent": "Conteúdo do histórico."
+    },
+    "breadcrumb": {
+      "title": "Breadcrumb",
+      "home": "Início",
+      "patients": "Pacientes",
+      "detail": "Detalhes"
+    },
+    "pagination": { "title": "Pagination" },
+    "dropdown": {
+      "title": "DropdownMenu",
+      "trigger": "Ações",
+      "label": "Registro",
+      "edit": "Editar",
+      "duplicate": "Duplicar"
+    },
+    "tooltip": {
+      "title": "Tooltip",
+      "trigger": "Passe o mouse ou foque",
+      "content": "Dica útil"
+    },
+    "popover": {
+      "title": "Popover",
+      "trigger": "Abrir popover",
+      "heading": "Detalhes rápidos",
+      "description": "Conteúdo contextual curto."
+    },
+    "dialog": {
+      "title": "Dialog",
+      "trigger": "Abrir diálogo",
+      "heading": "Confirmar ação",
+      "description": "Esta ação poderá ser revisada depois.",
+      "cancel": "Cancelar",
+      "confirm": "Confirmar"
+    },
+    "card": {
+      "title": "Card",
+      "heading": "Título do card",
+      "description": "Descrição de apoio",
+      "content": "Conteúdo do card."
+    },
+    "avatar": { "title": "Avatar", "initials": "MS" },
+    "table": {
+      "title": "Table",
+      "density": "Densidade da tabela",
+      "comfortable": "Confortável",
+      "compact": "Compacta",
+      "patient": "Paciente",
+      "heartRate": "Frequência cardíaca",
+      "status": "Status",
+      "row1": "Maria Silva",
+      "row2": "João Santos",
+      "row3": "Ana Costa"
+    }
+  },
+  "guidelines": {
+    "title": "Diretrizes",
+    "description": "Regras curtas para manter a interface consistente e acessível.",
+    "doTitle": "Faça",
+    "dontTitle": "Não faça",
+    "do": {
+      "status": "Combine a cor do status com ícone e rótulo de texto.",
+      "touch": "Mantenha alvos de toque com no mínimo 44px no mobile.",
+      "i18n": "Passe todo texto visível pelo i18n.",
+      "tokens": "Use tokens semânticos como bg-muted e text-foreground."
+    },
+    "dont": {
+      "status": "Comunicar status apenas pela cor.",
+      "touch": "Entregar alvos de toque pequenos no mobile.",
+      "i18n": "Escrever textos visíveis direto nos componentes.",
+      "tokens": "Usar classes de paleta como gray-500."
+    }
+  }
+}

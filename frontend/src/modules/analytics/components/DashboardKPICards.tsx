@@ -15,7 +15,9 @@ import {
   resolveOccupancySeverity,
   resolveWaitTimeSeverity,
 } from "../dashboard_thresholds"
-import { toneClassNames } from "../metric_tones"
+import { toneClinicalStatus } from "../metric_tones"
+import { useLocale } from "../../../shared/hooks/useLocale"
+import { formatDecimal } from "../format_numbers"
 
 interface DashboardKPICardsProps {
   consultationsToday: number
@@ -37,6 +39,7 @@ export const DashboardKPICards = ({
   newDiagnosesToday,
 }: DashboardKPICardsProps) => {
   const { t } = useTranslation("analytics")
+  const locale = useLocale()
 
   const occupancySeverity = resolveOccupancySeverity(occupancyRate)
   const waitTimeSeverity = resolveWaitTimeSeverity(avgWaitTimeMinutes)
@@ -45,7 +48,7 @@ export const DashboardKPICards = ({
     () => [
       {
         label: t("dashboard.kpi.consultationsToday"),
-        value: String(consultationsToday),
+        value: formatDecimal(consultationsToday, locale),
         icon: Stethoscope,
         tone: "primary",
         meta: {
@@ -56,36 +59,38 @@ export const DashboardKPICards = ({
       },
       {
         label: t("dashboard.kpi.occupancyRate"),
-        value: occupancyRate.toFixed(1),
+        value: formatDecimal(occupancyRate, locale, 1),
         unit: "%",
         icon: Activity,
         tone: occupancySeverity,
         meta: {
           text: t(`dashboard.occupancy.severity.${occupancySeverity}`),
-          tone: toneClassNames[occupancySeverity].text,
+          tone: "",
+          status: toneClinicalStatus[occupancySeverity],
         },
       },
       {
         label: t("dashboard.kpi.avgWaitTime"),
-        value: avgWaitTimeMinutes.toFixed(0),
+        value: formatDecimal(avgWaitTimeMinutes, locale),
         unit: t("dashboard.unit.minutes"),
         icon: Clock,
         tone: waitTimeSeverity,
         meta: {
           text: t(`dashboard.waitTime.severity.${waitTimeSeverity}`),
-          tone: toneClassNames[waitTimeSeverity].text,
+          tone: "",
+          status: toneClinicalStatus[waitTimeSeverity],
         },
       },
       {
         label: t("dashboard.kpi.activePatients"),
-        value: String(activePatients),
+        value: formatDecimal(activePatients, locale),
         icon: Users,
         tone: "secondary",
         meta: { text: t("dashboard.kpi.inCare"), tone: "text-muted-foreground", icon: Users },
       },
       {
         label: t("dashboard.kpi.examsToday"),
-        value: String(examsToday),
+        value: formatDecimal(examsToday, locale),
         icon: Activity,
         tone: "primary",
         meta: {
@@ -96,7 +101,7 @@ export const DashboardKPICards = ({
       },
       {
         label: t("dashboard.kpi.newDiagnoses"),
-        value: String(newDiagnosesToday),
+        value: formatDecimal(newDiagnosesToday, locale),
         icon: FileText,
         tone: "neutral",
         meta: {
@@ -108,6 +113,7 @@ export const DashboardKPICards = ({
     ],
     [
       t,
+      locale,
       consultationsToday,
       consultationsTrend,
       occupancyRate,

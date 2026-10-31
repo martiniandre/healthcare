@@ -1,9 +1,10 @@
 import { useEffect } from "react"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
+import { TooltipProvider } from "@/shared/components/ui/tooltip"
 import { AppRoutes } from "./app/routes"
 import { ToastContainer } from "./shared/components/ui/ToastContainer"
 import { useAuthInit } from "./shared/hooks/useAuthInit"
-import { Spinner } from "./shared/components/ui/Spinner"
+import { Spinner } from "./shared/components/ui/spinner"
 import { setUnauthorizedHandler } from "./shared/services/api"
 import { useAuthStore } from "./shared/store/auth_store"
 
@@ -55,7 +56,9 @@ function AppBootstrap() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AppBootstrap />
+      <TooltipProvider>
+        <AppBootstrap />
+      </TooltipProvider>
     </QueryClientProvider>
   )
 }

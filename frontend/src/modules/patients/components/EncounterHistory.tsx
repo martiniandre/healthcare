@@ -1,10 +1,10 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { History, Plus, AlertTriangle } from "lucide-react"
+import { History, Plus } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { Can, Action, Feature } from "../../../shared/auth/AbilityContext"
-import { Button } from "../../../shared/components/ui/Button"
-import { ClinicalTable } from "../../../shared/components/clinical/ClinicalTable"
+import { Button } from "../../../shared/components/ui/button"
+import { ClinicalQueryTable } from "./ClinicalQueryTable"
 import { EncounterModal } from "./modals/EncounterModal"
 import { useEncounterHistoryColumns } from "./useEncounterHistoryColumns"
 import { useCreateEncounterMutation, useEncountersQuery, useUpdateEncounterMutation } from "../queries"
@@ -22,7 +22,7 @@ export default function EncounterHistory({
   const navigate = useNavigate()
   const { t } = useTranslation("patients")
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const { data: encounters = [] } = useEncountersQuery(patientId)
+  const { data: encounters = [], isLoading, isError, refetch } = useEncountersQuery(patientId)
   const createEncounterMutation = useCreateEncounterMutation()
   const updateEncounterMutation = useUpdateEncounterMutation()
 
@@ -77,17 +77,19 @@ export default function EncounterHistory({
 
   return (
     <>
-      <ClinicalTable
+      <ClinicalQueryTable
         title={t("details.encountersCard.title")}
         icon={<History className="w-4 h-4 text-primary animate-pulse-glow" />}
         columns={columns}
         data={encounters}
-        isEmpty={encounters.length === 0}
-        emptyIcon={<AlertTriangle className="w-8 h-8 text-gray-300" />}
+        isLoading={isLoading}
+        isError={isError}
+        onRetry={() => void refetch()}
         emptyText={t("details.encountersCard.empty")}
+        emptyIcon={History}
         addButton={
           <Can I={Action.Create} a={Feature.Encounter}>
-            <Button onClick={() => setIsModalOpen(true)} className="px-3 py-2 text-xs">
+            <Button size="sm" onClick={() => setIsModalOpen(true)}>
               <Plus className="w-3.5 h-3.5" />
               {t("details.encountersCard.add")}
             </Button>

@@ -70,13 +70,19 @@ const fillPatientAndStaff = async () => {
   fireEvent.click(staffOption)
 }
 
-const fillTimes = (startValue: string, endValue: string) => {
-  fireEvent.change(screen.getByRole("combobox", { name: "modals.create.startTime" }), {
-    target: { value: startValue },
-  })
-  fireEvent.change(screen.getByRole("combobox", { name: "modals.create.endTime" }), {
-    target: { value: endValue },
-  })
+const chooseTime = async (comboboxName: string, timeValue: string) => {
+  fireEvent.click(screen.getByRole("combobox", { name: comboboxName }))
+  const timeOption = (await screen.findAllByRole("option", { name: timeValue }))
+    .find((option) => option.tagName === "DIV")
+  if (!timeOption) {
+    throw new Error("Time option not found")
+  }
+  fireEvent.click(timeOption)
+}
+
+const fillTimes = async (startValue: string, endValue: string) => {
+  await chooseTime("modals.create.startTime", startValue)
+  await chooseTime("modals.create.endTime", endValue)
 }
 
 const renderModal = (overrides: {
@@ -123,7 +129,7 @@ mockedUsePatientsQuery.mockReturnValue({
   it("should submit appointment without a reason", async () => {
     const onSubmit = renderModal({ defaultDate: "2027-05-20" })
     await fillPatientAndStaff()
-    fillTimes("09:00", "09:30")
+    await fillTimes("09:00", "09:30")
 
     fireEvent.click(screen.getByRole("button", { name: "modals.create.confirm" }))
     await waitFor(() => expect(onSubmit).toHaveBeenCalled())
@@ -144,7 +150,7 @@ mockedUsePatientsQuery.mockReturnValue({
   it("should submit appointment with a reason", async () => {
     const onSubmit = renderModal({ defaultDate: "2027-05-20" })
     await fillPatientAndStaff()
-    fillTimes("09:00", "09:45")
+    await fillTimes("09:00", "09:45")
     fireEvent.change(screen.getByPlaceholderText("modals.create.reasonPlaceholder"), {
       target: { value: "Consulta de rotina" },
     })
@@ -167,7 +173,7 @@ mockedUsePatientsQuery.mockReturnValue({
     )
     renderModal({ onSubmit, defaultDate: "2027-05-20" })
     await fillPatientAndStaff()
-    fillTimes("09:00", "09:30")
+    await fillTimes("09:00", "09:30")
 
     fireEvent.click(screen.getByRole("button", { name: "modals.create.confirm" }))
     expect(await screen.findByText("errors.conflict")).toBeDefined()
@@ -175,8 +181,7 @@ mockedUsePatientsQuery.mockReturnValue({
 
   it("should prefill the start time from defaultStartTime", () => {
     renderModal({ defaultDate: "2027-05-20", defaultStartTime: "09:15" })
-    const startTimeSelect = screen.getByRole("combobox", { name: "modals.create.startTime" }) as HTMLSelectElement
-    expect(startTimeSelect.value).toBe("09:15")
+    expect(screen.getByRole("combobox", { name: "modals.create.startTime" })).toHaveTextContent("09:15")
   })
 
   it("should block past dates on the appointment date input", () => {
@@ -213,10 +218,8 @@ mockedUsePatientsQuery.mockReturnValue({
     expect(comboboxes[1]).toHaveTextContent("Dr. André Silva")
     const dateInput = document.querySelector('input[type="date"]') as HTMLInputElement
     expect(dateInput.value).toBe("2027-05-20")
-    const startTimeSelect = screen.getByRole("combobox", { name: "modals.create.startTime" }) as HTMLSelectElement
-    expect(startTimeSelect.value).toBe("09:00")
-    const endTimeSelect = screen.getByRole("combobox", { name: "modals.create.endTime" }) as HTMLSelectElement
-    expect(endTimeSelect.value).toBe("09:30")
+    expect(screen.getByRole("combobox", { name: "modals.create.startTime" })).toHaveTextContent("09:00")
+    expect(screen.getByRole("combobox", { name: "modals.create.endTime" })).toHaveTextContent("09:30")
     expect(screen.getByPlaceholderText("modals.create.reasonPlaceholder")).toHaveValue("Consulta de rotina")
   })
 

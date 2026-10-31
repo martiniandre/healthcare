@@ -1,8 +1,13 @@
 import { useTranslation } from "react-i18next"
-import { Card } from "../../../shared/components/ui/Card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
+import { StatusBadge } from "@/shared/components/ui/status-badge"
+import { Button } from "@/shared/components/ui/button"
+import { cn } from "@/shared/utils/cn"
 import { Bell } from "lucide-react"
 import { BedStatus, type CardiacCondition } from "../../../shared/types"
 import { useClinicalStatusLabels } from "../../../shared/hooks/useClinicalStatusLabels"
+import { resolveBedClinicalStatus, sortBedsBySeverity, type BedHistoryMap } from "../utils/bed_helpers"
+import { BedTrendSparkline } from "./BedTrendSparkline"
 
 interface Bed {
   id: string
@@ -18,62 +23,81 @@ interface TelemetryBedListProps {
   beds: Bed[]
   selectedBedId: string | null
   setSelectedBedId: (id: string | null) => void
+  history?: BedHistoryMap
 }
 
-export const TelemetryBedList = ({ beds, selectedBedId, setSelectedBedId }: TelemetryBedListProps) => {
+export const TelemetryBedList = ({ beds, selectedBedId, setSelectedBedId, history = {} }: TelemetryBedListProps) => {
   const { t } = useTranslation("telemetry")
   const { cardiacConditionLabel } = useClinicalStatusLabels()
+  const sortedBeds = sortBedsBySeverity(beds)
 
   return (
     <div className="flex flex-col gap-4 lg:col-span-1 text-left">
-      <Card className="p-4 flex flex-col gap-4">
-        <h3 className="font-extrabold text-gray-900 text-md flex items-center gap-2 border-b border-border pb-3">
-          <Bell className="w-4 h-4 text-primary animate-pulse-glow" />
-          {t("availableBeds", { count: beds.length })}
-        </h3>
+      <Card className="gap-4 py-4">
+        <CardHeader className="border-b px-4">
+          <CardTitle className="flex items-center gap-2 text-base font-extrabold">
+            <Bell className="size-4 text-primary" aria-hidden="true" />
+            {t("availableBeds", { count: beds.length })}
+          </CardTitle>
+        </CardHeader>
 
-        <div className="flex flex-col gap-3">
-          {beds.map((bedItem) => {
+        <CardContent className="flex flex-col gap-3 px-4">
+          {sortedBeds.map((bedItem) => {
             const isSelected = bedItem.id === selectedBedId
+            const isCritical = bedItem.status === BedStatus.Danger
+            const clinicalStatus = resolveBedClinicalStatus(bedItem.status)
+            const bedHistory = history[bedItem.id] ?? []
             return (
-              <div
+              <Button
                 key={bedItem.id}
+                variant="outline"
+                aria-pressed={isSelected}
                 onClick={() => setSelectedBedId(bedItem.id)}
-                className={`cursor-pointer border p-3.5 rounded-xl transition-all duration-200 ${
-                  isSelected 
-                    ? "bg-primary/5 border-primary" 
-                    : bedItem.status === BedStatus.Danger
-                      ? "bg-red-50 border-red-200 hover:border-red-300"
-                      : "bg-card border-border hover:border-gray-300"
-                }`}
+                className={cn(
+                  "h-auto w-full flex-col items-stretch justify-start gap-0 whitespace-normal rounded-xl p-3.5 text-left font-normal",
+                  isSelected && "border-primary bg-primary/5",
+                  !isSelected && bedItem.status === BedStatus.Danger && "border-destructive/30 bg-destructive/5"
+                )}
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                     {bedItem.bedNumber}
                   </span>
-                  <span className={`text-[10px] px-2 py-0.5 rounded font-black uppercase ${
-                    bedItem.status === BedStatus.Danger 
-                      ? "bg-red-100 text-red-600" 
-                      : bedItem.status === BedStatus.Warning
-                        ? "bg-amber-100 text-amber-600"
-                        : "bg-emerald-100 text-emerald-600"
-                  }`}>
-                    {cardiacConditionLabel(bedItem.condition)}
-                  </span>
+                  <StatusBadge
+                    status={clinicalStatus}
+                    className={cn("text-[10px] font-black uppercase", isCritical && "animate-pulse-glow motion-reduce:animate-none")}
+                  >
+                    {t(`status.${clinicalStatus}`)}
+                  </StatusBadge>
                 </div>
 
-                <h4 className="text-sm font-bold text-gray-800 mt-1">
+                <h4 className="mt-1 text-sm font-bold text-foreground">
                   {bedItem.patientName}
                 </h4>
+                <span className="text-[11px] text-muted-foreground">{cardiacConditionLabel(bedItem.condition)}</span>
 
-                <div className="flex items-center justify-between mt-3 text-xs">
-                  <span className="text-gray-500">{t("sensors.ecg")}: <strong className="text-gray-800">{bedItem.bpm > 0 ? `${bedItem.bpm} BPM` : "---"}</strong></span>
-                  <span className="text-gray-500">{t("sensors.spo2")}: <strong className="text-gray-800">{bedItem.spo2 > 0 ? `${bedItem.spo2}%` : "---"}</strong></span>
+                <div className="mt-3 flex items-center justify-between text-xs">
+                  <span className="text-muted-foreground">{t("sensors.ecg")}: <strong className="tabular-nums text-foreground">{bedItem.bpm > 0 ? `${bedItem.bpm} BPM` : "---"}</strong></span>
+                  <span className="text-muted-foreground">{t("sensors.spo2")}: <strong className="tabular-nums text-foreground">{bedItem.spo2 > 0 ? `${bedItem.spo2}%` : "---"}</strong></span>
                 </div>
-              </div>
+
+                <div className="mt-2 flex items-center justify-between gap-2">
+                  <BedTrendSparkline
+                    values={bedHistory.map((sample) => sample.bpm)}
+                    metricLabel={t("sensors.ecg")}
+                    unit=" BPM"
+                  />
+                  <BedTrendSparkline
+                    values={bedHistory.map((sample) => sample.spo2)}
+                    metricLabel={t("sensors.spo2")}
+                    unit="%"
+                    className="text-success"
+                  />
+                </div>
+              </Button>
             )
           })}
-        </div>
+        </CardContent>
       </Card>
     </div>
   )

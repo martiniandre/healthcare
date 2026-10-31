@@ -6,10 +6,12 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "../../../shared/components/ui/Dialog"
+} from "../../../shared/components/ui/dialog"
 import { MaskedInput } from "../../../shared/components/ui/MaskedInput"
-import { Button } from "../../../shared/components/ui/Button"
-import { Input } from "../../../shared/components/ui/Input"
+import { Button } from "../../../shared/components/ui/button"
+import { Input } from "../../../shared/components/ui/input"
+import { Field, FieldError, FieldLabel } from "../../../shared/components/ui/field"
+import { Spinner } from "../../../shared/components/ui/spinner"
 import { getNewPatientSchema, type NewPatientFormData } from "../patient_schemas"
 import { createModuleTranslator } from "../../../shared/i18n/i18n"
 import { localizedDateToIso } from "../../../shared/utils/dates"
@@ -70,51 +72,53 @@ export const PatientModal = ({ isOpen, onOpenChange }: PatientModalProps) => {
         </DialogHeader>
 
         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4 text-left mt-4" noValidate>
-          <div className="flex flex-col gap-1">
-            <label className="text-xs font-semibold text-gray-600">{t("modal.name")}</label>
+          <Field className="gap-1" data-invalid={Boolean(errors.fullName)}>
+            <FieldLabel className="text-xs font-semibold text-muted-foreground">{t("modal.name")}</FieldLabel>
             <Input
               type="text"
               placeholder={t("modal.namePlaceholder")}
-              errorText={errors.fullName?.message}
+              aria-invalid={Boolean(errors.fullName)}
               {...register("fullName")}
             />
-          </div>
+            {errors.fullName && <FieldError>{errors.fullName.message}</FieldError>}
+          </Field>
 
-          <div className="flex flex-col gap-1">
-            <label className="text-xs font-semibold text-gray-600">{t("modal.birthDate")}</label>
+          <Field className="gap-1" data-invalid={Boolean(errors.birthDate)}>
+            <FieldLabel className="text-xs font-semibold text-muted-foreground">{t("modal.birthDate")}</FieldLabel>
             <MaskedInput
               mask="99/99/9999"
               placeholder={t("modal.birthDatePlaceholder")}
               errorText={errors.birthDate?.message}
               {...register("birthDate")}
             />
-          </div>
+          </Field>
 
-          <div className="flex flex-col gap-1">
-            <label className="text-xs font-semibold text-gray-600">{t("modal.document")}</label>
+          <Field className="gap-1" data-invalid={Boolean(errors.documentId)}>
+            <FieldLabel className="text-xs font-semibold text-muted-foreground">{t("modal.document")}</FieldLabel>
             <MaskedInput
               mask="999.999.999-99"
               placeholder={t("modal.documentPlaceholder")}
               errorText={errors.documentId?.message}
               {...register("documentId")}
             />
-          </div>
+          </Field>
 
-          <div className="flex flex-col gap-1">
-            <label className="text-xs font-semibold text-gray-600">{t("modal.phone")}</label>
+          <Field className="gap-1" data-invalid={Boolean(errors.phoneNumber)}>
+            <FieldLabel className="text-xs font-semibold text-muted-foreground">{t("modal.phone")}</FieldLabel>
             <MaskedInput
               mask="(99) 99999-9999"
               placeholder={t("modal.phonePlaceholder")}
               errorText={errors.phoneNumber?.message}
               {...register("phoneNumber")}
             />
-          </div>
+          </Field>
 
           <div className="flex gap-3 justify-end mt-3">
-            <Button variantType="outline" type="button" onClick={() => onOpenChange(false)}>
+            <Button variant="outline" type="button" onClick={() => onOpenChange(false)}>
               {t("modal.cancel")}
             </Button>
             <Button type="submit" disabled={createPatientMutation.isPending}>
+              {createPatientMutation.isPending && <Spinner />}
               {t("modal.confirm")}
             </Button>
           </div>

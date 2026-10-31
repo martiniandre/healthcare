@@ -1,5 +1,8 @@
 import { useTranslation } from "react-i18next"
-import { Card } from "../../../shared/components/ui/Card"
+import { Card, CardContent } from "@/shared/components/ui/card"
+import { Badge } from "@/shared/components/ui/badge"
+import { Button } from "@/shared/components/ui/button"
+import { cn } from "@/shared/utils/cn"
 import { Lock, Unlock } from "lucide-react"
 
 interface Room {
@@ -35,53 +38,50 @@ export const TelemetryRoomList = ({
           <Card
             key={roomItem.id}
             onClick={() => handleSelectRoom(roomItem.id)}
-            className={`p-4 cursor-pointer text-left transition-all duration-200 border relative ${
-              isSelected 
-                ? "border-primary bg-primary/5 shadow-sm" 
-                : "border-border hover:border-gray-300 bg-card"
-            }`}
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block">
-                {t("monitoredWing")}
-              </span>
-              <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full border ${
-                isUnlocked 
-                  ? "bg-emerald-50 text-emerald-600 border-emerald-100" 
-                  : "bg-amber-50 text-amber-600 border-amber-100"
-              }`}>
-                {isUnlocked ? (
-                  <>
-                    <Unlock className="w-3 h-3" />
-                    {t("unlocked")}
-                  </>
-                ) : (
-                  <>
-                    <Lock className="w-3 h-3" />
-                    {t("protected")}
-                  </>
-                )}
-              </span>
-            </div>
-
-            <h4 className="text-sm font-extrabold text-gray-900 mt-2 block">
-              {roomItem.name}
-            </h4>
-            <span className="text-[11px] text-gray-400 block mt-1 leading-normal">
-              {roomItem.description}
-            </span>
-
-            {isUnlocked && (
-              <button
-                onClick={(event) => {
-                  event.stopPropagation()
-                  handleLockRoom(roomItem.id)
-                }}
-                className="absolute bottom-4 right-4 text-xs text-red-500 hover:text-red-700 transition-colors font-bold"
-              >
-                {t("lockButton")}
-              </button>
+            className={cn(
+              "relative cursor-pointer gap-0 py-4 text-left transition-all duration-200",
+              isSelected ? "border-primary bg-primary/5" : "hover:border-ring/50"
             )}
+          >
+            <CardContent className="px-4">
+              <div className="flex items-center justify-between">
+                <span className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                  {t("monitoredWing")}
+                </span>
+                {isUnlocked ? (
+                  <Badge variant="success">
+                    <Unlock />
+                    {t("unlocked")}
+                  </Badge>
+                ) : (
+                  <Badge variant="warning">
+                    <Lock />
+                    {t("protected")}
+                  </Badge>
+                )}
+              </div>
+
+              <h4 className="mt-2 block text-sm font-extrabold text-foreground">
+                {roomItem.name}
+              </h4>
+              <span className="mt-1 block text-[11px] leading-normal text-muted-foreground">
+                {roomItem.description}
+              </span>
+
+              {isUnlocked && (
+                <Button
+                  variant="ghost"
+                  size="xs"
+                  onClick={(event) => {
+                    event.stopPropagation()
+                    handleLockRoom(roomItem.id)
+                  }}
+                  className="absolute bottom-3 right-3 font-bold text-destructive hover:text-destructive"
+                >
+                  {t("lockButton")}
+                </Button>
+              )}
+            </CardContent>
           </Card>
         )
       })}

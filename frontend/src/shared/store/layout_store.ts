@@ -1,8 +1,17 @@
 import { create } from "zustand"
 
 type ThemeMode = "light" | "dark"
+type TableDensity = "comfortable" | "compact"
 
 const THEME_STORAGE_KEY = "healthcare.theme"
+const DENSITY_STORAGE_KEY = "healthcare.tableDensity"
+
+const readStoredDensity = (): TableDensity => {
+  if (typeof window === "undefined") {
+    return "comfortable"
+  }
+  return window.localStorage.getItem(DENSITY_STORAGE_KEY) === "compact" ? "compact" : "comfortable"
+}
 
 const readStoredTheme = (): ThemeMode | null => {
   if (typeof window === "undefined") {
@@ -32,6 +41,8 @@ const applyThemeToDocument = (theme: ThemeMode) => {
 interface LayoutState {
   isMobileSidebarOpen: boolean
   theme: ThemeMode
+  tableDensity: TableDensity
+  toggleTableDensity: () => void
   toggleMobileSidebar: () => void
   closeMobileSidebar: () => void
   setTheme: (theme: ThemeMode) => void
@@ -45,6 +56,13 @@ applyThemeToDocument(initialTheme)
 export const useLayoutStore = create<LayoutState>((set) => ({
   isMobileSidebarOpen: false,
   theme: initialTheme,
+  tableDensity: readStoredDensity(),
+  toggleTableDensity: () =>
+    set((state) => {
+      const nextDensity = state.tableDensity === "compact" ? "comfortable" : "compact"
+      window.localStorage.setItem(DENSITY_STORAGE_KEY, nextDensity)
+      return { tableDensity: nextDensity }
+    }),
   toggleMobileSidebar: () => set((state) => ({ isMobileSidebarOpen: !state.isMobileSidebarOpen })),
   closeMobileSidebar: () => set({ isMobileSidebarOpen: false }),
   setTheme: (theme) => {

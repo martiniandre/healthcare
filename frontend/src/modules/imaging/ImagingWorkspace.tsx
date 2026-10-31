@@ -1,7 +1,11 @@
 import { useState, useRef } from "react"
 import { useTranslation } from "react-i18next"
-import { ArrowLeft, UploadCloud } from "lucide-react"
-import { Button } from "../../shared/components/ui/Button"
+import { AlertCircle, ArrowLeft, FileQuestion, UploadCloud } from "lucide-react"
+import { Button } from "@/shared/components/ui/button"
+import { Input } from "@/shared/components/ui/input"
+import { Alert, AlertDescription } from "@/shared/components/ui/alert"
+import { EmptyState } from "@/shared/components/ui/EmptyState"
+import { Spinner } from "@/shared/components/ui/spinner"
 import { DicomViewport } from "./components/DicomViewport"
 import { ImagingStudyDetails } from "./components/ImagingStudyDetails"
 import { ImagingUploadProgress } from "./components/ImagingUploadProgress"
@@ -23,7 +27,12 @@ export const ImagingWorkspace = ({ studyId, onBack }: ImagingWorkspaceProps) => 
   }>({ percentage: null, status: null })
   const fileInputReference = useRef<HTMLInputElement>(null)
 
-  const { data: study, isLoading: isStudyLoading, isError: isStudyError } = useImagingStudyQuery(studyId)
+  const {
+    data: study,
+    isLoading: isStudyLoading,
+    isError: isStudyError,
+    refetch: refetchStudy,
+  } = useImagingStudyQuery(studyId)
   const uploadImagingStudyMutation = useUploadImagingStudyMutation()
   const dicomViewer = useDicomViewer(study)
 
@@ -68,16 +77,43 @@ export const ImagingWorkspace = ({ studyId, onBack }: ImagingWorkspaceProps) => 
 
   if (isStudyError) {
     return (
-      <div className="text-center py-16">
-        <span className="text-sm text-red-500 font-medium">{t("loadError")}</span>
+      <div className="py-16">
+        <Alert variant="destructive">
+          <AlertCircle aria-hidden="true" />
+          <AlertDescription className="flex flex-wrap items-center gap-3">
+            <span>{t("loadError")}</span>
+            <Button variant="outline" size="sm" onClick={() => refetchStudy()}>
+              {t("retry")}
+            </Button>
+          </AlertDescription>
+        </Alert>
+      </div>
+    )
+  }
+
+  if (!isStudyLoading && !study) {
+    return (
+      <div className="py-16">
+        <EmptyState
+          icon={FileQuestion}
+          title={t("studyNotFound")}
+          description={t("studyNotFoundDesc")}
+          action={
+            <Button variant="outline" onClick={onBack}>
+              <ArrowLeft className="w-4 h-4" />
+              {t("backToRecord")}
+            </Button>
+          }
+        />
       </div>
     )
   }
 
   if (isStudyLoading || !study) {
     return (
-      <div className="text-center py-16">
-        <span className="text-sm text-muted">{t("loading")}</span>
+      <div className="flex items-center justify-center gap-2 py-16 text-sm text-muted-foreground">
+        <Spinner />
+        <span>{t("loading")}</span>
       </div>
     )
   }
@@ -86,22 +122,22 @@ export const ImagingWorkspace = ({ studyId, onBack }: ImagingWorkspaceProps) => 
     <div className="flex-1 p-8 flex flex-col gap-6 max-w-7xl mx-auto w-full select-none">
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div className="flex items-center gap-4">
-          <Button variantType="outline" onClick={onBack} className="px-3">
+          <Button variant="outline" onClick={onBack}>
             <ArrowLeft className="w-4 h-4" />
             {t("backToRecord")}
           </Button>
           <div className="text-left">
-            <h2 className="text-xl font-display font-bold text-gray-900 leading-none">
+            <h2 className="text-xl font-display font-bold text-foreground leading-none">
               {t("titleConsole")}
             </h2>
-            <span className="text-xs text-muted mt-1.5 block">
+            <span className="text-xs text-muted-foreground mt-1.5 block">
               {t("studyLabel")}: {study.title} • {t("uidLabel")}: {study.study_instance_uid}
             </span>
           </div>
         </div>
 
         <div className="flex items-center gap-2">
-          <input
+          <Input
             type="file"
             accept=".dcm"
             ref={fileInputReference}
@@ -109,10 +145,10 @@ export const ImagingWorkspace = ({ studyId, onBack }: ImagingWorkspaceProps) => 
             className="hidden"
           />
           <Button
-            variantType="outline"
+            variant="outline"
             onClick={handleButtonClick}
             disabled={uploadImagingStudyMutation.isPending || uploadState.percentage !== null}
-            className="px-3.5 gap-2 border-primary/20 text-primary hover:bg-primary/5"
+            className="border-primary/20 text-primary hover:bg-primary/5"
           >
             <UploadCloud className="w-4 h-4" />
             {t("uploadDcm")}

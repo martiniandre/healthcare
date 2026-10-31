@@ -38,5 +38,19 @@
     "simulateSuccess": "Simulação clínica propagada com sucesso!",
     "simulateError": "Falha ao propagar simulação clínica.",
     "unlockError": "Senha de Acesso incorreta. Verifique a escala do plantão."
-  }
+  },
+  "status": {
+    "normal": "Estável",
+    "attention": "Atenção",
+    "critical": "Crítico"
+  },
+  "trend": {
+    "ariaLabel": "Tendência de {{metric}}: últimas {{count}} leituras, de {{first}} a {{last}}"
+  },
+  "retry": "Tentar novamente",
+  "loadingRooms": "Carregando salas...",
+  "loadingBeds": "Carregando leitos...",
+  "roomsError": "Não foi possível carregar as salas de monitoramento.",
+  "bedsError": "Não foi possível carregar os leitos desta sala.",
+  "noRooms": "Nenhuma sala de monitoramento disponível."
 }

@@ -1,10 +1,14 @@
 import { useTranslation } from "react-i18next"
 import { Can, Action, Feature } from "../../../shared/auth/AbilityContext"
-import { Card } from "../../../shared/components/ui/Card"
-import { Button } from "../../../shared/components/ui/Button"
-import { Heart, Activity, Thermometer, AlertTriangle } from "lucide-react"
+import { Card, CardContent, CardFooter, CardHeader } from "@/shared/components/ui/card"
+import { Badge } from "@/shared/components/ui/badge"
+import { StatusBadge } from "@/shared/components/ui/status-badge"
+import { Button } from "@/shared/components/ui/button"
+import { cn } from "@/shared/utils/cn"
+import { Heart, Activity, Thermometer } from "lucide-react"
 import { BedStatus, CardiacCondition } from "../../../shared/types"
 import { type MutableRefObject } from "react"
+import { resolveBedClinicalStatus } from "../utils/bed_helpers"
 
 interface ActiveBed {
   id: string
@@ -26,6 +30,9 @@ interface TelemetryBedMonitorProps {
   updateSelectedBedCondition: (condition: CardiacCondition) => void
 }
 
+const SENSOR_LABEL_CLASS = "block text-[10px] font-bold uppercase tracking-wider text-muted-foreground"
+const SENSOR_BOX_CLASS = "flex items-center justify-between rounded-xl border border-border bg-muted p-4"
+
 export const TelemetryBedMonitor = ({
   activeBed,
   activeRoomName,
@@ -36,15 +43,15 @@ export const TelemetryBedMonitor = ({
 
   if (!activeBed) {
     return (
-      <Card className="flex-1 p-8 border border-border bg-gray-50/50 flex flex-col items-center justify-center text-center gap-4 min-h-[400px]">
-        <div className="bg-primary/5 p-4 rounded-full border border-primary/10 text-primary">
-          <Activity className="w-8 h-8 animate-pulse" />
+      <Card className="flex-1 min-h-[400px] items-center justify-center gap-4 bg-muted/50 p-8 text-center">
+        <div className="rounded-full border border-primary/10 bg-primary/5 p-4 text-primary">
+          <Activity className="size-8" aria-hidden="true" />
         </div>
         <div className="max-w-md flex flex-col gap-1">
-          <h3 className="text-md font-extrabold text-gray-900">
+          <h3 className="text-base font-extrabold text-foreground">
             {t("noBedSelected")}
           </h3>
-          <p className="text-xs text-gray-500 leading-normal">
+          <p className="text-xs leading-normal text-muted-foreground">
             {t("noBedSelectedDesc")}
           </p>
         </div>
@@ -52,111 +59,106 @@ export const TelemetryBedMonitor = ({
     )
   }
 
+  const conditionOptions: { condition: CardiacCondition; labelKey: string }[] = [
+    { condition: CardiacCondition.Normal, labelKey: "simulation.normal" },
+    { condition: CardiacCondition.Bradycardia, labelKey: "simulation.bradycardia" },
+    { condition: CardiacCondition.Tachycardia, labelKey: "simulation.tachycardia" },
+    { condition: CardiacCondition.CardiacArrest, labelKey: "simulation.cardiacArrest" },
+  ]
+
   return (
-    <Card className="p-4 flex flex-col gap-4">
-      <div className="flex items-center justify-between border-b border-border pb-3 flex-wrap gap-2">
+    <Card className="gap-4 py-4">
+      <CardHeader className="flex flex-wrap items-center justify-between gap-2 border-b px-4">
         <div className="text-left">
-          <span className="text-xs font-bold text-primary uppercase tracking-wider">{activeRoomName}</span>
-          <h3 className="text-md font-bold text-gray-900">{activeBed.bedNumber} • {activeBed.patientName}</h3>
+          <span className="text-xs font-bold uppercase tracking-wider text-primary">{activeRoomName}</span>
+          <h3 className="text-base font-bold text-foreground">{activeBed.bedNumber} • {activeBed.patientName}</h3>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded font-bold">
+          <Badge variant="secondary">
             {activeBed.age} {t("years")} · {activeBed.gender}
-          </span>
-          {activeBed.status !== BedStatus.Normal && (
-            <span className="text-xs bg-red-50 text-red-600 px-2.5 py-1 rounded-full font-bold flex items-center gap-1 border border-red-200">
-              <AlertTriangle className="w-3.5 h-3.5" />
-              {t("criticalBadge")}
-            </span>
-          )}
+          </Badge>
+          <StatusBadge
+            status={resolveBedClinicalStatus(activeBed.status)}
+            className={cn(activeBed.status === BedStatus.Danger && "animate-pulse-glow motion-reduce:animate-none")}
+          >
+            {t(`status.${resolveBedClinicalStatus(activeBed.status)}`)}
+          </StatusBadge>
         </div>
-      </div>
+      </CardHeader>
 
-      <div className="relative border border-border rounded-xl overflow-hidden bg-slate-950 p-1">
-        <canvas
-          ref={canvasRef}
-          width={700}
-          height={260}
-          className="block w-full max-w-full rounded-lg"
-        />
-        <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded text-[10px] text-emerald-400 font-mono border border-emerald-500/20">
-          {t("ecgLead")}
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-gray-50 border border-border p-4 rounded-xl flex items-center justify-between">
-          <div className="text-left">
-            <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block">{t("sensors.ecg")}</span>
-            <span className="text-2xl font-black text-gray-900 mt-1 block">
-              {activeBed.bpm > 0 ? `${activeBed.bpm} ` : "--- "}
-              <span className="text-xs font-normal text-gray-400">BPM</span>
-            </span>
+      <CardContent className="flex flex-col gap-4 px-4">
+        <div className="relative overflow-hidden rounded-xl border border-border bg-slate-950 p-1">
+          <canvas
+            ref={canvasRef}
+            width={700}
+            height={260}
+            className="block w-full max-w-full rounded-lg"
+          />
+          <div className="absolute top-4 left-4 rounded border border-emerald-500/20 bg-black/60 px-3 py-1.5 font-mono text-[10px] text-emerald-400 backdrop-blur-md">
+            {t("ecgLead")}
           </div>
-          <Heart className={`w-8 h-8 text-red-500 shrink-0 ${activeBed.bpm > 110 ? "animate-pulse" : ""}`} />
         </div>
 
-        <div className="bg-gray-50 border border-border p-4 rounded-xl flex items-center justify-between">
-          <div className="text-left">
-            <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block">{t("sensors.spo2")}</span>
-            <span className="text-2xl font-black text-gray-900 mt-1 block">
-              {activeBed.spo2 > 0 ? `${activeBed.spo2}%` : "---%"}
-            </span>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <div className={SENSOR_BOX_CLASS}>
+            <div className="text-left">
+              <span className={SENSOR_LABEL_CLASS}>{t("sensors.ecg")}</span>
+              <span className="mt-1 block text-2xl font-black tabular-nums text-foreground">
+                {activeBed.bpm > 0 ? `${activeBed.bpm} ` : "--- "}
+                <span className="text-xs font-normal text-muted-foreground">BPM</span>
+              </span>
+            </div>
+            <Heart className={cn("size-8 shrink-0 text-destructive", activeBed.bpm > 110 && "animate-pulse motion-reduce:animate-none")} />
           </div>
-          <Activity className="w-8 h-8 text-emerald-500 shrink-0" />
-        </div>
 
-        <div className="bg-gray-50 border border-border p-4 rounded-xl flex items-center justify-between">
-          <div className="text-left">
-            <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block">{t("sensors.temp")}</span>
-            <span className="text-2xl font-black text-gray-900 mt-1 block">
-              {activeBed.temperature.toFixed(1)}°C
-            </span>
+          <div className={SENSOR_BOX_CLASS}>
+            <div className="text-left">
+              <span className={SENSOR_LABEL_CLASS}>{t("sensors.spo2")}</span>
+              <span className="mt-1 block text-2xl font-black tabular-nums text-foreground">
+                {activeBed.spo2 > 0 ? `${activeBed.spo2}%` : "---%"}
+              </span>
+            </div>
+            <Activity className="size-8 shrink-0 text-success" />
           </div>
-          <Thermometer className="w-8 h-8 text-sky-500 shrink-0" />
+
+          <div className={SENSOR_BOX_CLASS}>
+            <div className="text-left">
+              <span className={SENSOR_LABEL_CLASS}>{t("sensors.temp")}</span>
+              <span className="mt-1 block text-2xl font-black tabular-nums text-foreground">
+                {activeBed.temperature.toFixed(1)}°C
+              </span>
+            </div>
+            <Thermometer className="size-8 shrink-0 text-primary" />
+          </div>
         </div>
-      </div>
+      </CardContent>
 
       <Can I={Action.Update} a={Feature.TelemetryBed}>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-border pt-4 text-left">
-          <div className="flex flex-col gap-2">
-            <span className="text-xs font-bold text-gray-600 block">{t("simulation.title")}</span>
-            <div className="flex gap-2 flex-wrap">
-              <Button 
-                variantType={activeBed.condition === CardiacCondition.Normal ? "primary" : "outline"} 
-                onClick={() => updateSelectedBedCondition(CardiacCondition.Normal)}
-                className="px-3 py-2 text-[11px] font-bold"
-              >
-                {t("simulation.normal")}
-              </Button>
-              <Button 
-                variantType={activeBed.condition === CardiacCondition.Bradycardia ? "primary" : "outline"} 
-                onClick={() => updateSelectedBedCondition(CardiacCondition.Bradycardia)}
-                className="px-3 py-2 text-[11px] font-bold"
-              >
-                {t("simulation.bradycardia")}
-              </Button>
-            </div>
+        <CardFooter className="flex-col items-start gap-2 border-t px-4 pt-4 text-left">
+          <span className="block text-xs font-bold text-muted-foreground">{t("simulation.title")}</span>
+          <div className="flex flex-wrap gap-2">
+            {conditionOptions.map(({ condition, labelKey }) => {
+              const isActive = activeBed.condition === condition
+              const isArrest = condition === CardiacCondition.CardiacArrest
+              const activeVariant = isArrest ? "destructive" : "default"
+              return (
+                <Button
+                  key={condition}
+                  variant={isActive ? activeVariant : "outline"}
+                  size="sm"
+                  aria-pressed={isActive}
+                  onClick={() => updateSelectedBedCondition(condition)}
+                  className={cn(
+                    "text-[11px] font-bold",
+                    isArrest && !isActive && "text-destructive hover:text-destructive"
+                  )}
+                >
+                  {t(labelKey)}
+                </Button>
+              )
+            })}
           </div>
-          <div className="flex flex-col gap-2 justify-end">
-            <div className="flex gap-2 flex-wrap">
-              <Button 
-                variantType={activeBed.condition === CardiacCondition.Tachycardia ? "primary" : "outline"} 
-                onClick={() => updateSelectedBedCondition(CardiacCondition.Tachycardia)}
-                className="px-3 py-2 text-[11px] font-bold"
-              >
-                {t("simulation.tachycardia")}
-              </Button>
-              <Button 
-                variantType={activeBed.condition === CardiacCondition.CardiacArrest ? "danger" : "outline"} 
-                onClick={() => updateSelectedBedCondition(CardiacCondition.CardiacArrest)}
-                className="px-3 py-2 text-[11px] font-bold text-red-500 hover:text-white"
-              >
-                {t("simulation.cardiacArrest")}
-              </Button>
-            </div>
-          </div>
-        </div>
+        </CardFooter>
       </Can>
     </Card>
   )

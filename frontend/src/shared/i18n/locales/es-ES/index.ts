@@ -13,6 +13,7 @@ import auditLogs from "./auditLogs.json"
 import notifications from "./notifications.json"
 import schedule from "./schedule.json"
 import portal from "./portal.json"
+import designSystem from "./designSystem.json"
 
 const esESResource = {
   sidebar,
@@ -30,6 +31,7 @@ const esESResource = {
   notifications,
   schedule,
   portal,
+  designSystem,
 }
 
 export default esESResource

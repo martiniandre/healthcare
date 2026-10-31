@@ -1,4 +1,5 @@
-import { createValidDicomBlob, waitForUploadFrame } from "./pacs_helpers"
+import { ImagingStudyStatus } from "../../../shared/types"
+import { createValidDicomBlob, resolveStudyClinicalStatus, waitForUploadFrame } from "./pacs_helpers"
 
 describe("pacs_helpers", () => {
   it("should create a DICOM blob with a valid preamble signature", async () => {
@@ -19,5 +20,15 @@ describe("pacs_helpers", () => {
 
     expect(completionMarker).toHaveBeenCalledTimes(1)
     vi.useRealTimers()
+  })
+})
+
+describe("resolveStudyClinicalStatus", () => {
+  it("should map each study status to a clinical status", () => {
+    expect(resolveStudyClinicalStatus(ImagingStudyStatus.Available)).toBe("normal")
+    expect(resolveStudyClinicalStatus(ImagingStudyStatus.Registered)).toBe("info")
+    expect(resolveStudyClinicalStatus(ImagingStudyStatus.Cancelled)).toBe("critical")
+    expect(resolveStudyClinicalStatus(ImagingStudyStatus.EnteredInError)).toBe("critical")
+    expect(resolveStudyClinicalStatus(ImagingStudyStatus.Unknown)).toBe("neutral")
   })
 })

@@ -5,7 +5,8 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "../../../../shared/components/ui/Dialog"
+} from "../../../../shared/components/ui/dialog"
+import { Badge } from "../../../../shared/components/ui/badge"
 import type { DiagnosticReport } from "../../types"
 import { formatDateTime } from "../../../../shared/utils/dates"
 
@@ -37,38 +38,38 @@ export const ReportDetailsModal = ({
         </DialogHeader>
         <div className="flex flex-col gap-3 mt-4 max-h-[60vh] overflow-y-auto">
           <div className="flex items-center justify-between gap-2 flex-wrap">
-            <span className="inline-flex items-center gap-1.5 text-[9px] bg-emerald-50 border border-emerald-100 text-emerald-600 px-2 py-0.5 rounded font-bold uppercase">
-              <CheckCircle className="w-3 h-3" />
+            <Badge variant="success" className="uppercase">
+              <CheckCircle />
               {report.status}
-            </span>
+            </Badge>
             {report.version && (
-              <span className="inline-flex items-center gap-1.5 text-[9px] bg-blue-50 border border-blue-100 text-blue-600 px-2 py-0.5 rounded font-bold uppercase">
-                <FileText className="w-3 h-3" />
+              <Badge variant="info" className="uppercase">
+                <FileText />
                 v{report.version}
-              </span>
+              </Badge>
             )}
-            <span className="text-xs text-gray-500 font-semibold">
+            <span className="text-xs text-muted-foreground font-semibold">
                 {formatDateTime(report.created_at)}
             </span>
           </div>
           <div>
-            <p className="text-[10px] uppercase font-bold text-gray-400 mb-1">
+            <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">
               {t("modals.reportDetails.examLabel")}
             </p>
-            <p className="text-sm font-bold text-gray-800 bg-gray-50 border border-border p-3 rounded-lg">
+            <p className="text-sm font-bold text-gray-800 bg-muted border border-border p-3 rounded-lg">
               {report.report_display}
             </p>
           </div>
           <div>
-            <p className="text-[10px] uppercase font-bold text-gray-400 mb-1">
+            <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">
               {t("modals.reportDetails.conclusionLabel")}
             </p>
             {report.conclusion ? (
-              <p className="text-sm text-gray-700 leading-relaxed bg-gray-50 border border-border p-3 rounded-lg whitespace-pre-line">
+              <p className="text-sm text-gray-700 leading-relaxed bg-muted border border-border p-3 rounded-lg whitespace-pre-line">
                 {report.conclusion}
               </p>
             ) : (
-              <p className="text-sm text-gray-400 italic">
+              <p className="text-sm text-muted-foreground italic">
                 {t("modals.reportDetails.noConclusion")}
               </p>
             )}

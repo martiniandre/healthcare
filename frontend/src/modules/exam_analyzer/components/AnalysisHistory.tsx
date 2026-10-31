@@ -1,4 +1,12 @@
-import { FileText, Trash2, Calendar, Database, Search } from "lucide-react"
+import { AlertCircle, FileText, Trash2, Calendar, Database, Search } from "lucide-react"
+import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
+import { Badge } from "@/shared/components/ui/badge"
+import { Button } from "@/shared/components/ui/button"
+import { Input } from "@/shared/components/ui/input"
+import { Alert, AlertDescription } from "@/shared/components/ui/alert"
+import { Skeleton } from "@/shared/components/ui/skeleton"
+import { StatusBadge, type ClinicalStatus } from "@/shared/components/ui/status-badge"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/components/ui/tooltip"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Can, Action, Feature } from "../../../shared/auth/AbilityContext"
@@ -10,28 +18,25 @@ import { cn } from "../../../shared/utils/cn"
 interface AnalysisHistoryProperties {
   history: ExamAnalysis[]
   isLoading: boolean
+  isError?: boolean
+  onRetry?: () => void
   activeID: string | null
   onSelect: (analysis: ExamAnalysis) => void
   onDelete: (id: string) => void
 }
 
-const STATUS_DOT_STYLES: Record<HistoryStatusTone, string> = {
-  completed: "bg-success",
-  inProgress: "bg-secondary animate-pulse",
-  attention: "bg-warning",
-  failed: "bg-danger",
-}
-
-const STATUS_TEXT_STYLES: Record<HistoryStatusTone, string> = {
-  completed: "text-success",
-  inProgress: "text-secondary",
-  attention: "text-warning",
-  failed: "text-danger",
+const HISTORY_TONE_TO_STATUS: Record<HistoryStatusTone, ClinicalStatus> = {
+  completed: "normal",
+  inProgress: "info",
+  attention: "attention",
+  failed: "critical",
 }
 
 export const AnalysisHistory = ({
   history,
   isLoading,
+  isError = false,
+  onRetry,
   activeID,
   onSelect,
   onDelete,
@@ -56,122 +61,140 @@ export const AnalysisHistory = ({
   const filteredHistory = history.filter(matchesSearchTerm)
 
   return (
-    <div className="flex h-fit w-full shrink-0 flex-col gap-4 rounded-xl border border-border bg-card p-4 md:sticky md:top-6 md:max-h-[calc(100vh-120px)] md:w-[320px]">
-      <div className="flex items-center justify-between">
-        <h3 className="flex items-center gap-2 text-sm font-bold text-gray-900">
-          <Database className="h-4 w-4 text-primary" aria-hidden="true" />
+    <Card className="h-fit w-full shrink-0 gap-4 py-4 md:sticky md:top-6 md:max-h-[calc(100vh-120px)] md:w-[320px]">
+      <CardHeader className="px-4">
+        <CardTitle className="flex items-center gap-2 text-sm font-bold">
+          <Database className="size-4 text-primary" aria-hidden="true" />
           {t("history.title")}
-        </h3>
-        <span className="rounded-full border border-border bg-gray-50 px-2 py-0.5 text-[11px] font-bold text-muted-foreground">
-          {t("history.exams", { count: filteredHistory.length })}
-        </span>
-      </div>
+        </CardTitle>
+        <CardAction>
+          <Badge variant="outline" className="text-[11px] font-bold text-muted-foreground">
+            {t("history.exams", { count: filteredHistory.length })}
+          </Badge>
+        </CardAction>
+      </CardHeader>
 
-      <div className="flex shrink-0 items-center gap-2 rounded-lg border border-border bg-gray-50 px-3 py-1.5">
-        <Search className="h-3.5 w-3.5 shrink-0 text-gray-400" aria-hidden="true" />
-        <input
-          type="text"
-          placeholder={t("history.filterPlaceholder")}
-          aria-label={t("history.filterPlaceholder")}
-          value={searchTerm}
-          onChange={(event) => setSearchTerm(event.target.value)}
-          className="w-full bg-transparent text-xs text-gray-800 placeholder-gray-400 focus:outline-none"
-        />
-      </div>
+      <CardContent className="flex min-h-0 flex-1 flex-col gap-4 px-4">
+        <div className="relative shrink-0">
+          <Search
+            className="absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground"
+            aria-hidden="true"
+          />
+          <Input
+            type="text"
+            placeholder={t("history.filterPlaceholder")}
+            aria-label={t("history.filterPlaceholder")}
+            value={searchTerm}
+            onChange={(event) => setSearchTerm(event.target.value)}
+            className="pl-9 text-xs md:text-xs"
+          />
+        </div>
 
-      <div className="flex max-h-[300px] flex-1 flex-col gap-2 overflow-y-auto pr-1 md:max-h-none">
-        {isLoading ? (
-          <div className="py-10 text-center">
-            <span className="text-xs text-muted">{t("history.loading")}</span>
-          </div>
-        ) : filteredHistory.length === 0 ? (
-          <div className="flex flex-col items-center justify-center gap-2 py-10 text-center">
-            <FileText className="h-8 w-8 text-gray-200" aria-hidden="true" />
-            <span className="mx-auto block max-w-[180px] text-xs leading-normal text-muted">
-              {normalizedSearchTerm.length > 0 ? t("history.noResults") : t("history.empty")}
-            </span>
-          </div>
-        ) : (
-          filteredHistory.map((item) => {
-            const isCurrentlySelected = activeID === item.id
-            const fileName = item.file_name || t("history.unknownFile")
-            const statusReading = resolveHistoryStatus(item.status)
-            const isInFlight =
-              item.status === ExamAnalysisStatus.PENDING ||
-              item.status === ExamAnalysisStatus.PROCESSING
+        <div className="flex max-h-[300px] flex-1 flex-col gap-2 overflow-y-auto pr-1 md:max-h-none">
+          {isLoading ? (
+            <div className="flex flex-col gap-2" role="status" aria-label={t("history.loading")}>
+              <Skeleton className="h-16 rounded-lg" />
+              <Skeleton className="h-16 rounded-lg" />
+              <Skeleton className="h-16 rounded-lg" />
+            </div>
+          ) : isError ? (
+            <Alert variant="destructive">
+              <AlertCircle aria-hidden="true" />
+              <AlertDescription className="flex flex-col items-start gap-2">
+                <span>{t("history.loadError")}</span>
+                <Button type="button" variant="outline" size="xs" onClick={onRetry}>
+                  {t("retry")}
+                </Button>
+              </AlertDescription>
+            </Alert>
+          ) : filteredHistory.length === 0 ? (
+            <div className="flex flex-col items-center justify-center gap-2 py-10 text-center">
+              <FileText className="size-8 text-muted-foreground/40" aria-hidden="true" />
+              <span className="mx-auto block max-w-[180px] text-xs leading-normal text-muted-foreground">
+                {normalizedSearchTerm.length > 0 ? t("history.noResults") : t("history.empty")}
+              </span>
+            </div>
+          ) : (
+            filteredHistory.map((item) => {
+              const isCurrentlySelected = activeID === item.id
+              const fileName = item.file_name || t("history.unknownFile")
+              const statusReading = resolveHistoryStatus(item.status)
+              const isInFlight =
+                item.status === ExamAnalysisStatus.PENDING ||
+                item.status === ExamAnalysisStatus.PROCESSING
 
-            const secondaryLabel =
-              item.exam_type ||
-              (isInFlight ? t("history.processing") : t("history.insufficient"))
+              const secondaryLabel =
+                item.exam_type ||
+                (isInFlight ? t("history.processing") : t("history.insufficient"))
 
-            return (
-              <div
-                key={item.id}
-                className={cn(
-                  "group flex items-start gap-1 rounded-lg border p-1 transition-all duration-200",
-                  isCurrentlySelected
-                    ? "border-primary/30 bg-primary/5 shadow-sm"
-                    : "border-border bg-card hover:border-border hover:bg-gray-50/60"
-                )}
-              >
-                <button
-                  type="button"
-                  onClick={() => onSelect(item)}
-                  aria-current={isCurrentlySelected ? "true" : undefined}
-                  aria-label={t("history.selectAnalysis", { fileName })}
-                  className="min-w-0 flex-1 cursor-pointer rounded-md px-2 py-1.5 text-left"
+              return (
+                <div
+                  key={item.id}
+                  className={cn(
+                    "group flex items-start gap-1 rounded-lg border p-1 transition-all duration-200",
+                    isCurrentlySelected
+                      ? "border-primary/30 bg-primary/5 shadow-sm"
+                      : "border-border bg-card hover:bg-muted/60"
+                  )}
                 >
-                  <span
-                    className={cn(
-                      "block truncate text-xs font-semibold transition-colors",
-                      isCurrentlySelected ? "text-primary" : "text-gray-900"
-                    )}
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={() => onSelect(item)}
+                    aria-current={isCurrentlySelected ? "true" : undefined}
+                    aria-label={t("history.selectAnalysis", { fileName })}
+                    className="h-auto min-w-0 flex-1 flex-col items-start justify-start gap-0 whitespace-normal px-2 py-1.5 text-left font-normal hover:bg-transparent"
                   >
-                    {fileName}
-                  </span>
-
-                  <span className="mt-1 block text-[11px] font-medium text-gray-600">
-                    {secondaryLabel}
-                  </span>
-
-                  <span className="mt-1.5 flex items-center gap-2.5 text-[11px] text-muted-foreground">
-                    <span className="flex items-center gap-1">
-                      <Calendar className="h-3 w-3 shrink-0" aria-hidden="true" />
-                      {item.created_at ? formatDateTime(item.created_at) : "—"}
-                    </span>
                     <span
                       className={cn(
-                        "flex items-center gap-1 font-bold uppercase tracking-wider",
-                        STATUS_TEXT_STYLES[statusReading.tone]
+                        "block w-full truncate text-xs font-semibold transition-colors",
+                        isCurrentlySelected ? "text-primary" : "text-foreground"
                       )}
                     >
-                      <span
-                        className={cn(
-                          "h-1.5 w-1.5 shrink-0 rounded-full",
-                          STATUS_DOT_STYLES[statusReading.tone]
-                        )}
-                        aria-hidden="true"
-                      />
-                      {t(statusReading.translationKey)}
+                      {fileName}
                     </span>
-                  </span>
-                </button>
 
-                <Can I={Action.Delete} a={Feature.ExamAnalysis}>
-                  <button
-                    type="button"
-                    onClick={() => onDelete(item.id)}
-                    aria-label={t("history.deleteAnalysis", { fileName })}
-                    className="mt-1.5 shrink-0 cursor-pointer rounded p-1.5 text-gray-400 transition-all hover:bg-danger/10 hover:text-danger focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-danger/40 md:opacity-0 md:group-hover:opacity-100"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
-                  </button>
-                </Can>
-              </div>
-            )
-          })
-        )}
-      </div>
-    </div>
+                    <span className="mt-1 block text-[11px] font-medium text-muted-foreground">
+                      {secondaryLabel}
+                    </span>
+
+                    <span className="mt-1.5 flex items-center gap-2.5 text-[11px] text-muted-foreground">
+                      <span className="flex items-center gap-1">
+                        <Calendar className="size-3 shrink-0" aria-hidden="true" />
+                        {item.created_at ? formatDateTime(item.created_at) : "—"}
+                      </span>
+                      <StatusBadge
+                        status={HISTORY_TONE_TO_STATUS[statusReading.tone]}
+                        className="text-[10px] font-bold uppercase tracking-wider"
+                      >
+                        {t(statusReading.translationKey)}
+                      </StatusBadge>
+                    </span>
+                  </Button>
+
+                  <Can I={Action.Delete} a={Feature.ExamAnalysis}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon-xs"
+                          onClick={() => onDelete(item.id)}
+                          aria-label={t("history.deleteAnalysis", { fileName })}
+                          className="mt-1.5 shrink-0 text-muted-foreground hover:bg-destructive/10 hover:text-destructive focus-visible:opacity-100 md:opacity-0 md:group-hover:opacity-100"
+                        >
+                          <Trash2 aria-hidden="true" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>{t("history.deleteAnalysis", { fileName })}</TooltipContent>
+                    </Tooltip>
+                  </Can>
+                </div>
+              )
+            })
+          )}
+        </div>
+      </CardContent>
+    </Card>
   )
 }

@@ -1,12 +1,14 @@
 import { useTranslation } from "react-i18next"
 import { CalendarX2 } from "lucide-react"
-import { Button } from "../../../shared/components/ui/Button"
+import { Spinner } from "@/shared/components/ui/spinner"
+import { Button } from "@/shared/components/ui/button"
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "../../../shared/components/ui/Dialog"
+  DialogFooter,
+} from "@/shared/components/ui/dialog"
 import type { Appointment } from "../types"
 import { formatDateTime } from "../../../shared/utils/dates"
 
@@ -36,24 +38,25 @@ export const CancelAppointmentModal = ({
       <DialogContent className="sm:max-w-[420px]">
         <DialogHeader>
           <DialogTitle className="text-left flex items-center gap-2">
-            <CalendarX2 className="w-4 h-4 text-red-500" />
+            <CalendarX2 className="size-4 text-destructive" />
             {t("modals.cancel.title")}
           </DialogTitle>
         </DialogHeader>
-        <div className="flex flex-col gap-2 text-left mt-4 text-sm text-gray-700">
+        <div className="flex flex-col gap-2 text-left mt-4 text-sm text-foreground">
           <p>{t("modals.cancel.description")}</p>
-          <p className="font-mono text-xs text-gray-500">
+          <p className="font-mono text-xs text-muted-foreground">
             {formatDateTime(appointment.starts_at)} — {appointment.reason || "-"}
           </p>
         </div>
-        <div className="flex gap-3 justify-end mt-6">
-          <Button variantType="outline" type="button" onClick={onClose}>
+        <DialogFooter className="mt-6">
+          <Button variant="outline" type="button" onClick={onClose}>
             {t("modals.cancel.back")}
           </Button>
-          <Button variantType="danger" type="button" disabled={isPending} onClick={() => onConfirm(appointment.id)}>
+          <Button variant="destructive" type="button" disabled={isPending} onClick={() => onConfirm(appointment.id)}>
+            {isPending && <Spinner />}
             {t("modals.cancel.confirm")}
           </Button>
-        </div>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   )

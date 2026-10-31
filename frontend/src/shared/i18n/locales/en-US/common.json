@@ -1,6 +1,23 @@
 {
   "appTitle": "HealthCare Portal",
   "close": "Close",
+  "tableDensity": {
+    "compact": "Compact rows",
+    "comfortable": "Comfortable rows"
+  },
+  "loading": "Loading",
+  "pagination": {
+    "label": "Pagination",
+    "previousPage": "Go to previous page",
+    "previous": "Previous",
+    "nextPage": "Go to next page",
+    "next": "Next",
+    "morePages": "More pages"
+  },
+  "breadcrumb": {
+    "label": "Breadcrumb",
+    "more": "More"
+  },
   "toast": {
     "success": "Success",
     "error": "Error",

@@ -21,6 +21,7 @@ export const routeAllowedRoles = {
   staff: STAFF_ROLES,
   auditLogs: [AppRole.Admin],
   portal: [AppRole.Patient],
+  designSystem: STAFF_ROLES,
 } as const satisfies Record<string, readonly AppRole[]>
 
 export type RouteAccessKey = keyof typeof routeAllowedRoles

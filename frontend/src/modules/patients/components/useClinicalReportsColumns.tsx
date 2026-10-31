@@ -1,8 +1,12 @@
 import { useMemo } from "react"
 import { useTranslation } from "react-i18next"
-import { FileCheck, CheckCircle, History } from "lucide-react"
+import { FileCheck, History } from "lucide-react"
 import { createColumnHelper, type ColumnDef } from "@tanstack/react-table"
-import { Button } from "../../../shared/components/ui/Button"
+import { Badge } from "../../../shared/components/ui/badge"
+import { StatusBadge } from "../../../shared/components/ui/status-badge"
+import { resolveClinicalStatus } from "./clinicalStatus"
+import { Button } from "../../../shared/components/ui/button"
+import { Tooltip, TooltipContent, TooltipTrigger } from "../../../shared/components/ui/tooltip"
 import { formatDateTime } from "../../../shared/utils/dates"
 import type { DiagnosticReport } from "../types"
 
@@ -37,33 +41,38 @@ export const useClinicalReportsColumns = ({
         id: "conclusion",
         header: t("details.reportsCard.conclusion"),
         cell: (info) => (
-          <button
-            type="button"
-            onClick={() => onOpenDetails(info.row.original)}
-            title={t("details.reportsCard.viewDetails")}
-            className="text-left w-full max-w-[240px] cursor-pointer"
-          >
-            <p className="text-xs text-gray-600 leading-relaxed bg-gray-50 border border-border p-3 rounded-lg line-clamp-2 hover:bg-gray-100 transition-colors">
-              {info.getValue() || t("modals.reportDetails.noConclusion")}
-            </p>
-          </button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => onOpenDetails(info.row.original)}
+                aria-label={t("details.reportsCard.viewDetails")}
+                className="h-auto w-full max-w-[240px] justify-start whitespace-normal bg-muted p-3 text-left text-xs font-normal leading-relaxed text-muted-foreground hover:bg-accent"
+              >
+                <span className="line-clamp-2">
+                  {info.getValue() || t("modals.reportDetails.noConclusion")}
+                </span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>{t("details.reportsCard.viewDetails")}</TooltipContent>
+          </Tooltip>
         ),
       }),
       columnHelper.accessor("status", {
         id: "status",
         header: t("details.reportsCard.status"),
         cell: (info) => (
-          <span className="text-[9px] bg-emerald-50 border border-emerald-100 text-emerald-600 px-2 py-0.5 rounded font-bold uppercase inline-flex items-center gap-1">
-            <CheckCircle className="w-3 h-3" />
+          <StatusBadge status={resolveClinicalStatus("report", info.getValue())} className="uppercase">
             {info.getValue()}
-          </span>
+          </StatusBadge>
         ),
       }),
       columnHelper.accessor("created_at", {
         id: "created_at",
         header: t("details.reportsCard.date"),
         cell: (info) => (
-          <span className="text-xs text-gray-500 font-semibold block mt-1">
+          <span className="text-xs text-muted-foreground font-semibold block mt-1">
             {formatDateTime(info.getValue())}
           </span>
         ),
@@ -75,14 +84,14 @@ export const useClinicalReportsColumns = ({
           const versionValue = info.getValue()
           if (!versionValue) {
             return (
-              <span className="text-xs text-gray-400">—</span>
+              <span className="text-xs text-muted-foreground">—</span>
             )
           }
           return (
-            <span className="text-[9px] bg-blue-50 border border-blue-100 text-blue-600 px-2 py-0.5 rounded font-bold uppercase inline-flex items-center gap-1">
-              <FileCheck className="w-3 h-3" />
+            <Badge variant="info" className="uppercase">
+              <FileCheck />
               v{versionValue}
-            </span>
+            </Badge>
           )
         },
       }),
@@ -90,14 +99,19 @@ export const useClinicalReportsColumns = ({
         id: "history",
         header: t("details.reportsCard.history"),
         cell: (info) => (
-          <Button
-            variantType="outline"
-            onClick={() => onOpenVersions(info.row.original)}
-            className="px-2 py-1 text-xs"
-            title={t("details.reportsCard.history")}
-          >
-            <History className="w-3.5 h-3.5 text-blue-500" />
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                size="icon-sm"
+                onClick={() => onOpenVersions(info.row.original)}
+                aria-label={t("details.reportsCard.history")}
+              >
+                <History className="text-primary" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>{t("details.reportsCard.history")}</TooltipContent>
+          </Tooltip>
         ),
       }),
     ] as ColumnDef<DiagnosticReport>[],

@@ -2,7 +2,9 @@ import { useMemo } from "react"
 import { useTranslation } from "react-i18next"
 import { CheckCircle, XCircle, ExternalLink } from "lucide-react"
 import { createColumnHelper, type ColumnDef } from "@tanstack/react-table"
-import { Button } from "../../../shared/components/ui/Button"
+import { Button } from "../../../shared/components/ui/button"
+import { StatusBadge } from "../../../shared/components/ui/status-badge"
+import { resolveClinicalStatus } from "./clinicalStatus"
 import { formatDateTime } from "../../../shared/utils/dates"
 import type { Encounter } from "../types"
 
@@ -34,9 +36,9 @@ export const useEncounterHistoryColumns = ({
         id: "status",
         header: t("details.encountersCard.status"),
         cell: (info) => (
-          <span className="text-[10px] bg-gray-100 text-gray-600 px-2.5 py-1 rounded font-bold uppercase tracking-wider">
+          <StatusBadge status={resolveClinicalStatus("encounter", info.getValue())} className="uppercase tracking-wider">
             {info.getValue()}
-          </span>
+          </StatusBadge>
         ),
       }),
       columnHelper.accessor("created_at", {
@@ -58,31 +60,31 @@ export const useEncounterHistoryColumns = ({
               {encounter.status === "in-progress" && (
                 <>
                   <Button
-                    variantType="outline"
+                    variant="outline"
+                    size="xs"
                     onClick={() => onFinishEncounter(encounter)}
                     disabled={isActionPending}
-                    className="px-2.5 py-1 text-[10px] font-bold gap-1"
                   >
-                    <CheckCircle className="w-3 h-3" />
+                    <CheckCircle />
                     {t("details.encountersCard.finish")}
                   </Button>
                   <Button
-                    variantType="danger"
+                    variant="destructive"
+                    size="xs"
                     onClick={() => onCancelEncounter(encounter)}
                     disabled={isActionPending}
-                    className="px-2.5 py-1 text-[10px] font-bold gap-1"
                   >
-                    <XCircle className="w-3 h-3" />
+                    <XCircle />
                     {t("details.encountersCard.cancel")}
                   </Button>
                 </>
               )}
               <Button
-                variantType="outline"
+                variant="outline"
+                size="xs"
                 onClick={() => onOpenEncounter(encounter)}
-                className="px-2.5 py-1 text-[10px] font-bold gap-1"
               >
-                <ExternalLink className="w-3 h-3" />
+                <ExternalLink />
                 {t("details.openEncounter")}
               </Button>
             </div>

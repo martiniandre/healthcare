@@ -71,5 +71,10 @@
     "deactivateError": "Falha ao desativar o acesso do profissional.",
     "deleteSuccess": "Profissional excluído do quadro clínico.",
     "deleteError": "Falha ao excluir o profissional."
+  },
+  "error": {
+    "title": "Não foi possível carregar o corpo clínico",
+    "description": "A lista de profissionais não pôde ser obtida. Verifique sua conexão e tente novamente.",
+    "retry": "Tentar novamente"
   }
 }

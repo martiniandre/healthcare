@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next"
 import { Can, Action, Feature } from "../../../shared/auth/AbilityContext"
-import { Button } from "../../../shared/components/ui/Button"
+import { Button } from "../../../shared/components/ui/button"
 import { UserPlus } from "lucide-react"
 
 interface PatientsHeaderProps {
@@ -16,7 +16,7 @@ export const PatientsHeader = ({ onNewPatient }: PatientsHeaderProps) => {
         <h2 className="text-xl font-display font-bold text-gray-900 tracking-tight leading-none">
           {t("title")}
         </h2>
-        <span className="text-xs text-muted mt-1 block">
+        <span className="text-xs text-muted-foreground mt-1 block">
           {t("subtitle")}
         </span>
       </div>

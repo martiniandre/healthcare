@@ -20,7 +20,8 @@
   "emptyState": {
     "selectStaff": "Select a professional and a date to view the schedule.",
     "noAppointments": "No appointments for this professional on this date.",
-    "noStaff": "No staff members available."
+    "noStaff": "No staff members available.",
+    "noUnavailability": "No blocked periods for this professional."
   },
   "calendar": {
     "staffFilters": "Staff",
@@ -74,7 +75,11 @@
     }
   },
   "errors": {
-    "conflict": "Time slot conflict: an appointment already exists in this interval for this professional. Choose another time."
+    "conflict": "Time slot conflict: an appointment already exists in this interval for this professional. Choose another time.",
+    "loadStaffTitle": "Could not load staff",
+    "loadAppointmentsTitle": "Could not load appointments",
+    "loadAppointmentsDescription": "The appointments for the selected professionals could not be retrieved. Try again.",
+    "loadUnavailabilityTitle": "Could not load blocked periods"
   },
   "toasts": {
     "createSuccess": "Appointment created successfully!",
@@ -135,6 +140,10 @@
       "deleteSuccess": "Unavailability period removed successfully!",
       "deleteError": "Failed to remove unavailability period."
     }
+  },
+  "retry": "Try again",
+  "loading": {
+    "staff": "Loading staff",
+    "unavailability": "Loading blocked periods"
   }
 }
-

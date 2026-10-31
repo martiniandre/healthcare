@@ -1,0 +1,168 @@
+{
+  "title": "Design System",
+  "description": "Living catalog of the tokens, typography and components used across the console.",
+  "nav": {
+    "label": "Design system sections",
+    "colors": "Colors",
+    "typography": "Typography",
+    "components": "Components",
+    "guidelines": "Guidelines"
+  },
+  "colors": {
+    "title": "Colors",
+    "description": "Semantic tokens resolved at runtime. Switch the theme to see light and dark values and their contrast.",
+    "sample": "Aa",
+    "against": "Measured against {{token}}",
+    "ratio": "Contrast {{ratio}}:1",
+    "aaPass": "AA pass",
+    "aaFail": "AA fail",
+    "aaaPass": "AAA pass",
+    "aaaFail": "AAA fail",
+    "unavailable": "Contrast unavailable"
+  },
+  "typography": {
+    "title": "Typography",
+    "description": "Inter Variable with a Tailwind type scale.",
+    "scale": "Type scale",
+    "sample": "Patient vitals are stable",
+    "tabular": "Tabular numbers",
+    "tabularHint": "Use tabular-nums on vitals, tables and counters so digits stay aligned. The right column uses it."
+  },
+  "components": {
+    "title": "Components",
+    "description": "Live examples with variants and states.",
+    "groups": {
+      "actions": "Actions and status",
+      "feedback": "Feedback",
+      "forms": "Forms",
+      "navigation": "Navigation",
+      "overlays": "Overlays",
+      "data": "Data display"
+    },
+    "button": {
+      "variants": "Button variants",
+      "sizes": "Button sizes",
+      "states": "Button states",
+      "disabled": "Disabled",
+      "loading": "Loading",
+      "iconLabel": "Add item"
+    },
+    "badge": { "title": "Badge" },
+    "statusBadge": {
+      "title": "StatusBadge",
+      "normal": "Normal",
+      "attention": "Attention",
+      "critical": "Critical",
+      "info": "Info",
+      "neutral": "Neutral"
+    },
+    "alert": {
+      "title": "Alert",
+      "description": "Alerts combine color, icon and text."
+    },
+    "progress": { "title": "Progress", "label": "Upload progress" },
+    "spinner": { "title": "Spinner" },
+    "skeleton": { "title": "Skeleton" },
+    "emptyState": {
+      "title": "EmptyState",
+      "heading": "No records found",
+      "description": "Adjust the filters or create a new record.",
+      "action": "Create record"
+    },
+    "forms": {
+      "input": "Input with Field",
+      "name": "Full name",
+      "namePlaceholder": "Type the patient name",
+      "hint": "As it appears on the identity document.",
+      "invalidValue": "A",
+      "error": "Enter at least 3 characters.",
+      "textarea": "Textarea",
+      "notes": "Clinical notes",
+      "notesPlaceholder": "Describe the observation",
+      "select": "Select",
+      "specialty": "Specialty",
+      "cardiology": "Cardiology",
+      "neurology": "Neurology",
+      "toggles": "Checkbox and Switch",
+      "consent": "I accept the terms",
+      "notifications": "Enable notifications"
+    },
+    "tabs": {
+      "title": "Tabs",
+      "summary": "Summary",
+      "history": "History",
+      "summaryContent": "Summary content.",
+      "historyContent": "History content."
+    },
+    "breadcrumb": {
+      "title": "Breadcrumb",
+      "home": "Home",
+      "patients": "Patients",
+      "detail": "Details"
+    },
+    "pagination": { "title": "Pagination" },
+    "dropdown": {
+      "title": "DropdownMenu",
+      "trigger": "Actions",
+      "label": "Record",
+      "edit": "Edit",
+      "duplicate": "Duplicate"
+    },
+    "tooltip": {
+      "title": "Tooltip",
+      "trigger": "Hover or focus",
+      "content": "Helpful hint"
+    },
+    "popover": {
+      "title": "Popover",
+      "trigger": "Open popover",
+      "heading": "Quick details",
+      "description": "Short contextual content."
+    },
+    "dialog": {
+      "title": "Dialog",
+      "trigger": "Open dialog",
+      "heading": "Confirm action",
+      "description": "This action can be reviewed later.",
+      "cancel": "Cancel",
+      "confirm": "Confirm"
+    },
+    "card": {
+      "title": "Card",
+      "heading": "Card title",
+      "description": "Supporting description",
+      "content": "Card content."
+    },
+    "avatar": { "title": "Avatar", "initials": "MS" },
+    "table": {
+      "title": "Table",
+      "density": "Table density",
+      "comfortable": "Comfortable",
+      "compact": "Compact",
+      "patient": "Patient",
+      "heartRate": "Heart rate",
+      "status": "Status",
+      "row1": "Maria Silva",
+      "row2": "João Santos",
+      "row3": "Ana Costa"
+    }
+  },
+  "guidelines": {
+    "title": "Guidelines",
+    "description": "Short rules to keep the interface consistent and accessible.",
+    "doTitle": "Do",
+    "dontTitle": "Don't",
+    "do": {
+      "status": "Pair status color with an icon and a text label.",
+      "touch": "Keep touch targets at least 44px on mobile.",
+      "i18n": "Send every visible text through i18n.",
+      "tokens": "Use semantic tokens such as bg-muted and text-foreground."
+    },
+    "dont": {
+      "status": "Convey status by color alone.",
+      "touch": "Ship small tap targets on mobile.",
+      "i18n": "Hardcode user-facing strings in components.",
+      "tokens": "Use raw palette classes such as gray-500."
+    }
+  }
+}

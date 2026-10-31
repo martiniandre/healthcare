@@ -1,7 +1,8 @@
 import { useMemo } from "react"
 import { useTranslation } from "react-i18next"
-import { CheckCircle } from "lucide-react"
 import { createColumnHelper, type ColumnDef } from "@tanstack/react-table"
+import { StatusBadge } from "../../../shared/components/ui/status-badge"
+import { resolveClinicalStatus } from "./clinicalStatus"
 import { formatDateTime } from "../../../shared/utils/dates"
 import type { MedicationRequest } from "../types"
 
@@ -28,10 +29,9 @@ export const useClinicalMedicationsColumns = (): ColumnDef<MedicationRequest>[] 
         id: "status",
         header: t("details.medicationsCard.status"),
         cell: (info) => (
-          <span className="text-[9px] bg-purple-50 border border-purple-100 text-purple-600 px-2 py-0.5 rounded font-bold uppercase inline-flex items-center gap-1">
-            <CheckCircle className="w-3 h-3" />
+          <StatusBadge status={resolveClinicalStatus("medication", info.getValue())} className="uppercase">
             {info.getValue()}
-          </span>
+          </StatusBadge>
         ),
       }),
       columnHelper.accessor("created_at", {

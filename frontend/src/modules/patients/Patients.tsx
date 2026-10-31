@@ -6,6 +6,7 @@ import { PatientsMetricsGrid } from "./components/PatientsMetricsGrid"
 import { PatientsFilters } from "./components/PatientsFilters"
 import { PatientsLoadingState } from "./components/PatientsLoadingState"
 import { PatientsEmptyState } from "./components/PatientsEmptyState"
+import { QueryErrorAlert } from "./components/QueryErrorAlert"
 import { PatientsTable, type SortField, type SortDirection } from "./components/PatientsTable"
 import { PatientModal } from "./components/PatientModal"
 import { usePatientsQuery } from "./queries"
@@ -37,7 +38,7 @@ export const Patients = () => {
 
   const debouncedSearchTerm = useDebounce(searchTerm, 500)
 
-  const { data: patientsPage, isLoading } = usePatientsQuery(
+  const { data: patientsPage, isLoading, isError, refetch } = usePatientsQuery(
     debouncedSearchTerm,
     sort.field,
     sort.direction,
@@ -78,6 +79,8 @@ export const Patients = () => {
 
       {isLoading ? (
         <PatientsLoadingState />
+      ) : isError ? (
+        <QueryErrorAlert onRetry={() => void refetch()} />
       ) : patients.length === 0 ? (
         <PatientsEmptyState 
           hasSearchTerm={!!searchTerm} 

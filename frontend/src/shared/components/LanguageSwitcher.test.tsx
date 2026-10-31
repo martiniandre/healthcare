@@ -13,6 +13,10 @@ vi.mock("react-i18next", () => ({
   }),
 }))
 
+const openMenu = () => {
+  fireEvent.keyDown(screen.getByRole("button", { name: "English" }), { key: "Enter" })
+}
+
 describe("LanguageSwitcher", () => {
   beforeEach(() => {
     mockChangeLanguage.mockReset()
@@ -25,24 +29,23 @@ describe("LanguageSwitcher", () => {
     expect(trigger).toBeInTheDocument()
   })
 
-  it("should open the dropdown and list every language option", () => {
+  it("should open the menu and list every language option", () => {
     render(<LanguageSwitcher />)
 
-    fireEvent.click(screen.getByRole("button", { name: "English" }))
+    openMenu()
 
-    expect(screen.getByRole("button", { name: /Português/ })).toBeInTheDocument()
-    expect(screen.getAllByRole("button", { name: /English/ })).toHaveLength(2)
-    expect(screen.getByRole("button", { name: /Español/ })).toBeInTheDocument()
+    expect(screen.getByRole("menuitemradio", { name: /Português/ })).toBeInTheDocument()
+    expect(screen.getByRole("menuitemradio", { name: /English/ })).toBeChecked()
+    expect(screen.getByRole("menuitemradio", { name: /Español/ })).toBeInTheDocument()
   })
 
-  it("should change the language and close the dropdown when a new option is selected", () => {
+  it("should change the language when a new option is selected", () => {
     render(<LanguageSwitcher />)
 
-    fireEvent.click(screen.getByRole("button", { name: "English" }))
-    fireEvent.click(screen.getByRole("button", { name: /Português/ }))
+    openMenu()
+    fireEvent.click(screen.getByRole("menuitemradio", { name: /Português/ }))
 
     expect(mockChangeLanguage).toHaveBeenCalledWith("pt-BR")
-    expect(screen.queryByRole("button", { name: /Español/ })).not.toBeInTheDocument()
   })
 
   it("should render the full width trigger for the sidebar layout", () => {

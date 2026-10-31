@@ -27,5 +27,7 @@
   "logId": "ID del Registro",
   "details": "Detalles / Metadatos",
   "noDetails": "No hay detalles adicionales disponibles",
-  "loading": "Cargando registros de auditoría..."
+  "loading": "Cargando registros de auditoría...",
+  "retry": "Reintentar",
+  "tableDetails": "Detalles"
 }

@@ -3,7 +3,9 @@ import { useTranslation } from "react-i18next"
 import { Activity, CalendarDays, CheckSquare, Clock, Users } from "lucide-react"
 import { MetricStrip, type MetricStripItem } from "./MetricStrip"
 import { resolveFhirComplianceSeverity } from "../stats_domain"
-import { toneClassNames } from "../metric_tones"
+import { toneClinicalStatus } from "../metric_tones"
+import { useLocale } from "../../../shared/hooks/useLocale"
+import { formatDecimal } from "../format_numbers"
 
 interface StatsMetricStripProps {
   totalRegisteredPatients: number
@@ -21,6 +23,7 @@ export const StatsMetricStrip = ({
   weeklyPeakDayLabel,
 }: StatsMetricStripProps) => {
   const { t } = useTranslation("analytics")
+  const locale = useLocale()
 
   const complianceSeverity = resolveFhirComplianceSeverity(fhirComplianceRate)
 
@@ -28,7 +31,7 @@ export const StatsMetricStrip = ({
     () => [
       {
         label: t("metrics.activePatients"),
-        value: String(totalRegisteredPatients),
+        value: formatDecimal(totalRegisteredPatients, locale),
         icon: Users,
         tone: "primary",
         meta: {
@@ -39,18 +42,19 @@ export const StatsMetricStrip = ({
       },
       {
         label: t("metrics.fhirCompliance"),
-        value: fhirComplianceRate.toFixed(1),
+        value: formatDecimal(fhirComplianceRate, locale, 1),
         unit: "%",
         icon: CheckSquare,
         tone: complianceSeverity,
         meta: {
           text: t(`metrics.compliance.severity.${complianceSeverity}`),
-          tone: toneClassNames[complianceSeverity].text,
+          tone: "",
+          status: toneClinicalStatus[complianceSeverity],
         },
       },
       {
         label: t("metrics.avgConsultationTime"),
-        value: averageServiceDurationMinutes.toFixed(1),
+        value: formatDecimal(averageServiceDurationMinutes, locale, 1),
         unit: t("dashboard.unit.minutes"),
         icon: Clock,
         tone: "secondary",
@@ -62,7 +66,7 @@ export const StatsMetricStrip = ({
       },
       {
         label: t("metrics.weeklyConsultations"),
-        value: String(weeklyConsultationsTotal),
+        value: formatDecimal(weeklyConsultationsTotal, locale),
         icon: Activity,
         tone: "neutral",
         meta: {
@@ -77,6 +81,7 @@ export const StatsMetricStrip = ({
     ],
     [
       t,
+      locale,
       totalRegisteredPatients,
       fhirComplianceRate,
       complianceSeverity,

@@ -44,5 +44,11 @@
     "medication": "Medication",
     "exam": "Report",
     "imagingStudy": "Imaging Study"
-  }
+  },
+  "error": {
+    "title": "Unable to load",
+    "description": "An error occurred while fetching your information. Please try again.",
+    "retry": "Try again"
+  },
+  "navigationLabel": "Portal sections"
 }

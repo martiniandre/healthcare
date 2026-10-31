@@ -2,8 +2,8 @@ import { useState } from "react"
 import { Heart, Plus } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { Can, Action, Feature } from "../../../shared/auth/AbilityContext"
-import { Button } from "../../../shared/components/ui/Button"
-import { ClinicalTable } from "../../../shared/components/clinical/ClinicalTable"
+import { Button } from "../../../shared/components/ui/button"
+import { ClinicalQueryTable } from "./ClinicalQueryTable"
 import { ObservationModal } from "./modals/ObservationModal"
 import { useVitalSignsColumns } from "./useVitalSignsColumns"
 import { useObservationsQuery, useCreateVitalSignsPanelMutation } from "../queries"
@@ -19,7 +19,7 @@ export default function VitalSigns({ patientId, encounterId }: VitalSignsProps) 
   const { t } = useTranslation("patients")
   const [isModalOpen, setIsModalOpen] = useState(false)
   const columns = useVitalSignsColumns()
-  const { data: observations = [] } = useObservationsQuery(encounterId)
+  const { data: observations = [], isLoading, isError, refetch } = useObservationsQuery(encounterId)
   const createVitalSignsPanelMutation = useCreateVitalSignsPanelMutation()
 
   const handleCreateVitalSignsPanel = async (panelFormData: NewVitalSignsPanelFormData) => {
@@ -38,17 +38,19 @@ export default function VitalSigns({ patientId, encounterId }: VitalSignsProps) 
 
   return (
     <>
-      <ClinicalTable
+      <ClinicalQueryTable
         title={t("details.vitalsCard.title")}
         icon={<Heart className="w-4 h-4 text-red-500 animate-pulse-glow" />}
         columns={columns}
         data={observations}
-        isEmpty={observations.length === 0}
-        emptyIcon={<Heart className="w-8 h-8 text-gray-300" />}
+        isLoading={isLoading}
+        isError={isError}
+        onRetry={() => void refetch()}
         emptyText={t("details.vitalsCard.empty")}
+        emptyIcon={Heart}
         addButton={
           <Can I={Action.Create} a={Feature.Observation}>
-            <Button onClick={() => setIsModalOpen(true)} className="px-3 py-2 text-xs">
+            <Button size="sm" onClick={() => setIsModalOpen(true)}>
               <Plus className="w-3.5 h-3.5" />
               {t("details.vitalsCard.add")}
             </Button>

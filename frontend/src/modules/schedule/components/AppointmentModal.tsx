@@ -3,21 +3,26 @@ import { useForm, Controller, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useTranslation } from "react-i18next"
 import { isAxiosError } from "axios"
-import { Input } from "../../../shared/components/ui/Input"
+import { Alert, AlertDescription } from "@/shared/components/ui/alert"
+import { Input } from "@/shared/components/ui/input"
 import {
   Select,
   SelectTrigger,
   SelectValue,
   SelectContent,
   SelectItem,
-} from "../../../shared/components/ui/Select"
-import { Button } from "../../../shared/components/ui/Button"
+} from "@/shared/components/ui/select"
+import { Spinner } from "@/shared/components/ui/spinner"
+import { Textarea } from "@/shared/components/ui/textarea"
+import { Field, FieldError, FieldLabel } from "@/shared/components/ui/field"
+import { Button } from "@/shared/components/ui/button"
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "../../../shared/components/ui/Dialog"
+  DialogFooter,
+} from "@/shared/components/ui/dialog"
 import { getNewAppointmentSchema, type NewAppointmentFormData } from "../schedule_schemas"
 import { todayDateString } from "../../../shared/utils/validators"
 import { getAvailableStartTimeOptions, getEndTimeOptionsForStart } from "../schedule_time_options"
@@ -69,7 +74,7 @@ export const AppointmentModal = ({
   const { t } = useTranslation("schedule")
   const isEditMode = appointment !== undefined && appointment !== null
   const { data: staffMembers = [] } = useStaffListQuery()
-const { data: patientsPage } = usePatientsQuery("", "", "", 1, 100)
+  const { data: patientsPage } = usePatientsQuery("", "", "", 1, 100)
   const { data: appointmentPatient } = usePatientQuery(
     isEditMode && appointment ? appointment.patient_fhir_id : ""
   )
@@ -196,14 +201,14 @@ const { data: patientsPage } = usePatientsQuery("", "", "", 1, 100)
         </DialogHeader>
         <form onSubmit={handleFormSubmit} noValidate className="flex flex-col gap-4 text-left mt-4">
           {conflictMessage && (
-            <div className="text-xs font-semibold text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
-              {conflictMessage}
-            </div>
+            <Alert variant="destructive">
+              <AlertDescription>{conflictMessage}</AlertDescription>
+            </Alert>
           )}
-          <div className="flex flex-col gap-1">
-            <label className="text-xs font-semibold text-gray-600">
+          <Field data-invalid={!!errors.patientFhirId}>
+            <FieldLabel htmlFor="appointment-patient">
               {t("modals.create.patient")}
-            </label>
+            </FieldLabel>
             <Input
               type="text"
               value={patientSearch}
@@ -216,7 +221,7 @@ const { data: patientsPage } = usePatientsQuery("", "", "", 1, 100)
               name="patientFhirId"
               render={({ field }) => (
                 <Select onValueChange={field.onChange} value={field.value}>
-                  <SelectTrigger className="w-full">
+                  <SelectTrigger id="appointment-patient" className="w-full" aria-invalid={!!errors.patientFhirId}>
                     <SelectValue placeholder={t("modals.create.selectPatient")} />
                   </SelectTrigger>
                   <SelectContent>
@@ -229,23 +234,19 @@ const { data: patientsPage } = usePatientsQuery("", "", "", 1, 100)
                 </Select>
               )}
             />
-            {errors.patientFhirId?.message && (
-              <span className="text-xs text-red-500 font-medium px-1 mt-1">
-                {errors.patientFhirId.message}
-              </span>
-            )}
-          </div>
+            <FieldError>{errors.patientFhirId?.message}</FieldError>
+          </Field>
 
-          <div className="flex flex-col gap-1">
-            <label className="text-xs font-semibold text-gray-600">
+          <Field data-invalid={!!errors.staffId}>
+            <FieldLabel htmlFor="appointment-staff">
               {t("modals.create.staff")}
-            </label>
+            </FieldLabel>
             <Controller
               control={control}
               name="staffId"
               render={({ field }) => (
                 <Select onValueChange={field.onChange} value={field.value}>
-                  <SelectTrigger className="w-full">
+                  <SelectTrigger id="appointment-staff" className="w-full" aria-invalid={!!errors.staffId}>
                     <SelectValue placeholder={t("modals.create.selectStaff")} />
                   </SelectTrigger>
                   <SelectContent>
@@ -258,90 +259,89 @@ const { data: patientsPage } = usePatientsQuery("", "", "", 1, 100)
                 </Select>
               )}
             />
-            {errors.staffId?.message && (
-              <span className="text-xs text-red-500 font-medium px-1 mt-1">
-                {errors.staffId.message}
-              </span>
-            )}
-          </div>
+            <FieldError>{errors.staffId?.message}</FieldError>
+          </Field>
 
           <div className="grid grid-cols-3 gap-3">
-            <div className="flex flex-col gap-1">
-              <label className="text-xs font-semibold text-gray-600">
+            <Field data-invalid={!!errors.date}>
+              <FieldLabel htmlFor="appointment-date">
                 {t("modals.create.date")}
-              </label>
-              <Input type="date" min={todayDateString()} errorText={errors.date?.message} {...register("date")} />
-            </div>
-            <div className="flex flex-col gap-1">
-              <label className="text-xs font-semibold text-gray-600">
+              </FieldLabel>
+              <Input id="appointment-date" type="date" min={todayDateString()} aria-invalid={!!errors.date} {...register("date")} />
+              <FieldError>{errors.date?.message}</FieldError>
+            </Field>
+            <Field data-invalid={!!errors.startTime}>
+              <FieldLabel htmlFor="appointment-start-time">
                 {t("modals.create.startTime")}
-              </label>
-              <select
-                aria-label={t("modals.create.startTime")}
-                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                {...register("startTime")}
-              >
-                <option value="">{t("modals.create.selectStartTime")}</option>
-                {availableStartTimeOptions.map((timeSlot) => (
-                  <option key={timeSlot.value} value={timeSlot.value}>
-                    {timeSlot.label}
-                  </option>
-                ))}
-              </select>
-              {errors.startTime?.message && (
-                <span className="text-xs text-red-500 font-medium px-1 mt-1">
-                  {errors.startTime.message}
-                </span>
-              )}
-            </div>
-            <div className="flex flex-col gap-1">
-              <label className="text-xs font-semibold text-gray-600">
+              </FieldLabel>
+              <Controller
+                control={control}
+                name="startTime"
+                render={({ field }) => (
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <SelectTrigger id="appointment-start-time" className="w-full" aria-invalid={!!errors.startTime}>
+                      <SelectValue placeholder={t("modals.create.selectStartTime")} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableStartTimeOptions.map((timeSlot) => (
+                        <SelectItem key={timeSlot.value} value={timeSlot.value}>
+                          {timeSlot.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+              <FieldError>{errors.startTime?.message}</FieldError>
+            </Field>
+            <Field data-invalid={!!errors.endTime}>
+              <FieldLabel htmlFor="appointment-end-time">
                 {t("modals.create.endTime")}
-              </label>
-              <select
-                aria-label={t("modals.create.endTime")}
-                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                {...register("endTime")}
-              >
-                <option value="">{t("modals.create.selectEndTime")}</option>
-                {endTimeOptions.map((timeSlot) => (
-                  <option key={timeSlot.value} value={timeSlot.value}>
-                    {timeSlot.label}
-                  </option>
-                ))}
-              </select>
-              {errors.endTime?.message && (
-                <span className="text-xs text-red-500 font-medium px-1 mt-1">
-                  {errors.endTime.message}
-                </span>
-              )}
-            </div>
+              </FieldLabel>
+              <Controller
+                control={control}
+                name="endTime"
+                render={({ field }) => (
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <SelectTrigger id="appointment-end-time" className="w-full" aria-invalid={!!errors.endTime}>
+                      <SelectValue placeholder={t("modals.create.selectEndTime")} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {endTimeOptions.map((timeSlot) => (
+                        <SelectItem key={timeSlot.value} value={timeSlot.value}>
+                          {timeSlot.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+              <FieldError>{errors.endTime?.message}</FieldError>
+            </Field>
           </div>
 
-          <div className="flex flex-col gap-1">
-            <label className="text-xs font-semibold text-gray-600">
+          <Field data-invalid={!!errors.reason}>
+            <FieldLabel htmlFor="appointment-reason">
               {t("modals.create.reason")}
-            </label>
-            <textarea
-              className="flex min-h-[80px] w-full rounded-lg border border-border bg-transparent px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+            </FieldLabel>
+            <Textarea
+              id="appointment-reason"
               placeholder={t("modals.create.reasonPlaceholder")}
+              aria-invalid={!!errors.reason}
               {...register("reason")}
             />
-            {errors.reason?.message && (
-              <span className="text-xs text-red-500 font-medium px-1 mt-1">
-                {errors.reason.message}
-              </span>
-            )}
-          </div>
+            <FieldError>{errors.reason?.message}</FieldError>
+          </Field>
 
-          <div className="flex gap-3 justify-end mt-4">
-            <Button variantType="outline" type="button" onClick={handleClose}>
+          <DialogFooter className="mt-4">
+            <Button variant="outline" type="button" onClick={handleClose}>
               {t("modals.create.cancel")}
             </Button>
             <Button type="submit" disabled={isPending}>
+              {isPending && <Spinner />}
               {isEditMode ? t("modals.edit.confirm") : t("modals.create.confirm")}
             </Button>
-          </div>
+          </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>

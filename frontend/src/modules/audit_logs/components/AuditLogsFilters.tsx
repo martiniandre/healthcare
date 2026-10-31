@@ -1,6 +1,15 @@
 import { useTranslation } from "react-i18next"
 import { Search, Filter, XCircle } from "lucide-react"
-import { Alert, AlertTitle, AlertDescription } from "../../../shared/components/ui/Alert"
+import { Button } from "../../../shared/components/ui/button"
+import { Input } from "../../../shared/components/ui/input"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../../../shared/components/ui/select"
+import { Alert, AlertTitle, AlertDescription } from "../../../shared/components/ui/alert"
 
 interface AuditLogsFiltersProps {
   filterAction: string
@@ -15,6 +24,7 @@ interface AuditLogsFiltersProps {
   onEndDateChange: (value: string) => void
   onResetFilters: () => void
   isError: boolean
+  onRetry: () => void
 }
 
 export const AuditLogsFilters = ({
@@ -30,6 +40,7 @@ export const AuditLogsFilters = ({
   onEndDateChange,
   onResetFilters,
   isError,
+  onRetry,
 }: AuditLogsFiltersProps) => {
   const { t } = useTranslation("auditLogs")
 
@@ -39,69 +50,61 @@ export const AuditLogsFilters = ({
     <>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3">
         <div className="relative">
-          <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
-          <input
+          <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" aria-hidden="true" />
+          <Input
             type="text"
+            aria-label={t("filterEmailPlaceholder")}
             placeholder={t("filterEmailPlaceholder")}
             value={userEmail}
             onChange={(event) => onUserEmailChange(event.target.value)}
-            className="w-full bg-card border border-border rounded-lg pl-9 pr-4 py-2 text-xs text-gray-800 placeholder-gray-400 focus:outline-none focus:border-primary/50 transition-all duration-200 h-9"
+            className="pl-9 text-xs"
           />
         </div>
 
-        <div>
-          <select
-            value={filterAction}
-            onChange={(event) => onFilterActionChange(event.target.value)}
-            className="w-full bg-card border border-border rounded-lg px-3 py-2 text-xs text-gray-800 focus:outline-none focus:border-primary/50 transition-all duration-200 h-9 cursor-pointer"
-          >
-            <option value="All">{t("filterAllActions")}</option>
-            <option value="LOGIN">{t("actionLogin")}</option>
-            <option value="LOGOUT">{t("actionLogout")}</option>
-            <option value="API_REQUEST">{t("actionApiRequest")}</option>
-          </select>
-        </div>
+        <Select value={filterAction} onValueChange={onFilterActionChange}>
+          <SelectTrigger className="w-full text-xs" aria-label={t("filterAllActions")}>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="All">{t("filterAllActions")}</SelectItem>
+            <SelectItem value="LOGIN">{t("actionLogin")}</SelectItem>
+            <SelectItem value="LOGOUT">{t("actionLogout")}</SelectItem>
+            <SelectItem value="API_REQUEST">{t("actionApiRequest")}</SelectItem>
+          </SelectContent>
+        </Select>
 
-        <div>
-          <select
-            value={filterStatus}
-            onChange={(event) => onFilterStatusChange(event.target.value)}
-            className="w-full bg-card border border-border rounded-lg px-3 py-2 text-xs text-gray-800 focus:outline-none focus:border-primary/50 transition-all duration-200 h-9 cursor-pointer"
-          >
-            <option value="All">{t("filterAllStatuses")}</option>
-            <option value="SUCCESS">{t("statusSuccess")}</option>
-            <option value="FAILURE">{t("statusFailure")}</option>
-          </select>
-        </div>
+        <Select value={filterStatus} onValueChange={onFilterStatusChange}>
+          <SelectTrigger className="w-full text-xs" aria-label={t("filterAllStatuses")}>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="All">{t("filterAllStatuses")}</SelectItem>
+            <SelectItem value="SUCCESS">{t("statusSuccess")}</SelectItem>
+            <SelectItem value="FAILURE">{t("statusFailure")}</SelectItem>
+          </SelectContent>
+        </Select>
 
-        <div>
-          <input
-            type="date"
-            value={startDate}
-            onChange={(event) => onStartDateChange(event.target.value)}
-            className="w-full bg-card border border-border rounded-lg px-3 py-2 text-xs text-gray-800 focus:outline-none focus:border-primary/50 transition-all duration-200 h-9 cursor-pointer"
-          />
-        </div>
+        <Input
+          type="date"
+          value={startDate}
+          onChange={(event) => onStartDateChange(event.target.value)}
+          className="text-xs"
+        />
 
-        <div>
-          <input
-            type="date"
-            value={endDate}
-            onChange={(event) => onEndDateChange(event.target.value)}
-            className="w-full bg-card border border-border rounded-lg px-3 py-2 text-xs text-gray-800 focus:outline-none focus:border-primary/50 transition-all duration-200 h-9 cursor-pointer"
-          />
-        </div>
+        <Input
+          type="date"
+          value={endDate}
+          onChange={(event) => onEndDateChange(event.target.value)}
+          className="text-xs"
+        />
       </div>
 
       {hasActiveFilters && (
         <div className="flex justify-end">
-          <button
-            onClick={onResetFilters}
-            className="text-xs text-primary hover:underline font-bold flex items-center gap-1"
-          >
-            <Filter className="w-3 h-3" />
+          <Button type="button" variant="link" size="sm" onClick={onResetFilters} className="text-xs font-bold">
+            <Filter aria-hidden="true" />
             {t("clearFilters")}
-          </button>
+          </Button>
         </div>
       )}
       {isError && (
@@ -109,7 +112,10 @@ export const AuditLogsFilters = ({
           <XCircle className="w-4 h-4" />
           <AlertTitle>{t("errorTitle")}</AlertTitle>
           <AlertDescription>
-            {t("errorDescription")}
+            <p>{t("errorDescription")}</p>
+            <Button type="button" variant="outline" size="sm" onClick={onRetry} className="mt-2">
+              {t("retry")}
+            </Button>
           </AlertDescription>
         </Alert>
       )}

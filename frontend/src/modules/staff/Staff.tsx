@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useDebounce } from "../../shared/hooks/useDebounce"
-import { Card } from "../../shared/components/ui/Card"
+import { Card, CardContent } from "@/shared/components/ui/card"
 import { PageContainer } from "../../shared/components/ui/PageContainer"
 import { toast } from "../../shared/store/toast_store"
 import { useAuthStore } from "../../shared/store/auth_store"
@@ -30,7 +30,7 @@ export const Staff = () => {
   const debouncedSearchQuery = useDebounce(searchQuery, 500)
 
   const sessionRole = useAuthStore((state) => state.role)
-  const { data: staffList = [], isLoading } = useStaffListQuery(debouncedSearchQuery, filterRole)
+  const { data: staffList = [], isLoading, isError, refetch } = useStaffListQuery(debouncedSearchQuery, filterRole)
   const setEmployeeStatusMutation = useSetEmployeeStatusMutation()
   const deleteEmployeeMutation = useDeleteEmployeeMutation()
 
@@ -70,7 +70,8 @@ export const Staff = () => {
     <PageContainer className="select-none relative">
       <StaffHeader onAddStaff={() => setIsModalOpen(true)} />
 
-      <Card className="p-4 flex flex-col gap-4">
+      <Card className="py-4">
+        <CardContent className="flex flex-col gap-4 px-4">
         <StaffFilters
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
@@ -80,6 +81,8 @@ export const Staff = () => {
 
         <StaffTable
           isLoading={isLoading}
+          isError={isError}
+          onRetry={() => refetch()}
           filteredStaff={staffList}
           onToggleStatus={handleToggleStatus}
           onDelete={setMemberToDelete}
@@ -87,6 +90,7 @@ export const Staff = () => {
           canDelete={canDelete}
           isPendingEmployeeId={pendingEmployeeId}
         />
+        </CardContent>
       </Card>
 
       <StaffModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />

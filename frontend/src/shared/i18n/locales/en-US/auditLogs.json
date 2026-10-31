@@ -27,5 +27,7 @@
   "logId": "Log ID",
   "details": "Details / Metadata",
   "noDetails": "No additional details available",
-  "loading": "Loading audit logs..."
+  "loading": "Loading audit logs...",
+  "retry": "Try again",
+  "tableDetails": "Details"
 }

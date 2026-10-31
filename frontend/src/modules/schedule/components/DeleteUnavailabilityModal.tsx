@@ -5,8 +5,10 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from "../../../shared/components/ui/Dialog"
-import { Button } from "../../../shared/components/ui/Button"
+  DialogFooter,
+} from "@/shared/components/ui/dialog"
+import { Spinner } from "@/shared/components/ui/spinner"
+import { Button } from "@/shared/components/ui/button"
 
 interface DeleteUnavailabilityModalProps {
   isOpen: boolean
@@ -34,14 +36,15 @@ export const DeleteUnavailabilityModal = ({
           <DialogTitle>{t("unavailability.deleteModal.title")}</DialogTitle>
           <DialogDescription>{t("unavailability.deleteModal.description")}</DialogDescription>
         </DialogHeader>
-        <div className="flex gap-3 justify-end mt-4">
-          <Button variantType="outline" type="button" onClick={onClose}>
+        <DialogFooter>
+          <Button variant="outline" type="button" onClick={onClose}>
             {t("unavailability.deleteModal.back")}
           </Button>
-          <Button variantType="danger" type="button" onClick={onConfirm} disabled={isPending}>
+          <Button variant="destructive" type="button" onClick={onConfirm} disabled={isPending}>
+            {isPending && <Spinner />}
             {t("unavailability.deleteModal.confirm")}
           </Button>
-        </div>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   )

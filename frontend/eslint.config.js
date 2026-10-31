@@ -28,6 +28,12 @@ export default defineConfig([
     },
   },
   {
+    files: ['src/shared/components/ui/**/*.{ts,tsx}'],
+    rules: {
+      'react-refresh/only-export-components': 'off',
+    },
+  },
+  {
     files: ['src/**/*.{ts,tsx}'],
     ignores: ['**/*.test.{ts,tsx}', '**/*.spec.{ts,tsx}', 'e2e/**'],
     plugins: {

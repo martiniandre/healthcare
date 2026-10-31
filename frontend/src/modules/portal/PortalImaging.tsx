@@ -1,58 +1,50 @@
+import { Image } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { usePortalImagingQuery } from "./queries"
-import { Card } from "../../shared/components/ui/Card"
-import { Loader2 } from "lucide-react"
+import { PortalSectionState } from "./components/PortalSectionState"
+import { Card, CardContent } from "../../shared/components/ui/card"
+import { Badge } from "../../shared/components/ui/badge"
+import { StatusBadge } from "../../shared/components/ui/status-badge"
 import { formatDate } from "../../shared/utils/dates"
 import { useLocale } from "../../shared/hooks/useLocale"
 import { useClinicalStatusLabels } from "../../shared/hooks/useClinicalStatusLabels"
 
 export const PortalImaging = () => {
   const { t } = useTranslation("portal")
-  const { data: imagingStudies, isLoading } = usePortalImagingQuery()
+  const { data: imagingStudies, isLoading, isError, refetch } = usePortalImagingQuery()
   const locale = useLocale()
   const { dicomModality, imagingStudyStatus, notInformed } = useClinicalStatusLabels()
 
-  if (isLoading) {
-    return (
-      <Card className="flex items-center justify-center min-h-[300px]">
-        <Loader2 className="w-8 h-8 text-primary animate-spin" />
-      </Card>
-    )
-  }
-
-  if (!imagingStudies || imagingStudies.length === 0) {
-    return (
-      <Card className="py-16 text-center">
-        <p className="text-sm text-gray-500">{t("empty.imaging")}</p>
-      </Card>
-    )
-  }
-
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-      {imagingStudies.map((study) => (
-        <div
-          key={study.fhir_resource_id}
-          className="bg-card border border-border rounded-xl p-5"
-        >
-          <div className="flex items-start justify-between mb-3">
-            <span className="text-xs font-bold px-2 py-0.5 rounded bg-gray-100 text-gray-600 uppercase">
-              {study.modality ? dicomModality(study.modality) : notInformed()}
-            </span>
-            <span className="text-xs text-gray-400">
-              {study.created_at
-                ? formatDate(study.created_at, locale)
-                : ""}
-            </span>
-          </div>
-          <p className="text-sm font-bold text-gray-900 mb-2">
-            {study.title || t("fallback.imagingStudy")}
-          </p>
-          <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-blue-100 text-blue-700">
-            {imagingStudyStatus(study.status)}
-          </span>
-        </div>
-      ))}
-    </div>
+    <PortalSectionState
+      isLoading={isLoading}
+      isError={isError}
+      onRetry={() => refetch()}
+      isEmpty={!imagingStudies || imagingStudies.length === 0}
+      emptyTitle={t("empty.imaging")}
+      emptyIcon={Image}
+      skeletonLayout="grid"
+    >
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {imagingStudies?.map((study) => (
+          <Card key={study.fhir_resource_id} className="py-4 sm:py-5">
+            <CardContent className="px-4 sm:px-5">
+              <div className="mb-3 flex flex-wrap items-start justify-between gap-2">
+                <Badge variant="outline" className="rounded uppercase">
+                  {study.modality ? dicomModality(study.modality) : notInformed()}
+                </Badge>
+                <span className="text-xs tabular-nums text-muted-foreground">
+                  {study.created_at ? formatDate(study.created_at, locale) : ""}
+                </span>
+              </div>
+              <p className="mb-2 break-words text-sm font-bold text-foreground">
+                {study.title || t("fallback.imagingStudy")}
+              </p>
+              <StatusBadge status="info">{imagingStudyStatus(study.status)}</StatusBadge>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </PortalSectionState>
   )
 }

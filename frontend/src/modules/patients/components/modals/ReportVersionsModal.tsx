@@ -1,11 +1,14 @@
 import { useTranslation } from "react-i18next"
-import { History, Loader2, FileText } from "lucide-react"
+import { History, FileText } from "lucide-react"
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "../../../../shared/components/ui/Dialog"
+} from "../../../../shared/components/ui/dialog"
+import { Badge } from "../../../../shared/components/ui/badge"
+import { Spinner } from "../../../../shared/components/ui/spinner"
+import { QueryErrorAlert } from "../QueryErrorAlert"
 import { useDiagnosticReportVersionsQuery } from "../../queries"
 import { formatDateTime } from "../../../../shared/utils/dates"
 
@@ -23,7 +26,7 @@ export const ReportVersionsModal = ({
   reportDisplay,
 }: ReportVersionsModalProps) => {
   const { t } = useTranslation("patients")
-  const { data: versions = [], isLoading } = useDiagnosticReportVersionsQuery(
+  const { data: versions = [], isLoading, isError, refetch } = useDiagnosticReportVersionsQuery(
     isOpen ? reportFhirId : ""
   )
 
@@ -43,24 +46,26 @@ export const ReportVersionsModal = ({
         <div className="flex flex-col gap-3 mt-4 max-h-[60vh] overflow-y-auto">
           {isLoading ? (
             <div className="flex items-center justify-center py-10">
-              <Loader2 className="w-6 h-6 text-primary animate-spin" />
+              <Spinner className="size-6 text-primary" />
             </div>
+          ) : isError ? (
+            <QueryErrorAlert onRetry={() => void refetch()} />
           ) : versions.length === 0 ? (
-            <p className="text-sm text-gray-500 text-center py-10">
+            <p className="text-sm text-muted-foreground text-center py-10">
               {t("modals.reportVersions.empty")}
             </p>
           ) : (
             versions.map((versionEntry) => (
               <div
                 key={versionEntry.version}
-                className="bg-gray-50 border border-border rounded-xl p-4"
+                className="bg-muted border border-border rounded-xl p-4"
               >
                 <div className="flex items-center justify-between mb-2">
-                  <span className="inline-flex items-center gap-1.5 text-[10px] bg-blue-50 border border-blue-100 text-blue-600 px-2 py-0.5 rounded font-bold uppercase">
-                    <FileText className="w-3 h-3" />
+                  <Badge variant="info" className="uppercase">
+                    <FileText />
                     {t("modals.reportVersions.versionLabel")} {versionEntry.version}
-                  </span>
-                  <span className="text-xs text-gray-500 font-semibold">
+                  </Badge>
+                  <span className="text-xs text-muted-foreground font-semibold">
                       {formatDateTime(versionEntry.changed_at)}
                   </span>
                 </div>
@@ -75,7 +80,7 @@ export const ReportVersionsModal = ({
                   </p>
                 )}
                 {!versionEntry.snapshot?.conclusion && (
-                  <p className="text-xs text-gray-400 italic mt-1">
+                  <p className="text-xs text-muted-foreground italic mt-1">
                     {t("modals.reportVersions.noConclusion")}
                   </p>
                 )}

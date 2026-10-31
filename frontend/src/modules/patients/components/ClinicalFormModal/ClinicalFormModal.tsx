@@ -2,21 +2,24 @@ import { Controller, useForm, type DefaultValues, type FieldPath, type Resolver,
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useTranslation } from "react-i18next"
 import type { z } from "zod"
-import { Button } from "../../../../shared/components/ui/Button"
+import { Button } from "../../../../shared/components/ui/button"
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "../../../../shared/components/ui/Dialog"
-import { Input } from "../../../../shared/components/ui/Input"
+} from "../../../../shared/components/ui/dialog"
+import { Input } from "../../../../shared/components/ui/input"
+import { Textarea } from "../../../../shared/components/ui/textarea"
+import { Field, FieldError, FieldLabel } from "../../../../shared/components/ui/field"
+import { Spinner } from "../../../../shared/components/ui/spinner"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "../../../../shared/components/ui/Select"
+} from "../../../../shared/components/ui/select"
 
 export interface ClinicalFormOption {
   value: string
@@ -104,7 +107,7 @@ export function ClinicalFormModal<FormData extends Record<string, unknown>>({
                   name={field.name}
                   render={({ field: fieldApi }) => (
                     <Select onValueChange={fieldApi.onChange} value={fieldApi.value as string}>
-                      <SelectTrigger className="w-full">
+                      <SelectTrigger className="w-full" aria-invalid={Boolean(errorMessage)}>
                         <SelectValue
                           placeholder={field.placeholderKey ? t(field.placeholderKey) : undefined}
                         />
@@ -122,8 +125,9 @@ export function ClinicalFormModal<FormData extends Record<string, unknown>>({
               )
             } else if (field.kind === "textarea") {
               fieldControl = (
-                <textarea
-                  className="w-full h-24 px-3 py-2 text-sm border border-border rounded-lg outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all resize-none"
+                <Textarea
+                  className="h-24 resize-none"
+                  aria-invalid={Boolean(errorMessage)}
                   placeholder={field.placeholderKey ? t(field.placeholderKey) : undefined}
                   {...register(field.name)}
                 />
@@ -134,7 +138,7 @@ export function ClinicalFormModal<FormData extends Record<string, unknown>>({
                   type={field.kind === "number" ? "number" : "text"}
                   step={field.kind === "number" ? "any" : undefined}
                   placeholder={field.placeholderKey ? t(field.placeholderKey) : undefined}
-                  errorText={errorMessage as string | undefined}
+                  aria-invalid={Boolean(errorMessage)}
                   {...register(
                     field.name,
                     field.kind === "number" ? { valueAsNumber: true } : undefined
@@ -143,20 +147,19 @@ export function ClinicalFormModal<FormData extends Record<string, unknown>>({
               )
             }
             return (
-              <div className="flex flex-col gap-1" key={field.name}>
-                <label className="text-xs font-semibold text-gray-600">{t(field.labelKey)}</label>
+              <Field className="gap-1" data-invalid={Boolean(errorMessage)} key={field.name}>
+                <FieldLabel className="text-xs font-semibold text-muted-foreground">{t(field.labelKey)}</FieldLabel>
                 {fieldControl}
-                {errorMessage && (field.kind === "select" || field.kind === "textarea") && (
-                  <span className="text-xs text-red-500 font-medium px-1 mt-1">{errorMessage as string}</span>
-                )}
-              </div>
+                {errorMessage && <FieldError>{errorMessage as string}</FieldError>}
+              </Field>
             )
           })}
           <div className="flex gap-3 justify-end mt-4">
-            <Button variantType="outline" type="button" onClick={onClose}>
+            <Button variant="outline" type="button" onClick={onClose}>
               {t(config.cancelKey ?? "modal.cancel")}
             </Button>
             <Button type="submit" disabled={isPending}>
+              {isPending && <Spinner />}
               {t(config.confirmKey)}
             </Button>
           </div>

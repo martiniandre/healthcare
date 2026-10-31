@@ -1,6 +1,6 @@
 import * as React from "react"
 import { useTranslation } from "react-i18next"
-import { Card } from "../../../shared/components/ui/Card"
+import { Card, CardContent } from "@/shared/components/ui/card"
 import { DicomToolControls } from "./DicomToolControls"
 import type { ImagingPreset, ImagingTool } from "../hooks/useDicomViewer"
 
@@ -36,7 +36,8 @@ export const DicomViewport = ({
   }
 
   return (
-    <Card className="lg:col-span-3 flex flex-col items-center gap-6 p-4">
+    <Card className="lg:col-span-3 py-4">
+      <CardContent className="flex flex-col items-center gap-6 px-4">
       <div className="relative border border-border rounded-2xl overflow-hidden bg-slate-950 w-full flex justify-center">
         <canvas
           ref={canvasReference}
@@ -57,6 +58,7 @@ export const DicomViewport = ({
         onToolChange={onToolChange}
         onPresetChange={onPresetChange}
       />
+      </CardContent>
     </Card>
   )
 }

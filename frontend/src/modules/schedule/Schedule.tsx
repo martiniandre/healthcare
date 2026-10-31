@@ -1,9 +1,13 @@
 import { useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { isAxiosError } from "axios"
-import { CalendarPlus, CalendarOff, Loader2 } from "lucide-react"
+import { CalendarPlus, CalendarOff, TriangleAlert } from "lucide-react"
 import { useStaffListQuery } from "../staff/queries"
-import { Button } from "../../shared/components/ui/Button"
+import { Button } from "@/shared/components/ui/button"
+import { Spinner } from "@/shared/components/ui/spinner"
+import { Skeleton } from "@/shared/components/ui/skeleton"
+import { Alert, AlertDescription, AlertTitle } from "@/shared/components/ui/alert"
+import { EmptyState } from "@/shared/components/ui/EmptyState"
 import { AppointmentModal } from "./components/AppointmentModal"
 import { CancelAppointmentModal } from "./components/CancelAppointmentModal"
 import { AppointmentDetailsModal } from "./components/AppointmentDetailsModal"
@@ -50,7 +54,12 @@ const toLocalTimeString = (dateValue: Date): string => {
 
 export const Schedule = () => {
   const { t } = useTranslation("schedule")
-  const { data: staffMembers = [] } = useStaffListQuery()
+  const {
+    data: staffMembers = [],
+    isLoading: isStaffLoading,
+    isError: isStaffError,
+    refetch: refetchStaff,
+  } = useStaffListQuery()
 
   const [selectedStaffIds, setSelectedStaffIds] = useState<string[] | null>(null)
   const [visibleRange, setVisibleRange] = useState({ startDate: todayDate(), endDate: todayDate() })
@@ -88,6 +97,15 @@ export const Schedule = () => {
 
   const rangeQueryResults = useStaffRangeAppointmentsQueries(rangeFilters)
   const rangeQueriesLoading = rangeQueryResults.some((queryResult) => queryResult.isLoading)
+  const rangeQueriesFailed = rangeQueryResults.some((queryResult) => queryResult.isError)
+
+  const handleRetryAppointments = () => {
+    rangeQueryResults.forEach((queryResult) => {
+      if (queryResult.isError) {
+        void queryResult.refetch()
+      }
+    })
+  }
 
   const calendarEvents = useMemo<CalendarEventShape[]>(() => {
     const mergedEvents: CalendarEventShape[] = []
@@ -101,7 +119,12 @@ export const Schedule = () => {
 
   const focusedStaffId = effectiveSelectedStaffIds[0] ?? ""
 
-  const { data: unavailabilityWindows = [] } = useStaffUnavailabilityQuery(focusedStaffId)
+  const {
+    data: unavailabilityWindows = [],
+    isLoading: isUnavailabilityLoading,
+    isError: isUnavailabilityError,
+    refetch: refetchUnavailability,
+  } = useStaffUnavailabilityQuery(focusedStaffId)
 
   const createAppointmentMutation = useCreateAppointmentMutation()
   const cancelAppointmentMutation = useCancelAppointmentMutation()
@@ -239,20 +262,20 @@ export const Schedule = () => {
     <div className="flex-1 p-4 sm:p-6 md:p-8 flex flex-col gap-4 md:gap-6 max-w-7xl mx-auto w-full">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-gray-900">{t("title")}</h1>
-          <p className="text-sm text-gray-500">{t("subtitle")}</p>
+          <h1 className="text-xl font-bold text-foreground">{t("title")}</h1>
+          <p className="text-sm text-muted-foreground">{t("subtitle")}</p>
         </div>
         <div className="flex gap-2">
           <Button
-            variantType="outline"
+            variant="outline"
             onClick={() => setIsCreateUnavailabilityOpen(true)}
             disabled={!focusedStaffId}
           >
-            <CalendarOff className="w-4 h-4" />
+            <CalendarOff />
             {t("unavailability.createButton")}
           </Button>
           <Button onClick={handleNewAppointmentButton} disabled={!focusedStaffId}>
-            <CalendarPlus className="w-4 h-4" />
+            <CalendarPlus />
             {t("newAppointment")}
           </Button>
         </div>
@@ -267,12 +290,27 @@ export const Schedule = () => {
           }))}
           selectedStaffIds={effectiveSelectedStaffIds}
           onToggleStaff={handleToggleStaff}
+          isLoading={isStaffLoading}
+          isError={isStaffError}
+          onRetry={() => refetchStaff()}
         />
 
         <div className="flex flex-col gap-4 min-w-0">
           <div className="flex justify-end">
             <ScheduleViewToggle value={viewMode} onChange={setViewMode} />
           </div>
+          {rangeQueriesFailed && (
+            <Alert variant="destructive">
+              <TriangleAlert aria-hidden="true" />
+              <AlertTitle>{t("errors.loadAppointmentsTitle")}</AlertTitle>
+              <AlertDescription>
+                <p>{t("errors.loadAppointmentsDescription")}</p>
+                <Button type="button" variant="outline" size="sm" onClick={handleRetryAppointments} className="mt-2">
+                  {t("retry")}
+                </Button>
+              </AlertDescription>
+            </Alert>
+          )}
           <div className="relative">
             <ScheduleCalendar
               events={calendarEvents}
@@ -290,26 +328,46 @@ export const Schedule = () => {
             />
             {rangeQueriesLoading && effectiveSelectedStaffIds.length > 0 && (
               <div className="absolute inset-0 z-10 flex items-center justify-center rounded-2xl bg-background/40 backdrop-blur-sm">
-                <Loader2 className="w-7 h-7 text-primary animate-spin" />
+                <Spinner className="size-7 text-primary" />
               </div>
             )}
           </div>
 
-          {upcomingUnavailabilityWindows.length > 0 && (
+          {focusedStaffId && (
             <div className="flex flex-col gap-3">
-              <h2 className="text-sm font-bold text-gray-700">{t("unavailability.blockedPeriodsTitle")}</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                {upcomingUnavailabilityWindows.map((unavailability) => (
-                  <UnavailabilityCard
-                    key={unavailability.id}
-                    unavailability={unavailability}
-                    onDelete={(id) => {
-                      const found = upcomingUnavailabilityWindows.find((entry) => entry.id === id)
-                      setUnavailabilityToDelete(found ?? null)
-                    }}
-                  />
-                ))}
-              </div>
+              <h2 className="text-sm font-bold text-foreground">{t("unavailability.blockedPeriodsTitle")}</h2>
+              {isUnavailabilityLoading ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4" role="status" aria-label={t("loading.unavailability")}>
+                  {Array.from({ length: 3 }).map((_, skeletonIndex) => (
+                    <Skeleton key={skeletonIndex} className="h-28 w-full rounded-xl" />
+                  ))}
+                </div>
+              ) : isUnavailabilityError ? (
+                <Alert variant="destructive">
+                  <TriangleAlert aria-hidden="true" />
+                  <AlertTitle>{t("errors.loadUnavailabilityTitle")}</AlertTitle>
+                  <AlertDescription>
+                    <Button type="button" variant="outline" size="sm" onClick={() => refetchUnavailability()}>
+                      {t("retry")}
+                    </Button>
+                  </AlertDescription>
+                </Alert>
+              ) : upcomingUnavailabilityWindows.length === 0 ? (
+                <EmptyState icon={CalendarOff} title={t("emptyState.noUnavailability")} className="p-6" />
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                  {upcomingUnavailabilityWindows.map((unavailability) => (
+                    <UnavailabilityCard
+                      key={unavailability.id}
+                      unavailability={unavailability}
+                      onDelete={(id) => {
+                        const found = upcomingUnavailabilityWindows.find((entry) => entry.id === id)
+                        setUnavailabilityToDelete(found ?? null)
+                      }}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>

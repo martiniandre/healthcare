@@ -8,9 +8,10 @@ import {
   TableHead,
   TableRow,
   TableCell,
-} from "../../../shared/components/ui/Table"
-import { Button } from "../../../shared/components/ui/Button"
-import { Skeleton } from "../../../shared/components/ui/Skeleton"
+} from "../../../shared/components/ui/table"
+import { Button } from "../../../shared/components/ui/button"
+import { Card } from "../../../shared/components/ui/card"
+import { Skeleton } from "../../../shared/components/ui/skeleton"
 import { formatDate } from "../../../shared/utils/dates"
 import type { Patient } from "../queries"
 
@@ -49,7 +50,7 @@ export const PatientsTable = ({
   }
 
   return (
-    <div className="bg-card border border-border rounded-xl overflow-hidden">
+    <Card className="gap-0 overflow-hidden py-0">
       <div className="overflow-x-auto w-full">
         <Table className="min-w-[650px] md:min-w-0">
           <TableHeader>
@@ -135,13 +136,15 @@ export const PatientsTable = ({
                     </span>
                   </TableCell>
                   <TableCell className="text-right">
-                    <button
+                    <Button
+                      variant="ghost"
+                      size="sm"
                       onClick={() => navigate(`/patients/${patient.fhir_resource_id}`)}
-                      className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-primary hover:text-primary/80 px-3 py-1.5 rounded-md hover:bg-primary/5 transition-all"
+                      className="text-primary hover:text-primary"
                     >
                       {t("table.medicalRecord")}
-                      <ArrowRight className="w-3 h-3 transition-transform group-hover:translate-x-0.5" />
-                    </button>
+                      <ArrowRight className="transition-transform group-hover:translate-x-0.5" />
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))
@@ -150,22 +153,22 @@ export const PatientsTable = ({
         </Table>
       </div>
       {totalPages > 1 && (
-        <div className="flex items-center justify-between border-t border-border px-6 py-4 bg-gray-50/50">
-          <span className="text-xs text-gray-500 font-semibold">
+        <div className="flex items-center justify-between border-t border-border px-6 py-4 bg-muted/50">
+          <span className="text-xs text-muted-foreground font-semibold">
             {t("pagination.pageInfo", { currentPage, totalPages, total: totalPatients })}
           </span>
           <div className="flex gap-2">
             <Button
-              variantType="outline"
-              className="px-3 py-1.5 text-xs font-bold"
+              variant="outline"
+              size="sm"
               disabled={currentPage === 1}
               onClick={() => onPageChange(Math.max(currentPage - 1, 1))}
             >
               {t("pagination.prev")}
             </Button>
             <Button
-              variantType="outline"
-              className="px-3 py-1.5 text-xs font-bold"
+              variant="outline"
+              size="sm"
               disabled={currentPage === totalPages}
               onClick={() => onPageChange(Math.min(currentPage + 1, totalPages))}
             >
@@ -174,6 +177,6 @@ export const PatientsTable = ({
           </div>
         </div>
       )}
-    </div>
+    </Card>
   )
 }

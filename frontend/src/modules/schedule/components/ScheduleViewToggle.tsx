@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select"
 import type { ScheduleViewMode } from "./ScheduleCalendar"
 
 interface ScheduleViewToggleProps {
@@ -12,17 +13,17 @@ export const ScheduleViewToggle = ({ value, onChange }: ScheduleViewToggleProps)
   const { t } = useTranslation("schedule")
 
   return (
-    <select
-      aria-label={t("calendar.viewLabel")}
-      value={value}
-      onChange={(event) => onChange(event.target.value as ScheduleViewMode)}
-      className="h-10 w-40 cursor-pointer rounded-md border border-input bg-background px-3 py-2 text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-    >
-      {VIEW_MODES.map((mode) => (
-        <option key={mode} value={mode}>
-          {t(`calendar.views.${mode}`)}
-        </option>
-      ))}
-    </select>
+    <Select value={value} onValueChange={(mode) => onChange(mode as ScheduleViewMode)}>
+      <SelectTrigger aria-label={t("calendar.viewLabel")} className="w-40 font-medium">
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        {VIEW_MODES.map((mode) => (
+          <SelectItem key={mode} value={mode}>
+            {t(`calendar.views.${mode}`)}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   )
 }

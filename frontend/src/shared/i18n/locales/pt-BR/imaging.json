@@ -44,5 +44,8 @@
     "busStatus": "Status do Barramento",
     "seriesSlices": "Série / Fatias",
     "activeSlice": "Slice #1 (Visualização Ativa)"
-  }
+  },
+  "retry": "Tentar novamente",
+  "studyNotFound": "Estudo não encontrado",
+  "studyNotFoundDesc": "Este estudo de imagem não existe ou não está mais disponível."
 }

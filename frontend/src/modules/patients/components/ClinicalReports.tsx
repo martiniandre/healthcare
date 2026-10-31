@@ -2,8 +2,8 @@ import { useState } from "react"
 import { FileText, Plus } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { Can, Action, Feature } from "../../../shared/auth/AbilityContext"
-import { Button } from "../../../shared/components/ui/Button"
-import { ClinicalTable } from "../../../shared/components/clinical/ClinicalTable"
+import { Button } from "../../../shared/components/ui/button"
+import { ClinicalQueryTable } from "./ClinicalQueryTable"
 import { ReportModal } from "./modals/ReportModal"
 import { ReportVersionsModal } from "./modals/ReportVersionsModal"
 import { ReportDetailsModal } from "./modals/ReportDetailsModal"
@@ -27,7 +27,7 @@ export default function ClinicalReports({ patientId, encounterId }: ClinicalRepo
     onOpenDetails: (report) => setDetailsReport(report),
     onOpenVersions: (report) => setVersionsReport(report),
   })
-  const { data: reports = [] } = useDiagnosticReportsQuery(encounterId)
+  const { data: reports = [], isLoading, isError, refetch } = useDiagnosticReportsQuery(encounterId)
   const createReportMutation = useCreateDiagnosticReportMutation()
 
   const handleCreateReport = async (formData: NewReportFormData) => {
@@ -48,17 +48,19 @@ export default function ClinicalReports({ patientId, encounterId }: ClinicalRepo
 
   return (
     <>
-      <ClinicalTable
+      <ClinicalQueryTable
         title={t("details.reportsCard.title")}
         icon={<FileText className="w-4 h-4 text-blue-500" />}
         columns={columns}
         data={reports}
-        isEmpty={reports.length === 0}
-        emptyIcon={<FileText className="w-8 h-8 text-gray-300" />}
+        isLoading={isLoading}
+        isError={isError}
+        onRetry={() => void refetch()}
         emptyText={t("details.reportsCard.empty")}
+        emptyIcon={FileText}
         addButton={
           <Can I={Action.Create} a={Feature.DiagnosticReport}>
-            <Button onClick={() => setIsModalOpen(true)} className="px-3 py-2 text-xs">
+            <Button size="sm" onClick={() => setIsModalOpen(true)}>
               <Plus className="w-3.5 h-3.5" />
               {t("details.reportsCard.add")}
             </Button>

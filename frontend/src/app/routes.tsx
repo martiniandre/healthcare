@@ -6,7 +6,7 @@ import { AppSidebar } from "../shared/components/AppSidebar"
 import { AppHeader } from "../shared/components/AppHeader"
 import { RoleRoute } from "../shared/auth/RoleRoute"
 import { getHomePathForRole, routeAllowedRoles } from "../shared/auth/route_access"
-import { Spinner } from "../shared/components/ui/Spinner"
+import { Spinner } from "../shared/components/ui/spinner"
 
 const Login = lazy(() => import("../modules/auth/Login").then((module) => ({ default: module.Login })))
 const Patients = lazy(() => import("../modules/patients/Patients").then((module) => ({ default: module.Patients })))
@@ -20,6 +20,7 @@ const AuditLogs = lazy(() => import("../modules/audit_logs/AuditLogs").then((mod
 const PortalPage = lazy(() => import("../modules/portal/PortalPage").then((module) => ({ default: module.PortalPage })))
 const Schedule = lazy(() => import("../modules/schedule/Schedule").then((module) => ({ default: module.Schedule })))
 const ClinicalDashboard = lazy(() => import("../modules/analytics/ClinicalDashboard").then((module) => ({ default: module.ClinicalDashboard })))
+const DesignSystem = lazy(() => import("../modules/design_system/DesignSystem").then((module) => ({ default: module.DesignSystem })))
 
 export const AppRoutes = () => {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
@@ -62,6 +63,7 @@ export const AppRoutes = () => {
                           <Route path="/schedule" element={<RoleRoute allowedRoles={routeAllowedRoles.schedule}><Schedule /></RoleRoute>} />
                           <Route path="/exam-analyzer" element={<RoleRoute allowedRoles={routeAllowedRoles.examAnalyzer}><ExamAnalyzer /></RoleRoute>} />
                           <Route path="/audit-logs" element={<RoleRoute allowedRoles={routeAllowedRoles.auditLogs}><AuditLogs /></RoleRoute>} />
+                          <Route path="/design-system" element={<RoleRoute allowedRoles={routeAllowedRoles.designSystem}><DesignSystem /></RoleRoute>} />
                           <Route path="*" element={<Navigate to={getHomePathForRole(role)} replace />} />
                         </Routes>
                       </main>

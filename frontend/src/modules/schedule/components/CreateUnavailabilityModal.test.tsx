@@ -8,16 +8,6 @@ vi.mock("react-i18next", () => ({
   }),
 }))
 
-vi.mock("react-hook-form", () => ({
-  useForm: () => ({
-    register: vi.fn(() => ({ name: "mock", ref: vi.fn() })),
-    handleSubmit: vi.fn((fn) => fn),
-    control: {},
-    reset: vi.fn(),
-    formState: { errors: {} },
-  }),
-}))
-
 describe("CreateUnavailabilityModal", () => {
   it("should render nothing when closed", () => {
     const { container } = render(

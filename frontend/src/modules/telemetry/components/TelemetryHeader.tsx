@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next"
 import { Activity, Volume2, VolumeX } from "lucide-react"
-import { Button } from "../../../shared/components/ui/Button"
+import { Button } from "@/shared/components/ui/button"
 
 interface TelemetryHeaderProps {
   isMuted: boolean
@@ -13,29 +13,30 @@ export const TelemetryHeader = ({ isMuted, setIsMuted }: TelemetryHeaderProps) =
   return (
     <div className="flex items-center justify-between flex-wrap gap-4">
       <div className="text-left">
-        <h2 className="text-xl font-display font-bold text-gray-900 leading-none flex items-center gap-2">
-          <Activity className="w-5 h-5 text-primary animate-pulse-glow" />
+        <h2 className="text-xl font-display font-bold text-foreground leading-none flex items-center gap-2">
+          <Activity className="size-5 text-primary" aria-hidden="true" />
           {t("title")}
         </h2>
-        <span className="text-xs text-muted mt-1.5 block">
+        <span className="text-xs text-muted-foreground mt-1.5 block">
           {t("subtitle")}
         </span>
       </div>
 
       <div className="flex items-center gap-3">
         <Button
-          variantType="outline"
+          variant="outline"
           onClick={() => setIsMuted(!isMuted)}
-          className="px-3 gap-2 text-xs"
+          aria-pressed={isMuted}
+          className="text-xs"
         >
           {isMuted ? (
             <>
-              <VolumeX className="w-4 h-4 text-red-500" />
+              <VolumeX className="text-destructive" />
               {t("alarmsMuted")}
             </>
           ) : (
             <>
-              <Volume2 className="w-4 h-4 text-emerald-500 animate-pulse" />
+              <Volume2 className="text-success" />
               {t("alarmsActive")}
             </>
           )}

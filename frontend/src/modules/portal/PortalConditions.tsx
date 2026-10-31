@@ -1,73 +1,66 @@
+import { Activity } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { usePortalConditionsQuery } from "./queries"
-import { Card } from "../../shared/components/ui/Card"
-import { Loader2 } from "lucide-react"
+import { PortalSectionState } from "./components/PortalSectionState"
+import { Card, CardContent } from "../../shared/components/ui/card"
+import { StatusBadge, type ClinicalStatus } from "../../shared/components/ui/status-badge"
 import { formatDate } from "../../shared/utils/dates"
 import { useLocale } from "../../shared/hooks/useLocale"
 import { useClinicalStatusLabels } from "../../shared/hooks/useClinicalStatusLabels"
 import type { ConditionClinicalStatus } from "../../shared/types"
 
-const statusBadgeClass = (status: ConditionClinicalStatus) => {
+const conditionStatusToClinicalStatus = (status: ConditionClinicalStatus): ClinicalStatus => {
   switch (status) {
     case "active":
-      return "bg-red-100 text-red-700"
+      return "critical"
     case "recurrence":
-      return "bg-orange-100 text-orange-700"
     case "relapse":
-      return "bg-amber-100 text-amber-700"
     case "inactive":
     case "remission":
-      return "bg-yellow-100 text-yellow-700"
+      return "attention"
     case "resolved":
-      return "bg-green-100 text-green-700"
+      return "normal"
     default:
-      return "bg-gray-100 text-gray-700"
+      return "neutral"
   }
 }
 
 export const PortalConditions = () => {
   const { t } = useTranslation("portal")
-  const { data: conditions, isLoading } = usePortalConditionsQuery()
+  const { data: conditions, isLoading, isError, refetch } = usePortalConditionsQuery()
   const locale = useLocale()
   const { conditionStatus, notInformed } = useClinicalStatusLabels()
 
-  if (isLoading) {
-    return (
-      <Card className="flex items-center justify-center min-h-[300px]">
-        <Loader2 className="w-8 h-8 text-primary animate-spin" />
-      </Card>
-    )
-  }
-
-  if (!conditions || conditions.length === 0) {
-    return (
-      <Card className="py-16 text-center">
-        <p className="text-sm text-gray-500">{t("emptyConditions")}</p>
-      </Card>
-    )
-  }
-
   return (
-    <div className="flex flex-col gap-3">
-      {conditions.map((condition) => (
-        <div
-          key={condition.fhir_resource_id}
-          className="bg-card border border-border rounded-xl p-5 flex items-start justify-between"
-        >
-          <div>
-            <p className="text-sm font-bold text-gray-900">{condition.code_display}</p>
-            <p className="text-xs text-gray-500 mt-0.5">
-              {condition.icd10_code && <span className="font-mono">{condition.icd10_code} | </span>}
-              {t("table.onset")} {condition.onset_at ? formatDate(condition.onset_at, locale) : notInformed()}
-            </p>
-          </div>
-          <span
-            className={`text-xs font-bold px-2.5 py-1 rounded-full ${statusBadgeClass(condition.clinical_status)}`}
-          >
-            {conditionStatus(condition.clinical_status)}
-          </span>
-        </div>
-      ))}
-    </div>
+    <PortalSectionState
+      isLoading={isLoading}
+      isError={isError}
+      onRetry={() => refetch()}
+      isEmpty={!conditions || conditions.length === 0}
+      emptyTitle={t("emptyConditions")}
+      emptyIcon={Activity}
+    >
+      <div className="flex flex-col gap-3">
+        {conditions?.map((condition) => (
+          <Card key={condition.fhir_resource_id} className="py-4 sm:py-5">
+            <CardContent className="flex flex-wrap items-start justify-between gap-2 px-4 sm:px-5">
+              <div className="min-w-0 flex-1">
+                <p className="break-words text-sm font-bold text-foreground">{condition.code_display}</p>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  {condition.icd10_code && <span className="font-mono">{condition.icd10_code} | </span>}
+                  {t("table.onset")}{" "}
+                  <span className="tabular-nums">
+                    {condition.onset_at ? formatDate(condition.onset_at, locale) : notInformed()}
+                  </span>
+                </p>
+              </div>
+              <StatusBadge status={conditionStatusToClinicalStatus(condition.clinical_status)}>
+                {conditionStatus(condition.clinical_status)}
+              </StatusBadge>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </PortalSectionState>
   )
 }

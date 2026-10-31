@@ -1,7 +1,9 @@
 import { useMemo } from "react"
 import { useTranslation } from "react-i18next"
-import { CheckCircle } from "lucide-react"
 import { createColumnHelper, type ColumnDef } from "@tanstack/react-table"
+import { Badge } from "../../../shared/components/ui/badge"
+import { StatusBadge } from "../../../shared/components/ui/status-badge"
+import { resolveClinicalStatus } from "./clinicalStatus"
 import { formatDateTime } from "../../../shared/utils/dates"
 import type { Condition } from "../types"
 
@@ -16,9 +18,9 @@ export const useClinicalConditionsColumns = (): ColumnDef<Condition>[] => {
         id: "icd10_code",
         header: t("details.conditionsCard.code"),
         cell: (info) => (
-          <span className="text-sm font-extrabold text-gray-900 bg-rose-50 border border-rose-100 px-2 py-1 rounded-md">
+          <Badge variant="destructive" className="rounded-md">
             {info.getValue()}
-          </span>
+          </Badge>
         ),
       }),
       columnHelper.accessor("code_display", {
@@ -30,10 +32,9 @@ export const useClinicalConditionsColumns = (): ColumnDef<Condition>[] => {
         id: "clinical_status",
         header: t("details.conditionsCard.status"),
         cell: (info) => (
-          <span className="text-[9px] bg-emerald-50 border border-emerald-100 text-emerald-600 px-2 py-0.5 rounded font-bold uppercase inline-flex items-center gap-1">
-            <CheckCircle className="w-3 h-3" />
+          <StatusBadge status={resolveClinicalStatus("condition", info.getValue())} className="uppercase">
             {info.getValue()}
-          </span>
+          </StatusBadge>
         ),
       }),
       columnHelper.accessor("created_at", {

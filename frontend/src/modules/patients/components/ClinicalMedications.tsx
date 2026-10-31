@@ -1,9 +1,9 @@
 import { useState } from "react"
-import { Pill, Plus, ShieldAlert } from "lucide-react"
+import { Pill, Plus } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { Can, Action, Feature } from "../../../shared/auth/AbilityContext"
-import { Button } from "../../../shared/components/ui/Button"
-import { ClinicalTable } from "../../../shared/components/clinical/ClinicalTable"
+import { Button } from "../../../shared/components/ui/button"
+import { ClinicalQueryTable } from "./ClinicalQueryTable"
 import { MedicationModal } from "./modals/MedicationModal"
 import { useClinicalMedicationsColumns } from "./useClinicalMedicationsColumns"
 import { useMedicationsQuery, useCreateMedicationMutation } from "../queries"
@@ -18,7 +18,7 @@ export default function ClinicalMedications({ patientId, encounterId }: Clinical
   const { t } = useTranslation("patients")
   const [isModalOpen, setIsModalOpen] = useState(false)
   const columns = useClinicalMedicationsColumns()
-  const { data: medications = [] } = useMedicationsQuery(encounterId)
+  const { data: medications = [], isLoading, isError, refetch } = useMedicationsQuery(encounterId)
   const createMedicationMutation = useCreateMedicationMutation()
 
   const handleCreateMedication = async (formData: { medicationDisplay: string; dosageInstruction: string }) => {
@@ -38,17 +38,19 @@ export default function ClinicalMedications({ patientId, encounterId }: Clinical
 
   return (
     <>
-      <ClinicalTable
+      <ClinicalQueryTable
         title={t("details.medicationsCard.title")}
         icon={<Pill className="w-4 h-4 text-purple-500" />}
         columns={columns}
         data={medications}
-        isEmpty={medications.length === 0}
-        emptyIcon={<ShieldAlert className="w-8 h-8 text-gray-300" />}
+        isLoading={isLoading}
+        isError={isError}
+        onRetry={() => void refetch()}
         emptyText={t("details.medicationsCard.empty")}
+        emptyIcon={Pill}
         addButton={
           <Can I={Action.Create} a={Feature.MedicationRequest}>
-            <Button onClick={() => setIsModalOpen(true)} className="px-3 py-2 text-xs">
+            <Button size="sm" onClick={() => setIsModalOpen(true)}>
               <Plus className="w-3.5 h-3.5" />
               {t("details.medicationsCard.add")}
             </Button>
