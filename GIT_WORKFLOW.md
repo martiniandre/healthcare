@@ -30,6 +30,7 @@ gitGraph
 ### Regras de Ouro das Branches:
 *   A branch `main` representa o estado atual de produção estável. Ela é **protegida** e nunca recebe commits diretos.
 *   Todas as modificações são introduzidas via Pull Requests (PRs) a partir de branches temporárias.
+*   Branches vivem no máximo **2 dias úteis**. Trabalho incompleto entra em `main` somente atrás de feature flag desligada, conforme [FEATURE_FLAGS.md](docs/FEATURE_FLAGS.md).
 *   **Nomenclatura Padrão de Branches:**
     *   Novas funcionalidades: `feat/nome-da-feature` (ex: `feat/patient-history`)
     *   Correções de bugs: `fix/nome-do-bug` (ex: `fix/jwt-expiration`)
