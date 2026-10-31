@@ -30,17 +30,17 @@ export const DeleteUnavailabilityModal = ({
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && !isPending && onClose()}>
       <DialogContent className="sm:max-w-[420px]">
         <DialogHeader>
           <DialogTitle>{t("unavailability.deleteModal.title")}</DialogTitle>
           <DialogDescription>{t("unavailability.deleteModal.description")}</DialogDescription>
         </DialogHeader>
         <DialogFooter>
-          <Button variant="outline" type="button" onClick={onClose}>
+          <Button variant="outline" type="button" autoFocus className="h-11 md:h-9" disabled={isPending} onClick={onClose}>
             {t("unavailability.deleteModal.back")}
           </Button>
-          <Button variant="destructive" type="button" onClick={onConfirm} disabled={isPending}>
+          <Button variant="destructive" type="button" className="h-11 md:h-9" onClick={onConfirm} disabled={isPending} aria-busy={isPending}>
             {isPending && <Spinner />}
             {t("unavailability.deleteModal.confirm")}
           </Button>

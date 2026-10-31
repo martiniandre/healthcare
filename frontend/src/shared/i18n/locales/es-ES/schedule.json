@@ -47,19 +47,27 @@
       "selectStartTime": "Seleccione la hora de inicio",
       "selectEndTime": "Seleccione la hora de fin",
       "reason": "Motivo",
-      "reasonPlaceholder": "Motivo de la consulta...",
+      "reasonPlaceholder": "Ej.: Control, resultados de análisis de sangre",
       "cancel": "Cancelar",
-      "confirm": "Agendar"
+      "confirm": "Agendar",
+      "description": "Elija el paciente, el profesional y el horario. El resumen se actualiza mientras completa.",
+      "patientHint": "Escriba parte del nombre para filtrar la lista.",
+      "patientNoMatch": "Ningún paciente coincide. Revise la ortografía o borre la búsqueda.",
+      "startTimeHint": "Intervalos de 15 minutos.",
+      "endTimeHint": "30 o 45 minutos después del inicio.",
+      "endTimeHintNoStart": "Elija primero el inicio; el fin se completa solo."
     },
     "cancel": {
       "title": "Cancelar Cita",
       "description": "¿Está seguro de que desea cancelar esta cita?",
       "back": "Volver",
-      "confirm": "Confirmar Cancelación"
+      "confirm": "Confirmar Cancelación",
+      "hint": "La cita queda en el historial y se marca como cancelada."
     },
     "edit": {
       "title": "Editar Cita",
-      "confirm": "Guardar Cambios"
+      "confirm": "Guardar Cambios",
+      "description": "Cambie los datos y guarde. El resumen muestra la nueva cita."
     },
     "details": {
       "title": "Detalles de la Cita",
@@ -70,16 +78,20 @@
       "reason": "Motivo",
       "status": "Estado",
       "edit": "Editar",
-      "cancel": "Cancelar",
-      "close": "Cerrar"
+      "cancel": "Cancelar cita",
+      "close": "Cerrar",
+      "description": "Detalles de la cita"
     }
   },
   "errors": {
-    "conflict": "Conflicto de horario: ya existe una cita en este intervalo para este profesional. Elija otro horario.",
+    "conflict": "Este profesional ya tiene una cita o un bloqueo en ese intervalo. Elija otra hora de inicio u otro profesional; los datos ingresados se conservaron.",
     "loadStaffTitle": "No se pudieron cargar los profesionales",
     "loadAppointmentsTitle": "No se pudieron cargar las citas",
     "loadAppointmentsDescription": "No se pudieron obtener las citas de los profesionales seleccionados. Inténtelo de nuevo.",
-    "loadUnavailabilityTitle": "No se pudieron cargar los períodos bloqueados"
+    "loadUnavailabilityTitle": "No se pudieron cargar los períodos bloqueados",
+    "conflictTitle": "Horario no disponible",
+    "submitFailedTitle": "No se pudo guardar la cita",
+    "submitFailed": "Los datos ingresados se conservaron. Revise la conexión e inténtelo de nuevo."
   },
   "toasts": {
     "createSuccess": "¡Cita creada con éxito!",
@@ -99,17 +111,17 @@
     "empty": "No se encontraron citas."
   },
   "validation": {
-    "patientRequired": "Seleccione un paciente.",
-    "staffRequired": "Seleccione un profesional.",
-    "dateRequired": "Ingrese la fecha.",
-    "startTimeRequired": "Ingrese la hora de inicio.",
-    "endTimeRequired": "Ingrese la hora de fin.",
+    "patientRequired": "Seleccione un paciente. Use el buscador para encontrarlo por nombre.",
+    "staffRequired": "Seleccione el profesional que atenderá al paciente.",
+    "dateRequired": "Ingrese la fecha de la cita.",
+    "startTimeRequired": "Seleccione la hora de inicio.",
+    "endTimeRequired": "Seleccione la hora de fin.",
     "reasonMax": "El motivo debe tener como máximo 500 caracteres.",
-    "dateFuture": "La fecha de la cita debe ser hoy o una fecha futura.",
-    "endAfterStart": "La hora de fin debe ser posterior al inicio.",
+    "dateFuture": "No se pueden agendar fechas pasadas. Elija hoy o una fecha futura.",
+    "endAfterStart": "La hora de fin debe ser posterior al inicio ({{startTime}}).",
     "startTimeAligned": "La hora de inicio de la cita debe estar alineada a un horario válido (:00, :15, :30 o :45).",
-    "startTimePast": "La hora de inicio de la cita no puede estar en el pasado.",
-    "slotDuration": "La duración de la cita debe ser de 30 o 45 minutos."
+    "startTimePast": "Esa hora de inicio ya pasó. Elija una hora posterior hoy u otra fecha.",
+    "slotDuration": "Las citas duran 30 o 45 minutos. Para un inicio a las {{startTime}}, elija {{suggestions}}."
   },
   "unavailability": {
     "badge": "No disponible",
@@ -124,9 +136,12 @@
       "selectStartTime": "Seleccione la hora de inicio",
       "selectEndTime": "Seleccione la hora de fin",
       "reason": "Motivo",
-      "reasonPlaceholder": "Motivo de la indisponibilidad...",
+      "reasonPlaceholder": "Ej.: Almuerzo, capacitación, vacaciones",
       "cancel": "Cancelar",
-      "confirm": "Bloquear"
+      "confirm": "Bloquear",
+      "description": "Bloquee un período para que no se agenden citas en él.",
+      "descriptionForStaff": "Bloquee un período de {{staff}} para que no se agenden citas en él.",
+      "endTimeHint": "Se completa con 1 hora después del inicio; puede cambiarlo."
     },
     "deleteModal": {
       "title": "Quitar Período de Indisponibilidad",
@@ -139,11 +154,44 @@
       "createError": "Error al bloquear el período de indisponibilidad.",
       "deleteSuccess": "¡Período de indisponibilidad quitado con éxito!",
       "deleteError": "Error al quitar el período de indisponibilidad."
+    },
+    "summary": {
+      "forStaff": "{{when}} — {{staff}} no disponible"
+    },
+    "errors": {
+      "conflictTitle": "Este período se superpone con otro",
+      "conflict": "Este profesional ya tiene una cita o un bloqueo en ese intervalo. Ajuste el inicio o el fin; los datos ingresados se conservaron.",
+      "submitFailedTitle": "No se pudo bloquear el período",
+      "submitFailed": "Los datos ingresados se conservaron. Revise la conexión e inténtelo de nuevo."
     }
   },
   "retry": "Reintentar",
   "loading": {
     "staff": "Cargando profesionales",
     "unavailability": "Cargando períodos bloqueados"
+  },
+  "form": {
+    "required": "obligatorio",
+    "optional": "opcional",
+    "requiredNote": "Los campos marcados con * son obligatorios.",
+    "characterCount": "{{count}}/{{max}}",
+    "sections": {
+      "who": "Quién",
+      "when": "Cuándo",
+      "why": "Motivo"
+    },
+    "summary": {
+      "label": "Resumen de la cita",
+      "empty": "Elija la fecha y la hora de inicio para ver el resumen.",
+      "when": "{{date}}, de {{start}} a {{end}} ({{duration}})",
+      "whenOpenEnded": "{{date}}, desde las {{start}}",
+      "withStaff": "{{when}} con {{staff}}",
+      "forPatient": "Paciente: {{patient}}",
+      "minutes": "{{count}} min"
+    },
+    "errorSummary": {
+      "title_one": "Corrija {{count}} campo para continuar",
+      "title_other": "Corrija {{count}} campos para continuar"
+    }
   }
 }

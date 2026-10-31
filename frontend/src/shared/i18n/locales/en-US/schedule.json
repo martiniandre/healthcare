@@ -47,19 +47,27 @@
       "selectStartTime": "Select start time",
       "selectEndTime": "Select end time",
       "reason": "Reason",
-      "reasonPlaceholder": "Appointment reason...",
+      "reasonPlaceholder": "e.g. Follow-up visit, blood test results",
       "cancel": "Cancel",
-      "confirm": "Book"
+      "confirm": "Book",
+      "description": "Pick the patient, the professional and the time. The summary updates as you go.",
+      "patientHint": "Type part of the name to narrow the list.",
+      "patientNoMatch": "No patient matches this search. Check the spelling or clear the search.",
+      "startTimeHint": "15-minute steps.",
+      "endTimeHint": "30 or 45 minutes after the start.",
+      "endTimeHintNoStart": "Pick the start first; the end is filled in for you."
     },
     "cancel": {
       "title": "Cancel Appointment",
       "description": "Are you sure you want to cancel this appointment?",
       "back": "Back",
-      "confirm": "Confirm Cancellation"
+      "confirm": "Confirm Cancellation",
+      "hint": "The appointment is kept in the record and marked as cancelled."
     },
     "edit": {
       "title": "Edit Appointment",
-      "confirm": "Save Changes"
+      "confirm": "Save Changes",
+      "description": "Change the details and save. The summary shows the new booking."
     },
     "details": {
       "title": "Appointment Details",
@@ -70,16 +78,20 @@
       "reason": "Reason",
       "status": "Status",
       "edit": "Edit",
-      "cancel": "Cancel",
-      "close": "Close"
+      "cancel": "Cancel appointment",
+      "close": "Close",
+      "description": "Appointment details"
     }
   },
   "errors": {
-    "conflict": "Time slot conflict: an appointment already exists in this interval for this professional. Choose another time.",
+    "conflict": "This professional already has an appointment or a blocked period in this interval. Choose another start time or another professional; your entries were kept.",
     "loadStaffTitle": "Could not load staff",
     "loadAppointmentsTitle": "Could not load appointments",
     "loadAppointmentsDescription": "The appointments for the selected professionals could not be retrieved. Try again.",
-    "loadUnavailabilityTitle": "Could not load blocked periods"
+    "loadUnavailabilityTitle": "Could not load blocked periods",
+    "conflictTitle": "This time is not available",
+    "submitFailedTitle": "Could not save the appointment",
+    "submitFailed": "Your entries were kept. Check your connection and try again."
   },
   "toasts": {
     "createSuccess": "Appointment created successfully!",
@@ -99,17 +111,17 @@
     "empty": "No appointments found."
   },
   "validation": {
-    "patientRequired": "Select a patient.",
-    "staffRequired": "Select a professional.",
-    "dateRequired": "Enter a date.",
-    "startTimeRequired": "Enter a start time.",
-    "endTimeRequired": "Enter an end time.",
+    "patientRequired": "Select a patient. Use the search box to find them by name.",
+    "staffRequired": "Select the professional who will see the patient.",
+    "dateRequired": "Enter the appointment date.",
+    "startTimeRequired": "Select a start time.",
+    "endTimeRequired": "Select an end time.",
     "reasonMax": "The reason must be at most 500 characters.",
-    "dateFuture": "The appointment date must be today or a future date.",
-    "endAfterStart": "The end time must be after the start time.",
+    "dateFuture": "Past dates cannot be booked. Pick today or a later date.",
+    "endAfterStart": "End time must be after the start time ({{startTime}}).",
     "startTimeAligned": "The appointment start time must be aligned to a valid slot time (:00, :15, :30 or :45).",
-    "startTimePast": "The appointment start time cannot be in the past.",
-    "slotDuration": "The appointment duration must be 30 or 45 minutes."
+    "startTimePast": "That start time has already passed. Pick a later time today or another date.",
+    "slotDuration": "Appointments last 30 or 45 minutes. For a start at {{startTime}}, choose {{suggestions}}."
   },
   "unavailability": {
     "badge": "Unavailable",
@@ -124,9 +136,12 @@
       "selectStartTime": "Select start time",
       "selectEndTime": "Select end time",
       "reason": "Reason",
-      "reasonPlaceholder": "Reason for unavailability...",
+      "reasonPlaceholder": "e.g. Lunch, training, vacation",
       "cancel": "Cancel",
-      "confirm": "Block"
+      "confirm": "Block",
+      "description": "Block a period so no appointments can be booked in it.",
+      "descriptionForStaff": "Block a period for {{staff}} so no appointments can be booked in it.",
+      "endTimeHint": "Filled in as 1 hour after the start; you can change it."
     },
     "deleteModal": {
       "title": "Remove Unavailability Period",
@@ -139,11 +154,44 @@
       "createError": "Failed to block unavailability period.",
       "deleteSuccess": "Unavailability period removed successfully!",
       "deleteError": "Failed to remove unavailability period."
+    },
+    "summary": {
+      "forStaff": "{{when}} — {{staff}} unavailable"
+    },
+    "errors": {
+      "conflictTitle": "This period overlaps another",
+      "conflict": "This professional already has an appointment or a blocked period in this interval. Adjust the start or end time; your entries were kept.",
+      "submitFailedTitle": "Could not block the period",
+      "submitFailed": "Your entries were kept. Check your connection and try again."
     }
   },
   "retry": "Try again",
   "loading": {
     "staff": "Loading staff",
     "unavailability": "Loading blocked periods"
+  },
+  "form": {
+    "required": "required",
+    "optional": "optional",
+    "requiredNote": "Fields marked with * are required.",
+    "characterCount": "{{count}}/{{max}}",
+    "sections": {
+      "who": "Who",
+      "when": "When",
+      "why": "Why"
+    },
+    "summary": {
+      "label": "Booking summary",
+      "empty": "Choose a date and a start time to see the summary.",
+      "when": "{{date}}, {{start}} to {{end}} ({{duration}})",
+      "whenOpenEnded": "{{date}}, from {{start}}",
+      "withStaff": "{{when}} with {{staff}}",
+      "forPatient": "Patient: {{patient}}",
+      "minutes": "{{count}} min"
+    },
+    "errorSummary": {
+      "title_one": "Fix {{count}} field to continue",
+      "title_other": "Fix {{count}} fields to continue"
+    }
   }
 }

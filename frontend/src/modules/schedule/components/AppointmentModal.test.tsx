@@ -2,10 +2,13 @@ import { describe, it, expect, vi, beforeEach } from "vitest"
 import { render, screen, fireEvent, waitFor } from "@testing-library/react"
 import { AppointmentModal } from "./AppointmentModal"
 
+const translationApi = {
+  t: (key: string, options?: Record<string, unknown>) => (options ? `${key}:${JSON.stringify(options)}` : key),
+  i18n: { language: "en-US" },
+}
+
 vi.mock("react-i18next", () => ({
-  useTranslation: () => ({
-    t: (key: string) => key,
-  }),
+  useTranslation: () => translationApi,
 }))
 
 vi.mock("../../staff/queries", () => ({
@@ -70,7 +73,7 @@ const fillPatientAndStaff = async () => {
   fireEvent.click(staffOption)
 }
 
-const chooseTime = async (comboboxName: string, timeValue: string) => {
+const chooseTime = async (comboboxName: RegExp, timeValue: string) => {
   fireEvent.click(screen.getByRole("combobox", { name: comboboxName }))
   const timeOption = (await screen.findAllByRole("option", { name: timeValue }))
     .find((option) => option.tagName === "DIV")
@@ -81,8 +84,8 @@ const chooseTime = async (comboboxName: string, timeValue: string) => {
 }
 
 const fillTimes = async (startValue: string, endValue: string) => {
-  await chooseTime("modals.create.startTime", startValue)
-  await chooseTime("modals.create.endTime", endValue)
+  await chooseTime(/modals.create.startTime/, startValue)
+  await chooseTime(/modals.create.endTime/, endValue)
 }
 
 const renderModal = (overrides: {
@@ -181,7 +184,7 @@ mockedUsePatientsQuery.mockReturnValue({
 
   it("should prefill the start time from defaultStartTime", () => {
     renderModal({ defaultDate: "2027-05-20", defaultStartTime: "09:15" })
-    expect(screen.getByRole("combobox", { name: "modals.create.startTime" })).toHaveTextContent("09:15")
+    expect(screen.getByRole("combobox", { name: /modals.create.startTime/ })).toHaveTextContent("09:15")
   })
 
   it("should block past dates on the appointment date input", () => {
@@ -218,8 +221,8 @@ mockedUsePatientsQuery.mockReturnValue({
     expect(comboboxes[1]).toHaveTextContent("Dr. André Silva")
     const dateInput = document.querySelector('input[type="date"]') as HTMLInputElement
     expect(dateInput.value).toBe("2027-05-20")
-    expect(screen.getByRole("combobox", { name: "modals.create.startTime" })).toHaveTextContent("09:00")
-    expect(screen.getByRole("combobox", { name: "modals.create.endTime" })).toHaveTextContent("09:30")
+    expect(screen.getByRole("combobox", { name: /modals.create.startTime/ })).toHaveTextContent("09:00")
+    expect(screen.getByRole("combobox", { name: /modals.create.endTime/ })).toHaveTextContent("09:30")
     expect(screen.getByPlaceholderText("modals.create.reasonPlaceholder")).toHaveValue("Consulta de rotina")
   })
 
@@ -265,5 +268,153 @@ mockedUsePatientsQuery.mockReturnValue({
 
     fireEvent.click(screen.getByRole("button", { name: "modals.edit.confirm" }))
     expect(await screen.findByText("errors.conflict")).toBeDefined()
+  })
+
+  it("should focus the first invalid field and show an error summary on failed submit", async () => {
+    renderModal()
+    fireEvent.click(screen.getByRole("button", { name: "modals.create.confirm" }))
+
+    const summary = await screen.findByTestId("form-error-summary")
+    expect(summary).toHaveTextContent("validation.patientRequired")
+    expect(summary).toHaveTextContent("validation.endTimeRequired")
+    await waitFor(() => expect(screen.getAllByRole("combobox")[0]).toHaveFocus())
+    expect(screen.getAllByRole("combobox")[0]).toHaveAttribute("aria-invalid", "true")
+  })
+
+  it("should mark required fields and leave the reason optional", () => {
+    renderModal()
+    expect(screen.getAllByText("form.required").length).toBe(5)
+    expect(screen.getByText("(form.optional)")).toBeDefined()
+    expect(screen.getByRole("combobox", { name: /modals\.create\.startTime/ })).toHaveAttribute("aria-required", "true")
+  })
+
+  it("should fill the end time 30 minutes after the chosen start and keep it editable", async () => {
+    renderModal({ defaultDate: "2027-05-20" })
+    await chooseTime(/modals\.create\.startTime/, "10:00")
+    expect(screen.getByRole("combobox", { name: /modals\.create\.endTime/ })).toHaveTextContent("10:30")
+
+    await chooseTime(/modals\.create\.endTime/, "10:45")
+    expect(screen.getByRole("combobox", { name: /modals\.create\.endTime/ })).toHaveTextContent("10:45")
+
+    await chooseTime(/modals\.create\.startTime/, "11:00")
+    expect(screen.getByRole("combobox", { name: /modals\.create\.endTime/ })).toHaveTextContent("11:45")
+  })
+
+  it("should prefill the end time when opened from a calendar slot", () => {
+    renderModal({ defaultDate: "2027-05-20", defaultStartTime: "09:15" })
+    expect(screen.getByRole("combobox", { name: /modals\.create\.endTime/ })).toHaveTextContent("09:45")
+  })
+
+  it("should show a live summary of the selection", async () => {
+    renderModal({ defaultDate: "2027-05-20", defaultStartTime: "09:00" })
+    expect(screen.getByTestId("selection-summary")).toHaveTextContent("form.summary.when")
+    expect(screen.getByTestId("selection-summary")).toHaveTextContent("09:30")
+
+    await fillPatientAndStaff()
+    const summary = screen.getByTestId("selection-summary")
+    expect(summary).toHaveTextContent("Dr. André Silva")
+    expect(summary).toHaveTextContent("Guilherme de Souza Araujo")
+    expect(summary).toHaveAttribute("aria-live", "polite")
+  })
+
+  it("should show the end-before-start message with the start time", async () => {
+    const onSubmit = vi.fn().mockResolvedValue(undefined)
+    render(
+      <AppointmentModal
+        isOpen
+        onClose={vi.fn()}
+        onSubmit={onSubmit}
+        isPending={false}
+        appointment={{ ...appointmentFixture, ends_at: appointmentFixture.starts_at }}
+      />
+    )
+    fireEvent.click(screen.getByRole("button", { name: "modals.edit.confirm" }))
+    expect(await screen.findAllByText(/validation\.endAfterStart.*09:00/)).not.toHaveLength(0)
+    expect(onSubmit).not.toHaveBeenCalled()
+  })
+
+  it("should ask for confirmation before closing a dirty form", async () => {
+    const onClose = vi.fn()
+    render(<AppointmentModal isOpen onClose={onClose} onSubmit={vi.fn()} isPending={false} defaultDate="2027-05-20" />)
+    fireEvent.change(screen.getByPlaceholderText("modals.create.reasonPlaceholder"), { target: { value: "Retorno" } })
+
+    fireEvent.click(screen.getByRole("button", { name: "modals.create.cancel" }))
+    expect(await screen.findByText("discardChanges.title")).toBeDefined()
+    expect(onClose).not.toHaveBeenCalled()
+
+    fireEvent.click(screen.getByRole("button", { name: "discardChanges.keepEditing" }))
+    await waitFor(() => expect(screen.queryByText("discardChanges.title")).toBeNull())
+    expect(onClose).not.toHaveBeenCalled()
+
+    fireEvent.click(screen.getByRole("button", { name: "modals.create.cancel" }))
+    fireEvent.click(await screen.findByRole("button", { name: "discardChanges.discard" }))
+    expect(onClose).toHaveBeenCalledTimes(1)
+  })
+
+  it("should close a pristine form without confirmation", () => {
+    const onClose = vi.fn()
+    render(<AppointmentModal isOpen onClose={onClose} onSubmit={vi.fn()} isPending={false} defaultDate="2027-05-20" />)
+    fireEvent.click(screen.getByRole("button", { name: "modals.create.cancel" }))
+    expect(onClose).toHaveBeenCalledTimes(1)
+    expect(screen.queryByText("discardChanges.title")).toBeNull()
+  })
+
+  it("should not submit twice while a submission is in flight", async () => {
+    let resolveSubmit: () => void = () => undefined
+    const onSubmit = vi.fn().mockImplementation(
+      () => new Promise<void>((resolve) => { resolveSubmit = resolve })
+    )
+    renderModal({ onSubmit, defaultDate: "2027-05-20" })
+    await fillPatientAndStaff()
+    await fillTimes("09:00", "09:30")
+
+    const form = document.querySelector("form") as HTMLFormElement
+    fireEvent.submit(form)
+    fireEvent.submit(form)
+    await waitFor(() => expect(onSubmit).toHaveBeenCalledTimes(1))
+    await waitFor(() => expect(screen.getByRole("button", { name: /modals.create.confirm/ })).toBeDisabled())
+    resolveSubmit()
+  })
+
+  it("should show a spinner and disable the primary button while pending", () => {
+    renderModal({ isPending: true })
+    const primaryButton = screen.getByRole("button", { name: /modals\.create\.confirm/ })
+    expect(primaryButton).toBeDisabled()
+    expect(primaryButton).toHaveAttribute("aria-busy", "true")
+    expect(primaryButton.querySelector("[role=status]")).not.toBeNull()
+  })
+
+  it("should keep the entered data and show a generic alert on a server error", async () => {
+    const onSubmit = vi.fn().mockRejectedValue(new Error("boom"))
+    renderModal({ onSubmit, defaultDate: "2027-05-20" })
+    await fillPatientAndStaff()
+    await fillTimes("09:00", "09:30")
+    fireEvent.change(screen.getByPlaceholderText("modals.create.reasonPlaceholder"), { target: { value: "Retorno" } })
+
+    fireEvent.click(screen.getByRole("button", { name: "modals.create.confirm" }))
+    expect(await screen.findByText("errors.submitFailed")).toBeDefined()
+    expect(screen.getByPlaceholderText("modals.create.reasonPlaceholder")).toHaveValue("Retorno")
+  })
+
+  it("should hide the conflict alert after the time changes", async () => {
+    const onSubmit = vi.fn().mockRejectedValue(
+      Object.assign(new Error("Conflict"), { isAxiosError: true, response: { status: 409 } })
+    )
+    renderModal({ onSubmit, defaultDate: "2027-05-20" })
+    await fillPatientAndStaff()
+    await fillTimes("09:00", "09:30")
+    fireEvent.click(screen.getByRole("button", { name: "modals.create.confirm" }))
+    expect(await screen.findByTestId("conflict-alert")).toBeDefined()
+
+    await chooseTime(/modals\.create\.startTime/, "10:00")
+    await waitFor(() => expect(screen.queryByTestId("conflict-alert")).toBeNull())
+  })
+
+  it("should count reason characters and cap the length", () => {
+    renderModal()
+    const reasonField = screen.getByPlaceholderText("modals.create.reasonPlaceholder")
+    expect(reasonField).toHaveAttribute("maxlength", "500")
+    fireEvent.change(reasonField, { target: { value: "Retorno" } })
+    expect(screen.getByText(/form\.characterCount.*"count":7/)).toBeDefined()
   })
 })

@@ -210,3 +210,42 @@ describe('getUnavailabilitySchema', () => {
     expect(result.success).toBe(false)
   })
 })
+
+describe('actionable validation messages', () => {
+  const capturingTranslate = (key: string, options?: Record<string, string | number>) =>
+    options ? `${key}|${JSON.stringify(options)}` : key
+
+  it('should include the start time in the end-before-start message', () => {
+    const result = getNewAppointmentSchema(capturingTranslate).safeParse({
+      ...validAppointment,
+      startTime: '09:30',
+      endTime: '09:00',
+    })
+    expect(result.success).toBe(false)
+    expect(result.error?.issues[0].message).toBe('validation.endAfterStart|{"startTime":"09:30"}')
+    expect(result.error?.issues[0].path).toEqual(['endTime'])
+  })
+
+  it('should suggest valid end times when the duration is not allowed', () => {
+    const result = getNewAppointmentSchema(capturingTranslate).safeParse({
+      ...validAppointment,
+      startTime: '09:00',
+      endTime: '10:00',
+    })
+    expect(result.success).toBe(false)
+    expect(result.error?.issues[0].message).toBe(
+      'validation.slotDuration|{"startTime":"09:00","suggestions":"09:30 / 09:45"}'
+    )
+  })
+
+  it('should include the start time in the unavailability end-before-start message', () => {
+    const result = getUnavailabilitySchema(capturingTranslate).safeParse({
+      date: '2099-01-01',
+      startTime: '12:00',
+      endTime: '11:00',
+      reason: '',
+    })
+    expect(result.success).toBe(false)
+    expect(result.error?.issues[0].message).toBe('validation.endAfterStart|{"startTime":"12:00"}')
+  })
+})
