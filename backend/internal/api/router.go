@@ -1,6 +1,7 @@
 package api
 
 import (
+	"net"
 	"net/http"
 
 	httpSwagger "github.com/swaggo/http-swagger"
@@ -13,7 +14,7 @@ type RouteRegisterer interface {
 	RegisterRoutes(mux *http.ServeMux)
 }
 
-func NewRouter(secureCookies bool, swaggerEnabled bool, registerers ...RouteRegisterer) http.Handler {
+func NewRouter(secureCookies bool, swaggerEnabled bool, frontendURL string, trustedProxies []*net.IPNet, registerers ...RouteRegisterer) http.Handler {
 	httpServeMux := http.NewServeMux()
 
 	if swaggerEnabled {
@@ -24,8 +25,8 @@ func NewRouter(secureCookies bool, swaggerEnabled bool, registerers ...RouteRegi
 		registerer.RegisterRoutes(httpServeMux)
 	}
 
-	handlerPipeline := middleware.CORS(secureCookies)(httpServeMux)
-	handlerPipeline = middleware.RateLimit(handlerPipeline)
+	handlerPipeline := middleware.CORS(secureCookies, frontendURL)(httpServeMux)
+	handlerPipeline = middleware.RateLimit(trustedProxies)(handlerPipeline)
 	handlerPipeline = middleware.APIPrefixRewrite(handlerPipeline)
 	handlerPipeline = middleware.Recovery(handlerPipeline)
 	handlerPipeline = middleware.RequestID(handlerPipeline)

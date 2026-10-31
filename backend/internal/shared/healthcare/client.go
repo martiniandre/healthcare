@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
+	"math/rand/v2"
 	"net/http"
 	"net/url"
 	"strings"
@@ -20,6 +21,30 @@ const maxErrorBodyInMessage int = 1024
 const defaultHTTPTimeout = 30 * time.Second
 const maxRetryAttempts = 3
 const maxPaginationPages = 10
+const retryJitterFraction = 4
+
+func sleepWithContext(ctx context.Context, baseDelay time.Duration) error {
+	jitter := time.Duration(rand.Int64N(int64(baseDelay)/retryJitterFraction + 1))
+	retryTimer := time.NewTimer(baseDelay + jitter)
+	defer retryTimer.Stop()
+
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-retryTimer.C:
+		return nil
+	}
+}
+
+func isRetryableStatus(requestMethod string, statusCode int) bool {
+	if statusCode == http.StatusTooManyRequests {
+		return true
+	}
+	if requestMethod == http.MethodPost {
+		return false
+	}
+	return statusCode == http.StatusBadGateway || statusCode == http.StatusServiceUnavailable || statusCode == http.StatusGatewayTimeout
+}
 
 type Client struct {
 	projectID   string
@@ -77,8 +102,6 @@ func (healthcareClient *Client) CreateResource(ctx context.Context, resourceType
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal resource: %w", err)
 	}
-
-	slog.Debug("sending create resource request", "resource_type", resourceType, "body", string(bodyBytes))
 
 	endpoint := fmt.Sprintf("%s/%s", healthcareClient.baseURL, url.PathEscape(resourceType))
 	request, err := http.NewRequestWithContext(ctx, http.MethodPost, endpoint, bytes.NewReader(bodyBytes))
@@ -167,12 +190,30 @@ func (healthcareClient *Client) SearchResources(ctx context.Context, resourceTyp
 		bundle = nextBundle
 	}
 
+	if remainingLinks, hasRemainingLinks := bundle["link"].([]interface{}); hasRemainingLinks && hasNextPageLink(remainingLinks) {
+		slog.Warn("search results truncated at maximum pagination pages", "resource_type", resourceType, "max_pages", maxPaginationPages)
+	}
+
 	mergedResponse, marshalError := json.Marshal(accumulatedBundle)
 	if marshalError != nil {
 		return nil, fmt.Errorf("failed to marshal merged bundle: %w", marshalError)
 	}
 
 	return mergedResponse, nil
+}
+
+func hasNextPageLink(links []interface{}) bool {
+	for _, rawLink := range links {
+		linkEntry, ok := rawLink.(map[string]interface{})
+		if !ok {
+			continue
+		}
+		if relation, ok := linkEntry["relation"].(string); ok && relation == "next" {
+			nextPageURL, _ := linkEntry["url"].(string)
+			return nextPageURL != ""
+		}
+	}
+	return false
 }
 
 func (healthcareClient *Client) SearchResourcesPage(ctx context.Context, resourceType, queryParams string) (json.RawMessage, error) {
@@ -191,8 +232,6 @@ func (healthcareClient *Client) UpdateResource(ctx context.Context, resourceType
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal resource: %w", err)
 	}
-
-	slog.Debug("sending update resource request", "resource_type", resourceType, "resource_id", resourceID, "body", string(bodyBytes))
 
 	endpoint := fmt.Sprintf("%s/%s/%s", healthcareClient.baseURL, url.PathEscape(resourceType), url.PathEscape(resourceID))
 	request, err := http.NewRequestWithContext(ctx, http.MethodPut, endpoint, bytes.NewReader(bodyBytes))
@@ -238,13 +277,26 @@ func (healthcareClient *Client) doWithRetry(request *http.Request, resourceType,
 		return string(body)
 	}
 
+	requestContext := request.Context()
+	isIdempotentRequest := request.Method != http.MethodPost
+
 	var lastError error
 	for attemptIndex := 0; attemptIndex <= maxRetryAttempts; attemptIndex++ {
+		if attemptIndex > 0 && request.GetBody != nil {
+			replayedBody, bodyError := request.GetBody()
+			if bodyError != nil {
+				return nil, fmt.Errorf("failed to rewind request body: %w", bodyError)
+			}
+			request.Body = replayedBody
+		}
+
 		response, requestError := healthcareClient.httpClient.Do(request)
 		if requestError != nil {
 			lastError = fmt.Errorf("request failed: %w", requestError)
-			if attemptIndex < maxRetryAttempts {
-				time.Sleep(retryDelays[attemptIndex])
+			if isIdempotentRequest && attemptIndex < maxRetryAttempts {
+				if sleepError := sleepWithContext(requestContext, retryDelays[attemptIndex]); sleepError != nil {
+					return nil, fmt.Errorf("request failed: %w", sleepError)
+				}
 				continue
 			}
 			return nil, lastError
@@ -263,11 +315,12 @@ func (healthcareClient *Client) doWithRetry(request *http.Request, resourceType,
 			return nil, lastError
 		}
 
-		if response.StatusCode == http.StatusTooManyRequests || response.StatusCode == http.StatusBadGateway ||
-			response.StatusCode == http.StatusServiceUnavailable || response.StatusCode == http.StatusGatewayTimeout {
+		if isRetryableStatus(request.Method, response.StatusCode) {
 			if attemptIndex < maxRetryAttempts {
 				lastError = fmt.Errorf("healthcare api: unexpected status %d - %s", response.StatusCode, truncateErrorBody(responseBody))
-				time.Sleep(retryDelays[attemptIndex])
+				if sleepError := sleepWithContext(requestContext, retryDelays[attemptIndex]); sleepError != nil {
+					return nil, fmt.Errorf("request failed: %w", sleepError)
+				}
 				continue
 			}
 			return nil, fmt.Errorf("healthcare api: unexpected status %d - %s", response.StatusCode, truncateErrorBody(responseBody))

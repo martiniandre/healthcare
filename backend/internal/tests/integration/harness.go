@@ -192,6 +192,8 @@ func newTestServer(t *testing.T) *testServer {
 	router := api.NewRouter(
 		secureCookies,
 		true,
+		"",
+		nil,
 		auth.NewHTTPHandler(authService, secureCookies),
 		patients.NewHTTPHandler(patientsService),
 		encounter.NewHTTPHandler(encounterService),

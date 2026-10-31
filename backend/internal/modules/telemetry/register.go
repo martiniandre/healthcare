@@ -3,9 +3,9 @@ package telemetry
 import (
 	"context"
 
-	"github.com/jackc/pgx/v5/pgxpool"
 	telemetrypb "github.com/healthcare/backend/internal/modules/telemetry/pb"
 	"github.com/healthcare/backend/internal/shared/eventbus"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"google.golang.org/grpc"
 )
 
@@ -20,6 +20,10 @@ func Register(grpcServer *grpc.Server, dep Dependency) Service {
 	handler := NewGRPCHandler(svc)
 	telemetrypb.RegisterTelemetryServiceServer(grpcServer, handler)
 	return svc
+}
+
+func ShouldRunSimulator(appEnv string, explicitlyEnabled bool) bool {
+	return explicitlyEnabled || appEnv == "development" || appEnv == "test"
 }
 
 func StartSimulator(ctx context.Context, dbPool *pgxpool.Pool, eventBus eventbus.Bus) *Simulator {

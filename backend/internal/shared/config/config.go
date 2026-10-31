@@ -1,10 +1,12 @@
 package config
 
 import (
-	"errors"
 	"fmt"
 	"log"
+	"log/slog"
 	"os"
+	"sort"
+	"strings"
 
 	"github.com/joho/godotenv"
 )
@@ -28,7 +30,13 @@ type Config struct {
 	GCSBucketName        string
 	StorageRoot          string
 	FHIRBaseURL          string
+
+	FrontendURL              string
+	TrustedProxies           []string
+	EnableTelemetrySimulator bool
 }
+
+const minimumJWTSecretLength = 32
 
 func Load() (*Config, error) {
 	err := godotenv.Load()
@@ -55,6 +63,10 @@ func Load() (*Config, error) {
 		GCSBucketName:        getEnv("GCS_BUCKET_NAME", "default-bucket"),
 		StorageRoot:          getEnv("STORAGE_ROOT", "dev"),
 		FHIRBaseURL:          getEnv("FHIR_BASE_URL", ""),
+
+		FrontendURL:              getEnv("FRONTEND_URL", ""),
+		TrustedProxies:           splitCommaSeparated(getEnv("TRUSTED_PROXIES", "")),
+		EnableTelemetrySimulator: strings.EqualFold(strings.TrimSpace(getEnv("ENABLE_TELEMETRY_SIMULATOR", "")), "true"),
 	}
 
 	if validationErr := cfg.validate(); validationErr != nil {
@@ -84,10 +96,28 @@ func (cfg *Config) validate() error {
 	}
 
 	if len(missingFields) > 0 {
-		return errors.New(fmt.Sprintf("missing required environment variables: %v", missingFields))
+		sort.Strings(missingFields)
+		return fmt.Errorf("missing required environment variables: %v", missingFields)
+	}
+
+	if len(cfg.JWTSecret) < minimumJWTSecretLength {
+		if cfg.AppEnv == "production" {
+			return fmt.Errorf("JWT_SECRET must be at least %d characters long in production", minimumJWTSecretLength)
+		}
+		slog.Warn("JWT_SECRET is shorter than the recommended minimum length", "minimum_length", minimumJWTSecretLength)
 	}
 
 	return nil
+}
+
+func splitCommaSeparated(rawValue string) []string {
+	var items []string
+	for _, item := range strings.Split(rawValue, ",") {
+		if trimmedItem := strings.TrimSpace(item); trimmedItem != "" {
+			items = append(items, trimmedItem)
+		}
+	}
+	return items
 }
 
 func getEnv(key, fallback string) string {

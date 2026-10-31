@@ -4,6 +4,7 @@ import { useAuthStore } from "../store/auth_store"
 import { useLayoutStore } from "../store/layout_store"
 import { useAuthRoleLabel } from "../hooks/useAuthRoleLabel"
 import { Menu, ShieldCheck, WifiOff } from "lucide-react"
+import { useNotificationStream } from "../../modules/notifications/hooks/useNotificationStream"
 import { NotificationBell } from "../../modules/notifications/components/NotificationBell"
 
 export const AppHeader = () => {
@@ -12,6 +13,7 @@ export const AppHeader = () => {
   const translateRole = useAuthRoleLabel()
   const toggleMobileSidebar = useLayoutStore((state) => state.toggleMobileSidebar)
   const [isOnline, setIsOnline] = useState(navigator.onLine)
+  useNotificationStream()
 
   useEffect(() => {
     const handleOnline = () => setIsOnline(true)

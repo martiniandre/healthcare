@@ -10,6 +10,23 @@ export function clearCsrfToken(): void {
   csrfTokenFromLogin = null
 }
 
+type UnauthorizedHandler = () => void
+
+const SESSION_ENDPOINT_PATHS = ["/auth/login", "/auth/me", "/auth/logout", "/auth/register"]
+
+let unauthorizedHandler: UnauthorizedHandler | null = null
+
+export function setUnauthorizedHandler(handler: UnauthorizedHandler | null): void {
+  unauthorizedHandler = handler
+}
+
+function isSessionEndpoint(requestUrl: string | undefined): boolean {
+  if (!requestUrl) {
+    return false
+  }
+  return SESSION_ENDPOINT_PATHS.some((sessionPath) => requestUrl.endsWith(sessionPath))
+}
+
 function readCsrfTokenFromCookie(): string | null {
   const cookiePrefix = "csrf_token="
   for (const cookie of document.cookie.split(";")) {
@@ -40,6 +57,14 @@ api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
 api.interceptors.response.use(
   (successfulResponse) => successfulResponse,
   (requestError: AxiosError) => {
+    if (
+      requestError.response?.status === 401 &&
+      !isSessionEndpoint(requestError.config?.url) &&
+      unauthorizedHandler
+    ) {
+      clearCsrfToken()
+      unauthorizedHandler()
+    }
     if (requestError.response) {
       const errorPayload = requestError.response.data as { error?: string }
       if (errorPayload?.error) {

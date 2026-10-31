@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"sync"
@@ -170,5 +171,79 @@ func TestSearchResourcesPageReturnsOnlyTheFirstPage(t *testing.T) {
 		if requestedPath == "/page-2" {
 			t.Fatal("expected SearchResourcesPage not to follow next links")
 		}
+	}
+}
+
+func TestCreateResourceDoesNotRetryOnServiceUnavailable(t *testing.T) {
+	var requestCount int
+	var mutex sync.Mutex
+	server := httptest.NewServer(http.HandlerFunc(func(responseWriter http.ResponseWriter, request *http.Request) {
+		mutex.Lock()
+		requestCount++
+		mutex.Unlock()
+		responseWriter.WriteHeader(http.StatusServiceUnavailable)
+	}))
+	defer server.Close()
+
+	client, clientError := NewClientWithBaseURL(server.URL)
+	if clientError != nil {
+		t.Fatalf("unexpected client error: %v", clientError)
+	}
+
+	if _, createError := client.CreateResource(context.Background(), "Patient", map[string]string{"resourceType": "Patient"}); createError == nil {
+		t.Fatal("expected error from service unavailable response")
+	}
+	if requestCount != 1 {
+		t.Fatalf("expected a single attempt for POST on 503, got %d", requestCount)
+	}
+}
+
+func TestCreateResourceRetriesOnTooManyRequestsWithReplayedBody(t *testing.T) {
+	var attemptBodies []string
+	var mutex sync.Mutex
+	server := httptest.NewServer(http.HandlerFunc(func(responseWriter http.ResponseWriter, request *http.Request) {
+		requestBody, _ := io.ReadAll(request.Body)
+		mutex.Lock()
+		attemptBodies = append(attemptBodies, string(requestBody))
+		attemptNumber := len(attemptBodies)
+		mutex.Unlock()
+		if attemptNumber == 1 {
+			responseWriter.WriteHeader(http.StatusTooManyRequests)
+			return
+		}
+		responseWriter.WriteHeader(http.StatusCreated)
+		_, _ = responseWriter.Write([]byte(`{"resourceType":"Patient","id":"1"}`))
+	}))
+	defer server.Close()
+
+	client, clientError := NewClientWithBaseURL(server.URL)
+	if clientError != nil {
+		t.Fatalf("unexpected client error: %v", clientError)
+	}
+
+	if _, createError := client.CreateResource(context.Background(), "Patient", map[string]string{"resourceType": "Patient"}); createError != nil {
+		t.Fatalf("expected success after retry, got: %v", createError)
+	}
+	if len(attemptBodies) != 2 || attemptBodies[0] != attemptBodies[1] || attemptBodies[1] == "" {
+		t.Fatalf("expected identical non-empty bodies across attempts, got %v", attemptBodies)
+	}
+}
+
+func TestGetResourceStopsRetryingWhenContextIsCancelled(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(responseWriter http.ResponseWriter, request *http.Request) {
+		responseWriter.WriteHeader(http.StatusServiceUnavailable)
+	}))
+	defer server.Close()
+
+	client, clientError := NewClientWithBaseURL(server.URL)
+	if clientError != nil {
+		t.Fatalf("unexpected client error: %v", clientError)
+	}
+
+	cancelledContext, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	if _, getError := client.GetResource(cancelledContext, "Patient", "1"); getError == nil {
+		t.Fatal("expected error when context is cancelled")
 	}
 }

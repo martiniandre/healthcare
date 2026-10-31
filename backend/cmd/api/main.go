@@ -58,6 +58,8 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
+const shutdownTimeout = 15 * time.Second
+
 func main() {
 	appConfig, loadError := config.Load()
 	if loadError != nil {
@@ -90,7 +92,8 @@ func main() {
 		os.Exit(1)
 	}
 
-	mainContext := context.Background()
+	mainContext, stopSignalNotification := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stopSignalNotification()
 
 	databasePool, connectionError := database.Connect(mainContext, appConfig.DBUrl)
 	if connectionError != nil {
@@ -134,7 +137,11 @@ func main() {
 	}
 	imagingService := imaging.Register(applicationServer.GRPCServer, imaging.Dependency{DB: databasePool, Storage: storageClient, Redis: redisClient, AuditService: auditLogsService})
 	telemetryService := telemetry.Register(applicationServer.GRPCServer, telemetry.Dependency{DB: databasePool, EventBus: eventBus})
-	telemetrySimulator := telemetry.StartSimulator(mainContext, databasePool, eventBus)
+	var telemetrySimulator *telemetry.Simulator
+	if telemetry.ShouldRunSimulator(appConfig.AppEnv, appConfig.EnableTelemetrySimulator) {
+		telemetrySimulator = telemetry.StartSimulator(mainContext, databasePool, eventBus)
+		slog.Info("Telemetry simulator started", "env", appConfig.AppEnv)
+	}
 	health.Register(applicationServer.GRPCServer, health.Dependency{DB: databasePool, Redis: redisClient})
 	analyticsHTTPHandler := analytics.Register(analytics.Dependency{DB: databasePool, FHIRClient: fhirClient})
 	portalHTTPHandler := portal.Register(portal.Dependency{FHIRClient: fhirClient, DB: databasePool})
@@ -165,9 +172,17 @@ func main() {
 	auditLogsHTTPHandler := audit_logs.NewHTTPHandler(auditLogsService)
 	healthHTTPHandler := health.NewHTTPHandler(databasePool, redisClient)
 
+	trustedProxyNetworks, trustedProxiesError := middleware.ParseTrustedProxies(appConfig.TrustedProxies)
+	if trustedProxiesError != nil {
+		slog.Error("Invalid TRUSTED_PROXIES configuration", "error", trustedProxiesError)
+		os.Exit(1)
+	}
+
 	router := api.NewRouter(
 		secureCookies,
 		swaggerEnabled,
+		appConfig.FrontendURL,
+		trustedProxyNetworks,
 		authHTTPHandler,
 		patientsHTTPHandler,
 		encounterHTTPHandler,
@@ -220,21 +235,39 @@ func main() {
 		}
 	}()
 
-	quitSignalChannel := make(chan os.Signal, 1)
-	signal.Notify(quitSignalChannel, os.Interrupt, syscall.SIGTERM)
-	<-quitSignalChannel
+	<-mainContext.Done()
 
 	slog.Info("Shutting down servers gracefully...")
-	examAnalyzerWorker.Stop()
-	imagingWorker.Stop()
-	telemetrySimulator.Stop()
-	applicationServer.GRPCServer.GracefulStop()
 
-	ctxShutdownTimeout, cancelShutdown := context.WithTimeout(context.Background(), 5*time.Second)
+	ctxShutdownTimeout, cancelShutdown := context.WithTimeout(context.Background(), shutdownTimeout)
 	defer cancelShutdown()
 
 	if shutdownError := httpServer.Shutdown(ctxShutdownTimeout); shutdownError != nil {
 		slog.Error("Failed to shutdown HTTP server", "error", shutdownError)
+	}
+
+	examAnalyzerWorker.Stop()
+	imagingWorker.Stop()
+	if telemetrySimulator != nil {
+		telemetrySimulator.Stop()
+	}
+
+	grpcStopped := make(chan struct{})
+	go func() {
+		applicationServer.GRPCServer.GracefulStop()
+		close(grpcStopped)
+	}()
+	select {
+	case <-grpcStopped:
+	case <-time.After(shutdownTimeout):
+		slog.Warn("gRPC graceful stop timed out, forcing stop")
+		applicationServer.GRPCServer.Stop()
+	}
+
+	if redisClient != nil {
+		if redisCloseError := redisClient.Close(); redisCloseError != nil {
+			slog.Error("Failed to close Redis client", "error", redisCloseError)
+		}
 	}
 
 	slog.Info("Server stopped")
