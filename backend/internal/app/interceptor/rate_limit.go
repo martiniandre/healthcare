@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"net"
 	"os"
 	"strconv"
 	"strings"
@@ -48,14 +49,14 @@ func isRateLimitExceeded(ctx context.Context, limiter ratelimit.Limiter, key str
 	return !allowed
 }
 
-func UnaryRateLimitInterceptor(limiter ratelimit.Limiter) grpc.UnaryServerInterceptor {
+func UnaryRateLimitInterceptor(limiter ratelimit.Limiter, trustedNetworks []*net.IPNet) grpc.UnaryServerInterceptor {
 	return func(
 		ctx context.Context,
 		req interface{},
 		info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler,
 	) (interface{}, error) {
-		rateLimitKey := fmt.Sprintf("grpc:%s:%s", info.FullMethod, extractClientIP(ctx))
+		rateLimitKey := fmt.Sprintf("grpc:%s:%s", info.FullMethod, extractClientIP(ctx, trustedNetworks))
 		if isRateLimitExceeded(ctx, limiter, rateLimitKey, resolveBudget(info.FullMethod)) {
 			return nil, apperrors.ErrRateLimitExceeded.ToGRPC()
 		}
@@ -64,32 +65,35 @@ func UnaryRateLimitInterceptor(limiter ratelimit.Limiter) grpc.UnaryServerInterc
 	}
 }
 
-func extractClientIP(ctx context.Context) string {
+func extractClientIP(ctx context.Context, trustedNetworks []*net.IPNet) string {
+	peerAddress := ""
+	if peerInfo, ok := peer.FromContext(ctx); ok && peerInfo.Addr != nil {
+		peerAddress = peerInfo.Addr.String()
+	}
+	if peerAddress == "" {
+		return "unknown"
+	}
+
+	forwardedFor := ""
+	realIP := ""
 	if incomingMetadata, ok := metadata.FromIncomingContext(ctx); ok {
-		forwardedFor := incomingMetadata.Get("x-forwarded-for")
-		if len(forwardedFor) > 0 {
-			clientIP := strings.TrimSpace(strings.Split(forwardedFor[0], ",")[0])
-			if clientIP != "" {
-				return clientIP
-			}
+		forwardedFor = strings.Join(incomingMetadata.Get("x-forwarded-for"), ",")
+		if realIPValues := incomingMetadata.Get("x-real-ip"); len(realIPValues) > 0 {
+			realIP = realIPValues[0]
 		}
 	}
 
-	if peerInfo, ok := peer.FromContext(ctx); ok {
-		return peerInfo.Addr.String()
-	}
-
-	return "unknown"
+	return ratelimit.ResolveClientIP(peerAddress, forwardedFor, realIP, trustedNetworks)
 }
 
-func StreamRateLimitInterceptor(limiter ratelimit.Limiter) grpc.StreamServerInterceptor {
+func StreamRateLimitInterceptor(limiter ratelimit.Limiter, trustedNetworks []*net.IPNet) grpc.StreamServerInterceptor {
 	return func(
 		srv interface{},
 		stream grpc.ServerStream,
 		info *grpc.StreamServerInfo,
 		handler grpc.StreamHandler,
 	) error {
-		rateLimitKey := fmt.Sprintf("grpc-stream:%s:%s", info.FullMethod, extractClientIP(stream.Context()))
+		rateLimitKey := fmt.Sprintf("grpc-stream:%s:%s", info.FullMethod, extractClientIP(stream.Context(), trustedNetworks))
 		if isRateLimitExceeded(stream.Context(), limiter, rateLimitKey, resolveBudget(info.FullMethod)) {
 			return apperrors.ErrRateLimitExceeded.ToGRPC()
 		}

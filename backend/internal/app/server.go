@@ -1,6 +1,7 @@
 package app
 
 import (
+	"net"
 	"time"
 
 	"github.com/healthcare/backend/internal/app/interceptor"
@@ -15,7 +16,7 @@ type Server struct {
 	GRPCServer *grpc.Server
 }
 
-func NewServer(redisClient *redis.Client) *Server {
+func NewServer(redisClient *redis.Client, trustedProxyNetworks []*net.IPNet) *Server {
 	rateLimiter := ratelimit.NewDefaultLimiter(redisClient)
 
 	keepaliveParams := grpc.KeepaliveParams(keepalive.ServerParameters{
@@ -35,7 +36,7 @@ func NewServer(redisClient *redis.Client) *Server {
 		interceptor.UnaryRequestIDInterceptor(),
 		interceptor.UnaryLoggingInterceptor(),
 		interceptor.UnaryTimeoutInterceptor(),
-		interceptor.UnaryRateLimitInterceptor(rateLimiter),
+		interceptor.UnaryRateLimitInterceptor(rateLimiter, trustedProxyNetworks),
 		interceptor.UnaryCSRFInterceptor(),
 		interceptor.UnaryAuthInterceptor(),
 		interceptor.UnaryAuditTrailInterceptor(),
@@ -43,7 +44,7 @@ func NewServer(redisClient *redis.Client) *Server {
 
 	chainedStreamInterceptor := grpc.ChainStreamInterceptor(
 		interceptor.StreamLoggingInterceptor(),
-		interceptor.StreamRateLimitInterceptor(rateLimiter),
+		interceptor.StreamRateLimitInterceptor(rateLimiter, trustedProxyNetworks),
 		interceptor.StreamAuthInterceptor(),
 		interceptor.StreamAuditTrailInterceptor(),
 	)

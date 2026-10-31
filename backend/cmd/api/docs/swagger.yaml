@@ -1,6 +1,6 @@
 basePath: /api
 definitions:
-  allergy.AllergyResponse:
+  internal_modules_allergy.AllergyResponse:
     properties:
       allergen_code:
         type: string
@@ -17,7 +17,7 @@ definitions:
       reaction:
         type: string
     type: object
-  allergy.CreateAllergyRequest:
+  internal_modules_allergy.CreateAllergyRequest:
     properties:
       allergen_code:
         type: string
@@ -26,7 +26,7 @@ definitions:
       reaction:
         type: string
     type: object
-  allergy.CreateAllergyResponse:
+  internal_modules_allergy.CreateAllergyResponse:
     properties:
       allergen_code:
         type: string
@@ -43,7 +43,74 @@ definitions:
       reaction:
         type: string
     type: object
-  analytics.ExamModality:
+  internal_modules_analytics.AvgWaitTime:
+    properties:
+      average_minutes:
+        type: number
+      by_department:
+        items:
+          $ref: '#/definitions/internal_modules_analytics.DepartmentWaitTime'
+        type: array
+    type: object
+  internal_modules_analytics.DashboardData:
+    properties:
+      active_patients:
+        type: integer
+      avg_wait_time_minutes:
+        type: number
+      consultations_per_doctor:
+        items:
+          $ref: '#/definitions/internal_modules_analytics.DoctorConsultation'
+        type: array
+      consultations_today:
+        type: integer
+      consultations_trend:
+        type: string
+      exams_today:
+        type: integer
+      new_diagnoses_today:
+        type: integer
+      occupancy_occupied_beds:
+        type: integer
+      occupancy_rate:
+        type: number
+      occupancy_total_beds:
+        type: integer
+      top_diagnoses:
+        items:
+          $ref: '#/definitions/internal_modules_analytics.DiagnosisCount'
+        type: array
+      wait_time_by_department:
+        items:
+          $ref: '#/definitions/internal_modules_analytics.DepartmentWaitTime'
+        type: array
+    type: object
+  internal_modules_analytics.DepartmentWaitTime:
+    properties:
+      department:
+        type: string
+      minutes:
+        type: number
+    type: object
+  internal_modules_analytics.DiagnosisCount:
+    properties:
+      count:
+        type: integer
+      description:
+        type: string
+      icd10_code:
+        type: string
+    type: object
+  internal_modules_analytics.DoctorConsultation:
+    properties:
+      count:
+        type: integer
+      doctor_name:
+        type: string
+      specialty:
+        type: string
+    type: object
+  internal_modules_analytics.ExamModality:
     properties:
       color:
         type: string
@@ -54,7 +121,16 @@ definitions:
       percentage:
         type: number
     type: object
-  analytics.PathologyCase:
+  internal_modules_analytics.OccupancyRate:
+    properties:
+      occupied_beds:
+        type: integer
+      rate:
+        type: number
+      total_beds:
+        type: integer
+    type: object
+  internal_modules_analytics.PathologyCase:
     properties:
       activeCases:
         type: integer
@@ -67,38 +143,40 @@ definitions:
       trend:
         type: string
     type: object
-  analytics.Stats:
+  internal_modules_analytics.Stats:
     properties:
       avg_service_duration_minutes:
         type: number
       exam_modalities:
         items:
-          $ref: '#/definitions/analytics.ExamModality'
+          $ref: '#/definitions/internal_modules_analytics.ExamModality'
         type: array
       fhir_compliance_rate:
         type: number
       pathology_cases:
         items:
-          $ref: '#/definitions/analytics.PathologyCase'
+          $ref: '#/definitions/internal_modules_analytics.PathologyCase'
         type: array
       total_patients:
         type: integer
       weekly_consultations:
         items:
-          $ref: '#/definitions/analytics.WeeklyConsultation'
+          $ref: '#/definitions/internal_modules_analytics.WeeklyConsultation'
         type: array
     type: object
-  analytics.WeeklyConsultation:
+  internal_modules_analytics.WeeklyConsultation:
     properties:
       count:
         type: integer
       dayName:
         type: string
     type: object
-  audit_logs.AuditLog:
+  internal_modules_audit_logs.AuditLog:
     properties:
       access_granted:
         type: boolean
+      action:
+        type: string
       caller_role:
         type: string
       caller_user_id:
@@ -111,17 +189,26 @@ definitions:
         type: string
       method:
         type: string
+      payload_diff:
+        additionalProperties: {}
+        type: object
+      resource_id:
+        type: string
+      resource_type:
+        type: string
     type: object
-  audit_logs.AuditLogListResponse:
+  internal_modules_audit_logs.AuditLogListResponse:
     properties:
       audit_logs: {}
       total:
         type: integer
     type: object
-  audit_logs.CreateAuditLogRequest:
+  internal_modules_audit_logs.CreateAuditLogRequest:
     properties:
       access_granted:
         type: boolean
+      action:
+        type: string
       caller_role:
         type: string
       caller_user_id:
@@ -130,16 +217,25 @@ definitions:
         type: string
       method:
         type: string
+      payload_diff:
+        additionalProperties: {}
+        type: object
+      resource_id:
+        type: string
+      resource_type:
+        type: string
     type: object
-  auth.LoginRequest:
+  internal_modules_auth.LoginRequest:
     properties:
       email:
         type: string
       password:
         type: string
     type: object
-  auth.LoginResponse:
+  internal_modules_auth.LoginResponse:
     properties:
+      csrfToken:
+        type: string
       email:
         type: string
       role:
@@ -147,7 +243,7 @@ definitions:
       userId:
         type: string
     type: object
-  condition.ConditionResponse:
+  internal_modules_condition.ConditionResponse:
     properties:
       clinical_status:
         type: string
@@ -162,14 +258,16 @@ definitions:
       patient_fhir_id:
         type: string
     type: object
-  condition.CreateConditionRequest:
+  internal_modules_condition.CreateConditionRequest:
     properties:
       code_display:
+        type: string
+      encounter_id:
         type: string
       icd10_code:
         type: string
     type: object
-  condition.CreateConditionResponse:
+  internal_modules_condition.CreateConditionResponse:
     properties:
       clinical_status:
         type: string
@@ -184,16 +282,18 @@ definitions:
       patient_fhir_id:
         type: string
     type: object
-  diagnostic_report.CreateDiagnosticReportRequest:
+  internal_modules_diagnostic_report.CreateDiagnosticReportRequest:
     properties:
       conclusion:
         type: string
       patient_fhir_id:
         type: string
+      report_code:
+        type: string
       report_display:
         type: string
     type: object
-  diagnostic_report.CreateDiagnosticReportResponse:
+  internal_modules_diagnostic_report.CreateDiagnosticReportResponse:
     properties:
       conclusion:
         type: string
@@ -209,8 +309,10 @@ definitions:
         type: string
       status:
         type: string
+      version:
+        type: string
     type: object
-  diagnostic_report.DiagnosticReportResponse:
+  internal_modules_diagnostic_report.DiagnosticReportResponse:
     properties:
       conclusion:
         type: string
@@ -226,15 +328,43 @@ definitions:
         type: string
       status:
         type: string
+      version:
+        type: string
     type: object
-  encounter.CreateEncounterRequest:
+  internal_modules_diagnostic_report.DiagnosticReportVersionResponse:
+    properties:
+      changed_at:
+        type: string
+      changed_by:
+        type: string
+      snapshot:
+        items:
+          type: integer
+        type: array
+      version:
+        type: string
+    type: object
+  internal_modules_diagnostic_report.UpdateDiagnosticReportRequest:
+    properties:
+      conclusion:
+        type: string
+      report_code:
+        type: string
+      report_display:
+        type: string
+      status:
+        type: string
+    type: object
+  internal_modules_encounter.CreateEncounterRequest:
     properties:
       practitioner_id:
+        type: string
+      reason_code:
         type: string
       reason_display:
         type: string
     type: object
-  encounter.CreateEncounterResponse:
+  internal_modules_encounter.CreateEncounterResponse:
     properties:
       created_at:
         type: string
@@ -249,7 +379,7 @@ definitions:
       status:
         type: string
     type: object
-  encounter.EncounterResponse:
+  internal_modules_encounter.EncounterResponse:
     properties:
       created_at:
         type: string
@@ -264,12 +394,12 @@ definitions:
       status:
         type: string
     type: object
-  exam_analyzer.DeleteAnalysisResponse:
+  internal_modules_exam_analyzer.DeleteAnalysisResponse:
     properties:
       success:
         type: string
     type: object
-  exam_analyzer.ExamAnalysisResponse:
+  internal_modules_exam_analyzer.ExamAnalysisResponse:
     properties:
       analysis_response:
         type: string
@@ -294,7 +424,7 @@ definitions:
       user_id:
         type: string
     type: object
-  imaging.HTTPImagingStudyResponse:
+  internal_modules_imaging.HTTPImagingStudyResponse:
     properties:
       created_at:
         type: string
@@ -313,7 +443,7 @@ definitions:
       title:
         type: string
     type: object
-  medication.CreateMedicationRequest:
+  internal_modules_medication.CreateMedicationRequest:
     properties:
       dosage_instructions:
         type: string
@@ -326,28 +456,7 @@ definitions:
       practitioner_fhir_id:
         type: string
     type: object
-  medication.CreateMedicationResponse:
-    properties:
-      created_at:
-        type: string
-      dosage_instructions:
-        type: string
-      encounter_fhir_id:
-        type: string
-      fhir_id:
-        type: string
-      medication_code:
-        type: string
-      medication_name:
-        type: string
-      patient_fhir_id:
-        type: string
-      practitioner_fhir_id:
-        type: string
-      status:
-        type: string
-    type: object
-  medication.MedicationResponse:
+  internal_modules_medication.CreateMedicationResponse:
     properties:
       created_at:
         type: string
@@ -368,7 +477,28 @@ definitions:
       status:
         type: string
     type: object
-  observation.CreateObservationRequest:
+  internal_modules_medication.MedicationResponse:
+    properties:
+      created_at:
+        type: string
+      dosage_instructions:
+        type: string
+      encounter_fhir_id:
+        type: string
+      fhir_id:
+        type: string
+      medication_code:
+        type: string
+      medication_name:
+        type: string
+      patient_fhir_id:
+        type: string
+      practitioner_fhir_id:
+        type: string
+      status:
+        type: string
+    type: object
+  internal_modules_observation.CreateObservationRequest:
     properties:
       code_display:
         type: string
@@ -381,7 +511,7 @@ definitions:
       value_unit:
         type: string
     type: object
-  observation.CreateObservationResponse:
+  internal_modules_observation.CreateObservationResponse:
     properties:
       code_display:
         type: string
@@ -400,7 +530,7 @@ definitions:
       value_unit:
         type: string
     type: object
-  observation.ObservationResponse:
+  internal_modules_observation.ObservationResponse:
     properties:
       code_display:
         type: string
@@ -412,6 +542,8 @@ definitions:
         type: string
       loinc_code:
         type: string
+      not_performed:
+        type: boolean
       patient_fhir_id:
         type: string
       value_quantity:
@@ -419,7 +551,7 @@ definitions:
       value_unit:
         type: string
     type: object
-  patients.CreatePatientRequest:
+  internal_modules_patients.CreatePatientRequest:
     properties:
       birth_date:
         type: string
@@ -430,14 +562,27 @@ definitions:
       phone_number:
         type: string
     type: object
-  patients.CreatePatientResponse:
+  internal_modules_patients.CreatePatientResponse:
     properties:
       fhir_resource_id:
         type: string
       patient_id:
         type: string
     type: object
-  patients.PatientListResponse:
+  internal_modules_patients.PatientListEnvelope:
+    properties:
+      limit:
+        type: integer
+      page:
+        type: integer
+      patients:
+        items:
+          $ref: '#/definitions/internal_modules_patients.PatientListResponse'
+        type: array
+      total:
+        type: integer
+    type: object
+  internal_modules_patients.PatientListResponse:
     properties:
       birth_date:
         type: string
@@ -452,7 +597,56 @@ definitions:
       phone_number:
         type: string
     type: object
-  staff.CreateEmployeeRequest:
+  internal_modules_schedule.AppointmentResponse:
+    properties:
+      created_at:
+        type: string
+      ends_at:
+        type: string
+      id:
+        type: string
+      patient_fhir_id:
+        type: string
+      reason:
+        type: string
+      staff_id:
+        type: string
+      starts_at:
+        type: string
+      status:
+        type: string
+      version:
+        type: integer
+    type: object
+  internal_modules_schedule.CreateAppointmentRequest:
+    properties:
+      ends_at:
+        type: string
+      idempotency_key:
+        type: string
+      patient_fhir_id:
+        type: string
+      reason:
+        type: string
+      staff_id:
+        type: string
+      starts_at:
+        type: string
+    type: object
+  internal_modules_schedule.UpdateAppointmentRequest:
+    properties:
+      ends_at:
+        type: string
+      patient_fhir_id:
+        type: string
+      reason:
+        type: string
+      staff_id:
+        type: string
+      starts_at:
+        type: string
+    type: object
+  internal_modules_staff.CreateEmployeeRequest:
     properties:
       crm_number:
         type: string
@@ -465,32 +659,74 @@ definitions:
       user_id:
         type: string
     type: object
-  staff.CreateEmployeeResponse:
+  internal_modules_staff.CreateEmployeeResponse:
     properties:
       employee_id:
         type: string
     type: object
-  staff.EmployeeResponse:
+  internal_modules_staff.DepartmentResponse:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+    type: object
+  internal_modules_staff.EmployeeResponse:
     properties:
       crm_number:
         type: string
+      department_id:
+        type: string
+      department_name:
+        type: string
       email:
+        type: string
+      fhir_resource_id:
         type: string
       full_name:
         type: string
       id:
         type: string
+      is_active:
+        type: boolean
       role:
         type: string
     type: object
-  telemetry.TelemetryBedResponse:
+  internal_modules_staff.SetEmployeeStatusRequest:
+    properties:
+      is_active:
+        type: boolean
+    type: object
+  internal_modules_telemetry.BedStatus:
+    enum:
+    - normal
+    - warning
+    - danger
+    type: string
+    x-enum-varnames:
+    - BedStatusNormal
+    - BedStatusWarning
+    - BedStatusDanger
+  internal_modules_telemetry.CardiacCondition:
+    enum:
+    - normal
+    - bradycardia
+    - tachycardia
+    - cardiac-arrest
+    type: string
+    x-enum-varnames:
+    - CardiacConditionNormal
+    - CardiacConditionBradycardia
+    - CardiacConditionTachycardia
+    - CardiacConditionCardiacArrest
+  internal_modules_telemetry.TelemetryBedResponse:
     properties:
       bed_label:
         type: string
       bpm:
         type: integer
       condition:
-        type: string
+        $ref: '#/definitions/internal_modules_telemetry.CardiacCondition'
       id:
         type: string
       room_id:
@@ -498,11 +734,11 @@ definitions:
       spo2:
         type: integer
       status:
-        type: string
+        $ref: '#/definitions/internal_modules_telemetry.BedStatus'
       temperature:
         type: number
     type: object
-  telemetry.TelemetryRoomResponse:
+  internal_modules_telemetry.TelemetryRoomResponse:
     properties:
       id:
         type: string
@@ -511,19 +747,19 @@ definitions:
       status:
         type: string
     type: object
-  telemetry.UnlockRoomRequest:
+  internal_modules_telemetry.UnlockRoomRequest:
     properties:
       passcode:
         type: string
     type: object
-  telemetry.UnlockRoomResponse:
+  internal_modules_telemetry.UnlockRoomResponse:
     properties:
       roomName:
         type: string
       success:
         type: boolean
     type: object
-  telemetry.UpdateBedConditionRequest:
+  internal_modules_telemetry.UpdateBedConditionRequest:
     properties:
       bpm:
         type: integer
@@ -536,10 +772,58 @@ definitions:
       temperature:
         type: number
     type: object
-  telemetry.UpdateBedConditionResponse:
+  internal_modules_telemetry.UpdateBedConditionResponse:
     properties:
       success:
         type: boolean
+    type: object
+  internal_modules_timeline.ItemResponse:
+    properties:
+      clinicalDate:
+        type: string
+      encounterId:
+        type: string
+      id:
+        type: string
+      occurredAt:
+        type: string
+      resourceId:
+        type: string
+      status:
+        type: string
+      summary:
+        type: string
+      title:
+        type: string
+      type:
+        type: string
+    type: object
+  internal_modules_timeline.PartialResponse:
+    properties:
+      failedTypes:
+        items:
+          type: string
+        type: array
+    type: object
+  internal_modules_timeline.TimelineResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/internal_modules_timeline.ItemResponse'
+        type: array
+      nextCursor:
+        type: string
+      partial:
+        $ref: '#/definitions/internal_modules_timeline.PartialResponse'
+      window:
+        $ref: '#/definitions/internal_modules_timeline.WindowResponse'
+    type: object
+  internal_modules_timeline.WindowResponse:
+    properties:
+      from:
+        type: string
+      to:
+        type: string
     type: object
 host: localhost:8080
 info:
@@ -566,7 +850,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/analytics.Stats'
+            $ref: '#/definitions/internal_modules_analytics.Stats'
         "500":
           description: Internal Server Error
           schema:
@@ -576,6 +860,330 @@ paths:
       summary: Get analytics statistics
       tags:
       - analytics
+  /analytics/dashboard:
+    get:
+      consumes:
+      - application/json
+      description: Returns aggregated KPIs for the clinical dashboard including consultations,
+        occupancy, wait times, and diagnoses
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_modules_analytics.DashboardData'
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get clinical dashboard data
+      tags:
+      - analytics
+  /analytics/dashboard/avg-wait-time:
+    get:
+      consumes:
+      - application/json
+      description: Returns average wait time by department for the dashboard
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_modules_analytics.AvgWaitTime'
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get average wait time
+      tags:
+      - analytics
+  /analytics/dashboard/consultations-per-doctor:
+    get:
+      consumes:
+      - application/json
+      description: Returns consultations grouped by doctor for the dashboard
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/internal_modules_analytics.DoctorConsultation'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get consultations per doctor
+      tags:
+      - analytics
+  /analytics/dashboard/occupancy-rate:
+    get:
+      consumes:
+      - application/json
+      description: Returns bed/room occupancy rate for the dashboard
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_modules_analytics.OccupancyRate'
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get occupancy rate
+      tags:
+      - analytics
+  /analytics/dashboard/top-diagnoses:
+    get:
+      consumes:
+      - application/json
+      description: Returns the most common diagnoses for the dashboard
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/internal_modules_analytics.DiagnosisCount'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get top diagnoses
+      tags:
+      - analytics
+  /appointments:
+    get:
+      consumes:
+      - application/json
+      description: Lists appointments filtered by patient or by staff on a date
+      parameters:
+      - description: Patient FHIR ID
+        in: query
+        name: patient_fhir_id
+        type: string
+      - description: Staff UUID
+        in: query
+        name: staff_id
+        type: string
+      - description: Date (YYYY-MM-DD) for staff listing
+        in: query
+        name: date
+        type: string
+      - description: Range start date (YYYY-MM-DD), requires end_date
+        in: query
+        name: start_date
+        type: string
+      - description: Range end date (YYYY-MM-DD), requires start_date
+        in: query
+        name: end_date
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/internal_modules_schedule.AppointmentResponse'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List appointments
+      tags:
+      - appointments
+    post:
+      consumes:
+      - application/json
+      description: Books a time slot for a patient with a staff member (idempotent)
+      parameters:
+      - description: Appointment data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_modules_schedule.CreateAppointmentRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/internal_modules_schedule.AppointmentResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: Conflict
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create an appointment
+      tags:
+      - appointments
+  /appointments/{appointmentId}:
+    get:
+      consumes:
+      - application/json
+      description: Returns a single appointment by ID
+      parameters:
+      - description: Appointment UUID
+        in: path
+        name: appointmentId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_modules_schedule.AppointmentResponse'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get an appointment
+      tags:
+      - appointments
+    put:
+      consumes:
+      - application/json
+      description: Updates an existing appointment's patient, staff and time slot
+      parameters:
+      - description: Appointment UUID
+        in: path
+        name: appointmentId
+        required: true
+        type: string
+      - description: Updated appointment data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_modules_schedule.UpdateAppointmentRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_modules_schedule.AppointmentResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: Conflict
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Update an appointment
+      tags:
+      - appointments
+  /appointments/{appointmentId}/cancel:
+    post:
+      consumes:
+      - application/json
+      description: Cancels an existing appointment (idempotent)
+      parameters:
+      - description: Appointment UUID
+        in: path
+        name: appointmentId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_modules_schedule.AppointmentResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Cancel an appointment
+      tags:
+      - appointments
+  /appointments/my:
+    get:
+      description: Returns appointments for the authenticated patient
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/internal_modules_schedule.AppointmentResponse'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List the authenticated patient's appointments
+      tags:
+      - appointments
   /audit-logs:
     get:
       consumes:
@@ -598,7 +1206,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/audit_logs.AuditLogListResponse'
+            $ref: '#/definitions/internal_modules_audit_logs.AuditLogListResponse'
         "500":
           description: Internal Server Error
           schema:
@@ -618,14 +1226,14 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/audit_logs.CreateAuditLogRequest'
+          $ref: '#/definitions/internal_modules_audit_logs.CreateAuditLogRequest'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/audit_logs.AuditLog'
+            $ref: '#/definitions/internal_modules_audit_logs.AuditLog'
         "400":
           description: Bad Request
           schema:
@@ -653,14 +1261,14 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/auth.LoginRequest'
+          $ref: '#/definitions/internal_modules_auth.LoginRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/auth.LoginResponse'
+            $ref: '#/definitions/internal_modules_auth.LoginResponse'
         "400":
           description: Bad Request
           schema:
@@ -680,7 +1288,8 @@ paths:
     post:
       consumes:
       - application/json
-      description: Clears authentication and CSRF cookies to log the user out
+      description: Revokes the current session (access token and refresh token family)
+        and clears authentication, refresh and CSRF cookies
       produces:
       - application/json
       responses:
@@ -727,6 +1336,35 @@ paths:
       summary: Get current user
       tags:
       - auth
+  /auth/refresh:
+    post:
+      consumes:
+      - application/json
+      description: Rotates the refresh token cookie and issues a new short-lived access
+        token cookie. Requires the X-CSRF-Token header matching the csrf_token cookie.
+        Reuse of an already rotated refresh token revokes the whole session family.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_modules_auth.LoginResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Refresh session
+      tags:
+      - auth
   /encounters/{encounterFhirId}/medications:
     get:
       consumes:
@@ -745,7 +1383,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/medication.MedicationResponse'
+              $ref: '#/definitions/internal_modules_medication.MedicationResponse'
             type: array
         "500":
           description: Internal Server Error
@@ -771,14 +1409,14 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/medication.CreateMedicationRequest'
+          $ref: '#/definitions/internal_modules_medication.CreateMedicationRequest'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/medication.CreateMedicationResponse'
+            $ref: '#/definitions/internal_modules_medication.CreateMedicationResponse'
         "400":
           description: Bad Request
           schema:
@@ -812,7 +1450,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/observation.ObservationResponse'
+              $ref: '#/definitions/internal_modules_observation.ObservationResponse'
             type: array
         "500":
           description: Internal Server Error
@@ -838,14 +1476,14 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/observation.CreateObservationRequest'
+          $ref: '#/definitions/internal_modules_observation.CreateObservationRequest'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/observation.CreateObservationResponse'
+            $ref: '#/definitions/internal_modules_observation.CreateObservationResponse'
         "400":
           description: Bad Request
           schema:
@@ -879,7 +1517,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/diagnostic_report.DiagnosticReportResponse'
+              $ref: '#/definitions/internal_modules_diagnostic_report.DiagnosticReportResponse'
             type: array
         "500":
           description: Internal Server Error
@@ -905,14 +1543,14 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/diagnostic_report.CreateDiagnosticReportRequest'
+          $ref: '#/definitions/internal_modules_diagnostic_report.CreateDiagnosticReportRequest'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/diagnostic_report.CreateDiagnosticReportResponse'
+            $ref: '#/definitions/internal_modules_diagnostic_report.CreateDiagnosticReportResponse'
         "400":
           description: Bad Request
           schema:
@@ -946,7 +1584,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/exam_analyzer.ExamAnalysisResponse'
+              $ref: '#/definitions/internal_modules_exam_analyzer.ExamAnalysisResponse'
             type: array
         "500":
           description: Internal Server Error
@@ -976,6 +1614,10 @@ paths:
         in: formData
         name: anonymize
         type: string
+      - description: Required true when anonymize is false
+        in: formData
+        name: acknowledgeExternalProcessing
+        type: string
       - description: Medical exam file
         in: formData
         name: file
@@ -987,9 +1629,15 @@ paths:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/exam_analyzer.ExamAnalysisResponse'
+            $ref: '#/definitions/internal_modules_exam_analyzer.ExamAnalysisResponse'
         "400":
           description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "422":
+          description: Unprocessable Entity
           schema:
             additionalProperties:
               type: string
@@ -1020,7 +1668,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/exam_analyzer.DeleteAnalysisResponse'
+            $ref: '#/definitions/internal_modules_exam_analyzer.DeleteAnalysisResponse'
         "400":
           description: Bad Request
           schema:
@@ -1058,7 +1706,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/exam_analyzer.ExamAnalysisResponse'
+            $ref: '#/definitions/internal_modules_exam_analyzer.ExamAnalysisResponse'
         "400":
           description: Bad Request
           schema:
@@ -1074,6 +1722,71 @@ paths:
       summary: Get exam analysis
       tags:
       - exam_analyzer
+  /observations/{observationFhirId}:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes an existing observation/vital sign
+      parameters:
+      - description: Observation FHIR ID
+        in: path
+        name: observationFhirId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Delete an observation
+      tags:
+      - observations
+    put:
+      consumes:
+      - application/json
+      description: Updates an existing observation/vital sign
+      parameters:
+      - description: Observation FHIR ID
+        in: path
+        name: observationFhirId
+        required: true
+        type: string
+      - description: Observation data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_modules_observation.CreateObservationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/internal_modules_observation.ObservationResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Update an observation
+      tags:
+      - observations
   /patients:
     get:
       consumes:
@@ -1108,9 +1821,7 @@ paths:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/patients.PatientListResponse'
-            type: array
+            $ref: '#/definitions/internal_modules_patients.PatientListEnvelope'
         "500":
           description: Internal Server Error
           schema:
@@ -1130,14 +1841,14 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/patients.CreatePatientRequest'
+          $ref: '#/definitions/internal_modules_patients.CreatePatientRequest'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/patients.CreatePatientResponse'
+            $ref: '#/definitions/internal_modules_patients.CreatePatientResponse'
         "400":
           description: Bad Request
           schema:
@@ -1211,7 +1922,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/allergy.AllergyResponse'
+              $ref: '#/definitions/internal_modules_allergy.AllergyResponse'
             type: array
         "500":
           description: Internal Server Error
@@ -1237,14 +1948,14 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/allergy.CreateAllergyRequest'
+          $ref: '#/definitions/internal_modules_allergy.CreateAllergyRequest'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/allergy.CreateAllergyResponse'
+            $ref: '#/definitions/internal_modules_allergy.CreateAllergyResponse'
         "400":
           description: Bad Request
           schema:
@@ -1278,7 +1989,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/condition.ConditionResponse'
+              $ref: '#/definitions/internal_modules_condition.ConditionResponse'
             type: array
         "500":
           description: Internal Server Error
@@ -1304,14 +2015,14 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/condition.CreateConditionRequest'
+          $ref: '#/definitions/internal_modules_condition.CreateConditionRequest'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/condition.CreateConditionResponse'
+            $ref: '#/definitions/internal_modules_condition.CreateConditionResponse'
         "400":
           description: Bad Request
           schema:
@@ -1345,7 +2056,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/encounter.EncounterResponse'
+              $ref: '#/definitions/internal_modules_encounter.EncounterResponse'
             type: array
         "500":
           description: Internal Server Error
@@ -1371,14 +2082,14 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/encounter.CreateEncounterRequest'
+          $ref: '#/definitions/internal_modules_encounter.CreateEncounterRequest'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/encounter.CreateEncounterResponse'
+            $ref: '#/definitions/internal_modules_encounter.CreateEncounterResponse'
         "400":
           description: Bad Request
           schema:
@@ -1412,7 +2123,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/observation.ObservationResponse'
+              $ref: '#/definitions/internal_modules_observation.ObservationResponse'
             type: array
         "500":
           description: Internal Server Error
@@ -1441,8 +2152,14 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/imaging.HTTPImagingStudyResponse'
+              $ref: '#/definitions/internal_modules_imaging.HTTPImagingStudyResponse'
             type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
         "500":
           description: Internal Server Error
           schema:
@@ -1484,9 +2201,15 @@ paths:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/imaging.HTTPImagingStudyResponse'
+            $ref: '#/definitions/internal_modules_imaging.HTTPImagingStudyResponse'
         "400":
           description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "429":
+          description: Too Many Requests
           schema:
             additionalProperties:
               type: string
@@ -1500,6 +2223,207 @@ paths:
       summary: Upload DICOM study
       tags:
       - imaging
+  /patients/{patientFhirId}/timeline:
+    get:
+      consumes:
+      - application/json
+      description: Returns a chronological feed merging the patient's Encounter, Observation,
+        Condition, AllergyIntolerance, MedicationRequest, DiagnosticReport and ImagingStudy
+        records, ordered by recorded time (newest first) with cursor pagination. When
+        some resource types cannot be loaded, the rest is returned and partial.failedTypes
+        lists the unavailable types. Defaults to the last 6 months.
+      parameters:
+      - description: Patient FHIR ID
+        in: path
+        name: patientFhirId
+        required: true
+        type: string
+      - description: Window start (ISO date or RFC3339). Defaults to 6 months before
+          now
+        in: query
+        name: from
+        type: string
+      - description: Window end (ISO date or RFC3339). Defaults to now
+        in: query
+        name: to
+        type: string
+      - description: 'Comma separated list: encounter,observation,condition,allergy,medication,report,imaging'
+        in: query
+        name: types
+        type: string
+      - description: Opaque cursor returned as nextCursor
+        in: query
+        name: cursor
+        type: string
+      - default: 30
+        description: Page size (1-100)
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_modules_timeline.TimelineResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "503":
+          description: Service Unavailable
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get patient clinical timeline
+      tags:
+      - timeline
+  /reports/{reportFhirId}:
+    put:
+      consumes:
+      - application/json
+      description: Updates an existing diagnostic report, recording a new version
+      parameters:
+      - description: Report FHIR ID
+        in: path
+        name: reportFhirId
+        required: true
+        type: string
+      - description: Report fields to update
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_modules_diagnostic_report.UpdateDiagnosticReportRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_modules_diagnostic_report.DiagnosticReportResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Update a diagnostic report
+      tags:
+      - diagnostic_reports
+  /reports/{reportFhirId}/versions:
+    get:
+      consumes:
+      - application/json
+      description: Returns the version history of a diagnostic report
+      parameters:
+      - description: Report FHIR ID
+        in: path
+        name: reportFhirId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/internal_modules_diagnostic_report.DiagnosticReportVersionResponse'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List diagnostic report versions
+      tags:
+      - diagnostic_reports
+  /reports/{reportFhirId}/versions/{version}:
+    get:
+      consumes:
+      - application/json
+      description: Returns a specific version snapshot of a diagnostic report
+      parameters:
+      - description: Report FHIR ID
+        in: path
+        name: reportFhirId
+        required: true
+        type: string
+      - description: Version number
+        in: path
+        name: version
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_modules_diagnostic_report.DiagnosticReportVersionResponse'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get a specific diagnostic report version
+      tags:
+      - diagnostic_reports
+  /staff/departments:
+    get:
+      consumes:
+      - application/json
+      description: Returns the active department catalog used to assign professionals
+        to hospital units
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/internal_modules_staff.DepartmentResponse'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List departments
+      tags:
+      - staff
   /staff/employees:
     get:
       consumes:
@@ -1522,7 +2446,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/staff.EmployeeResponse'
+              $ref: '#/definitions/internal_modules_staff.EmployeeResponse'
             type: array
         "500":
           description: Internal Server Error
@@ -1543,14 +2467,14 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/staff.CreateEmployeeRequest'
+          $ref: '#/definitions/internal_modules_staff.CreateEmployeeRequest'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/staff.CreateEmployeeResponse'
+            $ref: '#/definitions/internal_modules_staff.CreateEmployeeResponse'
         "400":
           description: Bad Request
           schema:
@@ -1564,6 +2488,80 @@ paths:
               type: string
             type: object
       summary: Create a new employee
+      tags:
+      - staff
+  /staff/employees/{employeeId}:
+    delete:
+      consumes:
+      - application/json
+      description: Deactivates a healthcare professional, preserving the record for
+        auditing purposes
+      parameters:
+      - description: Employee identifier
+        in: path
+        name: employeeId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_modules_staff.EmployeeResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Delete an employee
+      tags:
+      - staff
+  /staff/employees/{employeeId}/status:
+    patch:
+      consumes:
+      - application/json
+      description: Toggles the operational access of a healthcare professional without
+        removing the record
+      parameters:
+      - description: Employee identifier
+        in: path
+        name: employeeId
+        required: true
+        type: string
+      - description: Desired status
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_modules_staff.SetEmployeeStatusRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_modules_staff.EmployeeResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Enable or disable an employee
       tags:
       - staff
   /studies/{studyId}:
@@ -1584,7 +2582,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/imaging.HTTPImagingStudyResponse'
+            $ref: '#/definitions/internal_modules_imaging.HTTPImagingStudyResponse'
         "400":
           description: Bad Request
           schema:
@@ -1616,16 +2614,22 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/telemetry.UpdateBedConditionRequest'
+          $ref: '#/definitions/internal_modules_telemetry.UpdateBedConditionRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/telemetry.UpdateBedConditionResponse'
+            $ref: '#/definitions/internal_modules_telemetry.UpdateBedConditionResponse'
         "400":
           description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
           schema:
             additionalProperties:
               type: string
@@ -1651,7 +2655,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/telemetry.TelemetryRoomResponse'
+              $ref: '#/definitions/internal_modules_telemetry.TelemetryRoomResponse'
             type: array
         "500":
           description: Internal Server Error
@@ -1680,10 +2684,16 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/telemetry.TelemetryBedResponse'
+              $ref: '#/definitions/internal_modules_telemetry.TelemetryBedResponse'
             type: array
         "400":
           description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
           schema:
             additionalProperties:
               type: string
@@ -1713,22 +2723,22 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/telemetry.UnlockRoomRequest'
+          $ref: '#/definitions/internal_modules_telemetry.UnlockRoomRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/telemetry.UnlockRoomResponse'
+            $ref: '#/definitions/internal_modules_telemetry.UnlockRoomResponse'
         "400":
           description: Bad Request
           schema:
             additionalProperties:
               type: string
             type: object
-        "401":
-          description: Unauthorized
+        "403":
+          description: Forbidden
           schema:
             additionalProperties:
               type: string

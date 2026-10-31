@@ -40,11 +40,501 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/analytics.Stats"
+                            "$ref": "#/definitions/internal_modules_analytics.Stats"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/analytics/dashboard": {
+            "get": {
+                "description": "Returns aggregated KPIs for the clinical dashboard including consultations, occupancy, wait times, and diagnoses",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "analytics"
+                ],
+                "summary": "Get clinical dashboard data",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_modules_analytics.DashboardData"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/analytics/dashboard/avg-wait-time": {
+            "get": {
+                "description": "Returns average wait time by department for the dashboard",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "analytics"
+                ],
+                "summary": "Get average wait time",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_modules_analytics.AvgWaitTime"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/analytics/dashboard/consultations-per-doctor": {
+            "get": {
+                "description": "Returns consultations grouped by doctor for the dashboard",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "analytics"
+                ],
+                "summary": "Get consultations per doctor",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/internal_modules_analytics.DoctorConsultation"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/analytics/dashboard/occupancy-rate": {
+            "get": {
+                "description": "Returns bed/room occupancy rate for the dashboard",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "analytics"
+                ],
+                "summary": "Get occupancy rate",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_modules_analytics.OccupancyRate"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/analytics/dashboard/top-diagnoses": {
+            "get": {
+                "description": "Returns the most common diagnoses for the dashboard",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "analytics"
+                ],
+                "summary": "Get top diagnoses",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/internal_modules_analytics.DiagnosisCount"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/appointments": {
+            "get": {
+                "description": "Lists appointments filtered by patient or by staff on a date",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "appointments"
+                ],
+                "summary": "List appointments",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Patient FHIR ID",
+                        "name": "patient_fhir_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Staff UUID",
+                        "name": "staff_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Date (YYYY-MM-DD) for staff listing",
+                        "name": "date",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Range start date (YYYY-MM-DD), requires end_date",
+                        "name": "start_date",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Range end date (YYYY-MM-DD), requires start_date",
+                        "name": "end_date",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/internal_modules_schedule.AppointmentResponse"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Books a time slot for a patient with a staff member (idempotent)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "appointments"
+                ],
+                "summary": "Create an appointment",
+                "parameters": [
+                    {
+                        "description": "Appointment data",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_modules_schedule.CreateAppointmentRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/internal_modules_schedule.AppointmentResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/appointments/my": {
+            "get": {
+                "description": "Returns appointments for the authenticated patient",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "appointments"
+                ],
+                "summary": "List the authenticated patient's appointments",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/internal_modules_schedule.AppointmentResponse"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/appointments/{appointmentId}": {
+            "get": {
+                "description": "Returns a single appointment by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "appointments"
+                ],
+                "summary": "Get an appointment",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Appointment UUID",
+                        "name": "appointmentId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_modules_schedule.AppointmentResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Updates an existing appointment's patient, staff and time slot",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "appointments"
+                ],
+                "summary": "Update an appointment",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Appointment UUID",
+                        "name": "appointmentId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Updated appointment data",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_modules_schedule.UpdateAppointmentRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_modules_schedule.AppointmentResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/appointments/{appointmentId}/cancel": {
+            "post": {
+                "description": "Cancels an existing appointment (idempotent)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "appointments"
+                ],
+                "summary": "Cancel an appointment",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Appointment UUID",
+                        "name": "appointmentId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_modules_schedule.AppointmentResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -88,7 +578,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/audit_logs.AuditLogListResponse"
+                            "$ref": "#/definitions/internal_modules_audit_logs.AuditLogListResponse"
                         }
                     },
                     "500": {
@@ -121,7 +611,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/audit_logs.CreateAuditLogRequest"
+                            "$ref": "#/definitions/internal_modules_audit_logs.CreateAuditLogRequest"
                         }
                     }
                 ],
@@ -129,7 +619,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/audit_logs.AuditLog"
+                            "$ref": "#/definitions/internal_modules_audit_logs.AuditLog"
                         }
                     },
                     "400": {
@@ -173,7 +663,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/auth.LoginRequest"
+                            "$ref": "#/definitions/internal_modules_auth.LoginRequest"
                         }
                     }
                 ],
@@ -181,7 +671,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/auth.LoginResponse"
+                            "$ref": "#/definitions/internal_modules_auth.LoginResponse"
                         }
                     },
                     "400": {
@@ -207,7 +697,7 @@ const docTemplate = `{
         },
         "/auth/logout": {
             "post": {
-                "description": "Clears authentication and CSRF cookies to log the user out",
+                "description": "Revokes the current session (access token and refresh token family) and clears authentication, refresh and CSRF cookies",
                 "consumes": [
                     "application/json"
                 ],
@@ -282,6 +772,47 @@ const docTemplate = `{
                 }
             }
         },
+        "/auth/refresh": {
+            "post": {
+                "description": "Rotates the refresh token cookie and issues a new short-lived access token cookie. Requires the X-CSRF-Token header matching the csrf_token cookie. Reuse of an already rotated refresh token revokes the whole session family.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Refresh session",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_modules_auth.LoginResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/encounters/{encounterFhirId}/medications": {
             "get": {
                 "description": "Returns all medication requests/prescriptions for an encounter",
@@ -310,7 +841,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/medication.MedicationResponse"
+                                "$ref": "#/definitions/internal_modules_medication.MedicationResponse"
                             }
                         }
                     },
@@ -351,7 +882,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/medication.CreateMedicationRequest"
+                            "$ref": "#/definitions/internal_modules_medication.CreateMedicationRequest"
                         }
                     }
                 ],
@@ -359,7 +890,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/medication.CreateMedicationResponse"
+                            "$ref": "#/definitions/internal_modules_medication.CreateMedicationResponse"
                         }
                     },
                     "400": {
@@ -411,7 +942,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/observation.ObservationResponse"
+                                "$ref": "#/definitions/internal_modules_observation.ObservationResponse"
                             }
                         }
                     },
@@ -452,7 +983,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/observation.CreateObservationRequest"
+                            "$ref": "#/definitions/internal_modules_observation.CreateObservationRequest"
                         }
                     }
                 ],
@@ -460,7 +991,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/observation.CreateObservationResponse"
+                            "$ref": "#/definitions/internal_modules_observation.CreateObservationResponse"
                         }
                     },
                     "400": {
@@ -512,7 +1043,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/diagnostic_report.DiagnosticReportResponse"
+                                "$ref": "#/definitions/internal_modules_diagnostic_report.DiagnosticReportResponse"
                             }
                         }
                     },
@@ -553,7 +1084,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/diagnostic_report.CreateDiagnosticReportRequest"
+                            "$ref": "#/definitions/internal_modules_diagnostic_report.CreateDiagnosticReportRequest"
                         }
                     }
                 ],
@@ -561,7 +1092,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/diagnostic_report.CreateDiagnosticReportResponse"
+                            "$ref": "#/definitions/internal_modules_diagnostic_report.CreateDiagnosticReportResponse"
                         }
                     },
                     "400": {
@@ -612,7 +1143,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/exam_analyzer.ExamAnalysisResponse"
+                                "$ref": "#/definitions/internal_modules_exam_analyzer.ExamAnalysisResponse"
                             }
                         }
                     },
@@ -660,6 +1191,12 @@ const docTemplate = `{
                         "in": "formData"
                     },
                     {
+                        "type": "string",
+                        "description": "Required true when anonymize is false",
+                        "name": "acknowledgeExternalProcessing",
+                        "in": "formData"
+                    },
+                    {
                         "type": "file",
                         "description": "Medical exam file",
                         "name": "file",
@@ -671,11 +1208,20 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/exam_analyzer.ExamAnalysisResponse"
+                            "$ref": "#/definitions/internal_modules_exam_analyzer.ExamAnalysisResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -721,7 +1267,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/exam_analyzer.ExamAnalysisResponse"
+                            "$ref": "#/definitions/internal_modules_exam_analyzer.ExamAnalysisResponse"
                         }
                     },
                     "400": {
@@ -769,7 +1315,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/exam_analyzer.DeleteAnalysisResponse"
+                            "$ref": "#/definitions/internal_modules_exam_analyzer.DeleteAnalysisResponse"
                         }
                     },
                     "400": {
@@ -789,6 +1335,104 @@ const docTemplate = `{
                                 "type": "string"
                             }
                         }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/observations/{observationFhirId}": {
+            "put": {
+                "description": "Updates an existing observation/vital sign",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "observations"
+                ],
+                "summary": "Update an observation",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Observation FHIR ID",
+                        "name": "observationFhirId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Observation data",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_modules_observation.CreateObservationRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/internal_modules_observation.ObservationResponse"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Deletes an existing observation/vital sign",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "observations"
+                ],
+                "summary": "Delete an observation",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Observation FHIR ID",
+                        "name": "observationFhirId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
                     },
                     "500": {
                         "description": "Internal Server Error",
@@ -853,10 +1497,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/patients.PatientListResponse"
-                            }
+                            "$ref": "#/definitions/internal_modules_patients.PatientListEnvelope"
                         }
                     },
                     "500": {
@@ -889,7 +1530,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/patients.CreatePatientRequest"
+                            "$ref": "#/definitions/internal_modules_patients.CreatePatientRequest"
                         }
                     }
                 ],
@@ -897,7 +1538,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/patients.CreatePatientResponse"
+                            "$ref": "#/definitions/internal_modules_patients.CreatePatientResponse"
                         }
                     },
                     "400": {
@@ -1009,7 +1650,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/allergy.AllergyResponse"
+                                "$ref": "#/definitions/internal_modules_allergy.AllergyResponse"
                             }
                         }
                     },
@@ -1050,7 +1691,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/allergy.CreateAllergyRequest"
+                            "$ref": "#/definitions/internal_modules_allergy.CreateAllergyRequest"
                         }
                     }
                 ],
@@ -1058,7 +1699,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/allergy.CreateAllergyResponse"
+                            "$ref": "#/definitions/internal_modules_allergy.CreateAllergyResponse"
                         }
                     },
                     "400": {
@@ -1110,7 +1751,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/condition.ConditionResponse"
+                                "$ref": "#/definitions/internal_modules_condition.ConditionResponse"
                             }
                         }
                     },
@@ -1151,7 +1792,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/condition.CreateConditionRequest"
+                            "$ref": "#/definitions/internal_modules_condition.CreateConditionRequest"
                         }
                     }
                 ],
@@ -1159,7 +1800,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/condition.CreateConditionResponse"
+                            "$ref": "#/definitions/internal_modules_condition.CreateConditionResponse"
                         }
                     },
                     "400": {
@@ -1211,7 +1852,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/encounter.EncounterResponse"
+                                "$ref": "#/definitions/internal_modules_encounter.EncounterResponse"
                             }
                         }
                     },
@@ -1252,7 +1893,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/encounter.CreateEncounterRequest"
+                            "$ref": "#/definitions/internal_modules_encounter.CreateEncounterRequest"
                         }
                     }
                 ],
@@ -1260,7 +1901,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/encounter.CreateEncounterResponse"
+                            "$ref": "#/definitions/internal_modules_encounter.CreateEncounterResponse"
                         }
                     },
                     "400": {
@@ -1312,7 +1953,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/observation.ObservationResponse"
+                                "$ref": "#/definitions/internal_modules_observation.ObservationResponse"
                             }
                         }
                     },
@@ -1356,7 +1997,16 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/imaging.HTTPImagingStudyResponse"
+                                "$ref": "#/definitions/internal_modules_imaging.HTTPImagingStudyResponse"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
                             }
                         }
                     },
@@ -1417,7 +2067,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/imaging.HTTPImagingStudyResponse"
+                            "$ref": "#/definitions/internal_modules_imaging.HTTPImagingStudyResponse"
                         }
                     },
                     "400": {
@@ -1426,6 +2076,309 @@ const docTemplate = `{
                             "type": "object",
                             "additionalProperties": {
                                 "type": "string"
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "Too Many Requests",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/patients/{patientFhirId}/timeline": {
+            "get": {
+                "description": "Returns a chronological feed merging the patient's Encounter, Observation, Condition, AllergyIntolerance, MedicationRequest, DiagnosticReport and ImagingStudy records, ordered by recorded time (newest first) with cursor pagination. When some resource types cannot be loaded, the rest is returned and partial.failedTypes lists the unavailable types. Defaults to the last 6 months.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "timeline"
+                ],
+                "summary": "Get patient clinical timeline",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Patient FHIR ID",
+                        "name": "patientFhirId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Window start (ISO date or RFC3339). Defaults to 6 months before now",
+                        "name": "from",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Window end (ISO date or RFC3339). Defaults to now",
+                        "name": "to",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Comma separated list: encounter,observation,condition,allergy,medication,report,imaging",
+                        "name": "types",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Opaque cursor returned as nextCursor",
+                        "name": "cursor",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 30,
+                        "description": "Page size (1-100)",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_modules_timeline.TimelineResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "503": {
+                        "description": "Service Unavailable",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/reports/{reportFhirId}": {
+            "put": {
+                "description": "Updates an existing diagnostic report, recording a new version",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "diagnostic_reports"
+                ],
+                "summary": "Update a diagnostic report",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Report FHIR ID",
+                        "name": "reportFhirId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Report fields to update",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_modules_diagnostic_report.UpdateDiagnosticReportRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_modules_diagnostic_report.DiagnosticReportResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/reports/{reportFhirId}/versions": {
+            "get": {
+                "description": "Returns the version history of a diagnostic report",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "diagnostic_reports"
+                ],
+                "summary": "List diagnostic report versions",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Report FHIR ID",
+                        "name": "reportFhirId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/internal_modules_diagnostic_report.DiagnosticReportVersionResponse"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/reports/{reportFhirId}/versions/{version}": {
+            "get": {
+                "description": "Returns a specific version snapshot of a diagnostic report",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "diagnostic_reports"
+                ],
+                "summary": "Get a specific diagnostic report version",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Report FHIR ID",
+                        "name": "reportFhirId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Version number",
+                        "name": "version",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_modules_diagnostic_report.DiagnosticReportVersionResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/staff/departments": {
+            "get": {
+                "description": "Returns the active department catalog used to assign professionals to hospital units",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "staff"
+                ],
+                "summary": "List departments",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/internal_modules_staff.DepartmentResponse"
                             }
                         }
                     },
@@ -1474,7 +2427,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/staff.EmployeeResponse"
+                                "$ref": "#/definitions/internal_modules_staff.EmployeeResponse"
                             }
                         }
                     },
@@ -1508,7 +2461,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/staff.CreateEmployeeRequest"
+                            "$ref": "#/definitions/internal_modules_staff.CreateEmployeeRequest"
                         }
                     }
                 ],
@@ -1516,7 +2469,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/staff.CreateEmployeeResponse"
+                            "$ref": "#/definitions/internal_modules_staff.CreateEmployeeResponse"
                         }
                     },
                     "400": {
@@ -1530,6 +2483,115 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/staff/employees/{employeeId}": {
+            "delete": {
+                "description": "Deactivates a healthcare professional, preserving the record for auditing purposes",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "staff"
+                ],
+                "summary": "Delete an employee",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Employee identifier",
+                        "name": "employeeId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_modules_staff.EmployeeResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/staff/employees/{employeeId}/status": {
+            "patch": {
+                "description": "Toggles the operational access of a healthcare professional without removing the record",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "staff"
+                ],
+                "summary": "Enable or disable an employee",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Employee identifier",
+                        "name": "employeeId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Desired status",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_modules_staff.SetEmployeeStatusRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_modules_staff.EmployeeResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -1566,7 +2628,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/imaging.HTTPImagingStudyResponse"
+                            "$ref": "#/definitions/internal_modules_imaging.HTTPImagingStudyResponse"
                         }
                     },
                     "400": {
@@ -1617,7 +2679,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/telemetry.UpdateBedConditionRequest"
+                            "$ref": "#/definitions/internal_modules_telemetry.UpdateBedConditionRequest"
                         }
                     }
                 ],
@@ -1625,11 +2687,20 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/telemetry.UpdateBedConditionResponse"
+                            "$ref": "#/definitions/internal_modules_telemetry.UpdateBedConditionResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -1668,7 +2739,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/telemetry.TelemetryRoomResponse"
+                                "$ref": "#/definitions/internal_modules_telemetry.TelemetryRoomResponse"
                             }
                         }
                     },
@@ -1712,12 +2783,21 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/telemetry.TelemetryBedResponse"
+                                "$ref": "#/definitions/internal_modules_telemetry.TelemetryBedResponse"
                             }
                         }
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -1764,7 +2844,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/telemetry.UnlockRoomRequest"
+                            "$ref": "#/definitions/internal_modules_telemetry.UnlockRoomRequest"
                         }
                     }
                 ],
@@ -1772,7 +2852,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/telemetry.UnlockRoomResponse"
+                            "$ref": "#/definitions/internal_modules_telemetry.UnlockRoomResponse"
                         }
                     },
                     "400": {
@@ -1784,8 +2864,8 @@ const docTemplate = `{
                             }
                         }
                     },
-                    "401": {
-                        "description": "Unauthorized",
+                    "403": {
+                        "description": "Forbidden",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -1798,7 +2878,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "allergy.AllergyResponse": {
+        "internal_modules_allergy.AllergyResponse": {
             "type": "object",
             "properties": {
                 "allergen_code": {
@@ -1824,7 +2904,7 @@ const docTemplate = `{
                 }
             }
         },
-        "allergy.CreateAllergyRequest": {
+        "internal_modules_allergy.CreateAllergyRequest": {
             "type": "object",
             "properties": {
                 "allergen_code": {
@@ -1838,7 +2918,7 @@ const docTemplate = `{
                 }
             }
         },
-        "allergy.CreateAllergyResponse": {
+        "internal_modules_allergy.CreateAllergyResponse": {
             "type": "object",
             "properties": {
                 "allergen_code": {
@@ -1864,7 +2944,110 @@ const docTemplate = `{
                 }
             }
         },
-        "analytics.ExamModality": {
+        "internal_modules_analytics.AvgWaitTime": {
+            "type": "object",
+            "properties": {
+                "average_minutes": {
+                    "type": "number"
+                },
+                "by_department": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/internal_modules_analytics.DepartmentWaitTime"
+                    }
+                }
+            }
+        },
+        "internal_modules_analytics.DashboardData": {
+            "type": "object",
+            "properties": {
+                "active_patients": {
+                    "type": "integer"
+                },
+                "avg_wait_time_minutes": {
+                    "type": "number"
+                },
+                "consultations_per_doctor": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/internal_modules_analytics.DoctorConsultation"
+                    }
+                },
+                "consultations_today": {
+                    "type": "integer"
+                },
+                "consultations_trend": {
+                    "type": "string"
+                },
+                "exams_today": {
+                    "type": "integer"
+                },
+                "new_diagnoses_today": {
+                    "type": "integer"
+                },
+                "occupancy_occupied_beds": {
+                    "type": "integer"
+                },
+                "occupancy_rate": {
+                    "type": "number"
+                },
+                "occupancy_total_beds": {
+                    "type": "integer"
+                },
+                "top_diagnoses": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/internal_modules_analytics.DiagnosisCount"
+                    }
+                },
+                "wait_time_by_department": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/internal_modules_analytics.DepartmentWaitTime"
+                    }
+                }
+            }
+        },
+        "internal_modules_analytics.DepartmentWaitTime": {
+            "type": "object",
+            "properties": {
+                "department": {
+                    "type": "string"
+                },
+                "minutes": {
+                    "type": "number"
+                }
+            }
+        },
+        "internal_modules_analytics.DiagnosisCount": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "icd10_code": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_modules_analytics.DoctorConsultation": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer"
+                },
+                "doctor_name": {
+                    "type": "string"
+                },
+                "specialty": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_modules_analytics.ExamModality": {
             "type": "object",
             "properties": {
                 "color": {
@@ -1881,7 +3064,21 @@ const docTemplate = `{
                 }
             }
         },
-        "analytics.PathologyCase": {
+        "internal_modules_analytics.OccupancyRate": {
+            "type": "object",
+            "properties": {
+                "occupied_beds": {
+                    "type": "integer"
+                },
+                "rate": {
+                    "type": "number"
+                },
+                "total_beds": {
+                    "type": "integer"
+                }
+            }
+        },
+        "internal_modules_analytics.PathologyCase": {
             "type": "object",
             "properties": {
                 "activeCases": {
@@ -1901,7 +3098,7 @@ const docTemplate = `{
                 }
             }
         },
-        "analytics.Stats": {
+        "internal_modules_analytics.Stats": {
             "type": "object",
             "properties": {
                 "avg_service_duration_minutes": {
@@ -1910,7 +3107,7 @@ const docTemplate = `{
                 "exam_modalities": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/analytics.ExamModality"
+                        "$ref": "#/definitions/internal_modules_analytics.ExamModality"
                     }
                 },
                 "fhir_compliance_rate": {
@@ -1919,7 +3116,7 @@ const docTemplate = `{
                 "pathology_cases": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/analytics.PathologyCase"
+                        "$ref": "#/definitions/internal_modules_analytics.PathologyCase"
                     }
                 },
                 "total_patients": {
@@ -1928,12 +3125,12 @@ const docTemplate = `{
                 "weekly_consultations": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/analytics.WeeklyConsultation"
+                        "$ref": "#/definitions/internal_modules_analytics.WeeklyConsultation"
                     }
                 }
             }
         },
-        "analytics.WeeklyConsultation": {
+        "internal_modules_analytics.WeeklyConsultation": {
             "type": "object",
             "properties": {
                 "count": {
@@ -1944,11 +3141,14 @@ const docTemplate = `{
                 }
             }
         },
-        "audit_logs.AuditLog": {
+        "internal_modules_audit_logs.AuditLog": {
             "type": "object",
             "properties": {
                 "access_granted": {
                     "type": "boolean"
+                },
+                "action": {
+                    "type": "string"
                 },
                 "caller_role": {
                     "type": "string"
@@ -1967,10 +3167,20 @@ const docTemplate = `{
                 },
                 "method": {
                     "type": "string"
+                },
+                "payload_diff": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "resource_id": {
+                    "type": "string"
+                },
+                "resource_type": {
+                    "type": "string"
                 }
             }
         },
-        "audit_logs.AuditLogListResponse": {
+        "internal_modules_audit_logs.AuditLogListResponse": {
             "type": "object",
             "properties": {
                 "audit_logs": {},
@@ -1979,11 +3189,14 @@ const docTemplate = `{
                 }
             }
         },
-        "audit_logs.CreateAuditLogRequest": {
+        "internal_modules_audit_logs.CreateAuditLogRequest": {
             "type": "object",
             "properties": {
                 "access_granted": {
                     "type": "boolean"
+                },
+                "action": {
+                    "type": "string"
                 },
                 "caller_role": {
                     "type": "string"
@@ -1996,10 +3209,20 @@ const docTemplate = `{
                 },
                 "method": {
                     "type": "string"
+                },
+                "payload_diff": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "resource_id": {
+                    "type": "string"
+                },
+                "resource_type": {
+                    "type": "string"
                 }
             }
         },
-        "auth.LoginRequest": {
+        "internal_modules_auth.LoginRequest": {
             "type": "object",
             "properties": {
                 "email": {
@@ -2010,9 +3233,12 @@ const docTemplate = `{
                 }
             }
         },
-        "auth.LoginResponse": {
+        "internal_modules_auth.LoginResponse": {
             "type": "object",
             "properties": {
+                "csrfToken": {
+                    "type": "string"
+                },
                 "email": {
                     "type": "string"
                 },
@@ -2024,7 +3250,7 @@ const docTemplate = `{
                 }
             }
         },
-        "condition.ConditionResponse": {
+        "internal_modules_condition.ConditionResponse": {
             "type": "object",
             "properties": {
                 "clinical_status": {
@@ -2047,10 +3273,13 @@ const docTemplate = `{
                 }
             }
         },
-        "condition.CreateConditionRequest": {
+        "internal_modules_condition.CreateConditionRequest": {
             "type": "object",
             "properties": {
                 "code_display": {
+                    "type": "string"
+                },
+                "encounter_id": {
                     "type": "string"
                 },
                 "icd10_code": {
@@ -2058,7 +3287,7 @@ const docTemplate = `{
                 }
             }
         },
-        "condition.CreateConditionResponse": {
+        "internal_modules_condition.CreateConditionResponse": {
             "type": "object",
             "properties": {
                 "clinical_status": {
@@ -2081,7 +3310,7 @@ const docTemplate = `{
                 }
             }
         },
-        "diagnostic_report.CreateDiagnosticReportRequest": {
+        "internal_modules_diagnostic_report.CreateDiagnosticReportRequest": {
             "type": "object",
             "properties": {
                 "conclusion": {
@@ -2090,38 +3319,15 @@ const docTemplate = `{
                 "patient_fhir_id": {
                     "type": "string"
                 },
+                "report_code": {
+                    "type": "string"
+                },
                 "report_display": {
                     "type": "string"
                 }
             }
         },
-        "diagnostic_report.CreateDiagnosticReportResponse": {
-            "type": "object",
-            "properties": {
-                "conclusion": {
-                    "type": "string"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "encounter_fhir_id": {
-                    "type": "string"
-                },
-                "fhir_id": {
-                    "type": "string"
-                },
-                "patient_fhir_id": {
-                    "type": "string"
-                },
-                "report_display": {
-                    "type": "string"
-                },
-                "status": {
-                    "type": "string"
-                }
-            }
-        },
-        "diagnostic_report.DiagnosticReportResponse": {
+        "internal_modules_diagnostic_report.CreateDiagnosticReportResponse": {
             "type": "object",
             "properties": {
                 "conclusion": {
@@ -2144,13 +3350,85 @@ const docTemplate = `{
                 },
                 "status": {
                     "type": "string"
+                },
+                "version": {
+                    "type": "string"
                 }
             }
         },
-        "encounter.CreateEncounterRequest": {
+        "internal_modules_diagnostic_report.DiagnosticReportResponse": {
+            "type": "object",
+            "properties": {
+                "conclusion": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "encounter_fhir_id": {
+                    "type": "string"
+                },
+                "fhir_id": {
+                    "type": "string"
+                },
+                "patient_fhir_id": {
+                    "type": "string"
+                },
+                "report_display": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_modules_diagnostic_report.DiagnosticReportVersionResponse": {
+            "type": "object",
+            "properties": {
+                "changed_at": {
+                    "type": "string"
+                },
+                "changed_by": {
+                    "type": "string"
+                },
+                "snapshot": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "version": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_modules_diagnostic_report.UpdateDiagnosticReportRequest": {
+            "type": "object",
+            "properties": {
+                "conclusion": {
+                    "type": "string"
+                },
+                "report_code": {
+                    "type": "string"
+                },
+                "report_display": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_modules_encounter.CreateEncounterRequest": {
             "type": "object",
             "properties": {
                 "practitioner_id": {
+                    "type": "string"
+                },
+                "reason_code": {
                     "type": "string"
                 },
                 "reason_display": {
@@ -2158,7 +3436,7 @@ const docTemplate = `{
                 }
             }
         },
-        "encounter.CreateEncounterResponse": {
+        "internal_modules_encounter.CreateEncounterResponse": {
             "type": "object",
             "properties": {
                 "created_at": {
@@ -2181,7 +3459,7 @@ const docTemplate = `{
                 }
             }
         },
-        "encounter.EncounterResponse": {
+        "internal_modules_encounter.EncounterResponse": {
             "type": "object",
             "properties": {
                 "created_at": {
@@ -2204,7 +3482,7 @@ const docTemplate = `{
                 }
             }
         },
-        "exam_analyzer.DeleteAnalysisResponse": {
+        "internal_modules_exam_analyzer.DeleteAnalysisResponse": {
             "type": "object",
             "properties": {
                 "success": {
@@ -2212,7 +3490,7 @@ const docTemplate = `{
                 }
             }
         },
-        "exam_analyzer.ExamAnalysisResponse": {
+        "internal_modules_exam_analyzer.ExamAnalysisResponse": {
             "type": "object",
             "properties": {
                 "analysis_response": {
@@ -2250,7 +3528,7 @@ const docTemplate = `{
                 }
             }
         },
-        "imaging.HTTPImagingStudyResponse": {
+        "internal_modules_imaging.HTTPImagingStudyResponse": {
             "type": "object",
             "properties": {
                 "created_at": {
@@ -2279,7 +3557,7 @@ const docTemplate = `{
                 }
             }
         },
-        "medication.CreateMedicationRequest": {
+        "internal_modules_medication.CreateMedicationRequest": {
             "type": "object",
             "properties": {
                 "dosage_instructions": {
@@ -2299,39 +3577,7 @@ const docTemplate = `{
                 }
             }
         },
-        "medication.CreateMedicationResponse": {
-            "type": "object",
-            "properties": {
-                "created_at": {
-                    "type": "string"
-                },
-                "dosage_instructions": {
-                    "type": "string"
-                },
-                "encounter_fhir_id": {
-                    "type": "string"
-                },
-                "fhir_id": {
-                    "type": "string"
-                },
-                "medication_code": {
-                    "type": "string"
-                },
-                "medication_name": {
-                    "type": "string"
-                },
-                "patient_fhir_id": {
-                    "type": "string"
-                },
-                "practitioner_fhir_id": {
-                    "type": "string"
-                },
-                "status": {
-                    "type": "string"
-                }
-            }
-        },
-        "medication.MedicationResponse": {
+        "internal_modules_medication.CreateMedicationResponse": {
             "type": "object",
             "properties": {
                 "created_at": {
@@ -2363,7 +3609,39 @@ const docTemplate = `{
                 }
             }
         },
-        "observation.CreateObservationRequest": {
+        "internal_modules_medication.MedicationResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "dosage_instructions": {
+                    "type": "string"
+                },
+                "encounter_fhir_id": {
+                    "type": "string"
+                },
+                "fhir_id": {
+                    "type": "string"
+                },
+                "medication_code": {
+                    "type": "string"
+                },
+                "medication_name": {
+                    "type": "string"
+                },
+                "patient_fhir_id": {
+                    "type": "string"
+                },
+                "practitioner_fhir_id": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_modules_observation.CreateObservationRequest": {
             "type": "object",
             "properties": {
                 "code_display": {
@@ -2383,7 +3661,7 @@ const docTemplate = `{
                 }
             }
         },
-        "observation.CreateObservationResponse": {
+        "internal_modules_observation.CreateObservationResponse": {
             "type": "object",
             "properties": {
                 "code_display": {
@@ -2412,7 +3690,7 @@ const docTemplate = `{
                 }
             }
         },
-        "observation.ObservationResponse": {
+        "internal_modules_observation.ObservationResponse": {
             "type": "object",
             "properties": {
                 "code_display": {
@@ -2430,6 +3708,9 @@ const docTemplate = `{
                 "loinc_code": {
                     "type": "string"
                 },
+                "not_performed": {
+                    "type": "boolean"
+                },
                 "patient_fhir_id": {
                     "type": "string"
                 },
@@ -2441,7 +3722,7 @@ const docTemplate = `{
                 }
             }
         },
-        "patients.CreatePatientRequest": {
+        "internal_modules_patients.CreatePatientRequest": {
             "type": "object",
             "properties": {
                 "birth_date": {
@@ -2458,7 +3739,7 @@ const docTemplate = `{
                 }
             }
         },
-        "patients.CreatePatientResponse": {
+        "internal_modules_patients.CreatePatientResponse": {
             "type": "object",
             "properties": {
                 "fhir_resource_id": {
@@ -2469,7 +3750,27 @@ const docTemplate = `{
                 }
             }
         },
-        "patients.PatientListResponse": {
+        "internal_modules_patients.PatientListEnvelope": {
+            "type": "object",
+            "properties": {
+                "limit": {
+                    "type": "integer"
+                },
+                "page": {
+                    "type": "integer"
+                },
+                "patients": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/internal_modules_patients.PatientListResponse"
+                    }
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "internal_modules_patients.PatientListResponse": {
             "type": "object",
             "properties": {
                 "birth_date": {
@@ -2492,7 +3793,82 @@ const docTemplate = `{
                 }
             }
         },
-        "staff.CreateEmployeeRequest": {
+        "internal_modules_schedule.AppointmentResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "ends_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "patient_fhir_id": {
+                    "type": "string"
+                },
+                "reason": {
+                    "type": "string"
+                },
+                "staff_id": {
+                    "type": "string"
+                },
+                "starts_at": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "integer"
+                }
+            }
+        },
+        "internal_modules_schedule.CreateAppointmentRequest": {
+            "type": "object",
+            "properties": {
+                "ends_at": {
+                    "type": "string"
+                },
+                "idempotency_key": {
+                    "type": "string"
+                },
+                "patient_fhir_id": {
+                    "type": "string"
+                },
+                "reason": {
+                    "type": "string"
+                },
+                "staff_id": {
+                    "type": "string"
+                },
+                "starts_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_modules_schedule.UpdateAppointmentRequest": {
+            "type": "object",
+            "properties": {
+                "ends_at": {
+                    "type": "string"
+                },
+                "patient_fhir_id": {
+                    "type": "string"
+                },
+                "reason": {
+                    "type": "string"
+                },
+                "staff_id": {
+                    "type": "string"
+                },
+                "starts_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_modules_staff.CreateEmployeeRequest": {
             "type": "object",
             "properties": {
                 "crm_number": {
@@ -2512,7 +3888,7 @@ const docTemplate = `{
                 }
             }
         },
-        "staff.CreateEmployeeResponse": {
+        "internal_modules_staff.CreateEmployeeResponse": {
             "type": "object",
             "properties": {
                 "employee_id": {
@@ -2520,13 +3896,33 @@ const docTemplate = `{
                 }
             }
         },
-        "staff.EmployeeResponse": {
+        "internal_modules_staff.DepartmentResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_modules_staff.EmployeeResponse": {
             "type": "object",
             "properties": {
                 "crm_number": {
                     "type": "string"
                 },
+                "department_id": {
+                    "type": "string"
+                },
+                "department_name": {
+                    "type": "string"
+                },
                 "email": {
+                    "type": "string"
+                },
+                "fhir_resource_id": {
                     "type": "string"
                 },
                 "full_name": {
@@ -2535,12 +3931,51 @@ const docTemplate = `{
                 "id": {
                     "type": "string"
                 },
+                "is_active": {
+                    "type": "boolean"
+                },
                 "role": {
                     "type": "string"
                 }
             }
         },
-        "telemetry.TelemetryBedResponse": {
+        "internal_modules_staff.SetEmployeeStatusRequest": {
+            "type": "object",
+            "properties": {
+                "is_active": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "internal_modules_telemetry.BedStatus": {
+            "type": "string",
+            "enum": [
+                "normal",
+                "warning",
+                "danger"
+            ],
+            "x-enum-varnames": [
+                "BedStatusNormal",
+                "BedStatusWarning",
+                "BedStatusDanger"
+            ]
+        },
+        "internal_modules_telemetry.CardiacCondition": {
+            "type": "string",
+            "enum": [
+                "normal",
+                "bradycardia",
+                "tachycardia",
+                "cardiac-arrest"
+            ],
+            "x-enum-varnames": [
+                "CardiacConditionNormal",
+                "CardiacConditionBradycardia",
+                "CardiacConditionTachycardia",
+                "CardiacConditionCardiacArrest"
+            ]
+        },
+        "internal_modules_telemetry.TelemetryBedResponse": {
             "type": "object",
             "properties": {
                 "bed_label": {
@@ -2550,7 +3985,7 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "condition": {
-                    "type": "string"
+                    "$ref": "#/definitions/internal_modules_telemetry.CardiacCondition"
                 },
                 "id": {
                     "type": "string"
@@ -2562,14 +3997,14 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "status": {
-                    "type": "string"
+                    "$ref": "#/definitions/internal_modules_telemetry.BedStatus"
                 },
                 "temperature": {
                     "type": "number"
                 }
             }
         },
-        "telemetry.TelemetryRoomResponse": {
+        "internal_modules_telemetry.TelemetryRoomResponse": {
             "type": "object",
             "properties": {
                 "id": {
@@ -2583,7 +4018,7 @@ const docTemplate = `{
                 }
             }
         },
-        "telemetry.UnlockRoomRequest": {
+        "internal_modules_telemetry.UnlockRoomRequest": {
             "type": "object",
             "properties": {
                 "passcode": {
@@ -2591,7 +4026,7 @@ const docTemplate = `{
                 }
             }
         },
-        "telemetry.UnlockRoomResponse": {
+        "internal_modules_telemetry.UnlockRoomResponse": {
             "type": "object",
             "properties": {
                 "roomName": {
@@ -2602,7 +4037,7 @@ const docTemplate = `{
                 }
             }
         },
-        "telemetry.UpdateBedConditionRequest": {
+        "internal_modules_telemetry.UpdateBedConditionRequest": {
             "type": "object",
             "properties": {
                 "bpm": {
@@ -2622,11 +4057,85 @@ const docTemplate = `{
                 }
             }
         },
-        "telemetry.UpdateBedConditionResponse": {
+        "internal_modules_telemetry.UpdateBedConditionResponse": {
             "type": "object",
             "properties": {
                 "success": {
                     "type": "boolean"
+                }
+            }
+        },
+        "internal_modules_timeline.ItemResponse": {
+            "type": "object",
+            "properties": {
+                "clinicalDate": {
+                    "type": "string"
+                },
+                "encounterId": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "occurredAt": {
+                    "type": "string"
+                },
+                "resourceId": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "summary": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_modules_timeline.PartialResponse": {
+            "type": "object",
+            "properties": {
+                "failedTypes": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "internal_modules_timeline.TimelineResponse": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/internal_modules_timeline.ItemResponse"
+                    }
+                },
+                "nextCursor": {
+                    "type": "string"
+                },
+                "partial": {
+                    "$ref": "#/definitions/internal_modules_timeline.PartialResponse"
+                },
+                "window": {
+                    "$ref": "#/definitions/internal_modules_timeline.WindowResponse"
+                }
+            }
+        },
+        "internal_modules_timeline.WindowResponse": {
+            "type": "object",
+            "properties": {
+                "from": {
+                    "type": "string"
+                },
+                "to": {
+                    "type": "string"
                 }
             }
         }
