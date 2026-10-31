@@ -5,8 +5,10 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
+	"fmt"
 	"log/slog"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -15,16 +17,28 @@ import (
 
 const (
 	jwtIssuer              = "healthcare-api"
-	jwtLifetime            = 24 * time.Hour
+	accessTokenLifetime    = 15 * time.Minute
+	jwtKeyIDLength         = 8
+	jwtKeyIDHeader         = "kid"
 	revocationStoreTimeout = 3 * time.Second
 )
 
+type jwtSigningKey struct {
+	keyID  string
+	secret []byte
+}
+
+type jwtKeyring struct {
+	currentKey jwtSigningKey
+	validKeys  []jwtSigningKey
+}
+
 var (
-	jwtSecret       []byte
-	jwtInitOnce     sync.Once
-	jwtInitErr      error
-	tokenBlacklist  sync.Map
-	revocationStore RevocationStore
+	activeJWTKeyring atomic.Pointer[jwtKeyring]
+	jwtInitOnce      sync.Once
+	jwtInitErr       error
+	tokenBlacklist   sync.Map
+	revocationStore  RevocationStore
 )
 
 type RevocationStore interface {
@@ -41,19 +55,73 @@ func digestToken(tokenString string) string {
 	return hex.EncodeToString(tokenDigest[:])
 }
 
-func InitJWT(secretKey string) error {
-	jwtInitOnce.Do(func() {
-		if secretKey == "" {
-			jwtInitErr = errors.New("JWT_SECRET cannot be empty")
-			return
+func deriveJWTKeyID(secretKey string) string {
+	secretDigest := sha256.Sum256([]byte(secretKey))
+	return hex.EncodeToString(secretDigest[:])[:jwtKeyIDLength]
+}
+
+func configureJWTKeys(currentSecret string, previousSecrets []string) error {
+	if currentSecret == "" {
+		return errors.New("JWT_SECRET cannot be empty")
+	}
+
+	currentKey := jwtSigningKey{keyID: deriveJWTKeyID(currentSecret), secret: []byte(currentSecret)}
+	validKeys := []jwtSigningKey{currentKey}
+	for _, previousSecret := range previousSecrets {
+		if previousSecret == "" {
+			return errors.New("JWT_SECRET_PREVIOUS cannot contain empty entries")
 		}
-		jwtSecret = []byte(secretKey)
+		if previousSecret == currentSecret {
+			continue
+		}
+		validKeys = append(validKeys, jwtSigningKey{keyID: deriveJWTKeyID(previousSecret), secret: []byte(previousSecret)})
+	}
+
+	activeJWTKeyring.Store(&jwtKeyring{currentKey: currentKey, validKeys: validKeys})
+	return nil
+}
+
+func InitJWT(secretKey string, previousSecretKeys ...string) error {
+	jwtInitOnce.Do(func() {
+		jwtInitErr = configureJWTKeys(secretKey, previousSecretKeys)
 	})
 	return jwtInitErr
 }
 
+func candidateKeysForToken(keyring *jwtKeyring, tokenHeader map[string]interface{}) []jwtSigningKey {
+	presentedKeyID, hasKeyID := tokenHeader[jwtKeyIDHeader].(string)
+	if !hasKeyID || presentedKeyID == "" {
+		return keyring.validKeys
+	}
+
+	var matchingKeys []jwtSigningKey
+	for _, candidateKey := range keyring.validKeys {
+		if candidateKey.keyID == presentedKeyID {
+			matchingKeys = append(matchingKeys, candidateKey)
+		}
+	}
+	return matchingKeys
+}
+
 func GenerateJWT(userID, role, email string) (string, error) {
+	return GenerateJWTBoundedBy(userID, role, email, time.Time{})
+}
+
+func GenerateJWTBoundedBy(userID, role, email string, notAfter time.Time) (string, error) {
+	keyring := activeJWTKeyring.Load()
+	if keyring == nil {
+		return "", errors.New("JWT keys not initialized")
+	}
+
 	issuedAt := time.Now()
+	expiresAt := issuedAt.Add(accessTokenLifetime)
+	if !notAfter.IsZero() && notAfter.Before(expiresAt) {
+		expiresAt = notAfter
+	}
+	if !expiresAt.After(issuedAt) {
+		return "", errors.New("session lifetime exhausted")
+	}
+
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"user_id": userID,
 		"role":    role,
@@ -61,10 +129,11 @@ func GenerateJWT(userID, role, email string) (string, error) {
 		"iss":     jwtIssuer,
 		"jti":     uuid.New().String(),
 		"iat":     issuedAt.Unix(),
-		"exp":     issuedAt.Add(jwtLifetime).Unix(),
+		"exp":     expiresAt.Unix(),
 	})
+	token.Header[jwtKeyIDHeader] = keyring.currentKey.keyID
 
-	return token.SignedString(jwtSecret)
+	return token.SignedString(keyring.currentKey.secret)
 }
 
 func ValidateJWT(tokenString string) (jwt.MapClaims, error) {
@@ -72,8 +141,35 @@ func ValidateJWT(tokenString string) (jwt.MapClaims, error) {
 		return nil, errors.New("token revoked")
 	}
 
+	keyring := activeJWTKeyring.Load()
+	if keyring == nil {
+		return nil, errors.New("JWT keys not initialized")
+	}
+
+	unverifiedToken, _, headerParseError := new(jwt.Parser).ParseUnverified(tokenString, jwt.MapClaims{})
+	if headerParseError != nil {
+		return nil, headerParseError
+	}
+
+	candidateKeys := candidateKeysForToken(keyring, unverifiedToken.Header)
+	if len(candidateKeys) == 0 {
+		return nil, fmt.Errorf("unknown signing key")
+	}
+
+	var validationError error
+	for _, candidateKey := range candidateKeys {
+		claims, candidateError := parseJWTWithKey(tokenString, candidateKey.secret)
+		if candidateError == nil {
+			return claims, nil
+		}
+		validationError = candidateError
+	}
+	return nil, validationError
+}
+
+func parseJWTWithKey(tokenString string, secret []byte) (jwt.MapClaims, error) {
 	token, validationError := jwt.Parse(tokenString, func(parsedToken *jwt.Token) (interface{}, error) {
-		return jwtSecret, nil
+		return secret, nil
 	}, jwt.WithValidMethods([]string{jwt.SigningMethodHS256.Alg()}), jwt.WithIssuer(jwtIssuer), jwt.WithExpirationRequired())
 
 	if validationError != nil || !token.Valid {

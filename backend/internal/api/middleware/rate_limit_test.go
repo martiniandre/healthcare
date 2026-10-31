@@ -1,35 +1,19 @@
 package middleware
 
 import (
+	"context"
+	"errors"
 	"net"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
 
+	"github.com/healthcare/backend/internal/shared/ratelimit"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
-
-func TestSlidingWindowCounterAllowsUpToLimitThenBlocks(testingInstance *testing.T) {
-	counter := newSlidingWindowCounter(3)
-	baseTime := time.Now()
-
-	assert.True(testingInstance, counter.allow(baseTime))
-	assert.True(testingInstance, counter.allow(baseTime.Add(time.Second)))
-	assert.True(testingInstance, counter.allow(baseTime.Add(2*time.Second)))
-	assert.False(testingInstance, counter.allow(baseTime.Add(3*time.Second)))
-}
-
-func TestSlidingWindowCounterReleasesExpiredTimestamps(testingInstance *testing.T) {
-	counter := newSlidingWindowCounter(2)
-	baseTime := time.Now()
-
-	assert.True(testingInstance, counter.allow(baseTime))
-	assert.True(testingInstance, counter.allow(baseTime.Add(time.Second)))
-	assert.False(testingInstance, counter.allow(baseTime.Add(2*time.Second)))
-	assert.True(testingInstance, counter.allow(baseTime.Add(rateLimitWindow+time.Second)))
-}
 
 func TestIsAuthRateLimitedRouteMatchesLoginOnly(testingInstance *testing.T) {
 	assert.True(testingInstance, isAuthRateLimitedRoute("/api/v1/auth/login"))
@@ -89,28 +73,12 @@ func TestParseTrustedProxiesRejectsInvalidEntries(testingInstance *testing.T) {
 	assert.Error(testingInstance, parseError)
 }
 
-func TestRateLimiterRegistryEvictsIdleBuckets(testingInstance *testing.T) {
-	registry := newRateLimiterRegistry()
-	staleBucket := registry.bucketFor(false, "203.0.113.1")
-	require.True(testingInstance, staleBucket.allow(time.Now().Add(-2*rateLimitWindow)))
-	registry.lastSweepAt = time.Now().Add(-2 * idleBucketSweepInterval)
-
-	registry.bucketFor(false, "203.0.113.2")
-
-	registry.mu.Lock()
-	defer registry.mu.Unlock()
-	assert.NotContains(testingInstance, registry.generalBuckets, "203.0.113.1")
-	assert.Contains(testingInstance, registry.generalBuckets, "203.0.113.2")
-}
-
 func TestRateLimitMiddlewareBlocksEleventhLoginWithinWindow(testingInstance *testing.T) {
-	ResetRateLimits()
-	defer ResetRateLimits()
 
 	targetHandler := http.HandlerFunc(func(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
 		httpResponseWriter.WriteHeader(http.StatusOK)
 	})
-	rateLimitedHandler := RateLimit(nil)(targetHandler)
+	rateLimitedHandler := RateLimit(nil, ratelimit.NewMemoryLimiter())(targetHandler)
 
 	var lastResponse *httptest.ResponseRecorder
 	for requestIndex := 0; requestIndex < authRateLimitPerMinute; requestIndex++ {
@@ -131,13 +99,11 @@ func TestRateLimitMiddlewareBlocksEleventhLoginWithinWindow(testingInstance *tes
 }
 
 func TestRateLimitMiddlewareKeepsOtherClientsUnaffected(testingInstance *testing.T) {
-	ResetRateLimits()
-	defer ResetRateLimits()
 
 	targetHandler := http.HandlerFunc(func(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
 		httpResponseWriter.WriteHeader(http.StatusOK)
 	})
-	rateLimitedHandler := RateLimit(nil)(targetHandler)
+	rateLimitedHandler := RateLimit(nil, ratelimit.NewMemoryLimiter())(targetHandler)
 
 	for requestIndex := 0; requestIndex < authRateLimitPerMinute; requestIndex++ {
 		httpRequest := httptest.NewRequest(http.MethodPost, "/api/v1/auth/login", nil)
@@ -153,4 +119,64 @@ func TestRateLimitMiddlewareKeepsOtherClientsUnaffected(testingInstance *testing
 	rateLimitedHandler.ServeHTTP(otherClientResponse, otherClientRequest)
 
 	assert.Equal(testingInstance, http.StatusOK, otherClientResponse.Code)
+}
+
+type failingLimiter struct{}
+
+func (failingLimiter) Allow(context.Context, string, ratelimit.Budget) (bool, time.Duration, error) {
+	return false, 0, errors.New("limiter down")
+}
+
+func okHandler() http.Handler {
+	return http.HandlerFunc(func(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
+		httpResponseWriter.WriteHeader(http.StatusOK)
+	})
+}
+
+func TestRateLimitMiddlewareFailsOpenWhenLimiterErrors(testingInstance *testing.T) {
+	rateLimitedHandler := RateLimit(nil, failingLimiter{})(okHandler())
+
+	httpRequest := httptest.NewRequest(http.MethodGet, "/api/v1/patients", nil)
+	responseRecorder := httptest.NewRecorder()
+	rateLimitedHandler.ServeHTTP(responseRecorder, httpRequest)
+
+	assert.Equal(testingInstance, http.StatusOK, responseRecorder.Code)
+}
+
+func TestRateLimitMiddlewareSetsRetryAfterFromRemainingWindow(testingInstance *testing.T) {
+	currentTime := time.Now()
+	limiter := ratelimit.NewMemoryLimiterWithClock(func() time.Time { return currentTime })
+	rateLimitedHandler := RateLimit(nil, limiter)(okHandler())
+
+	for requestIndex := 0; requestIndex < authRateLimitPerMinute; requestIndex++ {
+		httpRequest := httptest.NewRequest(http.MethodPost, "/api/v1/auth/login", nil)
+		httpRequest.RemoteAddr = "192.168.0.40:5000"
+		rateLimitedHandler.ServeHTTP(httptest.NewRecorder(), httpRequest)
+	}
+
+	currentTime = currentTime.Add(45 * time.Second)
+	blockedRequest := httptest.NewRequest(http.MethodPost, "/api/v1/auth/login", nil)
+	blockedRequest.RemoteAddr = "192.168.0.40:5000"
+	blockedResponse := httptest.NewRecorder()
+	rateLimitedHandler.ServeHTTP(blockedResponse, blockedRequest)
+
+	assert.Equal(testingInstance, http.StatusTooManyRequests, blockedResponse.Code)
+	assert.Equal(testingInstance, "15", blockedResponse.Header().Get("Retry-After"))
+}
+
+func TestRateLimitMiddlewareKeepsLoginAndGeneralBudgetsSeparate(testingInstance *testing.T) {
+	rateLimitedHandler := RateLimit(nil, ratelimit.NewMemoryLimiter())(okHandler())
+
+	for requestIndex := 0; requestIndex <= authRateLimitPerMinute; requestIndex++ {
+		httpRequest := httptest.NewRequest(http.MethodPost, "/api/v1/auth/login", nil)
+		httpRequest.RemoteAddr = "192.168.0.50:5000"
+		rateLimitedHandler.ServeHTTP(httptest.NewRecorder(), httpRequest)
+	}
+
+	generalRequest := httptest.NewRequest(http.MethodGet, "/api/v1/patients", nil)
+	generalRequest.RemoteAddr = "192.168.0.50:5000"
+	generalResponse := httptest.NewRecorder()
+	rateLimitedHandler.ServeHTTP(generalResponse, generalRequest)
+
+	assert.Equal(testingInstance, http.StatusOK, generalResponse.Code)
 }

@@ -35,6 +35,7 @@ import (
 	"github.com/healthcare/backend/internal/shared/database"
 	"github.com/healthcare/backend/internal/shared/eventbus"
 	"github.com/healthcare/backend/internal/shared/migrations"
+	"github.com/healthcare/backend/internal/shared/ratelimit"
 	"github.com/healthcare/backend/internal/shared/storage"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"
@@ -187,13 +188,13 @@ func newTestServer(t *testing.T) *testServer {
 	examAnalyzerRepository, examAnalyzerService, examAnalyzerWorker := exam_analyzer.Register(grpcServer, exam_analyzer.Dependency{DB: environment.pool, Storage: storageClient, EventBus: eventBus})
 
 	secureCookies := false
-	middleware.ResetRateLimits()
 
 	router := api.NewRouter(
 		secureCookies,
 		true,
 		"",
 		nil,
+		ratelimit.NewMemoryLimiter(),
 		auth.NewHTTPHandler(authService, secureCookies),
 		patients.NewHTTPHandler(patientsService),
 		encounter.NewHTTPHandler(encounterService),

@@ -46,7 +46,7 @@ func TestValidateJWTRejectsNonHS256Algorithms(testingInstance *testing.T) {
 	initJWTForTest(testingInstance)
 
 	claims := jwt.MapClaims{"iss": jwtIssuer, "exp": time.Now().Add(time.Hour).Unix()}
-	hs512Token, signError := jwt.NewWithClaims(jwt.SigningMethodHS512, claims).SignedString(jwtSecret)
+	hs512Token, signError := jwt.NewWithClaims(jwt.SigningMethodHS512, claims).SignedString(activeJWTKeyring.Load().currentKey.secret)
 	require.NoError(testingInstance, signError)
 
 	_, validateError := ValidateJWT(hs512Token)
@@ -57,7 +57,7 @@ func TestValidateJWTRejectsWrongIssuer(testingInstance *testing.T) {
 	initJWTForTest(testingInstance)
 
 	claims := jwt.MapClaims{"iss": "someone-else", "exp": time.Now().Add(time.Hour).Unix()}
-	foreignToken, signError := jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString(jwtSecret)
+	foreignToken, signError := jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString(activeJWTKeyring.Load().currentKey.secret)
 	require.NoError(testingInstance, signError)
 
 	_, validateError := ValidateJWT(foreignToken)

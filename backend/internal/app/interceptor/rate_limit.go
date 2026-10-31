@@ -3,13 +3,14 @@ package interceptor
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"os"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/healthcare/backend/internal/shared/apperrors"
-	"github.com/redis/go-redis/v9"
+	"github.com/healthcare/backend/internal/shared/ratelimit"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/peer"
@@ -30,44 +31,37 @@ func getEnvRateLimit(envKey string, defaultValue int) int {
 	return parsedValue
 }
 
-func UnaryRateLimitInterceptor(redisClient *redis.Client) grpc.UnaryServerInterceptor {
+func resolveBudget(fullMethod string) ratelimit.Budget {
+	maxRequests := generalRateLimitPerMinute
+	if strings.HasPrefix(fullMethod, "/auth.v1.AuthService/") {
+		maxRequests = authRateLimitPerMinute
+	}
+	return ratelimit.Budget{MaxRequests: maxRequests, Window: time.Minute}
+}
+
+func isRateLimitExceeded(ctx context.Context, limiter ratelimit.Limiter, key string, budget ratelimit.Budget) bool {
+	allowed, _, limiterError := limiter.Allow(ctx, key, budget)
+	if limiterError != nil {
+		slog.Warn("gRPC rate limiter failed, allowing request", "error", limiterError)
+		return false
+	}
+	return !allowed
+}
+
+func UnaryRateLimitInterceptor(limiter ratelimit.Limiter) grpc.UnaryServerInterceptor {
 	return func(
 		ctx context.Context,
 		req interface{},
 		info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler,
 	) (interface{}, error) {
-		if redisClient == nil {
-			return handler(ctx, req)
-		}
-
-		clientIP := extractClientIP(ctx)
-		rateLimitKey := fmt.Sprintf("rate_limit:%s:%s", info.FullMethod, clientIP)
-		effectiveLimit := generalRateLimitPerMinute
-		if strings.HasPrefix(info.FullMethod, "/auth.v1.AuthService/") {
-			effectiveLimit = authRateLimitPerMinute
-		}
-
-		exceeded, err := checkRateLimit(ctx, redisClient, rateLimitKey, effectiveLimit)
-		if err != nil {
-			return handler(ctx, req)
-		}
-		if exceeded {
+		rateLimitKey := fmt.Sprintf("grpc:%s:%s", info.FullMethod, extractClientIP(ctx))
+		if isRateLimitExceeded(ctx, limiter, rateLimitKey, resolveBudget(info.FullMethod)) {
 			return nil, apperrors.ErrRateLimitExceeded.ToGRPC()
 		}
 
 		return handler(ctx, req)
 	}
-}
-
-func checkRateLimit(ctx context.Context, redisClient *redis.Client, key string, limit int) (bool, error) {
-	pipe := redisClient.Pipeline()
-	incrCmd := pipe.Incr(ctx, key)
-	pipe.Expire(ctx, key, time.Minute)
-	if _, err := pipe.Exec(ctx); err != nil {
-		return false, err
-	}
-	return incrCmd.Val() > int64(limit), nil
 }
 
 func extractClientIP(ctx context.Context) string {
@@ -88,29 +82,15 @@ func extractClientIP(ctx context.Context) string {
 	return "unknown"
 }
 
-func StreamRateLimitInterceptor(redisClient *redis.Client) grpc.StreamServerInterceptor {
+func StreamRateLimitInterceptor(limiter ratelimit.Limiter) grpc.StreamServerInterceptor {
 	return func(
 		srv interface{},
 		stream grpc.ServerStream,
 		info *grpc.StreamServerInfo,
 		handler grpc.StreamHandler,
 	) error {
-		if redisClient == nil {
-			return handler(srv, stream)
-		}
-
-		clientIP := extractClientIP(stream.Context())
-		rateLimitKey := fmt.Sprintf("rate_limit:stream:%s:%s", info.FullMethod, clientIP)
-		effectiveLimit := generalRateLimitPerMinute
-		if strings.HasPrefix(info.FullMethod, "/auth.v1.AuthService/") {
-			effectiveLimit = authRateLimitPerMinute
-		}
-
-		exceeded, err := checkRateLimit(stream.Context(), redisClient, rateLimitKey, effectiveLimit)
-		if err != nil {
-			return handler(srv, stream)
-		}
-		if exceeded {
+		rateLimitKey := fmt.Sprintf("grpc-stream:%s:%s", info.FullMethod, extractClientIP(stream.Context()))
+		if isRateLimitExceeded(stream.Context(), limiter, rateLimitKey, resolveBudget(info.FullMethod)) {
 			return apperrors.ErrRateLimitExceeded.ToGRPC()
 		}
 

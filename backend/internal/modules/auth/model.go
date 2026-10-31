@@ -17,3 +17,28 @@ type User struct {
 	CreatedAt    time.Time `db:"created_at"`
 	UpdatedAt    time.Time `db:"updated_at"`
 }
+
+type RefreshToken struct {
+	ID                uuid.UUID  `db:"id"`
+	FamilyID          uuid.UUID  `db:"family_id"`
+	UserID            uuid.UUID  `db:"user_id"`
+	TokenHash         string     `db:"token_hash"`
+	IssuedAt          time.Time  `db:"issued_at"`
+	ExpiresAt         time.Time  `db:"expires_at"`
+	AbsoluteExpiresAt time.Time  `db:"absolute_expires_at"`
+	ReplacedBy        *uuid.UUID `db:"replaced_by"`
+	RevokedAt         *time.Time `db:"revoked_at"`
+	UserAgent         string     `db:"user_agent"`
+	IP                string     `db:"ip"`
+}
+
+type ClientInfo struct {
+	UserAgent string
+	IP        string
+}
+
+type SessionTokens struct {
+	AccessToken      string
+	RefreshToken     string
+	SessionExpiresAt time.Time
+}

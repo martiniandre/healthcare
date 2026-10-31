@@ -4,12 +4,24 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"log/slog"
+	"net"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/healthcare/backend/internal/api/render"
+)
+
+const (
+	accessTokenCookieName  = "token"
+	csrfTokenCookieName    = "csrf_token"
+	refreshTokenCookieName = "refresh_token"
+	accessTokenCookiePath  = "/"
+	csrfTokenCookiePath    = "/"
+	refreshTokenCookiePath = "/api/v1/auth"
 )
 
 type HTTPHandler struct {
@@ -35,8 +47,97 @@ func (handler *HTTPHandler) sameSiteMode() http.SameSite {
 
 func (handler *HTTPHandler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("POST /api/v1/auth/login", handler.HandleLogin)
+	mux.HandleFunc("POST /api/v1/auth/refresh", handler.HandleRefresh)
 	mux.HandleFunc("POST /api/v1/auth/logout", handler.HandleLogout)
 	mux.HandleFunc("GET /api/v1/auth/me", handler.HandleMe)
+}
+
+func isRefreshRejection(refreshError error) bool {
+	return errors.Is(refreshError, ErrRefreshTokenInvalid) ||
+		errors.Is(refreshError, ErrRefreshTokenReused) ||
+		errors.Is(refreshError, ErrRefreshTokenExpired) ||
+		errors.Is(refreshError, ErrUserInactive)
+}
+
+func extractClientInfo(httpRequest *http.Request) ClientInfo {
+	remoteHost, _, splitError := net.SplitHostPort(httpRequest.RemoteAddr)
+	if splitError != nil {
+		remoteHost = httpRequest.RemoteAddr
+	}
+	return ClientInfo{UserAgent: httpRequest.UserAgent(), IP: remoteHost}
+}
+
+func hasValidCSRFToken(httpRequest *http.Request) bool {
+	csrfHeader := httpRequest.Header.Get("X-CSRF-Token")
+	csrfCookie, csrfCookieError := httpRequest.Cookie(csrfTokenCookieName)
+	return csrfCookieError == nil && csrfHeader != "" && csrfHeader == csrfCookie.Value
+}
+
+func (handler *HTTPHandler) writeSessionCookies(httpResponseWriter http.ResponseWriter, sessionTokens *SessionTokens) string {
+	remainingSessionSeconds := int(time.Until(sessionTokens.SessionExpiresAt).Seconds())
+	if remainingSessionSeconds < 1 {
+		remainingSessionSeconds = 1
+	}
+	accessTokenSeconds := int(accessTokenLifetime.Seconds())
+	if remainingSessionSeconds < accessTokenSeconds {
+		accessTokenSeconds = remainingSessionSeconds
+	}
+
+	crossSiteRequestForgeryToken := uuid.New().String()
+
+	http.SetCookie(httpResponseWriter, &http.Cookie{
+		Name:     accessTokenCookieName,
+		Value:    sessionTokens.AccessToken,
+		Path:     accessTokenCookiePath,
+		HttpOnly: true,
+		Secure:   handler.secureCookies,
+		SameSite: handler.sameSiteMode(),
+		MaxAge:   accessTokenSeconds,
+	})
+
+	http.SetCookie(httpResponseWriter, &http.Cookie{
+		Name:     refreshTokenCookieName,
+		Value:    sessionTokens.RefreshToken,
+		Path:     refreshTokenCookiePath,
+		HttpOnly: true,
+		Secure:   handler.secureCookies,
+		SameSite: handler.sameSiteMode(),
+		MaxAge:   remainingSessionSeconds,
+	})
+
+	http.SetCookie(httpResponseWriter, &http.Cookie{
+		Name:     csrfTokenCookieName,
+		Value:    crossSiteRequestForgeryToken,
+		Path:     csrfTokenCookiePath,
+		HttpOnly: false,
+		Secure:   handler.secureCookies,
+		SameSite: handler.sameSiteMode(),
+		MaxAge:   remainingSessionSeconds,
+	})
+
+	return crossSiteRequestForgeryToken
+}
+
+func (handler *HTTPHandler) clearSessionCookies(httpResponseWriter http.ResponseWriter) {
+	cookiesToClear := []struct {
+		name string
+		path string
+	}{
+		{accessTokenCookieName, accessTokenCookiePath},
+		{refreshTokenCookieName, refreshTokenCookiePath},
+		{csrfTokenCookieName, csrfTokenCookiePath},
+	}
+	for _, cookieToClear := range cookiesToClear {
+		http.SetCookie(httpResponseWriter, &http.Cookie{
+			Name:     cookieToClear.name,
+			Value:    "",
+			Path:     cookieToClear.path,
+			HttpOnly: true,
+			Secure:   handler.secureCookies,
+			SameSite: handler.sameSiteMode(),
+			MaxAge:   -1,
+		})
+	}
 }
 
 // HandleLogin godoc
@@ -62,34 +163,14 @@ func (handler *HTTPHandler) HandleLogin(httpResponseWriter http.ResponseWriter, 
 		return
 	}
 
-	authenticatedUser, jsonWebToken, authError := handler.service.Login(httpRequest.Context(), loginRequestPayload.Email, loginRequestPayload.Password)
+	authenticatedUser, sessionTokens, authError := handler.service.Login(httpRequest.Context(), loginRequestPayload.Email, loginRequestPayload.Password, extractClientInfo(httpRequest))
 	if authError != nil {
 		slog.Warn("Login failed", "email_hash", hashEmailForLogging(loginRequestPayload.Email), "error", authError)
 		render.Error(httpResponseWriter, http.StatusUnauthorized, "Credenciais inválidas.")
 		return
 	}
 
-	crossSiteRequestForgeryToken := uuid.New().String()
-
-	http.SetCookie(httpResponseWriter, &http.Cookie{
-		Name:     "token",
-		Value:    jsonWebToken,
-		Path:     "/",
-		HttpOnly: true,
-		Secure:   handler.secureCookies,
-		SameSite: handler.sameSiteMode(),
-		MaxAge:   86400,
-	})
-
-	http.SetCookie(httpResponseWriter, &http.Cookie{
-		Name:     "csrf_token",
-		Value:    crossSiteRequestForgeryToken,
-		Path:     "/",
-		HttpOnly: false,
-		Secure:   handler.secureCookies,
-		SameSite: handler.sameSiteMode(),
-		MaxAge:   86400,
-	})
+	crossSiteRequestForgeryToken := handler.writeSessionCookies(httpResponseWriter, sessionTokens)
 
 	render.JSON(httpResponseWriter, http.StatusOK, map[string]interface{}{
 		"userId":    authenticatedUser.ID.String(),
@@ -99,10 +180,56 @@ func (handler *HTTPHandler) HandleLogin(httpResponseWriter http.ResponseWriter, 
 	})
 }
 
+// HandleRefresh godoc
+//
+//	@Summary		Refresh session
+//	@Description	Rotates the refresh token cookie and issues a new short-lived access token cookie. Requires the X-CSRF-Token header matching the csrf_token cookie. Reuse of an already rotated refresh token revokes the whole session family.
+//	@Tags			auth
+//	@Accept			json
+//	@Produce		json
+//	@Success		200	{object}	LoginResponse
+//	@Failure		401	{object}	map[string]string
+//	@Failure		403	{object}	map[string]string
+//	@Router			/auth/refresh [post]
+func (handler *HTTPHandler) HandleRefresh(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
+	refreshCookie, refreshCookieError := httpRequest.Cookie(refreshTokenCookieName)
+	if refreshCookieError != nil || refreshCookie.Value == "" {
+		render.Error(httpResponseWriter, http.StatusUnauthorized, "Não autenticado.")
+		return
+	}
+
+	if !hasValidCSRFToken(httpRequest) {
+		render.Error(httpResponseWriter, http.StatusForbidden, "Token CSRF inválido ou ausente.")
+		return
+	}
+
+	refreshedUser, sessionTokens, refreshError := handler.service.Refresh(httpRequest.Context(), refreshCookie.Value, extractClientInfo(httpRequest))
+	if refreshError != nil {
+		if isRefreshRejection(refreshError) {
+			slog.Warn("Session refresh rejected", "error", refreshError)
+			handler.clearSessionCookies(httpResponseWriter)
+			render.Error(httpResponseWriter, http.StatusUnauthorized, "Sessão expirada.")
+			return
+		}
+		slog.Error("Session refresh failed", "error", refreshError)
+		render.Error(httpResponseWriter, http.StatusInternalServerError, "Erro interno do servidor.")
+		return
+	}
+
+	crossSiteRequestForgeryToken := handler.writeSessionCookies(httpResponseWriter, sessionTokens)
+
+	render.JSON(httpResponseWriter, http.StatusOK, map[string]interface{}{
+		"userId":    refreshedUser.ID.String(),
+		"role":      string(refreshedUser.Role),
+		"email":     refreshedUser.Email,
+		"csrfToken": crossSiteRequestForgeryToken,
+	})
+}
+
 // HandleLogout godoc
 //
 //	@Summary		Logout
-//	@Description	Clears authentication and CSRF cookies to log the user out
+//	@Description	Revokes the current session (access token and refresh token family) and clears authentication, refresh and CSRF cookies
 //	@Tags			auth
 //	@Accept			json
 //	@Produce		json
@@ -111,46 +238,41 @@ func (handler *HTTPHandler) HandleLogin(httpResponseWriter http.ResponseWriter, 
 //	@Failure		403	{object}	map[string]string
 //	@Router			/auth/logout [post]
 func (handler *HTTPHandler) HandleLogout(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
-	cookie, cookieError := httpRequest.Cookie("token")
-	if cookieError != nil {
-		render.Error(httpResponseWriter, http.StatusUnauthorized, "Não autenticado.")
-		return
-	}
+	accessCookie, accessCookieError := httpRequest.Cookie(accessTokenCookieName)
+	refreshCookie, refreshCookieError := httpRequest.Cookie(refreshTokenCookieName)
 
-	_, jwtValidationErr := ValidateJWT(cookie.Value)
-	if jwtValidationErr != nil {
+	accessTokenIsValid := false
+	if accessCookieError == nil {
+		_, jwtValidationErr := ValidateJWT(accessCookie.Value)
+		accessTokenIsValid = jwtValidationErr == nil
+	}
+	hasRefreshCookie := refreshCookieError == nil && refreshCookie.Value != ""
+
+	if !accessTokenIsValid && !hasRefreshCookie {
+		if accessCookieError != nil {
+			render.Error(httpResponseWriter, http.StatusUnauthorized, "Não autenticado.")
+			return
+		}
 		render.Error(httpResponseWriter, http.StatusUnauthorized, "Sessão expirada.")
 		return
 	}
 
-	csrfHeader := httpRequest.Header.Get("X-CSRF-Token")
-	csrfCookie, csrfCookieErr := httpRequest.Cookie("csrf_token")
-	if csrfCookieErr != nil || csrfHeader == "" || csrfHeader != csrfCookie.Value {
+	if !hasValidCSRFToken(httpRequest) {
 		render.Error(httpResponseWriter, http.StatusForbidden, "Token CSRF inválido ou ausente.")
 		return
 	}
 
-	RevokeToken(cookie.Value)
+	if accessTokenIsValid {
+		RevokeToken(accessCookie.Value)
+	}
 
-	http.SetCookie(httpResponseWriter, &http.Cookie{
-		Name:     "token",
-		Value:    "",
-		Path:     "/",
-		HttpOnly: true,
-		Secure:   handler.secureCookies,
-		SameSite: handler.sameSiteMode(),
-		MaxAge:   -1,
-	})
+	if hasRefreshCookie {
+		if revokeFamilyError := handler.service.Logout(httpRequest.Context(), refreshCookie.Value); revokeFamilyError != nil {
+			slog.Error("Failed to revoke refresh token family on logout", "error", revokeFamilyError)
+		}
+	}
 
-	http.SetCookie(httpResponseWriter, &http.Cookie{
-		Name:     "csrf_token",
-		Value:    "",
-		Path:     "/",
-		HttpOnly: true,
-		Secure:   handler.secureCookies,
-		SameSite: handler.sameSiteMode(),
-		MaxAge:   -1,
-	})
+	handler.clearSessionCookies(httpResponseWriter)
 
 	render.JSON(httpResponseWriter, http.StatusOK, map[string]string{"message": "Logged out successfully"})
 }
@@ -213,7 +335,8 @@ type LoginRequest struct {
 }
 
 type LoginResponse struct {
-	UserID string `json:"userId"`
-	Role   string `json:"role"`
-	Email  string `json:"email"`
+	UserID    string `json:"userId"`
+	Role      string `json:"role"`
+	Email     string `json:"email"`
+	CSRFToken string `json:"csrfToken"`
 }

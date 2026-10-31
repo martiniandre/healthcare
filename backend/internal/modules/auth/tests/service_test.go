@@ -48,11 +48,12 @@ func TestService_Login_PublishesEvent(testingInstance *testing.T) {
 	_, errRegister := authService.Register(contextParam, "event@example.com", "securepass", "Event User", string(role.RoleDoctor))
 	assert.NoError(testingInstance, errRegister)
 
-	user, token, errLogin := authService.Login(contextParam, "event@example.com", "securepass")
+	user, sessionTokens, errLogin := authService.Login(contextParam, "event@example.com", "securepass", auth.ClientInfo{})
 
 	assert.NoError(testingInstance, errLogin)
 	assert.NotNil(testingInstance, user)
-	assert.NotEmpty(testingInstance, token)
+	assert.NotEmpty(testingInstance, sessionTokens.AccessToken)
+	assert.NotEmpty(testingInstance, sessionTokens.RefreshToken)
 
 	assert.Len(testingInstance, eventBus.PublishedEvents, 1)
 	assert.Equal(testingInstance, "system.notification", eventBus.PublishedEvents[0].Name)
@@ -69,16 +70,17 @@ func TestService_Login(testingInstance *testing.T) {
 	_, errRegister := authService.Register(contextParam, "login@example.com", "securepass", "Login User", string(role.RoleDoctor))
 	assert.NoError(testingInstance, errRegister)
 
-	user, token, errLogin := authService.Login(contextParam, "login@example.com", "securepass")
+	user, sessionTokens, errLogin := authService.Login(contextParam, "login@example.com", "securepass", auth.ClientInfo{})
 
 	assert.NoError(testingInstance, errLogin)
 	assert.NotNil(testingInstance, user)
-	assert.NotEmpty(testingInstance, token)
+	assert.NotEmpty(testingInstance, sessionTokens.AccessToken)
+	assert.NotEmpty(testingInstance, sessionTokens.RefreshToken)
 
-	_, _, errWrongPass := authService.Login(contextParam, "login@example.com", "wrongpass")
+	_, _, errWrongPass := authService.Login(contextParam, "login@example.com", "wrongpass", auth.ClientInfo{})
 	assert.ErrorIs(testingInstance, errWrongPass, auth.ErrInvalidPassword)
 
-	_, _, errNotFound := authService.Login(contextParam, "notfound@example.com", "securepass")
+	_, _, errNotFound := authService.Login(contextParam, "notfound@example.com", "securepass", auth.ClientInfo{})
 	assert.ErrorIs(testingInstance, errNotFound, auth.ErrUserNotFound)
 }
 

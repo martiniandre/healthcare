@@ -53,6 +53,7 @@ import (
 	"github.com/healthcare/backend/internal/shared/healthcare"
 	"github.com/healthcare/backend/internal/shared/logger"
 	"github.com/healthcare/backend/internal/shared/migrations"
+	"github.com/healthcare/backend/internal/shared/ratelimit"
 	"github.com/healthcare/backend/internal/shared/storage"
 	sharedtelemetry "github.com/healthcare/backend/internal/shared/telemetry"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
@@ -82,13 +83,18 @@ func main() {
 		slog.Info("OpenTelemetry exporter endpoint not set, skipping tracer initialization")
 	}
 
-	if initJWTError := auth.InitJWT(appConfig.JWTSecret); initJWTError != nil {
+	if initJWTError := auth.InitJWT(appConfig.JWTSecret, appConfig.JWTPreviousSecrets...); initJWTError != nil {
 		slog.Error("Failed to initialize JWT", "error", initJWTError)
 		os.Exit(1)
 	}
 
-	if migrationError := migrations.Run(appConfig.DBUrl); migrationError != nil {
-		slog.Error("Failed to run database migrations", "error", migrationError)
+	if migrations.ShouldRunOnStart(appConfig.AppEnv, os.Getenv("RUN_MIGRATIONS_ON_START")) {
+		if migrationError := migrations.Run(appConfig.DBUrl); migrationError != nil {
+			slog.Error("Failed to run database migrations", "error", migrationError)
+			os.Exit(1)
+		}
+	} else if verifyError := migrations.Verify(appConfig.DBUrl); verifyError != nil {
+		slog.Error("Database schema check failed", "error", verifyError)
 		os.Exit(1)
 	}
 
@@ -183,6 +189,7 @@ func main() {
 		swaggerEnabled,
 		appConfig.FrontendURL,
 		trustedProxyNetworks,
+		ratelimit.NewDefaultLimiter(redisClient),
 		authHTTPHandler,
 		patientsHTTPHandler,
 		encounterHTTPHandler,
