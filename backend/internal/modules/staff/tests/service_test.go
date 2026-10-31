@@ -437,5 +437,6 @@ func TestListEmployees_IncludesInactiveEmployees(testingInstance *testing.T) {
 
 	assert.NoError(testingInstance, err)
 	assert.Len(testingInstance, employees, 2)
-	assert.Equal(testingInstance, firstEmployee.ID, employees[0].ID)
+	listedEmployeeIDs := []uuid.UUID{employees[0].ID, employees[1].ID}
+	assert.ElementsMatch(testingInstance, []uuid.UUID{firstEmployee.ID, secondEmployee.ID}, listedEmployeeIDs)
 }

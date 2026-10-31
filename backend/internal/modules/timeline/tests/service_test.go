@@ -68,7 +68,9 @@ func TestGetTimeline_DefaultWindowIsLastSixMonths(testingT *testing.T) {
 	var capturedQuery timeline.FetchQuery
 	repository := &mocks.MockRepository{
 		ListEntriesFn: func(ctx context.Context, entryType timeline.EntryType, query timeline.FetchQuery) ([]timeline.Entry, error) {
-			capturedQuery = query
+			if entryType == timeline.EntryTypeEncounter {
+				capturedQuery = query
+			}
 			return nil, nil
 		},
 	}
@@ -162,10 +164,10 @@ func TestGetTimeline_CursorNarrowsFetchUpperBoundAndSkipsTies(testingT *testing.
 	var capturedQuery timeline.FetchQuery
 	repository := &mocks.MockRepository{
 		ListEntriesFn: func(ctx context.Context, entryType timeline.EntryType, query timeline.FetchQuery) ([]timeline.Entry, error) {
-			capturedQuery = query
 			if entryType != timeline.EntryTypeObservation {
 				return nil, nil
 			}
+			capturedQuery = query
 			return []timeline.Entry{
 				entryAt(timeline.EntryTypeObservation, "a", tiedMoment),
 				entryAt(timeline.EntryTypeObservation, "b", tiedMoment),

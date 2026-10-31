@@ -60,10 +60,11 @@ func TestClinicalFlowFromEncounterToMedication(t *testing.T) {
 	allergyFhirID := requireJSONFieldValue(t, allergyResponse, "fhir_id")
 
 	medicationResponse := doctorClient.Post(t, "/api/v1/encounters/"+encounterFhirID+"/medications", map[string]string{
-		"patient_fhir_id":      patientFhirID,
-		"practitioner_fhir_id": "practitioner-1",
-		"medication_name":      "Amoxicilina 500mg",
-		"dosage_instructions":  "1 comprimido 8/8h por 7 dias",
+		"patient_fhir_id":       patientFhirID,
+		"practitioner_fhir_id":  "practitioner-1",
+		"medication_name":       "Amoxicilina 500mg",
+		"dosage_instructions":   "1 comprimido 8/8h por 7 dias",
+		"overrideJustification": "Paciente tolerou o medicamento anteriormente",
 	})
 	requireStatusCode(t, medicationResponse, http.StatusCreated)
 

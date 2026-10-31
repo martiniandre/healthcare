@@ -851,7 +851,7 @@
                 }
             },
             "post": {
-                "description": "Creates a new medication request/prescription for an encounter",
+                "description": "Creates a new medication request/prescription for an encounter. An active allergy matching the drug (by ingredient or class) blocks the request with 409 MEDICATION_ALLERGY_BLOCKED unless a written overrideJustification (min 10 characters) is sent by a DOCTOR or ADMIN. Drug interactions never block and are returned as warnings.",
                 "consumes": [
                     "application/json"
                 ],
@@ -894,6 +894,21 @@
                             "additionalProperties": {
                                 "type": "string"
                             }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/internal_modules_medication.MedicationBlockedResponse"
                         }
                     },
                     "500": {
@@ -1909,6 +1924,65 @@
                     },
                     "500": {
                         "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/patients/{patientFhirId}/medications/check": {
+            "post": {
+                "description": "Cross-checks a requested medication against the patient's active allergies (blocking) and active medications (warning only)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "medications"
+                ],
+                "summary": "Check medication safety",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Patient FHIR ID",
+                        "name": "patientFhirId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Medication to check",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_modules_medication.CheckMedicationSafetyRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_modules_medication.CheckMedicationSafetyResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "503": {
+                        "description": "Service Unavailable",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -3551,6 +3625,28 @@
                 }
             }
         },
+        "internal_modules_medication.CheckMedicationSafetyRequest": {
+            "type": "object",
+            "properties": {
+                "medicationCode": {
+                    "type": "string"
+                },
+                "medicationName": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_modules_medication.CheckMedicationSafetyResponse": {
+            "type": "object",
+            "properties": {
+                "alerts": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/internal_modules_medication.SafetyAlertResponse"
+                    }
+                }
+            }
+        },
         "internal_modules_medication.CreateMedicationRequest": {
             "type": "object",
             "properties": {
@@ -3561,6 +3657,9 @@
                     "type": "string"
                 },
                 "medication_name": {
+                    "type": "string"
+                },
+                "overrideJustification": {
                     "type": "string"
                 },
                 "patient_fhir_id": {
@@ -3600,6 +3699,30 @@
                 },
                 "status": {
                     "type": "string"
+                },
+                "warnings": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/internal_modules_medication.SafetyAlertResponse"
+                    }
+                }
+            }
+        },
+        "internal_modules_medication.MedicationBlockedResponse": {
+            "type": "object",
+            "properties": {
+                "alerts": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/internal_modules_medication.SafetyAlertResponse"
+                    }
+                },
+                "code": {
+                    "type": "string",
+                    "example": "MEDICATION_ALLERGY_BLOCKED"
+                },
+                "error": {
+                    "type": "string"
                 }
             }
         },
@@ -3632,6 +3755,46 @@
                 },
                 "status": {
                     "type": "string"
+                }
+            }
+        },
+        "internal_modules_medication.SafetyAlertResponse": {
+            "type": "object",
+            "properties": {
+                "blocking": {
+                    "type": "boolean"
+                },
+                "kind": {
+                    "type": "string",
+                    "enum": [
+                        "allergy",
+                        "interaction"
+                    ],
+                    "example": "allergy"
+                },
+                "messageKey": {
+                    "type": "string",
+                    "example": "medicationSafety.allergy.class"
+                },
+                "params": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "relatedResourceId": {
+                    "type": "string",
+                    "example": "allergy-fhir-id"
+                },
+                "severity": {
+                    "type": "string",
+                    "enum": [
+                        "info",
+                        "moderate",
+                        "major",
+                        "contraindicated"
+                    ],
+                    "example": "contraindicated"
                 }
             }
         },

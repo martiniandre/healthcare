@@ -13,6 +13,7 @@ import (
 
 	"github.com/healthcare/backend/internal/api"
 	"github.com/healthcare/backend/internal/api/middleware"
+	"github.com/healthcare/backend/internal/app/adapters"
 	"github.com/healthcare/backend/internal/modules/allergy"
 	"github.com/healthcare/backend/internal/modules/analytics"
 	"github.com/healthcare/backend/internal/modules/audit_logs"
@@ -165,9 +166,14 @@ func newTestServer(t *testing.T) *testServer {
 	observationService := observation.Register(grpcServer, observation.Dependency{FHIRClient: fhirClient})
 	conditionService := condition.Register(grpcServer, condition.Dependency{FHIRClient: fhirClient})
 	allergyService := allergy.Register(grpcServer, allergy.Dependency{FHIRClient: fhirClient})
-	medicationService := medication.Register(grpcServer, medication.Dependency{FHIRClient: fhirClient})
 	auditLogsService := audit_logs.Register(grpcServer, audit_logs.Dependency{DB: environment.pool})
 	middleware.SetHTTPAuditRecorder(audit_logs.NewHTTPAuditRecorder(auditLogsService))
+	medicationService := medication.Register(grpcServer, medication.Dependency{
+		FHIRClient:    fhirClient,
+		DB:            environment.pool,
+		AllergyReader: adapters.NewMedicationAllergyReader(allergyService),
+		AuditRecorder: adapters.NewMedicationAuditRecorder(auditLogsService),
+	})
 	diagnosticReportService := diagnostic_report.Register(grpcServer, diagnostic_report.Dependency{
 		FHIRClient:   fhirClient,
 		EventBus:     eventBus,
@@ -340,6 +346,7 @@ func resetTestData(t *testing.T, pool *pgxpool.Pool) {
 		"patient_user_links",
 		"revoked_tokens",
 		"outbox_events",
+		"medication_safety_overrides",
 	}
 
 	_, truncateError := pool.Exec(ctx, "TRUNCATE "+strings.Join(appTables, ", ")+" RESTART IDENTITY CASCADE")
