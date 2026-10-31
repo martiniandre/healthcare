@@ -1,6 +1,23 @@
 {
   "appTitle": "Portal HealthCare",
   "close": "Cerrar",
+  "tableDensity": {
+    "compact": "Filas compactas",
+    "comfortable": "Filas cómodas"
+  },
+  "loading": "Cargando",
+  "pagination": {
+    "label": "Paginación",
+    "previousPage": "Ir a la página anterior",
+    "previous": "Anterior",
+    "nextPage": "Ir a la página siguiente",
+    "next": "Siguiente",
+    "morePages": "Más páginas"
+  },
+  "breadcrumb": {
+    "label": "Ruta de navegación",
+    "more": "Más"
+  },
   "toast": {
     "success": "Éxito",
     "error": "Error",

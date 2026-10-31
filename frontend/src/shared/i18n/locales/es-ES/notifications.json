@@ -31,5 +31,13 @@
       "title": "Inicio de Sesión Realizado",
       "body": "Inicio de sesión realizado con éxito."
     }
-  }
+  },
+  "retry": "Intentar de nuevo",
+  "priority": {
+    "critical": "Crítica",
+    "high": "Alta",
+    "medium": "Media",
+    "low": "Baja"
+  },
+  "unreadCount": "{{formattedCount}} no leídas"
 }

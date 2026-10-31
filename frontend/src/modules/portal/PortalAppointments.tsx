@@ -1,68 +1,89 @@
+import { CalendarClock } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { useMyAppointmentsQuery } from "../schedule/queries"
-import { Card } from "../../shared/components/ui/Card"
-import { Loader2 } from "lucide-react"
+import { PortalSectionState } from "./components/PortalSectionState"
+import { Card, CardContent } from "../../shared/components/ui/card"
+import { StatusBadge, type ClinicalStatus } from "../../shared/components/ui/status-badge"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "../../shared/components/ui/table"
 import { formatDate, formatTime } from "../../shared/utils/dates"
+import { useLocale } from "../../shared/hooks/useLocale"
 
-const statusBadgeClassNames: Record<string, string> = {
-  scheduled: "bg-blue-100 text-blue-700",
-  confirmed: "bg-emerald-100 text-emerald-700",
-  cancelled: "bg-gray-200 text-gray-500",
-  finished: "bg-violet-100 text-violet-700",
+const appointmentStatusMap: Record<string, ClinicalStatus> = {
+  scheduled: "info",
+  confirmed: "normal",
+  cancelled: "critical",
+  finished: "neutral",
 }
 
 export const PortalAppointments = () => {
-  const { t } = useTranslation("schedule")
-  const { data: appointments, isLoading } = useMyAppointmentsQuery()
-
-  if (isLoading) {
-    return (
-      <Card className="flex items-center justify-center min-h-[300px]">
-        <Loader2 className="w-8 h-8 text-primary animate-spin" />
-      </Card>
-    )
-  }
-
-  if (!appointments || appointments.length === 0) {
-    return (
-      <Card className="py-16 text-center">
-        <p className="text-sm text-gray-500">{t("portal.empty")}</p>
-      </Card>
-    )
-  }
+  const { t } = useTranslation(["schedule", "portal"])
+  const locale = useLocale()
+  const { data: appointments, isLoading, isError, refetch } = useMyAppointmentsQuery()
 
   return (
-    <div className="bg-card border border-border rounded-xl overflow-hidden">
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="bg-gray-50 border-b border-border">
-              <th className="text-left p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">{t("portal.date")}</th>
-              <th className="text-left p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">{t("portal.time")}</th>
-              <th className="text-left p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">{t("portal.reason")}</th>
-              <th className="text-left p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">{t("portal.status")}</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border">
-            {appointments.map((appointment) => (
-              <tr key={appointment.id} className="hover:bg-gray-50">
-                <td className="p-4 text-gray-900 font-medium whitespace-nowrap">
-                  {formatDate(appointment.starts_at)}
-                </td>
-                <td className="p-4 font-mono text-gray-700 whitespace-nowrap">
-                  {formatTime(appointment.starts_at)}
-                </td>
-                <td className="p-4 text-gray-700">{appointment.reason || "-"}</td>
-                <td className="p-4">
-                  <span className={`text-xs font-bold px-2 py-1 rounded-full capitalize ${statusBadgeClassNames[appointment.status] ?? "bg-gray-100 text-gray-500"}`}>
-                    {t(`status.${appointment.status}`)}
-                  </span>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+    <PortalSectionState
+      isLoading={isLoading}
+      isError={isError}
+      onRetry={() => refetch()}
+      isEmpty={!appointments || appointments.length === 0}
+      emptyTitle={t("schedule:portal.empty")}
+      emptyIcon={CalendarClock}
+    >
+      <div className="flex flex-col gap-3 md:hidden">
+        {appointments?.map((appointment) => (
+          <Card key={appointment.id} className="py-4">
+            <CardContent className="flex flex-col gap-2 px-4">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="text-sm font-semibold tabular-nums text-foreground">
+                  {formatDate(appointment.starts_at, locale)} - {formatTime(appointment.starts_at, locale)}
+                </p>
+                <StatusBadge status={appointmentStatusMap[appointment.status] ?? "neutral"}>
+                  {t(`schedule:status.${appointment.status}`)}
+                </StatusBadge>
+              </div>
+              <p className="break-words text-sm text-muted-foreground">{appointment.reason || "-"}</p>
+            </CardContent>
+          </Card>
+        ))}
       </div>
-    </div>
+
+      <Card className="hidden gap-0 overflow-hidden py-0 md:block">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="p-4">{t("schedule:portal.date")}</TableHead>
+              <TableHead className="p-4">{t("schedule:portal.time")}</TableHead>
+              <TableHead className="p-4">{t("schedule:portal.reason")}</TableHead>
+              <TableHead className="p-4">{t("schedule:portal.status")}</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {appointments?.map((appointment) => (
+              <TableRow key={appointment.id}>
+                <TableCell className="p-4 font-medium tabular-nums whitespace-nowrap">
+                  {formatDate(appointment.starts_at, locale)}
+                </TableCell>
+                <TableCell className="p-4 tabular-nums whitespace-nowrap">
+                  {formatTime(appointment.starts_at, locale)}
+                </TableCell>
+                <TableCell className="p-4 whitespace-normal break-words">{appointment.reason || "-"}</TableCell>
+                <TableCell className="p-4">
+                  <StatusBadge status={appointmentStatusMap[appointment.status] ?? "neutral"}>
+                    {t(`schedule:status.${appointment.status}`)}
+                  </StatusBadge>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </Card>
+    </PortalSectionState>
   )
 }

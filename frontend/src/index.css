@@ -1,3 +1,4 @@
+@import "@fontsource-variable/inter";
 @import "tailwindcss";
 
 @custom-variant dark (&:where(.dark, .dark *));
@@ -8,11 +9,11 @@
   --color-card: #ffffff;
   --color-primary: #2563eb;
   --color-secondary: #0d9488;
-  --color-accent: #3b82f6;
-  --color-muted: #6b7280;
+  --color-accent: #f1f5f9;
+  --color-muted: #f1f5f9;
   --color-border: #e5e7eb;
-  --color-success: #16a34a;
-  --color-warning: #d97706;
+  --color-success: #15803d;
+  --color-warning: #b45309;
   --color-danger: #dc2626;
 
   --color-foreground: #1f2937;
@@ -23,7 +24,9 @@
   --color-popover-foreground: #1f2937;
   --color-primary-foreground: #ffffff;
   --color-secondary-foreground: #ffffff;
-  --color-accent-foreground: #ffffff;
+  --color-accent-foreground: #1f2937;
+  --color-destructive: #dc2626;
+  --color-destructive-foreground: #ffffff;
   --color-muted-foreground: #6b7280;
   --color-success-foreground: #ffffff;
   --color-warning-foreground: #ffffff;
@@ -33,8 +36,8 @@
 
   --default-border-color: #e5e7eb;
 
-  --font-sans: "Poppins", "Outfit", "system-ui", "sans-serif";
-  --font-display: "Poppins", "Outfit", "system-ui", "sans-serif";
+  --font-sans: "Inter Variable", system-ui, sans-serif;
+  --font-display: "Inter Variable", system-ui, sans-serif;
 
   --animate-pulse-glow: pulseGlow 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   --animate-fade-in: fadeIn 0.25s ease-out;
@@ -66,7 +69,8 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
-    font-family: "Poppins", "Outfit", sans-serif;
+    font-family: var(--font-sans);
+    font-feature-settings: "cv11", "ss01";
     overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -88,17 +92,24 @@
   --color-surface-foreground: #e2e8f0;
   --color-card-foreground: #e2e8f0;
   --color-popover-foreground: #e2e8f0;
-  --color-muted: #94a3b8;
+  --color-muted: #162033;
   --color-muted-foreground: #94a3b8;
   --color-border: #243049;
   --color-input: #243049;
   --color-primary: #3b82f6;
+  --color-primary-foreground: #0b1120;
   --color-secondary: #2dd4bf;
-  --color-accent: #60a5fa;
+  --color-secondary-foreground: #0b1120;
+  --color-accent: #1e2a41;
+  --color-accent-foreground: #e2e8f0;
+  --color-destructive: #f87171;
   --color-ring: #3b82f6;
   --color-success: #4ade80;
   --color-warning: #fbbf24;
   --color-danger: #f87171;
+  --color-success-foreground: #052e16;
+  --color-warning-foreground: #451a03;
+  --color-danger-foreground: #450a0a;
 
   --color-gray-50: #0f1522;
   --color-gray-100: #162033;
@@ -161,7 +172,7 @@
   --sc-muted: #64748b;
   --sc-primary: #2563eb;
   --sc-teal: #0d9488;
-  font-family: "Poppins", "Outfit", sans-serif;
+  font-family: var(--font-sans);
   color: var(--sc-ink);
 }
 
@@ -174,7 +185,7 @@
   margin-bottom: 0.9rem;
 }
 .schedule-calendar-container .fc-toolbar-title {
-  font-family: "Poppins", sans-serif;
+  font-family: var(--font-sans);
   font-weight: 700;
   font-size: 1.02rem;
   letter-spacing: -0.01em;

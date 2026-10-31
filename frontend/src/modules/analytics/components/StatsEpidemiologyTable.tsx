@@ -9,7 +9,13 @@ import {
   FileSpreadsheet,
   Minus,
 } from "lucide-react"
-import { Button } from "../../../shared/components/ui/Button"
+import { StatusBadge } from "../../../shared/components/ui/status-badge"
+import { useLayoutStore } from "../../../shared/store/layout_store"
+import { useLocale } from "../../../shared/hooks/useLocale"
+import { TableDensityToggle } from "@/shared/components/clinical/TableDensityToggle"
+import { formatDecimal, formatPercentage } from "../format_numbers"
+import { Badge } from "../../../shared/components/ui/badge"
+import { Button } from "../../../shared/components/ui/button"
 import { EmptyState } from "../../../shared/components/ui/EmptyState"
 import {
   Table,
@@ -18,10 +24,10 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "../../../shared/components/ui/Table"
+} from "../../../shared/components/ui/table"
 import { AnalyticsPanel, PanelMetric } from "./AnalyticsPanel"
 import { resolveTrendReading } from "../stats_domain"
-import { toneClassNames, toneFillVariables, type MetricTone } from "../metric_tones"
+import { toneClinicalStatus, toneFillVariables, type MetricTone } from "../metric_tones"
 import { cn } from "../../../shared/utils/cn"
 import type { PathologyData } from "../types"
 
@@ -86,26 +92,30 @@ const SortableHead = ({
   return (
     <TableHead
       aria-sort={ariaSortState}
-      className={cn(align === "right" && "text-right", className)}
+      className={cn("sticky top-0 z-10 bg-card", align === "right" && "text-right", className)}
     >
-      <button
+      <Button
         type="button"
+        variant="ghost"
+        size="xs"
         onClick={() => onToggleSort(field)}
         className={cn(
-          "inline-flex items-center gap-1 rounded transition-colors hover:text-gray-900",
+          "-mx-2 text-xs font-medium",
           align === "right" && "flex-row-reverse",
-          isActive ? "text-gray-900" : "text-muted-foreground"
+          isActive ? "text-foreground" : "text-muted-foreground"
         )}
       >
         {children}
-        {isActive ? <SortIcon className="size-3 shrink-0" aria-hidden="true" /> : null}
-      </button>
+        {isActive ? <SortIcon className="shrink-0" aria-hidden="true" /> : null}
+      </Button>
     </TableHead>
   )
 }
 
 export const StatsEpidemiologyTable = ({ pathologies }: StatsEpidemiologyTableProps) => {
   const { t } = useTranslation("analytics")
+  const locale = useLocale()
+  const tableDensity = useLayoutStore((state) => state.tableDensity)
   const [sortField, setSortField] = useState<SortField>("activeCases")
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc")
 
@@ -181,16 +191,21 @@ export const StatsEpidemiologyTable = ({ pathologies }: StatsEpidemiologyTablePr
               value={t("epidemiology.activeCasesUnit", { count: totalActiveCases })}
             />
           ) : null}
-          <Button variantType="outline" className="gap-1.5 text-xs">
-            <FileSpreadsheet className="size-4" aria-hidden="true" />
+          <TableDensityToggle />
+          <Button variant="outline" size="sm" className="text-xs">
+            <FileSpreadsheet aria-hidden="true" />
             {t("epidemiology.exportButton")}
           </Button>
         </div>
       }
     >
       {pathologies.length > 0 ? (
-        <div className="-mx-5 -my-5 overflow-x-auto">
-          <Table className="min-w-[720px]">
+        <div className="-mx-5 -my-5">
+          <Table
+            className="min-w-[720px]"
+            density={tableDensity}
+            containerClassName="max-h-[560px] overflow-y-auto"
+          >
             <TableHeader>
               <TableRow>
                 <SortableHead
@@ -203,8 +218,8 @@ export const StatsEpidemiologyTable = ({ pathologies }: StatsEpidemiologyTablePr
                 >
                   {t("epidemiology.table.code")}
                 </SortableHead>
-                <TableHead>{t("epidemiology.table.description")}</TableHead>
-                <TableHead className="w-44">{t("epidemiology.table.category")}</TableHead>
+                <TableHead className="sticky top-0 z-10 bg-card">{t("epidemiology.table.description")}</TableHead>
+                <TableHead className="sticky top-0 z-10 min-w-32 bg-card">{t("epidemiology.table.category")}</TableHead>
                 <SortableHead
                   field="activeCases"
                   sortField={sortField}
@@ -225,14 +240,13 @@ export const StatsEpidemiologyTable = ({ pathologies }: StatsEpidemiologyTablePr
                 >
                   {t("epidemiology.table.trend")}
                 </SortableHead>
-                <TableHead className="w-44 pr-5 text-right">
+                <TableHead className="sticky top-0 z-10 min-w-40 bg-card pr-5 text-right">
                   {t("epidemiology.table.proportion")}
                 </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {sortedPathologies.map((pathology) => {
-                const trendTone = toneClassNames[pathology.trendSeverity]
                 const TrendIcon = TREND_ICONS[pathology.trendDirection]
                 const severityLabel = t(`epidemiology.trend.severity.${pathology.trendSeverity}`)
 
@@ -241,25 +255,25 @@ export const StatsEpidemiologyTable = ({ pathologies }: StatsEpidemiologyTablePr
                     <TableCell className="pl-5 font-mono text-xs font-bold text-primary">
                       {pathology.code}
                     </TableCell>
-                    <TableCell className="text-sm text-gray-700">{pathology.description}</TableCell>
+                    <TableCell className="text-sm text-foreground">{pathology.description}</TableCell>
                     <TableCell>
-                      <span className="inline-flex rounded-md border border-border bg-gray-50 px-2 py-0.5 text-[11px] font-semibold text-muted-foreground">
+                      <Badge variant="outline" className="rounded-md bg-muted text-[11px] font-semibold text-muted-foreground">
                         {pathology.category}
-                      </span>
+                      </Badge>
                     </TableCell>
-                    <TableCell className="text-right text-sm font-black tabular-nums text-gray-900">
-                      {pathology.activeCases}
+                    <TableCell className="text-right text-sm font-black tabular-nums text-foreground">
+                      {formatDecimal(pathology.activeCases, locale)}
                     </TableCell>
                     <TableCell>
-                      <span className={cn("flex items-center gap-1 text-xs font-bold", trendTone.text)}>
-                        <TrendIcon className="size-3.5 shrink-0" aria-hidden="true" />
+                      <StatusBadge status={toneClinicalStatus[pathology.trendSeverity]} className="text-xs font-bold">
                         {resolveTrendLabel(pathology.trend)}
+                        <TrendIcon aria-hidden="true" />
                         <span className="sr-only"> — {severityLabel}</span>
-                      </span>
+                      </StatusBadge>
                     </TableCell>
                     <TableCell className="pr-5">
                       <div className="flex items-center justify-end gap-2.5">
-                        <div className="h-2 w-28 overflow-hidden rounded-full bg-gray-200">
+                        <div className="h-2 w-28 overflow-hidden rounded-full bg-muted">
                           <div
                             className="h-full rounded-full"
                             style={{
@@ -268,8 +282,8 @@ export const StatsEpidemiologyTable = ({ pathologies }: StatsEpidemiologyTablePr
                             }}
                           />
                         </div>
-                        <span className="w-9 text-right text-[11px] font-bold tabular-nums text-muted-foreground">
-                          {pathology.proportion.toFixed(0)}%
+                        <span className="min-w-9 text-right text-[11px] font-bold tabular-nums text-muted-foreground">
+                          {formatPercentage(pathology.proportion, locale)}
                         </span>
                       </div>
                     </TableCell>

@@ -49,7 +49,7 @@
     "subtitle": "Casos clínicos ativos mapeados na base de dados FHIR",
     "exportButton": "Exportar CSV",
     "activeCasesTotalLabel": "Casos",
-    "activeCasesUnit": "{{count}} ativos",
+    "activeCasesUnit": "{{count, number}} ativos",
     "trend": {
       "severity": {
         "critical": "Crítico",

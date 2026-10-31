@@ -9,9 +9,10 @@
     "fhirCompliant": "FHIR R4 Compliant",
     "cloudIntegration": "Cloud Healthcare API"
   },
-    "loadingComponent": "Loading component...",
+  "loadingComponent": "Loading component...",
   "analyzeExamWithAi": "Analyze Exam with AI",
-"searchPlaceholder": "Search by name, document or phone...",
+  "searchPlaceholder": "Search by name, document or phone...",
+  "clearSearch": "Clear search",
   "filterResults_one": "{{count}} result",
   "filterResults_other": "{{count}} results",
   "loading": "Loading clinical records...",
@@ -267,5 +268,28 @@
     "medicationMin": "Medication name must be at least 3 characters",
     "dosageMin": "Dosage instruction must be at least 3 characters",
     "maxLength": "Value exceeds the maximum allowed length"
+  },
+  "states": {
+    "loading": "Loading...",
+    "errorTitle": "Could not load the data",
+    "errorDescription": "An error occurred while fetching the information. Please try again.",
+    "retry": "Try again"
+  },
+  "header": {
+    "age_one": "{{count}} year old",
+    "age_other": "{{count}} years old",
+    "allergies": "Allergies",
+    "allergiesCount": "Allergies ({{count}})",
+    "noKnownAllergies": "No known allergies",
+    "conditions": "Active critical conditions",
+    "conditionsCount": "Active conditions ({{count}})",
+    "noActiveConditions": "No active conditions",
+    "moreItems": "+{{count}}",
+    "alertsCount_one": "{{count}} alert",
+    "alertsCount_other": "{{count}} alerts",
+    "noAlerts": "No alerts",
+    "alertsError": "Alerts unavailable",
+    "alertsDetails": "View clinical alerts",
+    "notPerformed": "N/A"
   }
 }

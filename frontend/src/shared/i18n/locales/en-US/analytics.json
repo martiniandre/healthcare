@@ -49,7 +49,7 @@
     "subtitle": "Active clinical cases mapped in the FHIR database",
     "exportButton": "Export CSV",
     "activeCasesTotalLabel": "Cases",
-    "activeCasesUnit": "{{count}} active",
+    "activeCasesUnit": "{{count, number}} active",
     "trend": {
       "severity": {
         "critical": "Critical",

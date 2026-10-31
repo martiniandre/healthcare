@@ -1,3 +1,6 @@
+import { ImagingStudyStatus } from "../../../shared/types"
+import type { ClinicalStatus } from "@/shared/components/ui/status-badge"
+
 export const createValidDicomBlob = (): Blob => {
   const dicomBufferArray = new ArrayBuffer(136)
   const dataViewWriter = new DataView(dicomBufferArray)
@@ -11,4 +14,17 @@ export const createValidDicomBlob = (): Blob => {
 
 export const waitForUploadFrame = async (millisecondsToWait: number): Promise<void> => {
   await new Promise((resolve) => setTimeout(resolve, millisecondsToWait))
+}
+
+export const resolveStudyClinicalStatus = (status: ImagingStudyStatus): ClinicalStatus => {
+  if (status === ImagingStudyStatus.Available) {
+    return "normal"
+  }
+  if (status === ImagingStudyStatus.Registered) {
+    return "info"
+  }
+  if (status === ImagingStudyStatus.Cancelled || status === ImagingStudyStatus.EnteredInError) {
+    return "critical"
+  }
+  return "neutral"
 }

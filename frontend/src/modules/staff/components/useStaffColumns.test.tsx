@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from "vitest"
 import { renderHook } from "@testing-library/react"
 import { StaffRole, StaffStatus } from "../../../shared/types"
 import type { StaffMember } from "../types"
-import { STAFF_ROLE_LABEL_KEYS, STAFF_ROLE_PILL_CLASSNAMES } from "../staff_roles"
+import { STAFF_ROLE_LABEL_KEYS, STAFF_ROLE_BADGE_VARIANTS } from "../staff_roles"
 import { useStaffColumns } from "./useStaffColumns"
 
 const mockTranslateFunction = (key: string) => key
@@ -86,9 +86,9 @@ describe("useStaffColumns", () => {
     })
   })
 
-  it("should define a pill style for every role enum", () => {
+  it("should define a badge variant for every role enum", () => {
     Object.values(StaffRole).forEach((role) => {
-      expect(STAFF_ROLE_PILL_CLASSNAMES[role]).toBeTruthy()
+      expect(STAFF_ROLE_BADGE_VARIANTS[role]).toBeTruthy()
     })
   })
 

@@ -1,10 +1,7 @@
 import { useState, Suspense, lazy } from "react"
 import { useParams, useNavigate, useSearchParams } from "react-router-dom"
 import { useTranslation } from "react-i18next"
-import {
-  usePatientQuery,
-  useEncountersQuery,
-} from "./queries"
+import { usePatientQuery, useEncountersQuery } from "./queries"
 import { useImagingStudiesQuery } from "../imaging/queries"
 import { ImagingWorkspace } from "../imaging/ImagingWorkspace"
 import { Action, Feature } from "../../shared/auth/AbilityContext"
@@ -13,16 +10,15 @@ import { EncounterSelectionDialog } from "./components/EncounterSelectionDialog"
 import { ExamAnalyzerModal } from "./components/modals/ExamAnalyzerModal"
 import { Can } from "../../shared/auth/AbilityContext"
 import { PatientPageLayout } from "./components/PatientPageLayout"
-import { Card } from "../../shared/components/ui/Card"
-import { Button } from "../../shared/components/ui/Button"
-import {
-  History,
-  Image as ImageIcon,
-  Activity,
-  ShieldAlert,
-  Sparkles,
-  Loader2
-} from "lucide-react"
+import { PatientPageSkeleton } from "./components/PatientPageSkeleton"
+import { QueryErrorAlert } from "./components/QueryErrorAlert"
+import { PageContainer } from "../../shared/components/ui/PageContainer"
+import { Card } from "../../shared/components/ui/card"
+import { Spinner } from "../../shared/components/ui/spinner"
+import { Tabs, TabsList, TabsTrigger } from "../../shared/components/ui/tabs"
+import { Badge } from "../../shared/components/ui/badge"
+import { Button } from "../../shared/components/ui/button"
+import { History, Image as ImageIcon, Activity, ShieldAlert, Sparkles } from "lucide-react"
 
 const PatientTab = {
   Encounters: "encounters",
@@ -31,7 +27,7 @@ const PatientTab = {
   Pacs: "pacs",
 } as const
 
-type PatientTab = typeof PatientTab[keyof typeof PatientTab]
+type PatientTab = (typeof PatientTab)[keyof typeof PatientTab]
 
 const EncounterHistory = lazy(() => import("./components/EncounterHistory"))
 const ClinicalConditions = lazy(() => import("./components/ClinicalConditions"))
@@ -45,8 +41,8 @@ const TabFallback = () => {
   return (
     <Card className="flex items-center justify-center min-h-[450px]">
       <div className="flex flex-col items-center gap-2">
-        <Loader2 className="w-8 h-8 text-primary animate-spin" />
-        <span className="text-sm text-gray-500 font-medium">{t("loadingComponent")}</span>
+        <Spinner className="size-8 text-primary" />
+        <span className="text-sm text-muted-foreground font-medium">{t("loadingComponent")}</span>
       </div>
     </Card>
   )
@@ -70,7 +66,7 @@ export const PatientDetails = () => {
 
   const [isExamModalOpen, setIsExamModalOpen] = useState(false)
 
-  const { data: patient, isLoading: isPatientLoading, isError: isPatientError } = usePatientQuery(id)
+  const { data: patient, isLoading: isPatientLoading, isError: isPatientError, refetch: refetchPatient } = usePatientQuery(id)
   const { data: encounters = [] } = useEncountersQuery(id)
 
   const canReadConditions = ability.can(Action.Read, Feature.Condition)
@@ -85,86 +81,78 @@ export const PatientDetails = () => {
   }
   const resolvedActiveTab = availableTabs[activeTab] ? activeTab : PatientTab.Encounters
 
-  const { data: studies = [] } = useImagingStudiesQuery(id, canReadStudies)
+  const {
+    data: studies = [],
+    isLoading: isStudiesLoading,
+    isError: isStudiesError,
+    refetch: refetchStudies,
+  } = useImagingStudiesQuery(id, canReadStudies)
 
   if (isPatientError) {
     return (
-      <div className="text-center py-16">
-        <span className="text-sm text-red-500 font-medium">{t("details.loadError")}</span>
-      </div>
+      <PageContainer>
+        <QueryErrorAlert title={t("details.loadError")} onRetry={() => void refetchPatient()} />
+      </PageContainer>
     )
   }
 
   if (isPatientLoading || !patient) {
-    return (
-      <div className="text-center py-16">
-        <span className="text-sm text-muted">{t("details.loadingDetails")}</span>
-      </div>
-    )
+    return <PatientPageSkeleton />
   }
 
   const sidebarTabs = (
-    <>
-      <button
-        onClick={() => setActiveTab(PatientTab.Encounters)}
-        className={`w-full text-left flex items-center gap-3 px-4 py-3 rounded-lg text-xs font-extrabold transition-all duration-300 ${
-          resolvedActiveTab === PatientTab.Encounters
-            ? "bg-primary/8 text-primary"
-            : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
-        }`}
-      >
-        <History className="w-4 h-4 shrink-0" />
-        {t("details.encounters")}
-        <span className="ml-auto text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded font-black">
-          {encounters.length}
-        </span>
-      </button>
-
-      {canReadConditions && (
-        <button
-          onClick={() => setActiveTab(PatientTab.Conditions)}
-          className={`w-full text-left flex items-center gap-3 px-4 py-3 rounded-lg text-xs font-extrabold transition-all duration-300 ${
-            resolvedActiveTab === PatientTab.Conditions
-              ? "bg-primary/8 text-primary"
-              : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
-          }`}
+    <Tabs
+      orientation="vertical"
+      value={resolvedActiveTab}
+      onValueChange={(tabName) => setActiveTab(tabName as PatientTab)}
+      className="w-full"
+    >
+      <TabsList variant="line" className="w-full gap-1 p-0">
+        <TabsTrigger
+          value={PatientTab.Encounters}
+          className="h-auto flex-none justify-start gap-3 px-4 py-3 text-xs font-extrabold text-muted-foreground data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-none"
         >
-          <Activity className="w-4 h-4 shrink-0" />
-          {t("details.conditions")}
-        </button>
-      )}
+          <History className="w-4 h-4 shrink-0" />
+          {t("details.encounters")}
+          <Badge variant="secondary" className="ml-auto">
+            {encounters.length}
+          </Badge>
+        </TabsTrigger>
 
-      {canReadAllergies && (
-        <button
-          onClick={() => setActiveTab(PatientTab.Allergies)}
-          className={`w-full text-left flex items-center gap-3 px-4 py-3 rounded-lg text-xs font-extrabold transition-all duration-300 ${
-            resolvedActiveTab === PatientTab.Allergies
-              ? "bg-primary/8 text-primary"
-              : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
-          }`}
-        >
-          <ShieldAlert className="w-4 h-4 shrink-0" />
-          {t("details.allergies")}
-        </button>
-      )}
+        {canReadConditions && (
+          <TabsTrigger
+            value={PatientTab.Conditions}
+            className="h-auto flex-none justify-start gap-3 px-4 py-3 text-xs font-extrabold text-muted-foreground data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-none"
+          >
+            <Activity className="w-4 h-4 shrink-0" />
+            {t("details.conditions")}
+          </TabsTrigger>
+        )}
 
-      {canReadStudies && (
-        <button
-          onClick={() => setActiveTab(PatientTab.Pacs)}
-          className={`w-full text-left flex items-center gap-3 px-4 py-3 rounded-lg text-xs font-extrabold transition-all duration-300 ${
-            resolvedActiveTab === PatientTab.Pacs
-              ? "bg-primary/8 text-primary"
-              : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
-          }`}
-        >
-          <ImageIcon className="w-4 h-4 shrink-0" />
-          {t("details.pacs")}
-          <span className="ml-auto text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded font-black">
-            {studies.length}
-          </span>
-        </button>
-      )}
-    </>
+        {canReadAllergies && (
+          <TabsTrigger
+            value={PatientTab.Allergies}
+            className="h-auto flex-none justify-start gap-3 px-4 py-3 text-xs font-extrabold text-muted-foreground data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-none"
+          >
+            <ShieldAlert className="w-4 h-4 shrink-0" />
+            {t("details.allergies")}
+          </TabsTrigger>
+        )}
+
+        {canReadStudies && (
+          <TabsTrigger
+            value={PatientTab.Pacs}
+            className="h-auto flex-none justify-start gap-3 px-4 py-3 text-xs font-extrabold text-muted-foreground data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-none"
+          >
+            <ImageIcon className="w-4 h-4 shrink-0" />
+            {t("details.pacs")}
+            <Badge variant="secondary" className="ml-auto">
+              {studies.length}
+            </Badge>
+          </TabsTrigger>
+        )}
+      </TabsList>
+    </Tabs>
   )
 
   return (
@@ -174,7 +162,7 @@ export const PatientDetails = () => {
         onBack={() => navigate("/")}
         sidebarTop={
           <>
-            <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-3 text-left">
+            <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest px-3 text-left">
               {t("details.clinicalResources")}
             </span>
             {sidebarTabs}
@@ -193,37 +181,24 @@ export const PatientDetails = () => {
         }
       >
         <Suspense fallback={<TabFallback />}>
-          {resolvedActiveTab === PatientTab.Encounters && (
-            <EncounterHistory
-              patientId={id}
-            />
-          )}
+          {resolvedActiveTab === PatientTab.Encounters && <EncounterHistory patientId={id} />}
 
-          {resolvedActiveTab === PatientTab.Conditions && (
-            <ClinicalConditions
-              patientId={id}
-            />
-          )}
+          {resolvedActiveTab === PatientTab.Conditions && <ClinicalConditions patientId={id} />}
 
-          {resolvedActiveTab === PatientTab.Allergies && (
-            <ClinicalAllergies
-              patientId={id}
-            />
-          )}
+          {resolvedActiveTab === PatientTab.Allergies && <ClinicalAllergies patientId={id} />}
 
-          {resolvedActiveTab === PatientTab.Pacs && (
-            selectedStudyId ? (
-              <ImagingWorkspace
-                studyId={selectedStudyId}
-                onBack={() => setSelectedStudyId(null)}
-              />
+          {resolvedActiveTab === PatientTab.Pacs &&
+            (selectedStudyId ? (
+              <ImagingWorkspace studyId={selectedStudyId} onBack={() => setSelectedStudyId(null)} />
             ) : (
               <PACSStudies
                 studies={studies}
                 onOpen={(studyId) => setSelectedStudyId(studyId)}
+                isLoading={isStudiesLoading}
+                isError={isStudiesError}
+                onRetry={() => void refetchStudies()}
               />
-            )
-          )}
+            ))}
         </Suspense>
       </PatientPageLayout>
 
@@ -234,11 +209,7 @@ export const PatientDetails = () => {
         patientId={id}
       />
 
-      <ExamAnalyzerModal
-        isOpen={isExamModalOpen}
-        onClose={() => setIsExamModalOpen(false)}
-        patientFhirId={id}
-      />
+      <ExamAnalyzerModal isOpen={isExamModalOpen} onClose={() => setIsExamModalOpen(false)} patientFhirId={id} />
     </>
   )
 }

@@ -31,5 +31,13 @@
       "title": "Login Realizado",
       "body": "Login realizado com sucesso."
     }
-  }
+  },
+  "retry": "Tentar novamente",
+  "priority": {
+    "critical": "Crítica",
+    "high": "Alta",
+    "medium": "Média",
+    "low": "Baixa"
+  },
+  "unreadCount": "{{formattedCount}} não lidas"
 }

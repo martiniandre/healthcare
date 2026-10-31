@@ -44,5 +44,8 @@
     "busStatus": "Bus Status",
     "seriesSlices": "Series / Slices",
     "activeSlice": "Slice #1 (Active View)"
-  }
+  },
+  "retry": "Try again",
+  "studyNotFound": "Study not found",
+  "studyNotFoundDesc": "This imaging study does not exist or is no longer available."
 }

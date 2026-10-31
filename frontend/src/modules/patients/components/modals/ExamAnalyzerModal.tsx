@@ -4,7 +4,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "../../../../shared/components/ui/Dialog"
+} from "../../../../shared/components/ui/dialog"
 import { ExamAnalyzer } from "../../../exam_analyzer/ExamAnalyzer"
 
 interface ExamAnalyzerModalProps {

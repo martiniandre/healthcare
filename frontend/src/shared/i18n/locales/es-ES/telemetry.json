@@ -38,5 +38,19 @@
     "simulateSuccess": "¡Simulación clínica propagada con éxito!",
     "simulateError": "Error al propagar simulación clínica.",
     "unlockError": "Contraseña incorrecta. Verifique la escala de guardia."
-  }
+  },
+  "status": {
+    "normal": "Estable",
+    "attention": "Atención",
+    "critical": "Crítico"
+  },
+  "trend": {
+    "ariaLabel": "Tendencia de {{metric}}: últimas {{count}} lecturas, de {{first}} a {{last}}"
+  },
+  "retry": "Reintentar",
+  "loadingRooms": "Cargando salas...",
+  "loadingBeds": "Cargando camas...",
+  "roomsError": "No se pudieron cargar las salas de monitoreo.",
+  "bedsError": "No se pudieron cargar las camas de esta sala.",
+  "noRooms": "No hay salas de monitoreo disponibles."
 }

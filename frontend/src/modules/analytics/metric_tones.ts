@@ -1,3 +1,5 @@
+import type { ClinicalStatus } from "@/shared/components/ui/status-badge"
+
 export type Severity = "critical" | "elevated" | "stable"
 
 export type MetricTone = Severity | "primary" | "secondary" | "neutral"
@@ -37,6 +39,15 @@ export const toneClassNames: Record<MetricTone, {
     surface: "bg-gray-100",
     bar: "bg-muted-foreground",
   },
+}
+
+export const toneClinicalStatus: Record<MetricTone, ClinicalStatus> = {
+  critical: "critical",
+  elevated: "attention",
+  stable: "normal",
+  primary: "info",
+  secondary: "neutral",
+  neutral: "neutral",
 }
 
 export const toneFillVariables: Record<MetricTone, string> = {

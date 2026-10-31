@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react"
 import type { FormEvent } from "react"
 import { useTranslation } from "react-i18next"
-import { Activity } from "lucide-react"
+import { Activity, AlertCircle } from "lucide-react"
 
 import { CardiacCondition, BedStatus } from "../../shared/types"
 import {
@@ -13,12 +13,18 @@ import {
 import { toast } from "../../shared/store/toast_store"
 import { PageContainer } from "../../shared/components/ui/PageContainer"
 import { EmptyState } from "../../shared/components/ui/EmptyState"
+import { Alert, AlertDescription } from "@/shared/components/ui/alert"
+import { Button } from "@/shared/components/ui/button"
+import { Skeleton } from "@/shared/components/ui/skeleton"
+import { Spinner } from "@/shared/components/ui/spinner"
 
 import { TelemetryHeader } from "./components/TelemetryHeader"
 import { TelemetryRoomList } from "./components/TelemetryRoomList"
 import { TelemetryRestrictedState } from "./components/TelemetryRestrictedState"
 import { TelemetryBedMonitor } from "./components/TelemetryBedMonitor"
 import { TelemetryBedList } from "./components/TelemetryBedList"
+import { useAlarmMute } from "./hooks/useAlarmMute"
+import { useBedHistory } from "./hooks/useBedHistory"
 
 export const Telemetry = () => {
   const { t } = useTranslation("telemetry")
@@ -30,12 +36,24 @@ export const Telemetry = () => {
     input: string
     error: string
   }>({ input: "", error: "" })
-  const [isMuted, setIsMuted] = useState<boolean>(true)
+  const { isMuted, setIsMuted } = useAlarmMute()
 
-  const { data: rooms = [] } = useTelemetryRoomsQuery()
+  const {
+    data: rooms = [],
+    isLoading: isRoomsLoading,
+    isError: isRoomsError,
+    refetch: refetchRooms,
+  } = useTelemetryRoomsQuery()
   
   const isCurrentRoomUnlocked = selectedRoomId ? unlockedRoomIds.includes(selectedRoomId) : false
-  const { data: beds = [] } = useTelemetryBedsQuery(selectedRoomId, isCurrentRoomUnlocked)
+  const {
+    data: beds = [],
+    isLoading: isBedsLoading,
+    isError: isBedsError,
+    refetch: refetchBeds,
+    dataUpdatedAt: bedsUpdatedAt,
+  } = useTelemetryBedsQuery(selectedRoomId, isCurrentRoomUnlocked)
+  const bedHistory = useBedHistory(beds, bedsUpdatedAt)
   
   const unlockRoomMutation = useUnlockRoomMutation()
   const updateBedConditionMutation = useUpdateBedConditionMutation()
@@ -241,13 +259,33 @@ export const Telemetry = () => {
         setIsMuted={setIsMuted}
       />
 
-      <TelemetryRoomList
-        rooms={rooms}
-        selectedRoomId={selectedRoomId}
-        unlockedRoomIds={unlockedRoomIds}
-        handleSelectRoom={handleSelectRoom}
-        handleLockRoom={handleLockRoom}
-      />
+      {isRoomsLoading ? (
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3" role="status" aria-label={t("loadingRooms")}>
+          <Skeleton className="h-28 rounded-xl" />
+          <Skeleton className="h-28 rounded-xl" />
+          <Skeleton className="h-28 rounded-xl" />
+        </div>
+      ) : isRoomsError ? (
+        <Alert variant="destructive">
+          <AlertCircle aria-hidden="true" />
+          <AlertDescription className="flex flex-wrap items-center gap-3">
+            <span>{t("roomsError")}</span>
+            <Button variant="outline" size="sm" onClick={() => refetchRooms()}>
+              {t("retry")}
+            </Button>
+          </AlertDescription>
+        </Alert>
+      ) : rooms.length === 0 ? (
+        <EmptyState icon={Activity} title={t("noRooms")} />
+      ) : (
+        <TelemetryRoomList
+          rooms={rooms}
+          selectedRoomId={selectedRoomId}
+          unlockedRoomIds={unlockedRoomIds}
+          handleSelectRoom={handleSelectRoom}
+          handleLockRoom={handleLockRoom}
+        />
+      )}
 
       {!selectedRoomId ? (
         <EmptyState
@@ -265,6 +303,21 @@ export const Telemetry = () => {
           isPending={unlockRoomMutation.isPending}
           handleUnlockRoom={handleUnlockRoom}
         />
+      ) : isBedsLoading ? (
+        <div className="flex min-h-[400px] flex-1 items-center justify-center gap-2 text-sm text-muted-foreground">
+          <Spinner />
+          <span>{t("loadingBeds")}</span>
+        </div>
+      ) : isBedsError ? (
+        <Alert variant="destructive">
+          <AlertCircle aria-hidden="true" />
+          <AlertDescription className="flex flex-wrap items-center gap-3">
+            <span>{t("bedsError")}</span>
+            <Button variant="outline" size="sm" onClick={() => refetchBeds()}>
+              {t("retry")}
+            </Button>
+          </AlertDescription>
+        </Alert>
       ) : beds.length === 0 ? (
         <EmptyState
           icon={Activity}
@@ -286,6 +339,7 @@ export const Telemetry = () => {
             beds={beds}
             selectedBedId={selectedBedId}
             setSelectedBedId={setSelectedBedId}
+            history={bedHistory}
           />
         </div>
       )}

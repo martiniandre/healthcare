@@ -9,9 +9,10 @@
     "fhirCompliant": "FHIR R4 Compliant",
     "cloudIntegration": "Cloud Healthcare API"
   },
-    "loadingComponent": "Carregando componente...",
+  "loadingComponent": "Carregando componente...",
   "analyzeExamWithAi": "Analisar Exame com IA",
-"searchPlaceholder": "Buscar por nome, CPF ou telefone...",
+  "searchPlaceholder": "Buscar por nome, CPF ou telefone...",
+  "clearSearch": "Limpar busca",
   "filterResults_one": "{{count}} resultado",
   "filterResults_other": "{{count}} resultados",
   "loading": "Carregando registros clínicos...",
@@ -267,5 +268,28 @@
     "medicationMin": "O nome da medicação deve ter no mínimo 3 caracteres",
     "dosageMin": "A instrução de dosagem deve ter no mínimo 3 caracteres",
     "maxLength": "Valor excede o limite máximo de caracteres"
+  },
+  "states": {
+    "loading": "Carregando...",
+    "errorTitle": "Não foi possível carregar os dados",
+    "errorDescription": "Ocorreu um erro ao buscar as informações. Tente novamente.",
+    "retry": "Tentar novamente"
+  },
+  "header": {
+    "age_one": "{{count}} ano",
+    "age_other": "{{count}} anos",
+    "allergies": "Alergias",
+    "allergiesCount": "Alergias ({{count}})",
+    "noKnownAllergies": "Sem alergias conhecidas",
+    "conditions": "Condições críticas ativas",
+    "conditionsCount": "Condições ativas ({{count}})",
+    "noActiveConditions": "Sem condições ativas",
+    "moreItems": "+{{count}}",
+    "alertsCount_one": "{{count}} alerta",
+    "alertsCount_other": "{{count}} alertas",
+    "noAlerts": "Sem alertas",
+    "alertsError": "Alertas indisponíveis",
+    "alertsDetails": "Ver alertas clínicos",
+    "notPerformed": "N/D"
   }
 }

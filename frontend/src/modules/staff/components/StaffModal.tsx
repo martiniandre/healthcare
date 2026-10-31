@@ -9,16 +9,19 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from "../../../shared/components/ui/Dialog"
-import { Input } from "../../../shared/components/ui/Input"
-import { Button } from "../../../shared/components/ui/Button"
+  DialogFooter,
+} from "@/shared/components/ui/dialog"
+import { Field, FieldError, FieldLabel } from "@/shared/components/ui/field"
+import { Spinner } from "@/shared/components/ui/spinner"
+import { Input } from "@/shared/components/ui/input"
+import { Button } from "@/shared/components/ui/button"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "../../../shared/components/ui/Select"
+} from "@/shared/components/ui/select"
 import { StaffRole } from "../../../shared/types"
 import { staffFormSchema, type StaffFormData } from "../schemas/staff_schemas"
 import { STAFF_ROLE_LABEL_KEYS } from "../staff_roles"
@@ -31,7 +34,7 @@ interface StaffModalProps {
   onClose: () => void
 }
 
-const requiredLabelClasses = "text-xs font-semibold text-gray-600"
+const requiredLabelClasses = "text-xs font-semibold"
 
 export const StaffModal = ({ isOpen, onClose }: StaffModalProps) => {
   const { t } = useTranslation("staff")
@@ -91,37 +94,38 @@ export const StaffModal = ({ isOpen, onClose }: StaffModalProps) => {
       <DialogContent className="sm:max-w-[520px]">
         <DialogHeader className="border-b border-border pb-3">
           <DialogTitle className="flex items-center gap-2">
-            <UserPlus className="w-5 h-5 text-primary" />
+            <UserPlus className="size-5 text-primary" />
             {t("modal.title")}
           </DialogTitle>
           <DialogDescription>{t("requiredHint")}</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit(handleRegisterStaff)} className="flex flex-col gap-4" noValidate>
-          <div className="flex flex-col gap-1">
-            <label htmlFor="staff-full-name" className={requiredLabelClasses}>
-              {t("modal.name")} <span className="text-red-500">*</span>
-            </label>
+          <Field data-invalid={!!errors.fullName}>
+            <FieldLabel htmlFor="staff-full-name" className={requiredLabelClasses}>
+              {t("modal.name")} <span className="text-destructive">*</span>
+            </FieldLabel>
             <Input
               id="staff-full-name"
               type="text"
               placeholder={t("modal.namePlaceholder")}
-              errorText={translateFieldError(errors.fullName?.message)}
+              aria-invalid={!!errors.fullName}
               {...register("fullName")}
             />
-          </div>
+            <FieldError>{translateFieldError(errors.fullName?.message)}</FieldError>
+          </Field>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="flex flex-col gap-1">
-              <label htmlFor="staff-role" className={requiredLabelClasses}>
-                {t("modal.category")} <span className="text-red-500">*</span>
-              </label>
+            <Field data-invalid={!!errors.role}>
+              <FieldLabel htmlFor="staff-role" className={requiredLabelClasses}>
+                {t("modal.category")} <span className="text-destructive">*</span>
+              </FieldLabel>
               <Controller
                 control={control}
                 name="role"
                 render={({ field }) => (
                   <Select onValueChange={field.onChange} value={field.value}>
-                    <SelectTrigger id="staff-role" className="w-full">
+                    <SelectTrigger id="staff-role" className="w-full" aria-invalid={!!errors.role}>
                       <SelectValue placeholder={t("modal.category")} />
                     </SelectTrigger>
                     <SelectContent>
@@ -134,51 +138,49 @@ export const StaffModal = ({ isOpen, onClose }: StaffModalProps) => {
                   </Select>
                 )}
               />
-              {errors.role?.message && (
-                <span className="text-xs text-red-500 font-medium px-1 mt-1">
-                  {translateFieldError(errors.role.message)}
-                </span>
-              )}
-            </div>
+              <FieldError>{translateFieldError(errors.role?.message)}</FieldError>
+            </Field>
 
-            <div className="flex flex-col gap-1">
-              <label htmlFor="staff-license" className={requiredLabelClasses}>
-                {t("modal.license")} <span className="text-red-500">*</span>
-              </label>
+            <Field data-invalid={!!errors.license}>
+              <FieldLabel htmlFor="staff-license" className={requiredLabelClasses}>
+                {t("modal.license")} <span className="text-destructive">*</span>
+              </FieldLabel>
               <Input
                 id="staff-license"
                 type="text"
                 placeholder={t("modal.licensePlaceholder")}
-                errorText={translateFieldError(errors.license?.message)}
+                aria-invalid={!!errors.license}
                 {...register("license")}
               />
-            </div>
+              <FieldError>{translateFieldError(errors.license?.message)}</FieldError>
+            </Field>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="flex flex-col gap-1">
-              <label htmlFor="staff-email" className={requiredLabelClasses}>
-                {t("modal.email")} <span className="text-red-500">*</span>
-              </label>
+            <Field data-invalid={!!errors.email}>
+              <FieldLabel htmlFor="staff-email" className={requiredLabelClasses}>
+                {t("modal.email")} <span className="text-destructive">*</span>
+              </FieldLabel>
               <Input
                 id="staff-email"
                 type="email"
                 placeholder={t("modal.emailPlaceholder")}
-                errorText={translateFieldError(errors.email?.message)}
+                aria-invalid={!!errors.email}
                 {...register("email")}
               />
-            </div>
+              <FieldError>{translateFieldError(errors.email?.message)}</FieldError>
+            </Field>
 
-            <div className="flex flex-col gap-1">
-              <label htmlFor="staff-department" className={requiredLabelClasses}>
-                {t("modal.department")} <span className="text-red-500">*</span>
-              </label>
+            <Field data-invalid={!!errors.departmentId}>
+              <FieldLabel htmlFor="staff-department" className={requiredLabelClasses}>
+                {t("modal.department")} <span className="text-destructive">*</span>
+              </FieldLabel>
               <Controller
                 control={control}
                 name="departmentId"
                 render={({ field }) => (
                   <Select onValueChange={field.onChange} value={field.value}>
-                    <SelectTrigger id="staff-department" className="w-full">
+                    <SelectTrigger id="staff-department" className="w-full" aria-invalid={!!errors.departmentId}>
                       <SelectValue placeholder={t("modal.departmentPlaceholder")} />
                     </SelectTrigger>
                     <SelectContent>
@@ -191,32 +193,23 @@ export const StaffModal = ({ isOpen, onClose }: StaffModalProps) => {
                   </Select>
                 )}
               />
-              {errors.departmentId?.message && (
-                <span className="text-xs text-red-500 font-medium px-1 mt-1">
-                  {translateFieldError(errors.departmentId.message)}
-                </span>
-              )}
-            </div>
+              <FieldError>{translateFieldError(errors.departmentId?.message)}</FieldError>
+            </Field>
           </div>
 
-          <div className="flex gap-3 justify-end border-t border-border pt-4 mt-2">
-            <Button
-              type="button"
-              variantType="outline"
-              onClick={onClose}
-              className="px-4 py-2 text-xs font-bold"
-            >
+          <DialogFooter className="border-t border-border pt-4 mt-2">
+            <Button type="button" variant="outline" onClick={onClose} className="text-xs font-bold">
               {t("modal.cancel")}
             </Button>
             <Button
               type="submit"
               disabled={createEmployeeMutation.isPending || isLoadingDepartments}
-              variantType="primary"
-              className="px-4 py-2 text-xs font-bold"
+              className="text-xs font-bold"
             >
+              {createEmployeeMutation.isPending && <Spinner />}
               {t("modal.confirm")}
             </Button>
-          </div>
+          </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>

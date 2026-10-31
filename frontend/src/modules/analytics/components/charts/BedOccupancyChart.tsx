@@ -2,6 +2,8 @@ import { useTranslation } from "react-i18next"
 import { PolarAngleAxis, RadialBar, RadialBarChart, ResponsiveContainer } from "recharts"
 import { AnalyticsPanel, PanelMetric } from "../AnalyticsPanel"
 import { SeverityLegend, type SeverityBand } from "../SeverityLegend"
+import { useLocale } from "../../../../shared/hooks/useLocale"
+import { formatDecimal, formatPercentage } from "../../format_numbers"
 import { resolveOccupancySeverity } from "../../dashboard_thresholds"
 import { severityFillVariables, toneClassNames } from "../../metric_tones"
 
@@ -17,6 +19,7 @@ export const BedOccupancyChart = ({
   occupiedBeds,
 }: BedOccupancyChartProps) => {
   const { t } = useTranslation("analytics")
+  const locale = useLocale()
   const clampedRate = Math.min(Math.max(occupancyRate, 0), 100)
   const severity = resolveOccupancySeverity(clampedRate)
   const availableBeds = Math.max(totalBeds - occupiedBeds, 0)
@@ -46,7 +49,7 @@ export const BedOccupancyChart = ({
       trailing={
         <PanelMetric
           label={t("dashboard.occupancy.bedsShort")}
-          value={`${occupiedBeds}/${totalBeds}`}
+          value={`${formatDecimal(occupiedBeds, locale)}/${formatDecimal(totalBeds, locale)}`}
         />
       }
       className="h-full"
@@ -84,7 +87,7 @@ export const BedOccupancyChart = ({
             <span
               className={`text-4xl font-black leading-none tracking-tight tabular-nums ${toneClassNames[severity].text}`}
             >
-              {clampedRate.toFixed(0)}%
+              {formatPercentage(clampedRate, locale)}
             </span>
             <span className="mt-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
               {t("dashboard.occupancy.label")}
@@ -98,7 +101,7 @@ export const BedOccupancyChart = ({
               {t("dashboard.occupancy.occupied")}
             </dt>
             <dd className="mt-1 text-xl font-black leading-none tabular-nums text-gray-900">
-              {occupiedBeds}
+              {formatDecimal(occupiedBeds, locale)}
             </dd>
           </div>
           <div className="px-3 py-3 text-center">
@@ -106,7 +109,7 @@ export const BedOccupancyChart = ({
               {t("dashboard.occupancy.total")}
             </dt>
             <dd className="mt-1 text-xl font-black leading-none tabular-nums text-gray-900">
-              {totalBeds}
+              {formatDecimal(totalBeds, locale)}
             </dd>
           </div>
           <div className="px-3 py-3 text-center">
@@ -114,7 +117,7 @@ export const BedOccupancyChart = ({
               {t("dashboard.occupancy.available")}
             </dt>
             <dd className="mt-1 text-xl font-black leading-none tabular-nums text-gray-900">
-              {availableBeds}
+              {formatDecimal(availableBeds, locale)}
             </dd>
           </div>
         </dl>

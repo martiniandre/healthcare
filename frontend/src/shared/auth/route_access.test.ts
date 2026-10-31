@@ -16,6 +16,12 @@ describe("route access", () => {
     expect(isRoleAllowed("RECEPTION", routeAllowedRoles.patients)).toBe(true)
   })
 
+  it("should let every staff role open the design system but not patients", () => {
+    expect(isRoleAllowed("RECEPTION", routeAllowedRoles.designSystem)).toBe(true)
+    expect(isRoleAllowed("DOCTOR", routeAllowedRoles.designSystem)).toBe(true)
+    expect(isRoleAllowed("PATIENT", routeAllowedRoles.designSystem)).toBe(false)
+  })
+
   it("should keep patients out of every staff route and into the portal", () => {
     expect(isRoleAllowed("PATIENT", routeAllowedRoles.patients)).toBe(false)
     expect(isRoleAllowed("PATIENT", routeAllowedRoles.telemetry)).toBe(false)

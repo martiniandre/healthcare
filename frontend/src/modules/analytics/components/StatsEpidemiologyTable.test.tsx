@@ -30,6 +30,7 @@ const translations: Record<string, string> = {
 
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({
+    i18n: { language: "en-US" },
     t: (key: string, options?: Record<string, unknown>) => {
       const template = translations[key]
       if (template === undefined) return key
@@ -96,7 +97,7 @@ describe("StatsEpidemiologyTable", () => {
     )
 
     const trendBadge = findTrendBadge("J45.9")
-    expect(trendBadge.className).toContain("text-danger")
+    expect(trendBadge.className).toContain("text-destructive")
   })
 
   it("keeps a marginal rise neutral instead of alarming", () => {
@@ -108,7 +109,7 @@ describe("StatsEpidemiologyTable", () => {
 
     const trendBadge = findTrendBadge("J45.9")
     expect(trendBadge.className).toContain("text-muted-foreground")
-    expect(trendBadge.className).not.toContain("text-danger")
+    expect(trendBadge.className).not.toContain("text-destructive")
   })
 
   it("exposes the severity to assistive technology alongside the colour", () => {
@@ -146,10 +147,10 @@ describe("StatsEpidemiologyTable", () => {
 
     const fallingDiabetesBadge = findTrendBadge("E11.9")
     expect(fallingDiabetesBadge.className).toContain("text-success")
-    expect(fallingDiabetesBadge.className).not.toContain("text-danger")
+    expect(fallingDiabetesBadge.className).not.toContain("text-destructive")
 
     const risingAsthmaBadge = findTrendBadge("J45.9")
-    expect(risingAsthmaBadge.className).toContain("text-danger")
+    expect(risingAsthmaBadge.className).toContain("text-destructive")
   })
 
   it("sorts by descending active cases by default", () => {

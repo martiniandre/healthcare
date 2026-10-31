@@ -20,7 +20,8 @@
   "emptyState": {
     "selectStaff": "Selecione um profissional e uma data para visualizar a agenda.",
     "noAppointments": "Nenhum agendamento para este profissional nesta data.",
-    "noStaff": "Nenhum profissional disponível."
+    "noStaff": "Nenhum profissional disponível.",
+    "noUnavailability": "Nenhum período bloqueado para este profissional."
   },
   "calendar": {
     "staffFilters": "Profissionais",
@@ -74,7 +75,11 @@
     }
   },
   "errors": {
-    "conflict": "Conflito de horário: já existe um agendamento neste intervalo para este profissional. Escolha outro horário."
+    "conflict": "Conflito de horário: já existe um agendamento neste intervalo para este profissional. Escolha outro horário.",
+    "loadStaffTitle": "Não foi possível carregar os profissionais",
+    "loadAppointmentsTitle": "Não foi possível carregar os agendamentos",
+    "loadAppointmentsDescription": "Os agendamentos dos profissionais selecionados não puderam ser obtidos. Tente novamente.",
+    "loadUnavailabilityTitle": "Não foi possível carregar os períodos bloqueados"
   },
   "toasts": {
     "createSuccess": "Agendamento criado com sucesso!",
@@ -135,5 +140,10 @@
       "deleteSuccess": "Período de indisponibilidade removido com sucesso!",
       "deleteError": "Falha ao remover período de indisponibilidade."
     }
+  },
+  "retry": "Tentar novamente",
+  "loading": {
+    "staff": "Carregando profissionais",
+    "unavailability": "Carregando períodos bloqueados"
   }
 }

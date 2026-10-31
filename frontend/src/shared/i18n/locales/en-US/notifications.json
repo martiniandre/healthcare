@@ -31,5 +31,13 @@
       "title": "Login Completed",
       "body": "Signed in successfully."
     }
-  }
+  },
+  "retry": "Try again",
+  "priority": {
+    "critical": "Critical",
+    "high": "High",
+    "medium": "Medium",
+    "low": "Low"
+  },
+  "unreadCount": "{{formattedCount}} unread"
 }

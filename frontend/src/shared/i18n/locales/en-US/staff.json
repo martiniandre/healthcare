@@ -71,5 +71,10 @@
     "deactivateError": "Failed to deactivate the professional access.",
     "deleteSuccess": "Professional removed from the clinical staff.",
     "deleteError": "Failed to delete the professional."
+  },
+  "error": {
+    "title": "Could not load the clinical staff",
+    "description": "The professionals list could not be retrieved. Check your connection and try again.",
+    "retry": "Try again"
   }
 }

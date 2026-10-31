@@ -1,8 +1,12 @@
 import { useReactTable, getCoreRowModel, flexRender, type ColumnDef, type SortingState, getSortedRowModel } from "@tanstack/react-table"
 import { useState, type ReactNode, type ReactElement } from "react"
-import { ChevronUp, ChevronDown } from "lucide-react"
-import { Card } from "../ui/Card"
-import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from "../ui/Table"
+import { ChevronUp, ChevronDown, Rows3, Rows4 } from "lucide-react"
+import { useTranslation } from "react-i18next"
+import { Button } from "../ui/button"
+import { useLayoutStore } from "../../store/layout_store"
+import { Card, CardAction, CardContent, CardHeader, CardTitle } from "../ui/card"
+import { cn } from "@/shared/utils/cn"
+import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from "../ui/table"
 
 interface ClinicalTableProps<T> {
   title: string
@@ -28,6 +32,11 @@ export function ClinicalTable<T>({
   enableSorting = false,
 }: ClinicalTableProps<T>) {
   const [sorting, setSorting] = useState<SortingState>([])
+  const { t } = useTranslation("common")
+  const tableDensity = useLayoutStore((state) => state.tableDensity)
+  const toggleTableDensity = useLayoutStore((state) => state.toggleTableDensity)
+  const isCompact = tableDensity === "compact"
+  const densityLabel = isCompact ? t("tableDensity.comfortable") : t("tableDensity.compact")
 
   const table = useReactTable({
     data,
@@ -39,31 +48,44 @@ export function ClinicalTable<T>({
   })
 
   return (
-    <Card className="flex flex-col gap-5 min-h-[450px]">
-      <div className="flex items-center justify-between border-b border-border pb-4">
-        <h3 className="font-extrabold text-gray-900 text-md flex items-center gap-2">
+    <Card className="min-h-[450px] gap-5">
+      <CardHeader className="border-b">
+        <CardTitle className="flex items-center gap-2 text-base font-extrabold">
           {icon}
           {title}
-        </h3>
-        {addButton}
-      </div>
+        </CardTitle>
+        <CardAction className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            onClick={toggleTableDensity}
+            aria-label={densityLabel}
+            aria-pressed={isCompact}
+            title={densityLabel}
+          >
+            {isCompact ? <Rows3 /> : <Rows4 />}
+          </Button>
+          {addButton}
+        </CardAction>
+      </CardHeader>
 
       {isEmpty ? (
-        <div className="flex-1 flex flex-col items-center justify-center gap-2 py-16">
+        <CardContent className="flex flex-1 flex-col items-center justify-center gap-2 py-16">
           {emptyIcon}
-          <span className="text-xs text-muted">{emptyText}</span>
-        </div>
+          <span className="text-xs text-muted-foreground">{emptyText}</span>
+        </CardContent>
       ) : (
-        <div className="overflow-x-auto w-full">
-          <Table className="w-full text-left border-collapse">
+        <CardContent className="w-full">
+          <Table density={tableDensity} containerClassName="max-h-[560px] overflow-y-auto">
             <TableHeader>
               {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id} className="border-b border-border bg-gray-50/80">
+                <TableRow key={headerGroup.id} className="hover:bg-transparent">
                   {headerGroup.headers.map((header) => (
                     <TableHead
                       key={header.id}
-                      className={`py-3.5 px-4 text-xs font-black text-gray-400 uppercase tracking-wider${header.column.getCanSort() ? " cursor-pointer select-none" : ""}`}
+                      className={cn("sticky top-0 z-10 bg-card px-4 text-xs font-black uppercase tracking-wider text-muted-foreground", header.column.getCanSort() && "cursor-pointer select-none")}
                       onClick={header.column.getToggleSortingHandler()}
+                      aria-sort={header.column.getIsSorted() === "asc" ? "ascending" : header.column.getIsSorted() === "desc" ? "descending" : undefined}
                     >
                       <div className="flex items-center gap-1">
                         {flexRender(header.column.columnDef.header, header.getContext())}
@@ -77,9 +99,9 @@ export function ClinicalTable<T>({
             </TableHeader>
             <TableBody>
               {table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id} className="border-b border-border/60 hover:bg-gray-50 transition-colors duration-300">
+                <TableRow key={row.id}>
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id} className="py-4 px-4 align-top">
+                    <TableCell key={cell.id} className={cn("px-4 align-top", isCompact ? "py-1.5" : "py-4")}>
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>
                   ))}
@@ -87,7 +109,7 @@ export function ClinicalTable<T>({
               ))}
             </TableBody>
           </Table>
-        </div>
+        </CardContent>
       )}
     </Card>
   )

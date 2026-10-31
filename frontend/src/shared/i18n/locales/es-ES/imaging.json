@@ -44,5 +44,8 @@
     "busStatus": "Status del Bus",
     "seriesSlices": "Serie / Rebanadas",
     "activeSlice": "Rebanada #1 (Visualización Activa)"
-  }
+  },
+  "retry": "Reintentar",
+  "studyNotFound": "Estudio no encontrado",
+  "studyNotFoundDesc": "Este estudio de imagen no existe o ya no está disponible."
 }

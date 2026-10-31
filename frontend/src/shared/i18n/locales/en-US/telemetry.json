@@ -38,5 +38,19 @@
     "simulateSuccess": "Clinical simulation successfully propagated!",
     "simulateError": "Failed to propagate clinical simulation.",
     "unlockError": "Incorrect passcode. Verify the duty scale."
-  }
+  },
+  "status": {
+    "normal": "Stable",
+    "attention": "Attention",
+    "critical": "Critical"
+  },
+  "trend": {
+    "ariaLabel": "{{metric}} trend: last {{count}} readings, from {{first}} to {{last}}"
+  },
+  "retry": "Try again",
+  "loadingRooms": "Loading rooms...",
+  "loadingBeds": "Loading beds...",
+  "roomsError": "Could not load the monitoring rooms.",
+  "bedsError": "Could not load the beds for this room.",
+  "noRooms": "No monitoring rooms available."
 }

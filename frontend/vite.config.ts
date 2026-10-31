@@ -2,12 +2,18 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
+import { fileURLToPath } from 'node:url'
 
 export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
   ],
+  resolve: {
+    alias: {
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
+    },
+  },
   base: process.env.GITHUB_ACTIONS === 'true' ? '/healthcare/' : '/',
   server: {
     proxy: {
@@ -28,5 +34,6 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: './src/test/setup.ts',
     exclude: ['node_modules', 'e2e'],
+    testTimeout: 15000,
   },
 })

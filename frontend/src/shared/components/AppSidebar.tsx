@@ -6,6 +6,8 @@ import type { ComponentType } from "react"
 import { Activity, Users, BarChart3, LogOut, X, Sparkles, History, UserRound, LayoutDashboard, CalendarClock, Stethoscope, Sun, Moon } from "lucide-react"
 import { isRoleAllowed, routeAllowedRoles, type RouteAccessKey } from "../auth/route_access"
 import { LanguageSwitcher } from "./LanguageSwitcher"
+import { Button } from "@/shared/components/ui/button"
+import { cn } from "@/shared/utils/cn"
 
 interface NavigationItem {
   key: string
@@ -109,16 +111,18 @@ export const AppSidebar = () => {
               <h1 className="text-sm font-display font-bold tracking-tight text-gray-900 leading-none">
                 {t("title")}
               </h1>
-              <span className="text-[10px] text-muted font-medium">{t("subtitle")}</span>
+              <span className="text-[10px] text-muted-foreground font-medium">{t("subtitle")}</span>
             </div>
           </div>
-          <button
+          <Button
+            variant="ghost"
+            size="icon-sm"
             onClick={closeMobileSidebar}
             aria-label={t("closeMenu")}
-            className="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-50 md:hidden"
+            className="md:hidden"
           >
-            <X className="w-4 h-4" />
-          </button>
+            <X className="size-4" />
+          </Button>
         </div>
 
         <div className="h-px bg-border mx-4" />
@@ -141,15 +145,17 @@ export const AppSidebar = () => {
               {group.items.map((item) => {
                 const isActive = isItemActive(item)
                 return (
-                  <button
+                  <Button
                     key={item.path}
+                    variant="ghost"
                     onClick={() => handleNavigate(item.path)}
                     aria-current={isActive ? "page" : undefined}
-                    className={`group relative flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-[13px] font-medium transition-all duration-200 ${
+                    className={cn(
+                      "group relative h-auto w-full justify-start gap-3 px-3 py-2 text-left text-[13px] font-medium",
                       isActive
-                        ? "bg-primary/8 font-semibold text-primary"
-                        : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-                    }`}
+                        ? "bg-primary/8 font-semibold text-primary hover:bg-primary/10 hover:text-primary"
+                        : "text-muted-foreground hover:text-foreground"
+                    )}
                   >
                     <span
                       aria-hidden="true"
@@ -167,7 +173,7 @@ export const AppSidebar = () => {
                       <item.icon className="h-4 w-4" />
                     </span>
                     <span className="truncate">{t(item.key)}</span>
-                  </button>
+                  </Button>
                 )
               })}
             </section>
@@ -176,35 +182,37 @@ export const AppSidebar = () => {
 
         <div className="px-3 pt-3 border-t border-border/70 flex flex-col gap-1">
           <LanguageSwitcher sidebarLayout />
-          <button
+          <Button
+            variant="ghost"
             onClick={toggleTheme}
             aria-pressed={isDarkTheme}
-            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-all duration-200"
+            className="h-auto w-full justify-start gap-3 px-3 py-2 text-[13px] font-medium text-muted-foreground hover:text-foreground"
           >
             <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-transparent bg-gray-100/80 text-gray-500 transition-colors duration-200">
               {isDarkTheme ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </span>
             <span className="truncate">{t("appearance")}</span>
-          </button>
+          </Button>
         </div>
 
         <div className="px-3 mt-1 pb-3">
-          <button
+          <Button
+            variant="ghost"
             onClick={() => {
               logout()
               closeMobileSidebar()
             }}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-semibold text-red-400 hover:text-red-600 hover:bg-red-50 transition-all duration-200"
+            className="h-auto w-full justify-start gap-3 px-3 py-2.5 text-[13px] font-semibold text-destructive hover:bg-destructive/10 hover:text-destructive"
           >
-            <LogOut className="w-[18px] h-[18px] shrink-0" />
+            <LogOut className="size-[18px] shrink-0" />
             {t("logout")}
-          </button>
+          </Button>
         </div>
 
         <div className="px-5 py-3 border-t border-border flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-1.5 h-1.5 rounded-full bg-success animate-pulse-glow" />
-            <span className="text-[10px] text-muted font-medium">
+            <span className="text-[10px] text-muted-foreground font-medium">
               FHIR R4 · gRPC-Web
             </span>
           </div>

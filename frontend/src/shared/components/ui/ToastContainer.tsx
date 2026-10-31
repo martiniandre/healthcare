@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next"
 import { useToastStore, type ToastItem } from "../../store/toast_store"
 import { CheckCircle2, AlertCircle, Info, X } from "lucide-react"
+import { Button } from "@/shared/components/ui/button"
 import { cn } from "../../utils/cn"
 
 export const ToastContainer = () => {
@@ -44,13 +45,15 @@ export const ToastContainer = () => {
               </p>
             </div>
 
-            <button
+            <Button
+              variant="ghost"
+              size="icon-xs"
               onClick={handleDismiss}
               aria-label={t("close")}
-              className="flex-shrink-0 p-0.5 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
+              className="shrink-0 text-muted-foreground"
             >
-              <X className="w-4 h-4" />
-            </button>
+              <X className="size-4" />
+            </Button>
           </div>
         )
       })}

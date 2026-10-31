@@ -20,7 +20,8 @@
   "emptyState": {
     "selectStaff": "Seleccione un profesional y una fecha para ver la agenda.",
     "noAppointments": "No hay citas para este profesional en esta fecha.",
-    "noStaff": "No hay profesionales disponibles."
+    "noStaff": "No hay profesionales disponibles.",
+    "noUnavailability": "No hay períodos bloqueados para este profesional."
   },
   "calendar": {
     "staffFilters": "Profesionales",
@@ -74,7 +75,11 @@
     }
   },
   "errors": {
-    "conflict": "Conflicto de horario: ya existe una cita en este intervalo para este profesional. Elija otro horario."
+    "conflict": "Conflicto de horario: ya existe una cita en este intervalo para este profesional. Elija otro horario.",
+    "loadStaffTitle": "No se pudieron cargar los profesionales",
+    "loadAppointmentsTitle": "No se pudieron cargar las citas",
+    "loadAppointmentsDescription": "No se pudieron obtener las citas de los profesionales seleccionados. Inténtelo de nuevo.",
+    "loadUnavailabilityTitle": "No se pudieron cargar los períodos bloqueados"
   },
   "toasts": {
     "createSuccess": "¡Cita creada con éxito!",
@@ -135,5 +140,10 @@
       "deleteSuccess": "¡Período de indisponibilidad quitado con éxito!",
       "deleteError": "Error al quitar el período de indisponibilidad."
     }
+  },
+  "retry": "Reintentar",
+  "loading": {
+    "staff": "Cargando profesionales",
+    "unavailability": "Cargando períodos bloqueados"
   }
 }

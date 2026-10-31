@@ -20,6 +20,7 @@
     "consentDesc": "I confirm that I have the patient's express authorization to submit their data and images for assistive clinical processing.",
     "anonymizeTitle": "Security Anonymization (Recommended)",
     "anonymizeDesc": "Replace the submitted file name with a secure cryptographic UUID identifier before writing to temporary storage.",
+    "clearFile": "Remove selected file",
     "uploading": "Transmitting file to server...",
     "processing": "Processing Analysis...",
     "submit": "Submit for Analysis",
@@ -77,7 +78,8 @@
     "noNextSteps": "No next step was suggested.",
     "interpretations": "Possible Clinical Interpretations",
     "limitations": "Assistive Analysis Limitations",
-    "disclaimerTitle": "Legal Disclaimer and Technological Limits"
+    "disclaimerTitle": "Legal Disclaimer and Technological Limits",
+    "loadError": "Could not load the details of this analysis."
   },
   "history": {
     "title": "Analysis History",
@@ -96,6 +98,8 @@
     "statusPending": "Queued",
     "statusProcessing": "Processing",
     "statusQuality": "Quality",
-    "statusFailed": "Failed"
-  }
+    "statusFailed": "Failed",
+    "loadError": "Could not load the analysis history."
+  },
+  "retry": "Try again"
 }

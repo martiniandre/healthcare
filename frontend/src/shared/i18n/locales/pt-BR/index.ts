@@ -13,6 +13,7 @@ import auditLogs from "./auditLogs.json"
 import notifications from "./notifications.json"
 import schedule from "./schedule.json"
 import portal from "./portal.json"
+import designSystem from "./designSystem.json"
 
 const ptBRResource = {
   sidebar,
@@ -30,6 +31,7 @@ const ptBRResource = {
   notifications,
   schedule,
   portal,
+  designSystem,
 }
 
 export default ptBRResource

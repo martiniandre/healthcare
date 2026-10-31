@@ -1,3 +1,4 @@
+import { Button } from "@/shared/components/ui/button"
 import { useState, useEffect } from "react"
 import { useTranslation } from "react-i18next"
 import { useAuthStore } from "../store/auth_store"
@@ -30,13 +31,15 @@ export const AppHeader = () => {
 
   return (
     <header className="w-full border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-50 px-4 md:px-6 py-2.5 flex items-center justify-end gap-3">
-      <button
+      <Button
+        variant="ghost"
+        size="icon"
         onClick={toggleMobileSidebar}
         aria-label={t("openMenu")}
-        className="mr-auto p-2 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-50 transition-colors md:hidden"
+        className="mr-auto md:hidden"
       >
-        <Menu className="w-5 h-5" />
-      </button>
+        <Menu className="size-5" />
+      </Button>
 
       {!isOnline && (
         <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-50 border border-red-200 text-red-600 text-[10px] font-bold animate-pulse select-none mr-2">
@@ -59,7 +62,7 @@ export const AppHeader = () => {
           </span>
           <div className="flex items-center gap-1">
             <ShieldCheck className="w-3 h-3 text-secondary" />
-            <span className="text-[10px] text-muted font-medium">
+            <span className="text-[10px] text-muted-foreground font-medium">
               {translateRole(role)}
             </span>
           </div>

@@ -1,4 +1,6 @@
-import { Badge } from "../../../shared/components/ui/Badge"
+import { useTranslation } from "react-i18next"
+import { StatusBadge } from "../../../shared/components/ui/status-badge"
+import { cn } from "../../../shared/utils/cn"
 
 interface VitalSignValueDisplayProps {
   notPerformed?: boolean
@@ -8,17 +10,15 @@ interface VitalSignValueDisplayProps {
 }
 
 export const VitalSignValueDisplay = ({ notPerformed, valueQuantity, valueUnit, valueClassName }: VitalSignValueDisplayProps) => {
+  const { t } = useTranslation("patients")
+
   if (notPerformed) {
-    return (
-      <Badge variant="outline" className="bg-gray-100 text-gray-400 border-gray-200">
-        N/A
-      </Badge>
-    )
+    return <StatusBadge status="neutral">{t("header.notPerformed")}</StatusBadge>
   }
   return (
-    <span className={valueClassName ?? "text-sm font-extrabold text-gray-800"}>
+    <span className={cn("tabular-nums", valueClassName ?? "text-sm font-extrabold text-gray-800")}>
       {valueQuantity}
-      <span className="text-xs text-muted font-normal ml-1">{valueUnit}</span>
+      <span className="text-xs text-muted-foreground font-normal ml-1">{valueUnit}</span>
     </span>
   )
 }

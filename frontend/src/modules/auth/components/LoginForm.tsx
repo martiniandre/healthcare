@@ -3,10 +3,12 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useTranslation } from "react-i18next"
 import { useAuthStore } from "../../../shared/store/auth_store"
-import { Card } from "../../../shared/components/ui/Card"
-import { Input } from "../../../shared/components/ui/Input"
-import { Button } from "../../../shared/components/ui/Button"
-import { Alert, AlertDescription } from "../../../shared/components/ui/Alert"
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
+import { Input } from "@/shared/components/ui/input"
+import { Button } from "@/shared/components/ui/button"
+import { Spinner } from "@/shared/components/ui/spinner"
+import { Alert, AlertDescription } from "@/shared/components/ui/alert"
+import { Field, FieldError, FieldLabel } from "@/shared/components/ui/field"
 import { getLoginFormSchema, type LoginFormData } from "../auth_schemas"
 import { Eye, EyeOff, KeyRound, Mail, ShieldAlert } from "lucide-react"
 import { useLoginMutation } from "../queries"
@@ -47,68 +49,75 @@ export const LoginForm = () => {
   }
 
   return (
-    <Card glowingType="cyan" className="p-8">
-      <h2 className="text-lg font-bold text-gray-800 mb-6">{t("authTitle")}</h2>
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-lg">{t("authTitle")}</CardTitle>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-6">
+        {generalError && (
+          <Alert variant="destructive">
+            <ShieldAlert className="h-4 w-4" />
+            <AlertDescription>{generalError}</AlertDescription>
+          </Alert>
+        )}
 
-      {generalError && (
-        <Alert variant="destructive" className="mb-6">
-          <ShieldAlert className="h-4 w-4" />
-          <AlertDescription>
-            {generalError}
-          </AlertDescription>
-        </Alert>
-      )}
-
-      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5" noValidate>
-        <div className="flex flex-col gap-1 text-left">
-          <label className="text-xs font-semibold text-gray-600 flex items-center gap-1.5 mb-1">
-            <Mail className="w-3.5 h-3.5 text-primary" />
-            {t("emailLabel")}
-          </label>
-          <Input
-            type="email"
-            placeholder={t("emailPlaceholder")}
-            autoComplete="email"
-            maxLength={255}
-            errorText={errors.email?.message}
-            {...register("email")}
-          />
-        </div>
-
-        <div className="flex flex-col gap-1 text-left">
-          <label className="text-xs font-semibold text-gray-600 flex items-center gap-1.5 mb-1">
-            <KeyRound className="w-3.5 h-3.5 text-primary" />
-            {t("passwordLabel")}
-          </label>
-          <div className="relative">
+        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5" noValidate>
+          <Field data-invalid={!!errors.email}>
+            <FieldLabel htmlFor="login-email">
+              <Mail className="size-3.5 text-primary" />
+              {t("emailLabel")}
+            </FieldLabel>
             <Input
-              type={isPasswordVisible ? "text" : "password"}
-              placeholder={t("passwordPlaceholder")}
-              autoComplete="current-password"
-              errorText={errors.password?.message}
-              className="pr-10"
-              {...register("password")}
+              id="login-email"
+              type="email"
+              placeholder={t("emailPlaceholder")}
+              autoComplete="email"
+              maxLength={255}
+              aria-invalid={!!errors.email}
+              {...register("email")}
             />
-            <button
-              type="button"
-              onClick={() => setIsPasswordVisible((visible) => !visible)}
-              aria-label={isPasswordVisible ? t("hidePassword") : t("showPassword")}
-              className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600 transition-colors"
-            >
-              {isPasswordVisible ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-            </button>
-          </div>
-        </div>
+            <FieldError>{errors.email?.message}</FieldError>
+          </Field>
 
-        <Button
-          type="submit"
-          disabled={loginMutation.isPending}
-          isLoading={loginMutation.isPending}
-          className="w-full py-3.5 mt-2 text-sm font-bold tracking-wide uppercase"
-        >
-          {loginMutation.isPending ? t("loadingText") : t("submitText")}
-        </Button>
-      </form>
+          <Field data-invalid={!!errors.password}>
+            <FieldLabel htmlFor="login-password">
+              <KeyRound className="size-3.5 text-primary" />
+              {t("passwordLabel")}
+            </FieldLabel>
+            <div className="relative">
+              <Input
+                id="login-password"
+                type={isPasswordVisible ? "text" : "password"}
+                placeholder={t("passwordPlaceholder")}
+                autoComplete="current-password"
+                aria-invalid={!!errors.password}
+                className="pr-10"
+                {...register("password")}
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-xs"
+                onClick={() => setIsPasswordVisible((visible) => !visible)}
+                aria-label={isPasswordVisible ? t("hidePassword") : t("showPassword")}
+                className="absolute right-2 top-1.5 text-muted-foreground"
+              >
+                {isPasswordVisible ? <EyeOff /> : <Eye />}
+              </Button>
+            </div>
+            <FieldError>{errors.password?.message}</FieldError>
+          </Field>
+
+          <Button
+            type="submit"
+            disabled={loginMutation.isPending}
+            className="w-full mt-2 font-bold tracking-wide uppercase"
+          >
+            {loginMutation.isPending && <Spinner />}
+            {loginMutation.isPending ? t("loadingText") : t("submitText")}
+          </Button>
+        </form>
+      </CardContent>
     </Card>
   )
 }

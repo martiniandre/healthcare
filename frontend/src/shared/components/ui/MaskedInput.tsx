@@ -1,5 +1,5 @@
 import * as React from "react"
-import { cn } from "../../utils/cn"
+import { Input } from "@/shared/components/ui/input"
 
 interface MaskedInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   mask: string
@@ -69,18 +69,15 @@ export const MaskedInput = React.forwardRef<HTMLInputElement, MaskedInputProps>(
 
     return (
       <div className="flex flex-col gap-1">
-        <input
+        <Input
           ref={reference}
-          className={cn(
-            "w-full bg-gray-50 border border-border rounded-lg px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-colors",
-            errorText && "border-red-300 focus:border-red-500 focus:ring-red-200",
-            className
-          )}
+          aria-invalid={errorText ? true : undefined}
+          className={className}
           onChange={handleInputChange}
           {...elementProperties}
         />
         {errorText && (
-          <span className="text-xs text-red-500 font-medium px-1">
+          <span className="px-1 text-xs font-medium text-destructive">
             {errorText}
           </span>
         )}

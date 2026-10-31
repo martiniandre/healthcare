@@ -1,15 +1,12 @@
 import { useTranslation } from "react-i18next"
 import { usePatientQuery } from "../../patients/queries"
+import { formatTime } from "../../../shared/utils/dates"
 import type { Appointment } from "../types"
 
 interface ScheduleEventChipProps {
   appointment: Appointment
   staffColor: string
   onClick?: () => void
-}
-
-const formatChipTime = (dateTimeValue: string): string => {
-  return new Date(dateTimeValue).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
 }
 
 const tintedBackground = (hexColor: string, alpha: number): string => {
@@ -36,9 +33,9 @@ export const ScheduleEventChip = ({ appointment, staffColor, onClick }: Schedule
     >
       <span className="shrink-0 w-1 self-stretch rounded-full" style={{ backgroundColor: staffColor }} />
       <span className="shrink-0 tabular-nums font-semibold opacity-80" style={{ color: staffColor }}>
-        {formatChipTime(appointment.starts_at)}
+        {formatTime(appointment.starts_at)}
       </span>
-      <span className="truncate font-semibold text-gray-800">{patientLabel}</span>
+      <span className="truncate font-semibold text-foreground">{patientLabel}</span>
     </div>
   )
 }

@@ -20,6 +20,7 @@
     "consentDesc": "Confirmo que poseo la autorización expresa del paciente para enviar sus datos e imágenes a procesamiento clínico asistido.",
     "anonymizeTitle": "Anonimización de Seguridad (Recomendado)",
     "anonymizeDesc": "Sustituye el nombre del archivo enviado por un identificador UUID criptográfico seguro antes de guardarlo en almacenamiento temporal.",
+    "clearFile": "Quitar archivo seleccionado",
     "uploading": "Transmitiendo archivo al servidor...",
     "processing": "Procesando Análisis...",
     "submit": "Enviar para Análisis",
@@ -77,7 +78,8 @@
     "noNextSteps": "No se sugirió ningún próximo paso.",
     "interpretations": "Posibles Interpretaciones Clínicas",
     "limitations": "Limitaciones del Análisis Asistido",
-    "disclaimerTitle": "Aviso Legal y Límite Tecnológico"
+    "disclaimerTitle": "Aviso Legal y Límite Tecnológico",
+    "loadError": "No se pudieron cargar los detalles de este análisis."
   },
   "history": {
     "title": "Historial de Análisis",
@@ -96,6 +98,8 @@
     "statusPending": "En cola",
     "statusProcessing": "Procesando",
     "statusQuality": "Calidad",
-    "statusFailed": "Fallido"
-  }
+    "statusFailed": "Fallido",
+    "loadError": "No se pudo cargar el historial de análisis."
+  },
+  "retry": "Reintentar"
 }

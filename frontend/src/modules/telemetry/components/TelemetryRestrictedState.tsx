@@ -1,7 +1,11 @@
 import { type FormEvent } from "react"
 import { useTranslation } from "react-i18next"
-import { Card } from "../../../shared/components/ui/Card"
-import { Button } from "../../../shared/components/ui/Button"
+import { Card } from "@/shared/components/ui/card"
+import { Button } from "@/shared/components/ui/button"
+import { Input } from "@/shared/components/ui/input"
+import { Field, FieldError, FieldLabel } from "@/shared/components/ui/field"
+import { Separator } from "@/shared/components/ui/separator"
+import { Spinner } from "@/shared/components/ui/spinner"
 import { Lock, KeyRound, Hospital, Unlock } from "lucide-react"
 
 interface TelemetryRestrictedStateProps {
@@ -24,55 +28,57 @@ export const TelemetryRestrictedState = ({
   const { t } = useTranslation("telemetry")
 
   return (
-    <Card className="flex-1 p-8 border border-border bg-gray-50/50 flex flex-col items-center justify-center text-center gap-5 min-h-[400px]">
-      <div className="bg-amber-50 p-4 rounded-full border border-amber-100 text-amber-500 animate-pulse-glow">
-        <Lock className="w-10 h-10" />
+    <Card className="flex-1 min-h-[400px] items-center justify-center gap-5 bg-muted/50 p-8 text-center">
+      <div className="rounded-full border border-warning/30 bg-warning/10 p-4 text-warning animate-pulse-glow">
+        <Lock className="size-10" />
       </div>
 
       <div className="max-w-md flex flex-col gap-1">
-        <h3 className="text-md font-extrabold text-gray-900">
+        <h3 className="text-base font-extrabold text-foreground">
           {t("restrictedRoom")}
         </h3>
-        <p className="text-xs text-gray-500 leading-normal">
+        <p className="text-xs leading-normal text-muted-foreground">
           {t("restrictedRoomDesc", { roomName: activeRoomName })}
         </p>
       </div>
 
       <form onSubmit={handleUnlockRoom} className="w-full max-w-[320px] flex flex-col gap-3">
-        <div className="flex flex-col gap-1.5 text-left">
-          <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">{t("passcodeLabel")}</label>
+        <Field data-invalid={passcodeError ? true : undefined} className="text-left">
+          <FieldLabel htmlFor="telemetry-passcode" className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+            {t("passcodeLabel")}
+          </FieldLabel>
           <div className="relative">
-            <KeyRound className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
-            <input
+            <KeyRound className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              id="telemetry-passcode"
               type="password"
               placeholder={t("passcodePlaceholder")}
               value={passcodeInput}
               onChange={(event) => setPasscodeInput(event.target.value)}
-              className="w-full bg-card border border-border rounded-lg pl-9 pr-4 py-2.5 text-xs text-gray-800 focus:outline-none focus:border-primary/50 transition-all duration-200 font-mono"
+              aria-invalid={passcodeError ? true : undefined}
+              className="pl-9 font-mono text-xs"
               required
             />
           </div>
-          {passcodeError && (
-            <span className="text-[10px] text-red-500 font-bold mt-1 block">
-              {passcodeError}
-            </span>
-          )}
-        </div>
+          {passcodeError && <FieldError className="text-[10px] font-bold">{passcodeError}</FieldError>}
+        </Field>
 
         <Button
           type="submit"
-          variantType="primary"
           disabled={isPending}
-          className="w-full py-2.5 text-xs font-bold gap-2"
+          className="w-full text-xs font-bold"
         >
-          <Unlock className="w-4 h-4" />
+          {isPending ? <Spinner /> : <Unlock />}
           {t("unlockButton")}
         </Button>
       </form>
 
-      <div className="text-[10px] text-gray-400 font-semibold border-t border-border/80 pt-4 w-full max-w-sm mt-2 flex items-center justify-center gap-1.5">
-        <Hospital className="w-3.5 h-3.5" />
-        {t("clinicalCouncil")}
+      <div className="mt-2 flex w-full max-w-sm flex-col items-center gap-4">
+        <Separator />
+        <div className="flex items-center justify-center gap-1.5 text-[10px] font-semibold text-muted-foreground">
+          <Hospital className="size-3.5" />
+          {t("clinicalCouncil")}
+        </div>
       </div>
     </Card>
   )

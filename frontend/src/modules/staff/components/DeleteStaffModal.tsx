@@ -6,8 +6,10 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from "../../../shared/components/ui/Dialog"
-import { Button } from "../../../shared/components/ui/Button"
+  DialogFooter,
+} from "@/shared/components/ui/dialog"
+import { Spinner } from "@/shared/components/ui/spinner"
+import { Button } from "@/shared/components/ui/button"
 import type { StaffMember } from "../types"
 
 interface DeleteStaffModalProps {
@@ -25,24 +27,25 @@ export const DeleteStaffModal = ({ member, onClose, onConfirm, isPending }: Dele
       <DialogContent className="sm:max-w-[420px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <UserMinus className="w-5 h-5 text-red-500" />
+            <UserMinus className="size-5 text-destructive" />
             {t("deleteModal.title")}
           </DialogTitle>
           <DialogDescription>
             {t("deleteModal.description")}
             {member && (
-              <span className="block mt-2 font-bold text-gray-900">{member.fullName}</span>
+              <span className="block mt-2 font-bold text-foreground">{member.fullName}</span>
             )}
           </DialogDescription>
         </DialogHeader>
-        <div className="flex gap-3 justify-end mt-4">
-          <Button variantType="outline" type="button" onClick={onClose}>
+        <DialogFooter>
+          <Button variant="outline" type="button" onClick={onClose}>
             {t("deleteModal.back")}
           </Button>
-          <Button variantType="danger" type="button" onClick={onConfirm} disabled={isPending}>
+          <Button variant="destructive" type="button" onClick={onConfirm} disabled={isPending}>
+            {isPending && <Spinner />}
             {t("deleteModal.confirm")}
           </Button>
-        </div>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   )

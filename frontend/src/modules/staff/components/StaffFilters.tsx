@@ -1,5 +1,7 @@
 import { useTranslation } from "react-i18next"
 import { Search } from "lucide-react"
+import { Input } from "@/shared/components/ui/input"
+import { Button } from "@/shared/components/ui/button"
 import { StaffRole } from "../../../shared/types"
 import { STAFF_ROLE_LABEL_KEYS } from "../staff_roles"
 
@@ -31,29 +33,29 @@ export const StaffFilters = ({
   return (
     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
       <div className="relative flex-1 max-w-md">
-        <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
-        <input
+        <Search className="size-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
+        <Input
           type="text"
           placeholder={t("searchPlaceholder")}
           value={searchQuery === " " ? "" : searchQuery}
           onChange={(event) => onSearchChange(event.target.value)}
-          className="w-full bg-card border border-border rounded-lg pl-9 pr-4 py-2 text-xs text-gray-800 placeholder-gray-400 focus:outline-none focus:border-primary/50 transition-all duration-200"
+          className="pl-9 text-xs"
         />
       </div>
 
       <div className="flex gap-2 flex-wrap">
         {roleFilterOptions.map((roleOption) => (
-          <button
+          <Button
             key={roleOption}
+            type="button"
+            size="sm"
+            variant={filterRole === roleOption ? "default" : "outline"}
+            aria-pressed={filterRole === roleOption}
             onClick={() => onFilterChange(roleOption)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 border ${
-              filterRole === roleOption
-                ? "bg-primary/5 text-primary border-primary"
-                : "bg-card text-gray-500 border-border hover:bg-gray-50 hover:text-gray-900"
-            }`}
+            className="text-xs font-bold"
           >
             {getRoleLabel(roleOption)}
-          </button>
+          </Button>
         ))}
       </div>
     </div>

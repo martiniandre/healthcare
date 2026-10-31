@@ -1,14 +1,20 @@
 import { useTranslation } from "react-i18next"
-import { Shield, CheckCircle2, XCircle, ChevronDown, ChevronUp } from "lucide-react"
+import { Shield, ChevronDown, ChevronUp, History } from "lucide-react"
 import * as React from "react"
-import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from "../../../shared/components/ui/Table"
-import { Badge } from "../../../shared/components/ui/Badge"
-import { Skeleton } from "../../../shared/components/ui/Skeleton"
+import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from "../../../shared/components/ui/table"
+import { Badge } from "../../../shared/components/ui/badge"
+import { StatusBadge } from "../../../shared/components/ui/status-badge"
+import { EmptyState } from "../../../shared/components/ui/EmptyState"
+import { useLayoutStore } from "../../../shared/store/layout_store"
+import { useLocale } from "../../../shared/hooks/useLocale"
+import { TableDensityToggle } from "@/shared/components/clinical/TableDensityToggle"
+import { Skeleton } from "../../../shared/components/ui/skeleton"
 import { formatDateTime } from "../../../shared/utils/dates"
 import type { AuditLog } from "../types"
 
 interface AuditLogsTableProps {
   isLoading: boolean
+  isError?: boolean
   auditLogsList: AuditLog[]
   expandedLogId: string | null
   onToggleRowExpansion: (logId: string) => void
@@ -33,24 +39,43 @@ const getRoleBadgeVariant = (userRole: string) => {
 
 export const AuditLogsTable = ({
   isLoading,
+  isError = false,
   auditLogsList,
   expandedLogId,
   onToggleRowExpansion,
 }: AuditLogsTableProps) => {
   const { t } = useTranslation("auditLogs")
+  const locale = useLocale()
+  const tableDensity = useLayoutStore((state) => state.tableDensity)
+
+  if (isError) {
+    return null
+  }
+
+  if (!isLoading && auditLogsList.length === 0) {
+    return <EmptyState icon={History} title={t("noLogsFound")} className="py-12" />
+  }
 
   return (
-    <div className="overflow-x-auto border border-border rounded-xl w-full bg-card">
-      <Table className="min-w-[800px]">
+    <div className="flex flex-col gap-2">
+    <div className="flex justify-end">
+      <TableDensityToggle />
+    </div>
+    <div className="w-full overflow-hidden rounded-xl border border-border bg-card">
+      <Table
+        className="min-w-[800px]"
+        density={tableDensity}
+        containerClassName="max-h-[560px] overflow-y-auto"
+      >
         <TableHeader>
           <TableRow className="hover:bg-transparent">
-            <TableHead className="w-[180px]">{t("tableTime")}</TableHead>
-            <TableHead>{t("tableUser")}</TableHead>
-            <TableHead>{t("tableRole")}</TableHead>
-            <TableHead>{t("tableAction")}</TableHead>
-            <TableHead>{t("tableResource")}</TableHead>
-            <TableHead>{t("tableStatus")}</TableHead>
-            <TableHead className="w-[80px]"></TableHead>
+            <TableHead className="sticky top-0 z-10 min-w-40 bg-card">{t("tableTime")}</TableHead>
+            <TableHead className="sticky top-0 z-10 bg-card">{t("tableUser")}</TableHead>
+            <TableHead className="sticky top-0 z-10 bg-card">{t("tableRole")}</TableHead>
+            <TableHead className="sticky top-0 z-10 bg-card">{t("tableAction")}</TableHead>
+            <TableHead className="sticky top-0 z-10 bg-card">{t("tableResource")}</TableHead>
+            <TableHead className="sticky top-0 z-10 bg-card">{t("tableStatus")}</TableHead>
+            <TableHead className="sticky top-0 z-10 w-12 bg-card"><span className="sr-only">{t("tableDetails")}</span></TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -66,12 +91,6 @@ export const AuditLogsTable = ({
                 <TableCell><Skeleton className="h-4 w-6" /></TableCell>
               </TableRow>
             ))
-          ) : auditLogsList.length === 0 ? (
-            <TableRow>
-              <TableCell colSpan={7} className="text-center py-8 text-gray-500 font-semibold text-xs">
-                {t("noLogsFound")}
-              </TableCell>
-            </TableRow>
           ) : (
             auditLogsList.map((log: AuditLog) => {
               const isExpanded = expandedLogId === log.id
@@ -80,17 +99,17 @@ export const AuditLogsTable = ({
                 <React.Fragment key={log.id}>
                   <TableRow
                     onClick={() => onToggleRowExpansion(log.id)}
-                    className="cursor-pointer hover:bg-gray-50/80 transition-colors"
+                    className="cursor-pointer hover:bg-muted/50 transition-colors"
                   >
-                    <TableCell className="text-xs text-gray-600 font-medium">
-                      {formatDateTime(log.created_at)}
+                    <TableCell className="text-xs text-muted-foreground font-medium tabular-nums">
+                      {formatDateTime(log.created_at, locale)}
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        <div className="bg-gray-100 p-1.5 rounded-lg border border-gray-200">
-                          <Shield className="w-3.5 h-3.5 text-gray-500" />
+                        <div className="bg-muted p-1.5 rounded-lg border border-border">
+                          <Shield className="w-3.5 h-3.5 text-muted-foreground" />
                         </div>
-                        <span className="font-bold text-gray-900 text-xs">{log.caller_user_id}</span>
+                        <span className="font-bold text-foreground text-xs">{log.caller_user_id}</span>
                       </div>
                     </TableCell>
                     <TableCell>
@@ -98,78 +117,71 @@ export const AuditLogsTable = ({
                         {log.caller_role}
                       </Badge>
                     </TableCell>
-                    <TableCell className="font-mono text-xs text-gray-700">
+                    <TableCell className="font-mono text-xs text-foreground">
                       {log.method}
                     </TableCell>
                     <TableCell>
                       {log.resource_type ? (
                         <div className="flex flex-col gap-0.5">
-                          <span className="text-[9px] font-bold uppercase text-gray-500">
+                          <span className="text-[9px] font-bold uppercase text-muted-foreground">
                             {log.resource_type}
                           </span>
                           {log.resource_id && (
-                            <span className="font-mono text-[10px] text-blue-600">
+                            <span className="font-mono text-[10px] text-primary">
                               {log.resource_id}
                             </span>
                           )}
                         </div>
                       ) : (
-                        <span className="text-xs text-gray-400">—</span>
+                        <span className="text-xs text-muted-foreground">—</span>
                       )}
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-1.5">
-                        {isSuccess ? (
-                          <CheckCircle2 className="w-4 h-4 text-green-500 shrink-0" />
-                        ) : (
-                          <XCircle className="w-4 h-4 text-red-500 shrink-0" />
-                        )}
-                        <span className={`text-xs font-bold ${isSuccess ? "text-green-600" : "text-red-600"}`}>
-                          {isSuccess ? t("statusSuccess") : t("statusFailure")}
-                        </span>
-                      </div>
+                      <StatusBadge status={isSuccess ? "normal" : "critical"}>
+                        {isSuccess ? t("statusSuccess") : t("statusFailure")}
+                      </StatusBadge>
                     </TableCell>
                     <TableCell className="text-right">
                       {isExpanded ? (
-                        <ChevronUp className="w-4 h-4 text-gray-400 ml-auto" />
+                        <ChevronUp className="w-4 h-4 text-muted-foreground ml-auto" />
                       ) : (
-                        <ChevronDown className="w-4 h-4 text-gray-400 ml-auto" />
+                        <ChevronDown className="w-4 h-4 text-muted-foreground ml-auto" />
                       )}
                     </TableCell>
                   </TableRow>
                   {isExpanded && (
-                    <TableRow className="bg-gray-50/50 hover:bg-gray-50/50">
+                    <TableRow className="bg-muted/50 hover:bg-muted/50">
                       <TableCell colSpan={7} className="p-4 border-t border-border">
-                        <div className="flex flex-col gap-2 bg-card p-3 rounded-lg border border-border text-xs font-mono text-gray-700 overflow-x-auto max-w-full">
+                        <div className="flex flex-col gap-2 bg-card p-3 rounded-lg border border-border text-xs font-mono text-foreground overflow-x-auto max-w-full">
                           <div className="flex flex-col gap-1">
-                            <span className="font-bold text-gray-500 uppercase text-[9px] tracking-wider">
+                            <span className="font-bold text-muted-foreground uppercase text-[9px] tracking-wider">
                               {t("logId")}
                             </span>
-                            <span className="text-gray-800">{log.id}</span>
+                            <span className="text-foreground">{log.id}</span>
                           </div>
                           {log.action && (
                             <div className="flex flex-col gap-1 mt-2">
-                              <span className="font-bold text-gray-500 uppercase text-[9px] tracking-wider">
+                              <span className="font-bold text-muted-foreground uppercase text-[9px] tracking-wider">
                                 {t("auditAction")}
                               </span>
-                              <span className="text-gray-800">{log.action}</span>
+                              <span className="text-foreground">{log.action}</span>
                             </div>
                           )}
                           {log.payload_diff && Object.keys(log.payload_diff).length > 0 && (
                             <div className="flex flex-col gap-1 mt-2">
-                              <span className="font-bold text-gray-500 uppercase text-[9px] tracking-wider">
+                              <span className="font-bold text-muted-foreground uppercase text-[9px] tracking-wider">
                                 {t("payloadDiff")}
                               </span>
-                              <pre className="whitespace-pre-wrap font-mono text-gray-800 bg-gray-50 p-2.5 rounded border border-border max-h-56 overflow-y-auto">
+                              <pre className="whitespace-pre-wrap font-mono text-foreground bg-muted p-2.5 rounded border border-border max-h-56 overflow-y-auto">
                                 {JSON.stringify(log.payload_diff, null, 2)}
                               </pre>
                             </div>
                           )}
                           <div className="flex flex-col gap-1 mt-2">
-                            <span className="font-bold text-gray-500 uppercase text-[9px] tracking-wider">
+                            <span className="font-bold text-muted-foreground uppercase text-[9px] tracking-wider">
                               {t("details")}
                             </span>
-                            <pre className="whitespace-pre-wrap font-mono text-gray-800 bg-gray-50 p-2.5 rounded border border-border">
+                            <pre className="whitespace-pre-wrap font-mono text-foreground bg-muted p-2.5 rounded border border-border">
                               {log.correlation_id || t("noDetails")}
                             </pre>
                           </div>
@@ -183,6 +195,7 @@ export const AuditLogsTable = ({
           )}
         </TableBody>
       </Table>
+    </div>
     </div>
   )
 }

@@ -1,14 +1,25 @@
-import { useForm } from "react-hook-form"
+import { useForm, Controller } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useTranslation } from "react-i18next"
-import { Input } from "../../../shared/components/ui/Input"
-import { Button } from "../../../shared/components/ui/Button"
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/shared/components/ui/select"
+import { Input } from "@/shared/components/ui/input"
+import { Spinner } from "@/shared/components/ui/spinner"
+import { Textarea } from "@/shared/components/ui/textarea"
+import { Field, FieldError, FieldLabel } from "@/shared/components/ui/field"
+import { Button } from "@/shared/components/ui/button"
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "../../../shared/components/ui/Dialog"
+  DialogFooter,
+} from "@/shared/components/ui/dialog"
 import { getUnavailabilitySchema, type UnavailabilityFormData } from "../schedule_schemas"
 import { todayDateString } from "../../../shared/utils/validators"
 import { getTimeSlotOptions } from "../schedule_time_options"
@@ -42,6 +53,7 @@ export const CreateUnavailabilityModal = ({
   const {
     register,
     handleSubmit,
+    control,
     reset,
     formState: { errors },
   } = useForm<UnavailabilityFormData>({
@@ -85,82 +97,85 @@ export const CreateUnavailabilityModal = ({
         </DialogHeader>
         <form onSubmit={handleFormSubmit} noValidate className="flex flex-col gap-4 text-left mt-4">
           <div className="grid grid-cols-3 gap-3">
-            <div className="flex flex-col gap-1">
-              <label className="text-xs font-semibold text-gray-600">
+            <Field data-invalid={!!errors.date}>
+              <FieldLabel htmlFor="unavailability-date">
                 {t("unavailability.modal.date")}
-              </label>
-              <Input type="date" min={todayDateString()} errorText={errors.date?.message} {...register("date")} />
-            </div>
-            <div className="flex flex-col gap-1">
-              <label className="text-xs font-semibold text-gray-600">
+              </FieldLabel>
+              <Input id="unavailability-date" type="date" min={todayDateString()} aria-invalid={!!errors.date} {...register("date")} />
+              <FieldError>{errors.date?.message}</FieldError>
+            </Field>
+            <Field data-invalid={!!errors.startTime}>
+              <FieldLabel htmlFor="unavailability-start-time">
                 {t("unavailability.modal.startTime")}
-              </label>
-              <select
-                aria-label={t("unavailability.modal.startTime")}
-                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                {...register("startTime")}
-              >
-                <option value="">{t("unavailability.modal.selectStartTime")}</option>
-                {timeSlotOptions.map((timeSlot) => (
-                  <option key={timeSlot.value} value={timeSlot.value}>
-                    {timeSlot.label}
-                  </option>
-                ))}
-              </select>
-              {errors.startTime?.message && (
-                <span className="text-xs text-red-500 font-medium px-1 mt-1">
-                  {errors.startTime.message}
-                </span>
-              )}
-            </div>
-            <div className="flex flex-col gap-1">
-              <label className="text-xs font-semibold text-gray-600">
+              </FieldLabel>
+              <Controller
+                control={control}
+                name="startTime"
+                render={({ field }) => (
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <SelectTrigger id="unavailability-start-time" className="w-full" aria-invalid={!!errors.startTime}>
+                      <SelectValue placeholder={t("unavailability.modal.selectStartTime")} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {timeSlotOptions.map((timeSlot) => (
+                        <SelectItem key={timeSlot.value} value={timeSlot.value}>
+                          {timeSlot.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+              <FieldError>{errors.startTime?.message}</FieldError>
+            </Field>
+            <Field data-invalid={!!errors.endTime}>
+              <FieldLabel htmlFor="unavailability-end-time">
                 {t("unavailability.modal.endTime")}
-              </label>
-              <select
-                aria-label={t("unavailability.modal.endTime")}
-                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                {...register("endTime")}
-              >
-                <option value="">{t("unavailability.modal.selectEndTime")}</option>
-                {timeSlotOptions.map((timeSlot) => (
-                  <option key={timeSlot.value} value={timeSlot.value}>
-                    {timeSlot.label}
-                  </option>
-                ))}
-              </select>
-              {errors.endTime?.message && (
-                <span className="text-xs text-red-500 font-medium px-1 mt-1">
-                  {errors.endTime.message}
-                </span>
-              )}
-            </div>
+              </FieldLabel>
+              <Controller
+                control={control}
+                name="endTime"
+                render={({ field }) => (
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <SelectTrigger id="unavailability-end-time" className="w-full" aria-invalid={!!errors.endTime}>
+                      <SelectValue placeholder={t("unavailability.modal.selectEndTime")} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {timeSlotOptions.map((timeSlot) => (
+                        <SelectItem key={timeSlot.value} value={timeSlot.value}>
+                          {timeSlot.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+              <FieldError>{errors.endTime?.message}</FieldError>
+            </Field>
           </div>
 
-          <div className="flex flex-col gap-1">
-            <label className="text-xs font-semibold text-gray-600">
+          <Field data-invalid={!!errors.reason}>
+            <FieldLabel htmlFor="unavailability-reason">
               {t("unavailability.modal.reason")}
-            </label>
-            <textarea
-              className="flex min-h-[80px] w-full rounded-lg border border-border bg-transparent px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+            </FieldLabel>
+            <Textarea
+              id="unavailability-reason"
               placeholder={t("unavailability.modal.reasonPlaceholder")}
+              aria-invalid={!!errors.reason}
               {...register("reason")}
             />
-            {errors.reason?.message && (
-              <span className="text-xs text-red-500 font-medium px-1 mt-1">
-                {errors.reason.message}
-              </span>
-            )}
-          </div>
+            <FieldError>{errors.reason?.message}</FieldError>
+          </Field>
 
-          <div className="flex gap-3 justify-end mt-4">
-            <Button variantType="outline" type="button" onClick={handleClose}>
+          <DialogFooter className="mt-4">
+            <Button variant="outline" type="button" onClick={handleClose}>
               {t("unavailability.modal.cancel")}
             </Button>
             <Button type="submit" disabled={isPending}>
+              {isPending && <Spinner />}
               {t("unavailability.modal.confirm")}
             </Button>
-          </div>
+          </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>

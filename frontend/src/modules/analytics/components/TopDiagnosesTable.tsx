@@ -1,6 +1,10 @@
 import { useMemo } from "react"
 import { useTranslation } from "react-i18next"
 import { EmptyState } from "../../../shared/components/ui/EmptyState"
+import { useLayoutStore } from "../../../shared/store/layout_store"
+import { useLocale } from "../../../shared/hooks/useLocale"
+import { TableDensityToggle } from "@/shared/components/clinical/TableDensityToggle"
+import { formatDecimal, formatPercentage } from "../format_numbers"
 import {
   Table,
   TableBody,
@@ -8,7 +12,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "../../../shared/components/ui/Table"
+} from "../../../shared/components/ui/table"
 import { AnalyticsPanel, PanelMetric } from "./AnalyticsPanel"
 import { toneFillVariables } from "../metric_tones"
 import type { DiagnosisCount } from "../dashboard_types"
@@ -24,6 +28,8 @@ interface TopDiagnosesTableProps {
 
 export const TopDiagnosesTable = ({ topDiagnoses }: TopDiagnosesTableProps) => {
   const { t } = useTranslation("analytics")
+  const locale = useLocale()
+  const tableDensity = useLayoutStore((state) => state.tableDensity)
 
   const rankedDiagnoses = useMemo<RankedDiagnosis[]>(() => {
     const peakCount =
@@ -47,23 +53,30 @@ export const TopDiagnosesTable = ({ topDiagnoses }: TopDiagnosesTableProps) => {
       subtitle={t("dashboard.topDiagnoses.subtitle")}
       trailing={
         rankedDiagnoses.length > 0 ? (
-          <PanelMetric
-            label={t("dashboard.topDiagnoses.codeCountLabel")}
-            value={t("dashboard.topDiagnoses.codeCountUnit", { count: rankedDiagnoses.length })}
-          />
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            <TableDensityToggle />
+            <PanelMetric
+              label={t("dashboard.topDiagnoses.codeCountLabel")}
+              value={t("dashboard.topDiagnoses.codeCountUnit", { count: rankedDiagnoses.length })}
+            />
+          </div>
         ) : null
       }
     >
       {rankedDiagnoses.length > 0 ? (
-        <div className="-mx-5 -my-5 overflow-x-auto">
-          <Table className="min-w-[560px]">
+        <div className="-mx-5 -my-5">
+          <Table
+            className="min-w-[560px]"
+            density={tableDensity}
+            containerClassName="max-h-[560px] overflow-y-auto"
+          >
             <TableHeader>
               <TableRow>
-                <TableHead className="w-14 pl-5">{t("dashboard.topDiagnoses.rank")}</TableHead>
-                <TableHead className="w-32">{t("dashboard.topDiagnoses.code")}</TableHead>
-                <TableHead>{t("dashboard.topDiagnoses.description")}</TableHead>
-                <TableHead className="w-24 text-right">{t("dashboard.topDiagnoses.cases")}</TableHead>
-                <TableHead className="w-48 pr-5 text-right">
+                <TableHead className="sticky top-0 z-10 w-14 bg-card pl-5">{t("dashboard.topDiagnoses.rank")}</TableHead>
+                <TableHead className="sticky top-0 z-10 min-w-24 bg-card">{t("dashboard.topDiagnoses.code")}</TableHead>
+                <TableHead className="sticky top-0 z-10 bg-card">{t("dashboard.topDiagnoses.description")}</TableHead>
+                <TableHead className="sticky top-0 z-10 min-w-20 bg-card text-right">{t("dashboard.topDiagnoses.cases")}</TableHead>
+                <TableHead className="sticky top-0 z-10 min-w-40 bg-card pr-5 text-right">
                   {t("dashboard.topDiagnoses.proportion")}
                 </TableHead>
               </TableRow>
@@ -72,18 +85,18 @@ export const TopDiagnosesTable = ({ topDiagnoses }: TopDiagnosesTableProps) => {
               {rankedDiagnoses.map((diagnosis) => (
                 <TableRow key={diagnosis.icd10_code}>
                   <TableCell className="pl-5 text-xs font-black tabular-nums text-muted-foreground">
-                    {String(diagnosis.rank).padStart(2, "0")}
+                    {formatDecimal(diagnosis.rank, locale).padStart(2, "0")}
                   </TableCell>
                   <TableCell className="font-mono text-xs font-bold text-primary">
                     {diagnosis.icd10_code}
                   </TableCell>
-                  <TableCell className="text-sm text-gray-700">{diagnosis.description}</TableCell>
-                  <TableCell className="text-right text-sm font-black tabular-nums text-gray-900">
-                    {diagnosis.count}
+                  <TableCell className="text-sm text-foreground">{diagnosis.description}</TableCell>
+                  <TableCell className="text-right text-sm font-black tabular-nums text-foreground">
+                    {formatDecimal(diagnosis.count, locale)}
                   </TableCell>
                   <TableCell className="pr-5">
                     <div className="flex items-center justify-end gap-2.5">
-                      <div className="h-2 w-28 overflow-hidden rounded-full bg-gray-200">
+                      <div className="h-2 w-28 overflow-hidden rounded-full bg-muted">
                         <div
                           className="h-full rounded-full"
                           style={{
@@ -92,8 +105,8 @@ export const TopDiagnosesTable = ({ topDiagnoses }: TopDiagnosesTableProps) => {
                           }}
                         />
                       </div>
-                      <span className="w-9 text-right text-[11px] font-bold tabular-nums text-muted-foreground">
-                        {diagnosis.proportion.toFixed(0)}%
+                      <span className="min-w-9 text-right text-[11px] font-bold tabular-nums text-muted-foreground">
+                        {formatPercentage(diagnosis.proportion, locale)}
                       </span>
                     </div>
                   </TableCell>

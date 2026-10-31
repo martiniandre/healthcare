@@ -44,5 +44,11 @@
     "medication": "Medicamento",
     "exam": "Exame",
     "imagingStudy": "Estudo de Imagem"
-  }
+  },
+  "error": {
+    "title": "Não foi possível carregar",
+    "description": "Ocorreu um erro ao buscar suas informações. Tente novamente.",
+    "retry": "Tentar novamente"
+  },
+  "navigationLabel": "Seções do portal"
 }
