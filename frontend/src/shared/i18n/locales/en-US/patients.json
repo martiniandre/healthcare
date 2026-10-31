@@ -44,7 +44,16 @@
     "phone": "Contact Phone",
     "phonePlaceholder": "(11) 98765-4321",
     "cancel": "Cancel",
-    "confirm": "Confirm Registration"
+    "confirm": "Confirm Registration",
+    "description": "Fill in the basic details. The chart can be completed later.",
+    "sections": {
+      "identification": "Identification",
+      "contact": "Contact"
+    },
+    "nameHint": "As shown on the identity document.",
+    "birthDateHint": "Type numbers only: day, month and year.",
+    "documentHint": "Only the 11 digits; punctuation is added automatically.",
+    "phoneHint": "Include the area code. Mobile numbers have 9 digits."
   },
   "toast": {
     "createSuccess": "Patient successfully registered!",
@@ -177,7 +186,11 @@
       "displayPlaceholder": "e.g. Penicillin Allergy, Peanut Allergy",
       "reaction": "Reported Adverse Reaction",
       "reactionPlaceholder": "e.g. Severe hives, Anaphylactic shock",
-      "confirm": "Register Allergy"
+      "confirm": "Register Allergy",
+      "description": "Record a confirmed allergy or intolerance for the patient.",
+      "displayHint": "Allergen or allergy name, as it will appear in the chart.",
+      "codeHint": "SNOMED CT allergen code. E.g. 300916003 (penicillin).",
+      "reactionHint": "What the patient experiences and how severe. E.g. severe hives."
     },
     "condition": {
       "title": "Register Comorbity",
@@ -185,7 +198,10 @@
       "codePlaceholder": "e.g. I10, E11.9, J45",
       "display": "Diagnosis Description",
       "displayPlaceholder": "e.g. Essential hypertension, Type 2 diabetes mellitus",
-      "confirm": "Register Diagnosis"
+      "confirm": "Register Diagnosis",
+      "description": "Record a diagnosis or comorbidity for the patient.",
+      "codeHint": "A letter followed by numbers. E.g. I10 or E11.9.",
+      "displayHint": "Diagnosis name, as it will appear in the chart."
     },
     "encounter": {
       "title": "Register New Encounter",
@@ -193,7 +209,10 @@
       "reasonPlaceholder": "e.g. Routine cardiology consultation, Annual check-up",
       "practitioner": "Doctor",
       "selectPractitioner": "Select a doctor...",
-      "confirm": "Confirm Encounter"
+      "confirm": "Confirm Encounter",
+      "description": "Open a new encounter for this patient.",
+      "reasonHint": "Main reason for the visit, in a few words.",
+      "practitionerHint": "Doctor who will conduct the visit."
     },
     "medication": {
       "title": "Prescribe Medication",
@@ -201,7 +220,9 @@
       "namePlaceholder": "e.g. Amoxicillin 500mg, Losartan Potassium 50mg",
       "dosage": "Dosage Instruction",
       "dosagePlaceholder": "e.g. Take 1 tablet orally every 8 hours for 7 days",
-      "confirm": "Prescribe"
+      "confirm": "Prescribe",
+      "nameHint": "Medication name with strength. E.g. Amoxicillin 500 mg.",
+      "dosageHint": "Dose, route, frequency and duration of the treatment."
     },
     "observation": {
       "title": "Register Vital Signs",
@@ -215,6 +236,11 @@
         "respiratoryRate": "Respiratory Rate (bpm)",
         "weightKg": "Weight (kg)",
         "heightCm": "Height (cm)"
+      },
+      "description": "Fill in only what was measured. Enter at least one value.",
+      "sections": {
+        "cardiorespiratory": "Cardiorespiratory",
+        "body": "Body measurements"
       }
     },
     "report": {
@@ -231,7 +257,11 @@
       "examPlaceholder": "e.g. Complete Blood Count, Chest X-Ray PA",
       "conclusion": "Report Conclusion and Diagnosis",
       "conclusionPlaceholder": "Describe clinical conclusions and observations for the exam...",
-      "confirm": "Save Report"
+      "confirm": "Save Report",
+      "description": "Record the result of an exam from this encounter.",
+      "examTypeHint": "Choosing the type fills in the exam name for you.",
+      "examHint": "Exam name as it will appear in the report.",
+      "conclusionHint": "Result and clinical interpretation of the exam."
     },
     "reportVersions": {
       "title": "Report Version History",
@@ -247,28 +277,31 @@
     }
   },
   "validation": {
-    "fullNameMin": "Name must be at least 3 characters",
-    "birthDateReq": "Birth date is required",
-    "birthDatePast": "Birth date must be in the past",
-    "documentMin": "Document must be at least 11 characters",
-    "documentInvalid": "Invalid document / ID",
-    "phoneFormat": "Invalid phone format. e.g. (11) 98765-4321",
-    "reasonMin": "Reason must be at least 3 characters",
+    "fullNameMin": "Enter the full name (at least 3 characters)",
+    "birthDateReq": "Enter the full birth date as MM/DD/YYYY",
+    "birthDatePast": "Enter a valid birth date that is already in the past",
+    "documentMin": "Enter all 11 digits of the CPF",
+    "documentInvalid": "Invalid CPF: check the digits you typed",
+    "phoneFormat": "Incomplete phone number. Use area code + number, e.g. (11) 98765-4321",
+    "reasonMin": "Describe the reason with at least 3 characters",
     "practitionerReq": "Select the responsible doctor",
     "vitalSignsRange": "value outside the allowed clinical range",
     "vitalSignsAtLeastOne": "Record at least one vital sign to register the observation",
-    "reportCodeReq": "Select the exam type",
-    "reportTitleMin": "Report title must be at least 3 characters",
-    "conclusionMin": "Conclusion must be at least 5 characters",
-    "icdCodeMin": "ICD-10 code must be at least 3 characters",
-    "icdFormat": "Invalid ICD-10 format. e.g. I10, E11.9",
-    "icdDisplayMin": "Diagnosis description must be at least 3 characters",
-    "allergenCodeMin": "Allergen code must be at least 3 characters",
-    "allergenDisplayMin": "Allergen description must be at least 3 characters",
-    "reactionMin": "Reported reaction must be at least 3 characters",
-    "medicationMin": "Medication name must be at least 3 characters",
-    "dosageMin": "Dosage instruction must be at least 3 characters",
-    "maxLength": "Value exceeds the maximum allowed length"
+    "reportCodeReq": "Select the exam type from the list",
+    "reportTitleMin": "Enter the exam name (at least 3 characters)",
+    "conclusionMin": "Describe the conclusion with at least 5 characters",
+    "icdCodeMin": "Enter the ICD-10 code (at least 3 characters). E.g. I10",
+    "icdFormat": "Invalid ICD-10 format. Use a letter followed by numbers, e.g. I10, E11.9",
+    "icdDisplayMin": "Describe the diagnosis with at least 3 characters",
+    "allergenCodeMin": "Enter the allergen code (at least 3 characters)",
+    "allergenDisplayMin": "Enter the allergen name (at least 3 characters)",
+    "reactionMin": "Describe the reaction with at least 3 characters",
+    "medicationMin": "Enter the medication name (at least 3 characters)",
+    "dosageMin": "Enter the dose, route and frequency (at least 3 characters)",
+    "maxLength": "Text is too long: shorten it to fit the character limit",
+    "overrideJustificationMin": "Justification must be at least 10 characters",
+    "riskAcknowledgementRequired": "You must acknowledge the risk to continue",
+    "unverifiedAcknowledgementRequired": "Confirm that you want to prescribe without safety verification"
   },
   "states": {
     "loading": "Loading...",
@@ -333,5 +366,59 @@
     "loadingList": "Loading timeline...",
     "clinicalDate": "Clinical date: {{date}}",
     "openEncounter": "Open encounter"
+  },
+  "medicationSafety": {
+    "title": "Safety check",
+    "checking": "Checking allergies and interactions...",
+    "blockedByServer": "Prescription blocked: the patient has an active allergy. A justification is required.",
+    "warningsSummary": "Prescription saved with safety warnings ({{count}}).",
+    "kind": {
+      "allergy": "Allergy",
+      "interaction": "Drug interaction"
+    },
+    "severity": {
+      "info": "Info",
+      "moderate": "Moderate",
+      "major": "Major",
+      "contraindicated": "Contraindicated"
+    },
+    "checkFailed": {
+      "title": "Safety could not be verified",
+      "description": "The allergy and interaction check failed. Retry, or prescribe without verification at your own responsibility.",
+      "retry": "Retry check",
+      "acknowledge": "Prescribe without safety verification"
+    },
+    "messages": {
+      "generic": "Safety alert for {{medication}}. Review before prescribing.",
+      "allergy": {
+        "activeIngredient": "The patient has an active allergy to {{allergen}}, an ingredient of {{medication}}.",
+        "sameClass": "The patient is allergic to {{allergen}}, which may cross-react with {{medication}} (class {{drugClass}})."
+      },
+      "interaction": {
+        "moderate": "{{medication}} has a moderate interaction with another active medication ({{drugClass}}).",
+        "major": "{{medication}} has a major interaction with another active medication ({{drugClass}}).",
+        "contraindicated": "{{medication}} is contraindicated with another active medication ({{drugClass}})."
+      }
+    },
+    "override": {
+      "title": "Override required",
+      "description": "This prescription is blocked by a safety alert. Doctors can override it with a justification, which is recorded in the audit log.",
+      "serverBlocked": "The server blocked this prescription because of an active allergy. Provide a justification to override.",
+      "justification": "Override justification",
+      "justificationPlaceholder": "Explain why the benefit outweighs the risk (min. 10 characters)",
+      "acknowledgeRisk": "I understand the risk",
+      "blockedTitle": "Prescription blocked",
+      "notPermitted": "Your role is not permitted to override safety blocks. Ask a doctor to review this prescription.",
+      "confirm": "Prescribe with override"
+    }
+  },
+  "form": {
+    "required": "required",
+    "optional": "(optional)",
+    "requiredLegend": "Fields marked with * are required.",
+    "submitError": "We couldn't save this. Your entries were kept: check your connection and try again.",
+    "errorSummaryTitle": "Review the fields below to continue:",
+    "characterCount": "{{current}} / {{max}} characters",
+    "range": "Valid values: {{min}} to {{max}}"
   }
 }

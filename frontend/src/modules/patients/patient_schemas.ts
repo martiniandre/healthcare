@@ -67,6 +67,16 @@ export const baseMedicationSchema = z.object({
   dosageInstruction: z.string(),
 })
 
+export const MEDICATION_OVERRIDE_MIN_LENGTH = 10
+
+export const baseMedicationPrescriptionSchema = baseMedicationSchema.extend({
+  overrideJustification: z.string(),
+  riskAcknowledged: z.boolean(),
+  unverifiedAcknowledged: z.boolean(),
+})
+
+export type MedicationPrescriptionFormData = z.infer<typeof baseMedicationPrescriptionSchema>
+
 export type NewPatientFormData = z.infer<typeof basePatientSchema>
 export type NewEncounterFormData = z.infer<typeof baseEncounterSchema>
 export type NewReportFormData = z.infer<typeof baseReportSchema>
@@ -147,4 +157,42 @@ export const getNewAllergySchema = (translateFunction: (key: string) => string) 
 export const getNewMedicationSchema = (translateFunction: (key: string) => string) => z.object({
   medicationDisplay: z.string().min(3, translateFunction("validation.medicationMin")).max(255, translateFunction("validation.maxLength")),
   dosageInstruction: z.string().min(3, translateFunction("validation.dosageMin")).max(1000, translateFunction("validation.maxLength")),
+})
+
+export interface MedicationPrescriptionRequirements {
+  requiresOverride: boolean
+  requiresUnverifiedAcknowledgement: boolean
+}
+
+export const getMedicationPrescriptionSchema = (
+  translateFunction: (key: string) => string,
+  requirements: MedicationPrescriptionRequirements,
+) => getNewMedicationSchema(translateFunction).extend({
+  overrideJustification: z.string().trim().max(1000, translateFunction("validation.maxLength")),
+  riskAcknowledged: z.boolean(),
+  unverifiedAcknowledged: z.boolean(),
+}).superRefine((formData, context) => {
+  if (requirements.requiresOverride) {
+    if (formData.overrideJustification.length < MEDICATION_OVERRIDE_MIN_LENGTH) {
+      context.addIssue({
+        code: "custom",
+        path: ["overrideJustification"],
+        message: translateFunction("validation.overrideJustificationMin"),
+      })
+    }
+    if (!formData.riskAcknowledged) {
+      context.addIssue({
+        code: "custom",
+        path: ["riskAcknowledged"],
+        message: translateFunction("validation.riskAcknowledgementRequired"),
+      })
+    }
+  }
+  if (requirements.requiresUnverifiedAcknowledgement && !formData.unverifiedAcknowledged) {
+    context.addIssue({
+      code: "custom",
+      path: ["unverifiedAcknowledged"],
+      message: translateFunction("validation.unverifiedAcknowledgementRequired"),
+    })
+  }
 })

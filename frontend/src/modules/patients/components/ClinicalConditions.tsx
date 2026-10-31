@@ -61,6 +61,7 @@ export default function ClinicalConditions({ patientId }: ClinicalConditionsProp
         onClose={() => setIsModalOpen(false)}
         onSubmit={handleCreateCondition}
         isPending={createConditionMutation.isPending}
+        hasSubmitError={createConditionMutation.isError}
       />
     </>
   )

@@ -4,7 +4,9 @@ import { useTranslation } from "react-i18next"
 import { Can, Action, Feature } from "../../../shared/auth/AbilityContext"
 import { Button } from "../../../shared/components/ui/button"
 import { ClinicalQueryTable } from "./ClinicalQueryTable"
-import { MedicationModal } from "./modals/MedicationModal"
+import { MedicationModal, type MedicationSubmission, type MedicationSubmitOutcome } from "./modals/MedicationModal"
+import { buildAlertMessage, extractAllergyBlockedAlerts, type AlertTranslateFunction } from "../medicationSafety"
+import type { MedicationSafetyAlert } from "../types"
 import { useClinicalMedicationsColumns } from "./useClinicalMedicationsColumns"
 import { useMedicationsQuery, useCreateMedicationMutation } from "../queries"
 import { toast } from "../../../shared/store/toast_store"
@@ -21,18 +23,35 @@ export default function ClinicalMedications({ patientId, encounterId }: Clinical
   const { data: medications = [], isLoading, isError, refetch } = useMedicationsQuery(encounterId)
   const createMedicationMutation = useCreateMedicationMutation()
 
-  const handleCreateMedication = async (formData: { medicationDisplay: string; dosageInstruction: string }) => {
+  const buildWarningsMessage = (warnings: MedicationSafetyAlert[]): string => {
+    const warningMessages = warnings.map((warning) => buildAlertMessage(t as AlertTranslateFunction, warning))
+    return `${t("medicationSafety.warningsSummary", { count: warnings.length })} ${warningMessages.join(" ")}`
+  }
+
+  const handleCreateMedication = async (formData: MedicationSubmission): Promise<MedicationSubmitOutcome> => {
     try {
-      await createMedicationMutation.mutateAsync({
+      const createdMedication = await createMedicationMutation.mutateAsync({
         encounter_fhir_id: encounterId,
         patient_fhir_id: patientId,
         medication_name: formData.medicationDisplay,
         dosage_instructions: formData.dosageInstruction,
+        overrideJustification: formData.overrideJustification,
       })
       setIsModalOpen(false)
       toast.success(t("toast.medicationSuccess"))
-    } catch {
+      const warnings = createdMedication?.warnings ?? []
+      if (warnings.length > 0) {
+        toast.info(buildWarningsMessage(warnings), 10000)
+      }
+      return { status: "success" }
+    } catch (error) {
+      const blockedAlerts = extractAllergyBlockedAlerts(error)
+      if (blockedAlerts) {
+        toast.error(t("medicationSafety.blockedByServer"))
+        return { status: "blocked", alerts: blockedAlerts }
+      }
       toast.error(t("toast.medicationError"))
+      return { status: "failed" }
     }
   }
 
@@ -59,6 +78,7 @@ export default function ClinicalMedications({ patientId, encounterId }: Clinical
       />
 
       <MedicationModal
+        patientId={patientId}
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSubmit={handleCreateMedication}

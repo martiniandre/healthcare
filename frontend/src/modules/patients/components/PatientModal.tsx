@@ -1,129 +1,202 @@
+import { useEffect, useId } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useTranslation } from "react-i18next"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "../../../shared/components/ui/dialog"
-import { MaskedInput } from "../../../shared/components/ui/MaskedInput"
-import { Button } from "../../../shared/components/ui/button"
+import { Dialog } from "../../../shared/components/ui/dialog"
+import { DiscardChangesDialog } from "../../../shared/components/ui/discard-changes-dialog"
+import { FieldLegend, FieldSet } from "../../../shared/components/ui/field"
 import { Input } from "../../../shared/components/ui/input"
-import { Field, FieldError, FieldLabel } from "../../../shared/components/ui/field"
-import { Spinner } from "../../../shared/components/ui/spinner"
+import { MaskedInput } from "../../../shared/components/ui/MaskedInput"
+import { useDiscardGuard } from "../../../shared/hooks/useDiscardGuard"
 import { getNewPatientSchema, type NewPatientFormData } from "../patient_schemas"
 import { createModuleTranslator } from "../../../shared/i18n/i18n"
 import { localizedDateToIso } from "../../../shared/utils/dates"
 import { useCreatePatientMutation } from "../queries"
 import { toast } from "../../../shared/store/toast_store"
-import { useEffect } from "react"
+import { FormDialogLayout } from "./form/FormDialogLayout"
+import { FormField } from "./form/FormField"
+import { FormSubmitError } from "./form/FormSubmitError"
+import { useSubmissionLock } from "./form/useSubmissionLock"
 
 interface PatientModalProps {
   isOpen: boolean
   onOpenChange: (open: boolean) => void
 }
 
+const EMPTY_PATIENT_VALUES: NewPatientFormData = {
+  fullName: "",
+  birthDate: "",
+  documentId: "",
+  phoneNumber: "",
+}
+
 export const PatientModal = ({ isOpen, onOpenChange }: PatientModalProps) => {
   const { t, i18n } = useTranslation("patients")
-  const createPatientMutation = useCreatePatientMutation()
+  const formId = useId()
+  const runWithSubmissionLock = useSubmissionLock()
+  const {
+    mutateAsync: createPatient,
+    reset: resetCreatePatient,
+    isPending,
+    isError,
+  } = useCreatePatientMutation()
 
   const {
     register,
     handleSubmit,
     reset,
-    formState: { errors },
+    formState: { errors, isDirty },
   } = useForm<NewPatientFormData>({
     resolver: zodResolver(getNewPatientSchema(createModuleTranslator("patients"))),
-    defaultValues: {
-      fullName: "",
-      birthDate: "",
-      documentId: "",
-      phoneNumber: "",
-    },
+    defaultValues: EMPTY_PATIENT_VALUES,
+    mode: "onTouched",
+  })
+
+  const closeDialog = () => onOpenChange(false)
+
+  const { isConfirmationOpen, requestClose, keepEditing, discardChanges } = useDiscardGuard({
+    isDirty,
+    onClose: closeDialog,
   })
 
   useEffect(() => {
     if (isOpen) {
-      reset()
+      reset(EMPTY_PATIENT_VALUES)
+      resetCreatePatient()
     }
-  }, [isOpen, reset])
+  }, [isOpen, reset, resetCreatePatient])
 
   const onSubmit = async (formData: NewPatientFormData) => {
-    try {
-      await createPatientMutation.mutateAsync({
-        full_name: formData.fullName,
-        birth_date: localizedDateToIso(formData.birthDate, i18n.language),
-        document_id: formData.documentId,
-        phone_number: formData.phoneNumber,
-      })
-      onOpenChange(false)
-      toast.success(t("toast.createSuccess"))
-    } catch {
-      toast.error(t("toast.createError"))
+    if (isPending) {
+      return
     }
+    await runWithSubmissionLock(async () => {
+      try {
+        await createPatient({
+          full_name: formData.fullName,
+          birth_date: localizedDateToIso(formData.birthDate, i18n.language),
+          document_id: formData.documentId,
+          phone_number: formData.phoneNumber,
+        })
+        closeDialog()
+        toast.success(t("toast.createSuccess"))
+      } catch {
+        toast.error(t("toast.createError"))
+      }
+    })
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[480px]">
-        <DialogHeader>
-          <DialogTitle className="text-left">{t("modal.title")}</DialogTitle>
-        </DialogHeader>
+    <>
+      <Dialog open={isOpen} onOpenChange={(open) => !open && requestClose()}>
+        <FormDialogLayout
+          title={t("modal.title")}
+          description={t("modal.description")}
+          widthClassName="sm:max-w-[560px]"
+          onSubmit={handleSubmit(onSubmit)}
+          cancelLabel={t("modal.cancel")}
+          onCancel={requestClose}
+          submitLabel={t("modal.confirm")}
+          isPending={isPending}
+        >
+          {isError ? <FormSubmitError /> : null}
+          <p className="text-xs text-muted-foreground">{t("form.requiredLegend")}</p>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4 text-left mt-4" noValidate>
-          <Field className="gap-1" data-invalid={Boolean(errors.fullName)}>
-            <FieldLabel className="text-xs font-semibold text-muted-foreground">{t("modal.name")}</FieldLabel>
-            <Input
-              type="text"
-              placeholder={t("modal.namePlaceholder")}
-              aria-invalid={Boolean(errors.fullName)}
-              {...register("fullName")}
-            />
-            {errors.fullName && <FieldError>{errors.fullName.message}</FieldError>}
-          </Field>
+          <FieldSet className="gap-3">
+            <FieldLegend variant="label" className="mb-0 text-sm font-semibold">
+              {t("modal.sections.identification")}
+            </FieldLegend>
+            <div className="grid gap-4 md:grid-cols-2">
+              <FormField
+                id={`${formId}-fullName`}
+                label={t("modal.name")}
+                description={t("modal.nameHint")}
+                error={errors.fullName?.message}
+                className="md:col-span-2"
+              >
+                {(controlProperties) => (
+                  <Input
+                    type="text"
+                    placeholder={t("modal.namePlaceholder")}
+                    autoComplete="off"
+                    autoCapitalize="words"
+                    className="min-h-11 md:min-h-9"
+                    {...controlProperties}
+                    {...register("fullName")}
+                  />
+                )}
+              </FormField>
 
-          <Field className="gap-1" data-invalid={Boolean(errors.birthDate)}>
-            <FieldLabel className="text-xs font-semibold text-muted-foreground">{t("modal.birthDate")}</FieldLabel>
-            <MaskedInput
-              mask="99/99/9999"
-              placeholder={t("modal.birthDatePlaceholder")}
-              errorText={errors.birthDate?.message}
-              {...register("birthDate")}
-            />
-          </Field>
+              <FormField
+                id={`${formId}-birthDate`}
+                label={t("modal.birthDate")}
+                description={t("modal.birthDateHint")}
+                error={errors.birthDate?.message}
+              >
+                {(controlProperties) => (
+                  <MaskedInput
+                    mask="99/99/9999"
+                    placeholder={t("modal.birthDatePlaceholder")}
+                    inputMode="numeric"
+                    autoComplete="off"
+                    className="min-h-11 md:min-h-9"
+                    {...controlProperties}
+                    {...register("birthDate")}
+                  />
+                )}
+              </FormField>
 
-          <Field className="gap-1" data-invalid={Boolean(errors.documentId)}>
-            <FieldLabel className="text-xs font-semibold text-muted-foreground">{t("modal.document")}</FieldLabel>
-            <MaskedInput
-              mask="999.999.999-99"
-              placeholder={t("modal.documentPlaceholder")}
-              errorText={errors.documentId?.message}
-              {...register("documentId")}
-            />
-          </Field>
+              <FormField
+                id={`${formId}-documentId`}
+                label={t("modal.document")}
+                description={t("modal.documentHint")}
+                error={errors.documentId?.message}
+              >
+                {(controlProperties) => (
+                  <MaskedInput
+                    mask="999.999.999-99"
+                    placeholder={t("modal.documentPlaceholder")}
+                    inputMode="numeric"
+                    autoComplete="off"
+                    spellCheck={false}
+                    className="min-h-11 md:min-h-9"
+                    {...controlProperties}
+                    {...register("documentId")}
+                  />
+                )}
+              </FormField>
+            </div>
+          </FieldSet>
 
-          <Field className="gap-1" data-invalid={Boolean(errors.phoneNumber)}>
-            <FieldLabel className="text-xs font-semibold text-muted-foreground">{t("modal.phone")}</FieldLabel>
-            <MaskedInput
-              mask="(99) 99999-9999"
-              placeholder={t("modal.phonePlaceholder")}
-              errorText={errors.phoneNumber?.message}
-              {...register("phoneNumber")}
-            />
-          </Field>
-
-          <div className="flex gap-3 justify-end mt-3">
-            <Button variant="outline" type="button" onClick={() => onOpenChange(false)}>
-              {t("modal.cancel")}
-            </Button>
-            <Button type="submit" disabled={createPatientMutation.isPending}>
-              {createPatientMutation.isPending && <Spinner />}
-              {t("modal.confirm")}
-            </Button>
-          </div>
-        </form>
-      </DialogContent>
-    </Dialog>
+          <FieldSet className="gap-3">
+            <FieldLegend variant="label" className="mb-0 text-sm font-semibold">
+              {t("modal.sections.contact")}
+            </FieldLegend>
+            <div className="grid gap-4 md:grid-cols-2">
+              <FormField
+                id={`${formId}-phoneNumber`}
+                label={t("modal.phone")}
+                description={t("modal.phoneHint")}
+                error={errors.phoneNumber?.message}
+              >
+                {(controlProperties) => (
+                  <MaskedInput
+                    mask="(99) 99999-9999"
+                    type="tel"
+                    placeholder={t("modal.phonePlaceholder")}
+                    inputMode="tel"
+                    autoComplete="off"
+                    className="min-h-11 md:min-h-9"
+                    {...controlProperties}
+                    {...register("phoneNumber")}
+                  />
+                )}
+              </FormField>
+            </div>
+          </FieldSet>
+        </FormDialogLayout>
+      </Dialog>
+      <DiscardChangesDialog open={isConfirmationOpen} onKeepEditing={keepEditing} onDiscard={discardChanges} />
+    </>
   )
 }

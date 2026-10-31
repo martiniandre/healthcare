@@ -102,6 +102,7 @@ export default function EncounterHistory({
         onClose={() => setIsModalOpen(false)}
         onSubmit={handleCreateEncounter}
         isPending={createEncounterMutation.isPending}
+        hasSubmitError={createEncounterMutation.isError}
       />
     </>
   )

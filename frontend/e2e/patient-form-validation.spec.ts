@@ -16,10 +16,10 @@ test.describe("Patient Registration Validation", () => {
 
     await page.getByRole("button", { name: "Confirmar Cadastro" }).click()
 
-    const nameError = page.locator("text=O nome deve ter no mínimo 3 caracteres")
-    const birthDateError = page.locator("text=A data de nascimento deve ser no passado")
-    const documentError = page.locator("text=CPF inválido")
-    const phoneError = page.locator("text=Formato de telefone inválido. Ex: (11) 98765-4321")
+    const nameError = page.locator("text=Informe o nome completo (mínimo de 3 caracteres)")
+    const birthDateError = page.locator("text=Informe uma data de nascimento válida que já tenha passado")
+    const documentError = page.locator("text=CPF inválido: confira os números digitados")
+    const phoneError = page.locator("text=Telefone incompleto. Use DDD + número, ex: (11) 98765-4321")
 
     await expect(nameError).toBeVisible()
     await expect(birthDateError).toBeVisible()
@@ -37,6 +37,6 @@ test.describe("Patient Registration Validation", () => {
 
     await page.getByRole("button", { name: "Confirmar Cadastro" }).click()
 
-    await expect(page.locator("text=Valor excede o limite máximo de caracteres")).toBeVisible()
+    await expect(page.locator("text=Texto longo demais: reduza para caber no limite de caracteres")).toBeVisible()
   })
 })
