@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -37,19 +38,69 @@ func TestIsAuthRateLimitedRouteMatchesLoginOnly(testingInstance *testing.T) {
 	assert.False(testingInstance, isAuthRateLimitedRoute("/api/v1/patients"))
 }
 
-func TestExtractClientIPAddressPrefersForwardedFor(testingInstance *testing.T) {
+func mustParseTrustedProxies(testingInstance *testing.T, entries ...string) []*net.IPNet {
+	trustedNetworks, parseError := ParseTrustedProxies(entries)
+	require.NoError(testingInstance, parseError)
+	return trustedNetworks
+}
+
+func TestExtractClientIPAddressIgnoresForwardedForWhenNoProxyIsTrusted(testingInstance *testing.T) {
 	httpRequest := httptest.NewRequest(http.MethodPost, "/api/v1/auth/login", nil)
 	httpRequest.RemoteAddr = "10.0.0.5:54321"
 	httpRequest.Header.Set("X-Forwarded-For", "203.0.113.7, 70.41.3.1")
+	httpRequest.Header.Set("X-Real-IP", "203.0.113.9")
 
-	assert.Equal(testingInstance, "203.0.113.7", extractClientIPAddress(httpRequest))
+	assert.Equal(testingInstance, "10.0.0.5", extractClientIPAddress(httpRequest, nil))
+}
+
+func TestExtractClientIPAddressIgnoresForwardedForFromUntrustedPeer(testingInstance *testing.T) {
+	httpRequest := httptest.NewRequest(http.MethodPost, "/api/v1/auth/login", nil)
+	httpRequest.RemoteAddr = "198.51.100.1:54321"
+	httpRequest.Header.Set("X-Forwarded-For", "203.0.113.7")
+
+	assert.Equal(testingInstance, "198.51.100.1", extractClientIPAddress(httpRequest, mustParseTrustedProxies(testingInstance, "10.0.0.0/8")))
+}
+
+func TestExtractClientIPAddressUsesRightmostUntrustedHop(testingInstance *testing.T) {
+	httpRequest := httptest.NewRequest(http.MethodPost, "/api/v1/auth/login", nil)
+	httpRequest.RemoteAddr = "10.0.0.5:54321"
+	httpRequest.Header.Set("X-Forwarded-For", "1.1.1.1, 203.0.113.7, 10.0.0.9")
+
+	assert.Equal(testingInstance, "203.0.113.7", extractClientIPAddress(httpRequest, mustParseTrustedProxies(testingInstance, "10.0.0.0/8")))
+}
+
+func TestExtractClientIPAddressFallsBackToRealIPFromTrustedProxy(testingInstance *testing.T) {
+	httpRequest := httptest.NewRequest(http.MethodPost, "/api/v1/auth/login", nil)
+	httpRequest.RemoteAddr = "10.0.0.5:54321"
+	httpRequest.Header.Set("X-Real-IP", "203.0.113.9")
+
+	assert.Equal(testingInstance, "203.0.113.9", extractClientIPAddress(httpRequest, mustParseTrustedProxies(testingInstance, "10.0.0.5")))
 }
 
 func TestExtractClientIPAddressFallsBackToRemoteAddr(testingInstance *testing.T) {
 	httpRequest := httptest.NewRequest(http.MethodPost, "/api/v1/auth/login", nil)
 	httpRequest.RemoteAddr = "10.0.0.5:54321"
 
-	assert.Equal(testingInstance, "10.0.0.5", extractClientIPAddress(httpRequest))
+	assert.Equal(testingInstance, "10.0.0.5", extractClientIPAddress(httpRequest, nil))
+}
+
+func TestParseTrustedProxiesRejectsInvalidEntries(testingInstance *testing.T) {
+	_, parseError := ParseTrustedProxies([]string{"not-an-ip"})
+	assert.Error(testingInstance, parseError)
+}
+
+func TestRateLimiterRegistryEvictsIdleBuckets(testingInstance *testing.T) {
+	registry := newRateLimiterRegistry()
+	staleBucket := registry.bucketFor(false, "203.0.113.1")
+	require.True(testingInstance, staleBucket.allow(time.Now().Add(-2*rateLimitWindow)))
+	registry.lastSweepAt = time.Now().Add(-2 * idleBucketSweepInterval)
+
+	registry.bucketFor(false, "203.0.113.2")
+
+	registry.mu.Lock()
+	defer registry.mu.Unlock()
+	assert.NotContains(testingInstance, registry.generalBuckets, "203.0.113.1")
+	assert.Contains(testingInstance, registry.generalBuckets, "203.0.113.2")
 }
 
 func TestRateLimitMiddlewareBlocksEleventhLoginWithinWindow(testingInstance *testing.T) {
@@ -59,7 +110,7 @@ func TestRateLimitMiddlewareBlocksEleventhLoginWithinWindow(testingInstance *tes
 	targetHandler := http.HandlerFunc(func(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
 		httpResponseWriter.WriteHeader(http.StatusOK)
 	})
-	rateLimitedHandler := RateLimit(targetHandler)
+	rateLimitedHandler := RateLimit(nil)(targetHandler)
 
 	var lastResponse *httptest.ResponseRecorder
 	for requestIndex := 0; requestIndex < authRateLimitPerMinute; requestIndex++ {
@@ -86,7 +137,7 @@ func TestRateLimitMiddlewareKeepsOtherClientsUnaffected(testingInstance *testing
 	targetHandler := http.HandlerFunc(func(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
 		httpResponseWriter.WriteHeader(http.StatusOK)
 	})
-	rateLimitedHandler := RateLimit(targetHandler)
+	rateLimitedHandler := RateLimit(nil)(targetHandler)
 
 	for requestIndex := 0; requestIndex < authRateLimitPerMinute; requestIndex++ {
 		httpRequest := httptest.NewRequest(http.MethodPost, "/api/v1/auth/login", nil)

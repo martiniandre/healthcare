@@ -22,8 +22,15 @@ func (mockRepository *MockRepository) CreateUser(contextParam context.Context, u
 	if mockRepository.Err != nil {
 		return mockRepository.Err
 	}
+	if _, exists := mockRepository.Users[user.Email]; exists {
+		return auth.ErrUserExists
+	}
 	mockRepository.Users[user.Email] = user
 	return nil
+}
+
+func (mockRepository *MockRepository) CreateUserWithPatientLink(contextParam context.Context, user *auth.User) error {
+	return mockRepository.CreateUser(contextParam, user)
 }
 
 func (mockRepository *MockRepository) GetUserByEmail(contextParam context.Context, email string) (*auth.User, error) {

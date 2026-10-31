@@ -2,6 +2,7 @@ package tests
 
 import (
 	"context"
+	"errors"
 	"testing"
 
 	"github.com/healthcare/backend/internal/modules/auth"
@@ -79,4 +80,14 @@ func TestService_Login(testingInstance *testing.T) {
 
 	_, _, errNotFound := authService.Login(contextParam, "notfound@example.com", "securepass")
 	assert.ErrorIs(testingInstance, errNotFound, auth.ErrUserNotFound)
+}
+
+func TestService_Register_PropagatesRepositoryLookupFailure(testingInstance *testing.T) {
+	mockRepository := mocks.NewMockRepository()
+	mockRepository.Err = errors.New("database unavailable")
+	authService := auth.NewService(mockRepository, nil)
+
+	_, registerError := authService.Register(context.Background(), "new@example.com", "password123", "New User", string(role.RolePatient))
+
+	assert.ErrorIs(testingInstance, registerError, mockRepository.Err)
 }

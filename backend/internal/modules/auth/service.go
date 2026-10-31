@@ -24,10 +24,6 @@ type Service interface {
 	Me(ctx context.Context, userID string) (*User, error)
 }
 
-type PatientLinkWriter interface {
-	CreatePatientLink(ctx context.Context, userID uuid.UUID) error
-}
-
 type service struct {
 	repo     Repository
 	eventBus eventbus.Bus
@@ -38,7 +34,10 @@ func NewService(repo Repository, eventBus eventbus.Bus) Service {
 }
 
 func (authService *service) Register(ctx context.Context, email, password, fullName, requestedRole string) (*User, error) {
-	existingUser, _ := authService.repo.GetUserByEmail(ctx, email)
+	existingUser, lookupError := authService.repo.GetUserByEmail(ctx, email)
+	if lookupError != nil && !errors.Is(lookupError, ErrUserNotFound) {
+		return nil, lookupError
+	}
 	if existingUser != nil {
 		return nil, ErrUserExists
 	}
@@ -64,17 +63,13 @@ func (authService *service) Register(ctx context.Context, email, password, fullN
 		UpdatedAt:    time.Now(),
 	}
 
-	err = authService.repo.CreateUser(ctx, user)
+	if parsedRole == role.RolePatient {
+		err = authService.repo.CreateUserWithPatientLink(ctx, user)
+	} else {
+		err = authService.repo.CreateUser(ctx, user)
+	}
 	if err != nil {
 		return nil, err
-	}
-
-	if parsedRole == role.RolePatient {
-		if linkWriter, canWriteLinks := authService.repo.(PatientLinkWriter); canWriteLinks {
-			if linkError := linkWriter.CreatePatientLink(ctx, user.ID); linkError != nil {
-				return nil, linkError
-			}
-		}
 	}
 
 	return user, nil

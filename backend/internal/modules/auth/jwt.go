@@ -5,10 +5,18 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
+	"log/slog"
 	"sync"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
+)
+
+const (
+	jwtIssuer              = "healthcare-api"
+	jwtLifetime            = 24 * time.Hour
+	revocationStoreTimeout = 3 * time.Second
 )
 
 var (
@@ -45,11 +53,15 @@ func InitJWT(secretKey string) error {
 }
 
 func GenerateJWT(userID, role, email string) (string, error) {
+	issuedAt := time.Now()
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"user_id": userID,
 		"role":    role,
 		"email":   email,
-		"exp":     time.Now().Add(24 * time.Hour).Unix(),
+		"iss":     jwtIssuer,
+		"jti":     uuid.New().String(),
+		"iat":     issuedAt.Unix(),
+		"exp":     issuedAt.Add(jwtLifetime).Unix(),
 	})
 
 	return token.SignedString(jwtSecret)
@@ -61,11 +73,8 @@ func ValidateJWT(tokenString string) (jwt.MapClaims, error) {
 	}
 
 	token, validationError := jwt.Parse(tokenString, func(parsedToken *jwt.Token) (interface{}, error) {
-		if _, isMethodHMAC := parsedToken.Method.(*jwt.SigningMethodHMAC); !isMethodHMAC {
-			return nil, errors.New("unexpected signing method")
-		}
 		return jwtSecret, nil
-	})
+	}, jwt.WithValidMethods([]string{jwt.SigningMethodHS256.Alg()}), jwt.WithIssuer(jwtIssuer), jwt.WithExpirationRequired())
 
 	if validationError != nil || !token.Valid {
 		return nil, validationError
@@ -105,7 +114,11 @@ func RevokeToken(tokenString string) {
 	tokenBlacklist.Store(tokenDigest, int64(exp))
 
 	if revocationStore != nil {
-		_ = revocationStore.Revoke(context.Background(), tokenDigest, time.Unix(int64(exp), 0))
+		revokeContext, cancelRevoke := context.WithTimeout(context.Background(), revocationStoreTimeout)
+		defer cancelRevoke()
+		if revokeError := revocationStore.Revoke(revokeContext, tokenDigest, time.Unix(int64(exp), 0)); revokeError != nil {
+			slog.Error("Failed to persist token revocation", "error", revokeError)
+		}
 	}
 }
 
@@ -127,9 +140,12 @@ func isTokenRevoked(tokenString string) bool {
 		return false
 	}
 
-	revoked, storeError := revocationStore.IsRevoked(context.Background(), tokenDigest)
+	checkContext, cancelCheck := context.WithTimeout(context.Background(), revocationStoreTimeout)
+	defer cancelCheck()
+	revoked, storeError := revocationStore.IsRevoked(checkContext, tokenDigest)
 	if storeError != nil {
-		return false
+		slog.Error("Failed to check token revocation, rejecting token", "error", storeError)
+		return true
 	}
 	return revoked
 }

@@ -1,9 +1,12 @@
 package auth
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"log/slog"
 	"net/http"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/healthcare/backend/internal/api/render"
@@ -19,6 +22,11 @@ func NewHTTPHandler(service Service, secureCookies bool) *HTTPHandler {
 		service:       service,
 		secureCookies: secureCookies,
 	}
+}
+
+func hashEmailForLogging(email string) string {
+	emailDigest := sha256.Sum256([]byte(strings.ToLower(strings.TrimSpace(email))))
+	return hex.EncodeToString(emailDigest[:])[:12]
 }
 
 func (handler *HTTPHandler) sameSiteMode() http.SameSite {
@@ -56,7 +64,7 @@ func (handler *HTTPHandler) HandleLogin(httpResponseWriter http.ResponseWriter, 
 
 	authenticatedUser, jsonWebToken, authError := handler.service.Login(httpRequest.Context(), loginRequestPayload.Email, loginRequestPayload.Password)
 	if authError != nil {
-		slog.Warn("Login failed", "email", loginRequestPayload.Email, "error", authError)
+		slog.Warn("Login failed", "email_hash", hashEmailForLogging(loginRequestPayload.Email), "error", authError)
 		render.Error(httpResponseWriter, http.StatusUnauthorized, "Credenciais inválidas.")
 		return
 	}
@@ -84,9 +92,9 @@ func (handler *HTTPHandler) HandleLogin(httpResponseWriter http.ResponseWriter, 
 	})
 
 	render.JSON(httpResponseWriter, http.StatusOK, map[string]interface{}{
-		"userId":   authenticatedUser.ID.String(),
-		"role":     string(authenticatedUser.Role),
-		"email":    authenticatedUser.Email,
+		"userId":    authenticatedUser.ID.String(),
+		"role":      string(authenticatedUser.Role),
+		"email":     authenticatedUser.Email,
 		"csrfToken": crossSiteRequestForgeryToken,
 	})
 }
@@ -115,14 +123,14 @@ func (handler *HTTPHandler) HandleLogout(httpResponseWriter http.ResponseWriter,
 		return
 	}
 
-	RevokeToken(cookie.Value)
-
 	csrfHeader := httpRequest.Header.Get("X-CSRF-Token")
 	csrfCookie, csrfCookieErr := httpRequest.Cookie("csrf_token")
 	if csrfCookieErr != nil || csrfHeader == "" || csrfHeader != csrfCookie.Value {
 		render.Error(httpResponseWriter, http.StatusForbidden, "Token CSRF inválido ou ausente.")
 		return
 	}
+
+	RevokeToken(cookie.Value)
 
 	http.SetCookie(httpResponseWriter, &http.Cookie{
 		Name:     "token",
