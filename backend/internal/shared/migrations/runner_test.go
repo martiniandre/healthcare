@@ -20,9 +20,9 @@ func TestShouldRunOnStart(t *testing.T) {
 		{"development", "garbage", true},
 		{"production", " 1 ", true},
 	}
-	for _, c := range cases {
-		if got := ShouldRunOnStart(c.env, c.flag); got != c.want {
-			t.Errorf("ShouldRunOnStart(%q,%q)=%v want %v", c.env, c.flag, got, c.want)
+	for _, migrationCase := range cases {
+		if got := ShouldRunOnStart(migrationCase.env, migrationCase.flag); got != migrationCase.want {
+			t.Errorf("ShouldRunOnStart(%q,%q)=%v want %v", migrationCase.env, migrationCase.flag, got, migrationCase.want)
 		}
 	}
 }

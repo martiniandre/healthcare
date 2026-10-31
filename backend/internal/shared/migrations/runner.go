@@ -38,9 +38,6 @@ func RunFromSource(sourcePath string, databaseURL string) error {
 	return nil
 }
 
-// ShouldRunOnStart decides whether the API migrates the database on startup.
-// flagValue is the raw RUN_MIGRATIONS_ON_START value; when empty or invalid the
-// default applies: true outside production, false in production.
 func ShouldRunOnStart(appEnv string, flagValue string) bool {
 	if parsed, err := strconv.ParseBool(strings.TrimSpace(flagValue)); err == nil {
 		return parsed
