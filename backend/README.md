@@ -101,6 +101,18 @@ Procedimento de rotação sem derrubar sessões:
 
 ---
 
+## 📮 Outbox de Eventos (`internal/shared/outbox`)
+
+Os eventos de dominio (`telemetry.alert`, `exam.complete`, `encounter.created`, `patient.created`, `report.ready`, `system.notification`, `appointment.*`) passam por uma outbox transacional no PostgreSQL (tabela `outbox_events`, migration 025). O `Publish()` do bus grava o evento de forma duravel e um dispatcher dentro do proprio processo da API (polling de 1s, lote de 50, `FOR UPDATE SKIP LOCKED`, sem broker externo) entrega aos handlers registrados com `Subscribe()`.
+
+- **Entrega at-least-once:** falha do handler agenda nova tentativa com backoff exponencial e jitter (2s, 4s, ... ate 5min); apos 8 tentativas o evento vai para dead letter (`dead_at`). Um claim abandonado por queda do processo volta a ser elegivel quando o lease de 60s expira.
+- **Idempotencia:** cada evento tem um `event_id` (`eventbus.Event.ID` e `eventbus.EventIDFromContext(ctx)`). Notificacoes derivam o id da notificacao do `event_id`, entao reentrega nao duplica.
+- **Eventos sem assinante** nao sao gravados. Eventos processados sao removidos apos 24h; dead letters ficam para inspecao (`SELECT name, attempts, last_error FROM outbox_events WHERE dead_at IS NOT NULL`).
+- **Dentro de uma transacao:** use `outbox.Bus.PublishWith(ctx, tx, event)` para gravar o evento na mesma transacao do dado. Os publishers atuais ainda usam `Publish()` apos o commit (janela minima entre commit e gravacao).
+- **Dados sensiveis (PHI):** o payload e exatamente o `Data` que os eventos ja carregavam; nao inclua nada alem disso. Os logs de retry e dead letter trazem apenas nome do evento, tentativa e erro, nunca o payload. `last_error` guarda a mensagem de erro truncada em 500 caracteres.
+- **Observabilidade:** `Dispatcher.Stats(ctx)` retorna pendentes, dead letters e a idade do evento pendente mais antigo.
+- O bus em memoria (`eventbus.New()`) continua disponivel para testes unitarios.
+
 ## 🐳 Inicialização & Orquestração Local
 
 ### 1. Inicializar Serviços de Infraestrutura (Postgres & Redis)

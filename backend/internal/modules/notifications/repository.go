@@ -3,12 +3,16 @@ package notifications
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/healthcare/backend/internal/shared/role"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
+
+const uniqueViolationCode = "23505"
 
 type Repository interface {
 	Create(ctx context.Context, notification *Notification, recipientIDs []uuid.UUID) error
@@ -47,6 +51,10 @@ func (notificationRepository *repository) Create(ctx context.Context, notificati
 		notification.ActorID, notification.ResourceType, notification.ResourceID, notification.CreatedAt,
 	)
 	if err != nil {
+		var pgError *pgconn.PgError
+		if errors.As(err, &pgError) && pgError.Code == uniqueViolationCode {
+			return ErrNotificationAlreadyExists
+		}
 		return err
 	}
 

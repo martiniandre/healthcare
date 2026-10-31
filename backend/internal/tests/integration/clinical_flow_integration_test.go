@@ -120,6 +120,8 @@ func TestNotificationsAreCreatedOnLogin(t *testing.T) {
 
 	adminClient := loginAs(t, serverURL, "admin@hospital.com", "secret123")
 
+	waitForNotifications(t, testServer.db)
+
 	notificationsResponse := adminClient.Get(t, "/api/v1/notifications")
 	requireStatusCode(t, notificationsResponse, http.StatusOK)
 
