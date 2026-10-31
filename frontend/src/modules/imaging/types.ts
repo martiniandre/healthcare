@@ -16,4 +16,6 @@ export interface UploadImagingStudyPayload {
   title: string
   modality: DicomModality
   dicomBlob: Blob
+  onUploadProgress?: (progressPercentage: number) => void
+  signal?: AbortSignal
 }

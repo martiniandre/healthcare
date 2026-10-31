@@ -47,5 +47,22 @@
   },
   "retry": "Reintentar",
   "studyNotFound": "Estudio no encontrado",
-  "studyNotFoundDesc": "Este estudio de imagen no existe o ya no está disponible."
+  "studyNotFoundDesc": "Este estudio de imagen no existe o ya no está disponible.",
+  "upload": {
+    "sectionLabel": "Enviar estudio DICOM",
+    "dropTitle": "Arrastre un archivo DICOM aquí o elija uno",
+    "dropActive": "Suelte el archivo para iniciar el envío",
+    "guidelines": "Formato admitido: DICOM (.dcm), hasta {{maxSize}} GB. El envío comienza en cuanto elige el archivo.",
+    "errorEmpty": "\"{{fileName}}\" está vacío (0 bytes). Elija otro archivo.",
+    "errorType": "\"{{fileName}}\" no es un archivo DICOM. Elija un archivo terminado en .dcm.",
+    "errorLimit": "\"{{fileName}}\" pesa {{size}}, por encima del límite de {{maxSize}} GB. Elija un archivo más pequeño.",
+    "cancel": "Cancelar envío",
+    "retry": "Intentar de nuevo",
+    "successTitle": "DICOM enviado. Se está procesando.",
+    "successNextStep": "Las nuevas imágenes estarán disponibles en los estudios de imagen de este paciente en breve.",
+    "failedTitle": "No se pudo enviar el archivo DICOM.",
+    "failedHelp": "\"{{fileName}}\" se conservó. Revise su conexión e intente de nuevo.",
+    "cancelledTitle": "Envío cancelado.",
+    "cancelledHelp": "No se guardó nada. Puede intentar de nuevo con el mismo archivo."
+  }
 }

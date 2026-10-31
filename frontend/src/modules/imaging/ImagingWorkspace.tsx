@@ -1,18 +1,14 @@
-import { useState, useRef } from "react"
 import { useTranslation } from "react-i18next"
-import { AlertCircle, ArrowLeft, FileQuestion, UploadCloud } from "lucide-react"
+import { AlertCircle, ArrowLeft, FileQuestion } from "lucide-react"
 import { Button } from "@/shared/components/ui/button"
-import { Input } from "@/shared/components/ui/input"
 import { Alert, AlertDescription } from "@/shared/components/ui/alert"
 import { EmptyState } from "@/shared/components/ui/EmptyState"
 import { Spinner } from "@/shared/components/ui/spinner"
 import { DicomViewport } from "./components/DicomViewport"
 import { ImagingStudyDetails } from "./components/ImagingStudyDetails"
-import { ImagingUploadProgress } from "./components/ImagingUploadProgress"
+import { DicomUploadControl } from "./components/DicomUploadControl"
 import { useDicomViewer } from "./hooks/useDicomViewer"
-import { useImagingStudyQuery, useUploadImagingStudyMutation } from "./queries"
-import { waitForUploadFrame } from "./utils/pacs_helpers"
-import { toast } from "../../shared/store/toast_store"
+import { useImagingStudyQuery } from "./queries"
 
 interface ImagingWorkspaceProps {
   studyId: string
@@ -21,55 +17,13 @@ interface ImagingWorkspaceProps {
 
 export const ImagingWorkspace = ({ studyId, onBack }: ImagingWorkspaceProps) => {
   const { t } = useTranslation("imaging")
-  const [uploadState, setUploadState] = useState<{
-    percentage: number | null
-    status: string | null
-  }>({ percentage: null, status: null })
-  const fileInputReference = useRef<HTMLInputElement>(null)
-
   const {
     data: study,
     isLoading: isStudyLoading,
     isError: isStudyError,
     refetch: refetchStudy,
   } = useImagingStudyQuery(studyId)
-  const uploadImagingStudyMutation = useUploadImagingStudyMutation()
   const dicomViewer = useDicomViewer(study)
-
-  const handleButtonClick = () => {
-    fileInputReference.current?.click()
-  }
-
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = event.target.files?.[0]
-    if (!selectedFile || !study) {
-      return
-    }
-
-    setUploadState({ percentage: 0, status: t("uploadStatus.initial") })
-    await waitForUploadFrame(300)
-    setUploadState((prev) => ({ ...prev, percentage: 30 }))
-
-    try {
-      await uploadImagingStudyMutation.mutateAsync({
-        patientFhirId: study.patient_fhir_id,
-        title: selectedFile.name.replace(/\.[^/.]+$/, "") || "Nova Ressonância Magnética",
-        modality: "MR",
-        dicomBlob: selectedFile,
-      })
-
-      setUploadState({ percentage: 100, status: t("uploadStatus.grpcCompleted") })
-      await waitForUploadFrame(500)
-      toast.success(t("toast.uploadSuccess"))
-    } catch {
-      toast.error(t("toast.uploadError"))
-    } finally {
-      setUploadState({ percentage: null, status: null })
-      if (fileInputReference.current) {
-        fileInputReference.current.value = ""
-      }
-    }
-  }
 
   if (!studyId) {
     return null
@@ -135,30 +89,9 @@ export const ImagingWorkspace = ({ studyId, onBack }: ImagingWorkspaceProps) => 
             </span>
           </div>
         </div>
-
-        <div className="flex items-center gap-2">
-          <Input
-            type="file"
-            accept=".dcm"
-            ref={fileInputReference}
-            onChange={handleFileChange}
-            className="hidden"
-          />
-          <Button
-            variant="outline"
-            onClick={handleButtonClick}
-            disabled={uploadImagingStudyMutation.isPending || uploadState.percentage !== null}
-            className="border-primary/20 text-primary hover:bg-primary/5"
-          >
-            <UploadCloud className="w-4 h-4" />
-            {t("uploadDcm")}
-          </Button>
-        </div>
       </div>
 
-      {uploadState.percentage !== null && uploadState.status && (
-        <ImagingUploadProgress percentage={uploadState.percentage} status={uploadState.status} />
-      )}
+      <DicomUploadControl patientFhirId={study.patient_fhir_id} />
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
         <ImagingStudyDetails study={study} />

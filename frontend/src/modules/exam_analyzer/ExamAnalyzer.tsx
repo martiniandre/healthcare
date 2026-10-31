@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useQueryClient } from "@tanstack/react-query"
 import { useTranslation } from "react-i18next"
 import { AlertCircle, Sparkles } from "lucide-react"
-import { FileUploader } from "./components/FileUploader"
+import { FileUploader, type UploadOutcome } from "./components/FileUploader"
 import { AnalysisCard } from "./components/AnalysisCard"
 import { AnalysisHistory } from "./components/AnalysisHistory"
 import {
@@ -27,6 +27,8 @@ export const ExamAnalyzer = ({ patientFhirId }: ExamAnalyzerProps = {}) => {
   const { t } = useTranslation("examAnalyzer")
   const [selectedAnalysisID, setSelectedAnalysisID] = useState<string | null>(null)
   const [uploadPercentageValue, setUploadPercentageValue] = useState<number | null>(null)
+
+  const uploadAbortControllerReference = useRef<AbortController | null>(null)
 
   const queryClient = useQueryClient()
 
@@ -74,7 +76,29 @@ export const ExamAnalyzer = ({ patientFhirId }: ExamAnalyzerProps = {}) => {
     }
   }, [polledAnalysisDetails, queryClient, t])
 
-  const handleFileUpload = async (file: File, consent: boolean, anonymize: boolean) => {
+  useEffect(() => {
+    if (uploadPercentageValue === null) {
+      return
+    }
+    const warnBeforeLeaving = (event: BeforeUnloadEvent) => {
+      event.preventDefault()
+      event.returnValue = ""
+    }
+    window.addEventListener("beforeunload", warnBeforeLeaving)
+    return () => window.removeEventListener("beforeunload", warnBeforeLeaving)
+  }, [uploadPercentageValue])
+
+  const handleCancelUpload = () => {
+    uploadAbortControllerReference.current?.abort()
+  }
+
+  const handleFileUpload = async (
+    file: File,
+    consent: boolean,
+    anonymize: boolean
+  ): Promise<UploadOutcome> => {
+    const abortController = new AbortController()
+    uploadAbortControllerReference.current = abortController
     setUploadPercentageValue(0)
     try {
       const createdRecord = await uploadExamMutation.mutateAsync({
@@ -82,6 +106,7 @@ export const ExamAnalyzer = ({ patientFhirId }: ExamAnalyzerProps = {}) => {
         consent,
         anonymize,
         patientFhirId,
+        signal: abortController.signal,
         onUploadProgress: (percentage) => {
           setUploadPercentageValue(percentage)
         },
@@ -89,9 +114,15 @@ export const ExamAnalyzer = ({ patientFhirId }: ExamAnalyzerProps = {}) => {
       
       toast.success(t("toast.uploadSuccess"))
       setSelectedAnalysisID(createdRecord.id)
+      return "success"
     } catch {
+      if (abortController.signal.aborted) {
+        return "cancelled"
+      }
       toast.error(t("toast.uploadError"))
+      return "failed"
     } finally {
+      uploadAbortControllerReference.current = null
       setUploadPercentageValue(null)
     }
   }
@@ -152,6 +183,7 @@ export const ExamAnalyzer = ({ patientFhirId }: ExamAnalyzerProps = {}) => {
         <div className="flex flex-1 flex-col gap-5">
           <FileUploader
             onUpload={handleFileUpload}
+            onCancel={handleCancelUpload}
             isPending={uploadExamMutation.isPending}
             uploadProgress={uploadPercentageValue}
           />

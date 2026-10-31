@@ -35,13 +35,15 @@ export const useUploadExamMutation = () => {
       anonymize: boolean
       patientFhirId?: string
       onUploadProgress?: (progressPercentage: number) => void
+      signal?: AbortSignal
     }) =>
       examAnalyzerApi.uploadExamFile(
         variables.file,
         variables.consent,
         variables.anonymize,
         variables.patientFhirId,
-        variables.onUploadProgress
+        variables.onUploadProgress,
+        variables.signal
       ),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: examAnalyzerKeys.all })
