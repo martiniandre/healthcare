@@ -53,6 +53,10 @@ export const formatLongDate = (value: DateInput, explicitLocale?: string): strin
   return formatWithIntl(value, { day: "numeric", month: "short", year: "numeric" }, explicitLocale)
 }
 
+export const formatWeekdayDate = (value: DateInput, explicitLocale?: string): string => {
+  return formatWithIntl(value, { weekday: "short", day: "numeric", month: "short" }, explicitLocale)
+}
+
 export const formatTime = (value: DateInput, explicitLocale?: string): string => {
   return formatWithIntl(value, { hour: "2-digit", minute: "2-digit" }, explicitLocale)
 }

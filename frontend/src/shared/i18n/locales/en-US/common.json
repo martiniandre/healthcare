@@ -6,6 +6,12 @@
     "comfortable": "Comfortable rows"
   },
   "loading": "Loading",
+  "discardChanges": {
+    "title": "Discard changes?",
+    "description": "You have unsaved changes. If you leave now, they will be lost.",
+    "keepEditing": "Keep editing",
+    "discard": "Discard"
+  },
   "pagination": {
     "label": "Pagination",
     "previousPage": "Go to previous page",
