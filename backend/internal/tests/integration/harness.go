@@ -31,10 +31,11 @@ import (
 	"github.com/healthcare/backend/internal/modules/schedule"
 	"github.com/healthcare/backend/internal/modules/staff"
 	"github.com/healthcare/backend/internal/modules/telemetry"
+	"github.com/healthcare/backend/internal/modules/timeline"
 	"github.com/healthcare/backend/internal/shared/cache"
 	"github.com/healthcare/backend/internal/shared/database"
-	"github.com/healthcare/backend/internal/shared/eventbus"
 	"github.com/healthcare/backend/internal/shared/migrations"
+	"github.com/healthcare/backend/internal/shared/outbox"
 	"github.com/healthcare/backend/internal/shared/ratelimit"
 	"github.com/healthcare/backend/internal/shared/storage"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -153,7 +154,8 @@ func newTestServer(t *testing.T) *testServer {
 	environment.ensure(t)
 
 	grpcServer := grpc.NewServer()
-	eventBus := eventbus.New()
+	outboxStore := outbox.NewPostgresStore(environment.pool)
+	eventBus := outbox.NewBus(outboxStore)
 	fhirClient := newInMemoryFHIRClient()
 
 	authService := auth.Register(grpcServer, auth.Dependency{DB: environment.pool, EventBus: eventBus})
@@ -183,6 +185,7 @@ func newTestServer(t *testing.T) *testServer {
 	health.Register(grpcServer, health.Dependency{DB: environment.pool, Redis: environment.redisClient})
 	analyticsHTTPHandler := analytics.Register(analytics.Dependency{DB: environment.pool, FHIRClient: fhirClient})
 	portalHTTPHandler := portal.Register(portal.Dependency{FHIRClient: fhirClient, DB: environment.pool})
+	timelineHTTPHandler := timeline.Register(timeline.Dependency{FHIRClient: fhirClient})
 	_, notificationsHTTPHandler := notifications.Register(notifications.Dependency{DB: environment.pool, EventBus: eventBus})
 	scheduleHTTPHandler := schedule.Register(schedule.Dependency{DB: environment.pool, EventBus: eventBus, AuditService: auditLogsService})
 	examAnalyzerRepository, examAnalyzerService, examAnalyzerWorker := exam_analyzer.Register(grpcServer, exam_analyzer.Dependency{DB: environment.pool, Storage: storageClient, EventBus: eventBus})
@@ -209,6 +212,7 @@ func newTestServer(t *testing.T) *testServer {
 		exam_analyzer.NewHTTPHandler(examAnalyzerRepository, examAnalyzerService, examAnalyzerWorker),
 		analyticsHTTPHandler,
 		portalHTTPHandler,
+		timelineHTTPHandler,
 		audit_logs.NewHTTPHandler(auditLogsService),
 		notificationsHTTPHandler,
 		scheduleHTTPHandler,
@@ -219,6 +223,15 @@ func newTestServer(t *testing.T) *testServer {
 	resetTestData(t, environment.pool)
 	fhirClient.reset()
 	seedPortalPatientIdentity(t, environment.pool, fhirClient)
+
+	outboxDispatcher := outbox.NewDispatcher(outboxStore, eventBus, outbox.Options{PollInterval: 50 * time.Millisecond})
+	eventBus.SetWakeup(outboxDispatcher.Wake)
+	dispatcherContext, cancelDispatcher := context.WithCancel(context.Background())
+	go outboxDispatcher.Start(dispatcherContext)
+	t.Cleanup(func() {
+		cancelDispatcher()
+		outboxDispatcher.Stop()
+	})
 
 	return &testServer{
 		handler:    router,
@@ -326,10 +339,24 @@ func resetTestData(t *testing.T, pool *pgxpool.Pool) {
 		"exam_analyses_audit_logs",
 		"patient_user_links",
 		"revoked_tokens",
+		"outbox_events",
 	}
 
 	_, truncateError := pool.Exec(ctx, "TRUNCATE "+strings.Join(appTables, ", ")+" RESTART IDENTITY CASCADE")
 	if truncateError != nil {
 		t.Fatalf("failed to reset test data: %v", truncateError)
+	}
+}
+
+func waitForNotifications(t *testing.T, pool *pgxpool.Pool) {
+	t.Helper()
+	deadline := time.Now().Add(5 * time.Second)
+	for time.Now().Before(deadline) {
+		var notificationCount int
+		countError := pool.QueryRow(context.Background(), "SELECT count(*) FROM notifications").Scan(&notificationCount)
+		if countError == nil && notificationCount > 0 {
+			return
+		}
+		time.Sleep(50 * time.Millisecond)
 	}
 }

@@ -153,6 +153,8 @@ var httpRouteRoles = map[string][]role.Role{
 	"PUT /api/v1/patients/{patientFhirId}/allergies/{allergyFhirId}":    {role.RoleAdmin, role.RoleDoctor, role.RoleNurse},
 	"DELETE /api/v1/patients/{patientFhirId}/allergies/{allergyFhirId}": {role.RoleAdmin, role.RoleDoctor, role.RoleNurse},
 
+	"GET /api/v1/patients/{patientFhirId}/timeline": {role.RoleAdmin, role.RoleDoctor, role.RoleNurse},
+
 	"GET /api/v1/analytics":                                    {role.RoleAdmin, role.RoleDoctor, role.RoleNurse},
 	"GET /api/v1/analytics/dashboard":                          {role.RoleAdmin, role.RoleDoctor, role.RoleNurse},
 	"GET /api/v1/analytics/dashboard/consultations-per-doctor": {role.RoleAdmin, role.RoleDoctor, role.RoleNurse},
