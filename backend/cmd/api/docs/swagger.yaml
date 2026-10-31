@@ -443,6 +443,20 @@ definitions:
       title:
         type: string
     type: object
+  internal_modules_medication.CheckMedicationSafetyRequest:
+    properties:
+      medicationCode:
+        type: string
+      medicationName:
+        type: string
+    type: object
+  internal_modules_medication.CheckMedicationSafetyResponse:
+    properties:
+      alerts:
+        items:
+          $ref: '#/definitions/internal_modules_medication.SafetyAlertResponse'
+        type: array
+    type: object
   internal_modules_medication.CreateMedicationRequest:
     properties:
       dosage_instructions:
@@ -450,6 +464,8 @@ definitions:
       medication_code:
         type: string
       medication_name:
+        type: string
+      overrideJustification:
         type: string
       patient_fhir_id:
         type: string
@@ -476,6 +492,22 @@ definitions:
         type: string
       status:
         type: string
+      warnings:
+        items:
+          $ref: '#/definitions/internal_modules_medication.SafetyAlertResponse'
+        type: array
+    type: object
+  internal_modules_medication.MedicationBlockedResponse:
+    properties:
+      alerts:
+        items:
+          $ref: '#/definitions/internal_modules_medication.SafetyAlertResponse'
+        type: array
+      code:
+        example: MEDICATION_ALLERGY_BLOCKED
+        type: string
+      error:
+        type: string
     type: object
   internal_modules_medication.MedicationResponse:
     properties:
@@ -496,6 +528,35 @@ definitions:
       practitioner_fhir_id:
         type: string
       status:
+        type: string
+    type: object
+  internal_modules_medication.SafetyAlertResponse:
+    properties:
+      blocking:
+        type: boolean
+      kind:
+        enum:
+        - allergy
+        - interaction
+        example: allergy
+        type: string
+      messageKey:
+        example: medicationSafety.allergy.class
+        type: string
+      params:
+        additionalProperties:
+          type: string
+        type: object
+      relatedResourceId:
+        example: allergy-fhir-id
+        type: string
+      severity:
+        enum:
+        - info
+        - moderate
+        - major
+        - contraindicated
+        example: contraindicated
         type: string
     type: object
   internal_modules_observation.CreateObservationRequest:
@@ -1397,7 +1458,11 @@ paths:
     post:
       consumes:
       - application/json
-      description: Creates a new medication request/prescription for an encounter
+      description: Creates a new medication request/prescription for an encounter.
+        An active allergy matching the drug (by ingredient or class) blocks the request
+        with 409 MEDICATION_ALLERGY_BLOCKED unless a written overrideJustification
+        (min 10 characters) is sent by a DOCTOR or ADMIN. Drug interactions never
+        block and are returned as warnings.
       parameters:
       - description: Encounter FHIR ID
         in: path
@@ -1423,6 +1488,16 @@ paths:
             additionalProperties:
               type: string
             type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/internal_modules_medication.MedicationBlockedResponse'
         "500":
           description: Internal Server Error
           schema:
@@ -2105,6 +2180,46 @@ paths:
       summary: Create an encounter
       tags:
       - encounters
+  /patients/{patientFhirId}/medications/check:
+    post:
+      consumes:
+      - application/json
+      description: Cross-checks a requested medication against the patient's active
+        allergies (blocking) and active medications (warning only)
+      parameters:
+      - description: Patient FHIR ID
+        in: path
+        name: patientFhirId
+        required: true
+        type: string
+      - description: Medication to check
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_modules_medication.CheckMedicationSafetyRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_modules_medication.CheckMedicationSafetyResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "503":
+          description: Service Unavailable
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Check medication safety
+      tags:
+      - medications
   /patients/{patientFhirId}/observations:
     get:
       consumes:

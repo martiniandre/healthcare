@@ -25,12 +25,12 @@ func (handler *GRPCHandler) CreateMedicationRequest(ctx context.Context, req *pb
 		DosageInstructions: req.DosageInstructions,
 	}
 
-	createdMedication, err := handler.service.CreateMedicationRequest(ctx, input)
+	createResult, err := handler.service.CreateMedicationRequest(ctx, input)
 	if err != nil {
 		return nil, apperrors.ToGRPCStatus(err)
 	}
 
-	return &pb.CreateMedicationRequestResponse{MedicationRequestFhirId: createdMedication.FHIRResourceID}, nil
+	return &pb.CreateMedicationRequestResponse{MedicationRequestFhirId: createResult.FHIRResourceID}, nil
 }
 
 func (handler *GRPCHandler) GetMedicationRequests(ctx context.Context, req *pb.GetMedicationRequestsRequest) (*pb.GetMedicationRequestsResponse, error) {

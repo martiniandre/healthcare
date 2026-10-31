@@ -13,6 +13,7 @@ type AppError struct {
 	GRPCCode codes.Code
 	HTTPCode int
 	Message  string
+	Code     string
 }
 
 func (appError AppError) Error() string {
@@ -155,6 +156,13 @@ var (
 		GRPCCode: codes.NotFound,
 		HTTPCode: http.StatusNotFound,
 		Message:  "medication request not found",
+	}
+
+	ErrMedicationBlockedByAllergy = AppError{
+		GRPCCode: codes.FailedPrecondition,
+		HTTPCode: http.StatusConflict,
+		Message:  "medication blocked by an active allergy; an override justification is required",
+		Code:     "MEDICATION_ALLERGY_BLOCKED",
 	}
 
 	ErrDiagnosticReportNotFound = AppError{

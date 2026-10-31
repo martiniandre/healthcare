@@ -1,0 +1,9 @@
+DROP INDEX IF EXISTS idx_medication_safety_overrides_request;
+DROP INDEX IF EXISTS idx_medication_safety_overrides_patient;
+DROP TABLE IF EXISTS medication_safety_overrides;
+DROP INDEX IF EXISTS idx_medication_interactions_unique_pair;
+DROP TABLE IF EXISTS medication_interactions;
+DROP INDEX IF EXISTS idx_medication_catalog_active_ingredient;
+DROP INDEX IF EXISTS idx_medication_catalog_class_code;
+DROP TABLE IF EXISTS medication_catalog;
+DROP TABLE IF EXISTS medication_classes;

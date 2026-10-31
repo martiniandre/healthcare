@@ -13,7 +13,7 @@ import (
 )
 
 func TestCreateMedicationRequest_ValidInput_DefaultsToActive(testingInstance *testing.T) {
-	medicationService := medication.NewService(&mocks.MockMedicationRepository{})
+	medicationService := medication.NewService(&mocks.MockMedicationRepository{}, newSafetyDependencies(nil, nil).dependencies)
 
 	input := medication.CreateMedicationInput{
 		EncounterFHIRID:    "encounter-fhir-456",
@@ -75,7 +75,7 @@ func TestCreateMedicationRequest_MissingField_ReturnsErrorAndDoesNotCallReposito
 					return nil, nil
 				},
 			}
-			medicationService := medication.NewService(mockRepository)
+			medicationService := medication.NewService(mockRepository, newSafetyDependencies(nil, nil).dependencies)
 
 			result, err := medicationService.CreateMedicationRequest(context.Background(), testCase.input)
 
@@ -95,7 +95,7 @@ func TestCreateMedicationRequest_RepositoryFailure_ReturnsError(testingInstance 
 			return nil, expectedErr
 		},
 	}
-	medicationService := medication.NewService(mockRepository)
+	medicationService := medication.NewService(mockRepository, newSafetyDependencies(nil, nil).dependencies)
 
 	input := medication.CreateMedicationInput{
 		EncounterFHIRID: "encounter-fhir-456",

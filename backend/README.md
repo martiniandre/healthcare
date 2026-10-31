@@ -113,6 +113,15 @@ Os eventos de dominio (`telemetry.alert`, `exam.complete`, `encounter.created`, 
 - **Observabilidade:** `Dispatcher.Stats(ctx)` retorna pendentes, dead letters e a idade do evento pendente mais antigo.
 - O bus em memoria (`eventbus.New()`) continua disponivel para testes unitarios.
 
+## Seguranca de prescricao (`internal/modules/medication`)
+
+`POST /api/v1/patients/{patientFhirId}/medications/check` (Admin, Doctor) e o `POST /api/v1/encounters/{encounterFhirId}/medications` cruzam o medicamento pedido com as alergias ativas e os `MedicationRequest` ativos do paciente.
+
+- **Alergia ativa (por principio ativo ou classe) bloqueia** a prescricao com `409 {"code":"MEDICATION_ALLERGY_BLOCKED","alerts":[...]}`, a menos que `overrideJustification` (minimo 10 caracteres) seja enviada por um DOCTOR ou ADMIN. A sobreposicao grava uma linha em `medication_safety_overrides` e um registro em `audit_logs` (`action = medication_safety_override`, so ids e codigo do medicamento, sem PHI livre). **Interacao medicamentosa so avisa** (`blocking: false`) e volta em `warnings`.
+- **Catalogo proprio versionado** (migration 026: `medication_classes`, `medication_catalog`, `medication_interactions`). O servico depende apenas da interface `SafetyCatalog` (`LoadSnapshot`), entao a fonte pode ser trocada (RxNorm, ANVISA, terceiros) sem mexer nas regras. Mensagens sao chaves i18n (`messageKey`) traduzidas pelo frontend.
+- **AVISO CLINICO:** a migration 027 carrega apenas um catalogo de AMOSTRA (`catalog_version = sample-1`: penicilinas, cefalosporinas, AINEs, dipirona, varfarina e tres interacoes). Ele NAO foi validado clinicamente. **Um medico ou farmaceutico DEVE revisar e substituir esse conteudo antes de qualquer uso em producao.**
+- A verificacao falha fechada: se catalogo, alergias ou medicamentos ativos nao puderem ser lidos, a prescricao retorna 503 em vez de prosseguir sem checagem. O extrato de medicamentos ativos segue o limite de paginacao do cliente FHIR (`maxPaginationPages`).
+
 ## 🐳 Inicialização & Orquestração Local
 
 ### 1. Inicializar Serviços de Infraestrutura (Postgres & Redis)

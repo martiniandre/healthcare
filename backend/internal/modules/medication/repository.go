@@ -14,6 +14,7 @@ import (
 type Repository interface {
 	CreateMedicationRequest(ctx context.Context, medication *Medication) (*Medication, error)
 	GetMedicationRequestsByEncounter(ctx context.Context, encounterFHIRID string) ([]*Medication, error)
+	GetActiveMedicationRequestsByPatient(ctx context.Context, patientFHIRID string) ([]*Medication, error)
 }
 
 type repository struct {
@@ -57,6 +58,29 @@ func (medicationRepository *repository) GetMedicationRequestsByEncounter(ctx con
 		return nil, fmt.Errorf("failed to search medication requests: %w", err)
 	}
 	return parseMedicationRequestBundle(responseBody)
+}
+
+func (medicationRepository *repository) GetActiveMedicationRequestsByPatient(ctx context.Context, patientFHIRID string) ([]*Medication, error) {
+	queryParams := url.Values{
+		"subject": []string{fmt.Sprintf("Patient/%s", patientFHIRID)},
+		"status":  []string{"active"},
+		"_count":  []string{"100"},
+	}.Encode()
+	responseBody, err := medicationRepository.fhirClient.SearchResources(ctx, "MedicationRequest", queryParams)
+	if err != nil {
+		return nil, fmt.Errorf("failed to search active medication requests: %w", err)
+	}
+	medications, parseErr := parseMedicationRequestBundle(responseBody)
+	if parseErr != nil {
+		return nil, parseErr
+	}
+	activeMedications := make([]*Medication, 0, len(medications))
+	for _, medication := range medications {
+		if medication.Status == "active" {
+			activeMedications = append(activeMedications, medication)
+		}
+	}
+	return activeMedications, nil
 }
 
 func parseMedicationRequestBundle(responseBody json.RawMessage) ([]*Medication, error) {

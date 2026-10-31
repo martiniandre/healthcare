@@ -27,6 +27,7 @@ import (
 	"github.com/healthcare/backend/internal/api"
 	"github.com/healthcare/backend/internal/api/middleware"
 	"github.com/healthcare/backend/internal/app"
+	"github.com/healthcare/backend/internal/app/adapters"
 	"github.com/healthcare/backend/internal/app/interceptor"
 	"github.com/healthcare/backend/internal/modules/allergy"
 	"github.com/healthcare/backend/internal/modules/analytics"
@@ -138,10 +139,15 @@ func main() {
 	observationService := observation.Register(applicationServer.GRPCServer, observation.Dependency{FHIRClient: fhirClient})
 	conditionService := condition.Register(applicationServer.GRPCServer, condition.Dependency{FHIRClient: fhirClient})
 	allergyService := allergy.Register(applicationServer.GRPCServer, allergy.Dependency{FHIRClient: fhirClient})
-	medicationService := medication.Register(applicationServer.GRPCServer, medication.Dependency{FHIRClient: fhirClient})
 	auditLogsService := audit_logs.Register(applicationServer.GRPCServer, audit_logs.Dependency{DB: databasePool})
 	interceptor.SetAuditLogsService(auditLogsService)
 	middleware.SetHTTPAuditRecorder(audit_logs.NewHTTPAuditRecorder(auditLogsService))
+	medicationService := medication.Register(applicationServer.GRPCServer, medication.Dependency{
+		FHIRClient:    fhirClient,
+		DB:            databasePool,
+		AllergyReader: adapters.NewMedicationAllergyReader(allergyService),
+		AuditRecorder: adapters.NewMedicationAuditRecorder(auditLogsService),
+	})
 	diagnosticReportService := diagnostic_report.Register(applicationServer.GRPCServer, diagnostic_report.Dependency{FHIRClient: fhirClient, EventBus: eventBus, DB: databasePool, AuditService: auditLogsService})
 	storageClient, storageClientErr := storage.NewGCSClient(mainContext, appConfig.GCSBucketName, appConfig.StorageRoot)
 	if storageClientErr != nil {

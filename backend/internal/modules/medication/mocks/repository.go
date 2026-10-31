@@ -7,8 +7,9 @@ import (
 )
 
 type MockMedicationRepository struct {
-	CreateMedicationRequestFn          func(ctx context.Context, entity *medication.Medication) (*medication.Medication, error)
-	GetMedicationRequestsByEncounterFn func(ctx context.Context, encounterFHIRID string) ([]*medication.Medication, error)
+	CreateMedicationRequestFn              func(ctx context.Context, entity *medication.Medication) (*medication.Medication, error)
+	GetMedicationRequestsByEncounterFn     func(ctx context.Context, encounterFHIRID string) ([]*medication.Medication, error)
+	GetActiveMedicationRequestsByPatientFn func(ctx context.Context, patientFHIRID string) ([]*medication.Medication, error)
 }
 
 func (mockRepo *MockMedicationRepository) CreateMedicationRequest(ctx context.Context, entity *medication.Medication) (*medication.Medication, error) {
@@ -21,6 +22,13 @@ func (mockRepo *MockMedicationRepository) CreateMedicationRequest(ctx context.Co
 func (mockRepo *MockMedicationRepository) GetMedicationRequestsByEncounter(ctx context.Context, encounterFHIRID string) ([]*medication.Medication, error) {
 	if mockRepo.GetMedicationRequestsByEncounterFn != nil {
 		return mockRepo.GetMedicationRequestsByEncounterFn(ctx, encounterFHIRID)
+	}
+	return []*medication.Medication{}, nil
+}
+
+func (mockRepo *MockMedicationRepository) GetActiveMedicationRequestsByPatient(ctx context.Context, patientFHIRID string) ([]*medication.Medication, error) {
+	if mockRepo.GetActiveMedicationRequestsByPatientFn != nil {
+		return mockRepo.GetActiveMedicationRequestsByPatientFn(ctx, patientFHIRID)
 	}
 	return []*medication.Medication{}, nil
 }
