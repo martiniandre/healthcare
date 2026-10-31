@@ -34,7 +34,7 @@ services:
       APP_ENV: development
       APP_PORT: "50051"
       HTTP_PORT: "8080"
-      DATABASE_URL: "postgres://healthcare:healthcare_dev@postgres:5432/healthcare?sslmode=disable"
+      DB_URL: "postgres://healthcare:healthcare_dev@postgres:5432/healthcare?sslmode=disable"
       REDIS_URL: "redis://redis:6379/0"
       JWT_SECRET: "dev-secret-change-in-production"
       GCP_PROJECT_ID: ""

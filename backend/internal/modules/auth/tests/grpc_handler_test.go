@@ -36,6 +36,7 @@ func TestGRPCHandler_Login(testingInstance *testing.T) {
 		Role: role.RoleDoctor,
 	}
 	mockService.Token = "fake-jwt-token"
+	mockService.RefreshToken = "fake-refresh-token"
 
 	request := &pb.LoginRequest{
 		Email:    "doctor@example.com",
@@ -50,7 +51,9 @@ func TestGRPCHandler_Login(testingInstance *testing.T) {
 	assert.Equal(testingInstance, string(role.RoleDoctor), response.Role)
 
 	cookieHeader := stream.header.Get("set-cookie")
-	assert.Len(testingInstance, cookieHeader, 2)
+	assert.Len(testingInstance, cookieHeader, 3)
 	assert.Contains(testingInstance, cookieHeader[0], "token=fake-jwt-token")
-	assert.Contains(testingInstance, cookieHeader[1], "csrf_token=")
+	assert.Contains(testingInstance, cookieHeader[1], "refresh_token=fake-refresh-token")
+	assert.Contains(testingInstance, cookieHeader[1], "Path=/api/v1/auth")
+	assert.Contains(testingInstance, cookieHeader[2], "csrf_token=")
 }

@@ -25,6 +25,10 @@ type Repository interface {
 	GetUserByID(ctx context.Context, userID string) (*User, error)
 	Revoke(ctx context.Context, tokenDigest string, expiresAt time.Time) error
 	IsRevoked(ctx context.Context, tokenDigest string) (bool, error)
+	CreateRefreshToken(ctx context.Context, refreshToken *RefreshToken) error
+	GetRefreshTokenByHash(ctx context.Context, tokenHash string) (*RefreshToken, error)
+	RotateRefreshToken(ctx context.Context, currentTokenID uuid.UUID, nextToken *RefreshToken) (bool, error)
+	RevokeRefreshTokenFamily(ctx context.Context, familyID uuid.UUID) error
 }
 
 type repository struct {
@@ -98,6 +102,9 @@ func (authRepository *repository) GetUserByID(ctx context.Context, userID string
 		&user.ID, &user.Email, &user.PasswordHash, &user.FullName,
 		&user.Role, &user.IsActive, &user.CreatedAt, &user.UpdatedAt,
 	)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return nil, ErrUserNotFound
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -123,5 +130,75 @@ func (authRepository *repository) CreatePatientLink(ctx context.Context, userID 
 	query := `INSERT INTO patient_user_links (user_id, patient_fhir_id) VALUES ($1, $1::text)
 		ON CONFLICT (user_id) DO NOTHING`
 	_, err := authRepository.db.Exec(ctx, query, userID)
+	return err
+}
+
+const refreshTokenColumns = `id, family_id, user_id, token_hash, issued_at, expires_at, absolute_expires_at,
+	replaced_by, revoked_at, COALESCE(user_agent, ''), COALESCE(ip, '')`
+
+const insertRefreshTokenQuery = `INSERT INTO refresh_tokens
+	(id, family_id, user_id, token_hash, issued_at, expires_at, absolute_expires_at, user_agent, ip)
+	VALUES ($1, $2, $3, $4, $5, $6, $7, NULLIF($8, ''), NULLIF($9, ''))`
+
+func (authRepository *repository) CreateRefreshToken(ctx context.Context, refreshToken *RefreshToken) error {
+	_, err := authRepository.db.Exec(ctx, insertRefreshTokenQuery,
+		refreshToken.ID, refreshToken.FamilyID, refreshToken.UserID, refreshToken.TokenHash,
+		refreshToken.IssuedAt, refreshToken.ExpiresAt, refreshToken.AbsoluteExpiresAt,
+		refreshToken.UserAgent, refreshToken.IP)
+	return err
+}
+
+func (authRepository *repository) GetRefreshTokenByHash(ctx context.Context, tokenHash string) (*RefreshToken, error) {
+	query := `SELECT ` + refreshTokenColumns + ` FROM refresh_tokens WHERE token_hash = $1`
+
+	refreshToken := &RefreshToken{}
+	err := authRepository.db.QueryRow(ctx, query, tokenHash).Scan(
+		&refreshToken.ID, &refreshToken.FamilyID, &refreshToken.UserID, &refreshToken.TokenHash,
+		&refreshToken.IssuedAt, &refreshToken.ExpiresAt, &refreshToken.AbsoluteExpiresAt,
+		&refreshToken.ReplacedBy, &refreshToken.RevokedAt, &refreshToken.UserAgent, &refreshToken.IP,
+	)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return nil, ErrRefreshTokenInvalid
+	}
+	if err != nil {
+		return nil, err
+	}
+	return refreshToken, nil
+}
+
+func (authRepository *repository) RotateRefreshToken(ctx context.Context, currentTokenID uuid.UUID, nextToken *RefreshToken) (bool, error) {
+	transaction, beginError := authRepository.db.Begin(ctx)
+	if beginError != nil {
+		return false, beginError
+	}
+	defer transaction.Rollback(ctx)
+
+	markRotatedQuery := `UPDATE refresh_tokens SET replaced_by = $2, revoked_at = NOW()
+		WHERE id = $1 AND replaced_by IS NULL AND revoked_at IS NULL`
+	markRotatedResult, markRotatedError := transaction.Exec(ctx, markRotatedQuery, currentTokenID, nextToken.ID)
+	if markRotatedError != nil {
+		return false, markRotatedError
+	}
+	if markRotatedResult.RowsAffected() == 0 {
+		return false, nil
+	}
+
+	_, insertError := transaction.Exec(ctx, insertRefreshTokenQuery,
+		nextToken.ID, nextToken.FamilyID, nextToken.UserID, nextToken.TokenHash,
+		nextToken.IssuedAt, nextToken.ExpiresAt, nextToken.AbsoluteExpiresAt,
+		nextToken.UserAgent, nextToken.IP)
+	if insertError != nil {
+		return false, insertError
+	}
+
+	if commitError := transaction.Commit(ctx); commitError != nil {
+		return false, commitError
+	}
+	return true, nil
+}
+
+func (authRepository *repository) RevokeRefreshTokenFamily(ctx context.Context, familyID uuid.UUID) error {
+	query := `UPDATE refresh_tokens SET revoked_at = NOW() WHERE family_id = $1 AND revoked_at IS NULL`
+	_, err := authRepository.db.Exec(ctx, query, familyID)
 	return err
 }

@@ -60,10 +60,11 @@ var grpcMethodRoles = map[string][]role.Role{
 }
 
 var publicHTTPRoutes = map[string]bool{
-	"GET /health":              true,
-	"POST /api/v1/auth/login":  true,
-	"POST /api/v1/auth/logout": true,
-	"GET /api/v1/auth/me":      true,
+	"GET /health":               true,
+	"POST /api/v1/auth/login":   true,
+	"POST /api/v1/auth/refresh": true,
+	"POST /api/v1/auth/logout":  true,
+	"GET /api/v1/auth/me":       true,
 }
 
 var httpRouteRoles = map[string][]role.Role{

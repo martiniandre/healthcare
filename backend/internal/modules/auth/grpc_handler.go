@@ -3,7 +3,10 @@ package auth
 import (
 	"context"
 	"errors"
+	"fmt"
+	"net"
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/healthcare/backend/internal/modules/auth/pb"
@@ -12,6 +15,7 @@ import (
 	"github.com/healthcare/backend/internal/shared/validator"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/peer"
 )
 
 type GRPCHandler struct {
@@ -34,7 +38,7 @@ func (handler *GRPCHandler) Login(ctx context.Context, req *pb.LoginRequest) (*p
 		return nil, apperrors.ErrBadRequest.WithFields(violations)
 	}
 
-	user, token, loginError := handler.service.Login(ctx, req.Email, req.Password)
+	user, sessionTokens, loginError := handler.service.Login(ctx, req.Email, req.Password, extractGRPCClientInfo(ctx))
 	if loginError != nil {
 		if errors.Is(loginError, ErrUserNotFound) || errors.Is(loginError, ErrInvalidPassword) || errors.Is(loginError, ErrUserInactive) {
 			return nil, apperrors.ErrInvalidCredentials.ToGRPC()
@@ -44,16 +48,43 @@ func (handler *GRPCHandler) Login(ctx context.Context, req *pb.LoginRequest) (*p
 
 	csrfToken := uuid.New().String()
 
+	remainingSessionSeconds := int(time.Until(sessionTokens.SessionExpiresAt).Seconds())
+	if remainingSessionSeconds < 1 {
+		remainingSessionSeconds = 1
+	}
+	accessTokenSeconds := int(accessTokenLifetime.Seconds())
+	if remainingSessionSeconds < accessTokenSeconds {
+		accessTokenSeconds = remainingSessionSeconds
+	}
+
 	grpc.SetHeader(ctx, metadata.Pairs(
-		"set-cookie", "token="+token+"; HttpOnly; Secure; Path=/",
-		"set-cookie", "csrf_token="+csrfToken+"; Secure; Path=/; SameSite=Lax",
+		"set-cookie", fmt.Sprintf("token=%s; HttpOnly; Secure; Path=%s; Max-Age=%d", sessionTokens.AccessToken, accessTokenCookiePath, accessTokenSeconds),
+		"set-cookie", fmt.Sprintf("refresh_token=%s; HttpOnly; Secure; Path=%s; SameSite=Lax; Max-Age=%d", sessionTokens.RefreshToken, refreshTokenCookiePath, remainingSessionSeconds),
+		"set-cookie", fmt.Sprintf("csrf_token=%s; Secure; Path=%s; SameSite=Lax; Max-Age=%d", csrfToken, csrfTokenCookiePath, remainingSessionSeconds),
 	))
 
 	return &pb.LoginResponse{
-		Token:  token,
+		Token:  sessionTokens.AccessToken,
 		UserId: user.ID.String(),
 		Role:   string(user.Role),
 	}, nil
+}
+
+func extractGRPCClientInfo(ctx context.Context) ClientInfo {
+	clientInfo := ClientInfo{}
+	if incomingMetadata, metadataAvailable := metadata.FromIncomingContext(ctx); metadataAvailable {
+		if userAgents := incomingMetadata.Get("user-agent"); len(userAgents) > 0 {
+			clientInfo.UserAgent = userAgents[0]
+		}
+	}
+	if callerPeer, peerAvailable := peer.FromContext(ctx); peerAvailable && callerPeer.Addr != nil {
+		remoteHost, _, splitError := net.SplitHostPort(callerPeer.Addr.String())
+		if splitError != nil {
+			remoteHost = callerPeer.Addr.String()
+		}
+		clientInfo.IP = remoteHost
+	}
+	return clientInfo
 }
 
 func (handler *GRPCHandler) Register(ctx context.Context, req *pb.RegisterRequest) (*pb.RegisterResponse, error) {
@@ -96,12 +127,16 @@ func (handler *GRPCHandler) Logout(ctx context.Context, req *pb.LogoutRequest) (
 				if strings.HasPrefix(cookiePart, "token=") {
 					RevokeToken(strings.TrimPrefix(cookiePart, "token="))
 				}
+				if strings.HasPrefix(cookiePart, "refresh_token=") {
+					handler.service.Logout(ctx, strings.TrimPrefix(cookiePart, "refresh_token="))
+				}
 			}
 		}
 	}
 
 	grpc.SetHeader(ctx, metadata.Pairs(
 		"set-cookie", "token=; HttpOnly; Secure; Path=/; Max-Age=0",
+		"set-cookie", "refresh_token=; HttpOnly; Secure; Path=/api/v1/auth; SameSite=Lax; Max-Age=0",
 		"set-cookie", "csrf_token=; Secure; Path=/; SameSite=Lax; Max-Age=0",
 	))
 	return &pb.LogoutResponse{}, nil

@@ -10,6 +10,7 @@ RUN go mod download
 COPY . .
 
 RUN CGO_ENABLED=0 GOOS=linux go build -o /app/api ./cmd/api
+RUN CGO_ENABLED=0 GOOS=linux go build -o /app/migrate ./cmd/migrate
 
 FROM alpine:3.20
 
@@ -20,6 +21,7 @@ RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 WORKDIR /app
 
 COPY --from=builder /app/api /app/api
+COPY --from=builder /app/migrate /app/migrate
 COPY --from=builder /app/migrations /app/migrations
 
 USER appuser

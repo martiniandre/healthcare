@@ -19,6 +19,7 @@ type Config struct {
 	RedisUrl             string
 	SentryDSN            string
 	JWTSecret            string
+	JWTPreviousSecrets   []string
 	OTELExporterEndpoint string
 	OTELServiceName      string
 	GCPProjectID         string
@@ -38,6 +39,11 @@ type Config struct {
 
 const minimumJWTSecretLength = 32
 
+type jwtSecretEntry struct {
+	variableName string
+	secretValue  string
+}
+
 func Load() (*Config, error) {
 	err := godotenv.Load()
 	if err != nil {
@@ -52,6 +58,7 @@ func Load() (*Config, error) {
 		RedisUrl:             getEnv("REDIS_URL", "localhost:6379"),
 		SentryDSN:            getEnv("SENTRY_DSN", ""),
 		JWTSecret:            getEnv("JWT_SECRET", ""),
+		JWTPreviousSecrets:   splitCommaSeparated(getEnv("JWT_SECRET_PREVIOUS", "")),
 		OTELExporterEndpoint: getEnv("OTEL_EXPORTER_OTLP_ENDPOINT", ""),
 		OTELServiceName:      getEnv("OTEL_SERVICE_NAME", "healthcare-api"),
 		GCPProjectID:         getEnv("GCP_PROJECT_ID", ""),
@@ -100,11 +107,19 @@ func (cfg *Config) validate() error {
 		return fmt.Errorf("missing required environment variables: %v", missingFields)
 	}
 
-	if len(cfg.JWTSecret) < minimumJWTSecretLength {
-		if cfg.AppEnv == "production" {
-			return fmt.Errorf("JWT_SECRET must be at least %d characters long in production", minimumJWTSecretLength)
+	jwtSecretEntries := []jwtSecretEntry{{variableName: "JWT_SECRET", secretValue: cfg.JWTSecret}}
+	for _, previousSecret := range cfg.JWTPreviousSecrets {
+		jwtSecretEntries = append(jwtSecretEntries, jwtSecretEntry{variableName: "JWT_SECRET_PREVIOUS", secretValue: previousSecret})
+	}
+
+	for _, secretEntry := range jwtSecretEntries {
+		if len(secretEntry.secretValue) >= minimumJWTSecretLength {
+			continue
 		}
-		slog.Warn("JWT_SECRET is shorter than the recommended minimum length", "minimum_length", minimumJWTSecretLength)
+		if cfg.AppEnv == "production" {
+			return fmt.Errorf("%s must be at least %d characters long in production", secretEntry.variableName, minimumJWTSecretLength)
+		}
+		slog.Warn("JWT secret is shorter than the recommended minimum length", "variable", secretEntry.variableName, "minimum_length", minimumJWTSecretLength)
 	}
 
 	return nil

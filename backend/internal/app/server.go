@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/healthcare/backend/internal/app/interceptor"
+	"github.com/healthcare/backend/internal/shared/ratelimit"
 	"github.com/redis/go-redis/v9"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"google.golang.org/grpc"
@@ -15,6 +16,8 @@ type Server struct {
 }
 
 func NewServer(redisClient *redis.Client) *Server {
+	rateLimiter := ratelimit.NewDefaultLimiter(redisClient)
+
 	keepaliveParams := grpc.KeepaliveParams(keepalive.ServerParameters{
 		MaxConnectionIdle:     5 * time.Minute,
 		MaxConnectionAge:      30 * time.Minute,
@@ -32,7 +35,7 @@ func NewServer(redisClient *redis.Client) *Server {
 		interceptor.UnaryRequestIDInterceptor(),
 		interceptor.UnaryLoggingInterceptor(),
 		interceptor.UnaryTimeoutInterceptor(),
-		interceptor.UnaryRateLimitInterceptor(redisClient),
+		interceptor.UnaryRateLimitInterceptor(rateLimiter),
 		interceptor.UnaryCSRFInterceptor(),
 		interceptor.UnaryAuthInterceptor(),
 		interceptor.UnaryAuditTrailInterceptor(),
@@ -40,7 +43,7 @@ func NewServer(redisClient *redis.Client) *Server {
 
 	chainedStreamInterceptor := grpc.ChainStreamInterceptor(
 		interceptor.StreamLoggingInterceptor(),
-		interceptor.StreamRateLimitInterceptor(redisClient),
+		interceptor.StreamRateLimitInterceptor(rateLimiter),
 		interceptor.StreamAuthInterceptor(),
 		interceptor.StreamAuditTrailInterceptor(),
 	)

@@ -8,13 +8,14 @@ import (
 
 	_ "github.com/healthcare/backend/cmd/api/docs"
 	"github.com/healthcare/backend/internal/api/middleware"
+	"github.com/healthcare/backend/internal/shared/ratelimit"
 )
 
 type RouteRegisterer interface {
 	RegisterRoutes(mux *http.ServeMux)
 }
 
-func NewRouter(secureCookies bool, swaggerEnabled bool, frontendURL string, trustedProxies []*net.IPNet, registerers ...RouteRegisterer) http.Handler {
+func NewRouter(secureCookies bool, swaggerEnabled bool, frontendURL string, trustedProxies []*net.IPNet, rateLimiter ratelimit.Limiter, registerers ...RouteRegisterer) http.Handler {
 	httpServeMux := http.NewServeMux()
 
 	if swaggerEnabled {
@@ -26,7 +27,7 @@ func NewRouter(secureCookies bool, swaggerEnabled bool, frontendURL string, trus
 	}
 
 	handlerPipeline := middleware.CORS(secureCookies, frontendURL)(httpServeMux)
-	handlerPipeline = middleware.RateLimit(trustedProxies)(handlerPipeline)
+	handlerPipeline = middleware.RateLimit(trustedProxies, rateLimiter)(handlerPipeline)
 	handlerPipeline = middleware.APIPrefixRewrite(handlerPipeline)
 	handlerPipeline = middleware.Recovery(handlerPipeline)
 	handlerPipeline = middleware.RequestID(handlerPipeline)

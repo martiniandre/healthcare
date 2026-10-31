@@ -113,3 +113,43 @@ func TestSplitCommaSeparatedTrimsAndDropsEmptyEntries(t *testing.T) {
 		t.Fatalf("unexpected items: %v", items)
 	}
 }
+
+func TestValidateRejectsShortPreviousJWTSecretInProduction(t *testing.T) {
+	cfg := &Config{
+		DBUrl:              "postgres://localhost:5432/healthcare",
+		JWTSecret:          validProductionJWTSecret,
+		JWTPreviousSecrets: []string{validProductionJWTSecret + "-old", "short-old"},
+		AppEnv:             "production",
+		FHIRBaseURL:        "http://localhost:8081/fhir",
+	}
+	validationErr := cfg.validate()
+	if validationErr == nil || !strings.Contains(validationErr.Error(), "JWT_SECRET_PREVIOUS") {
+		t.Fatalf("expected JWT_SECRET_PREVIOUS length error in production, got: %v", validationErr)
+	}
+}
+
+func TestValidateAcceptsLongPreviousJWTSecretsInProduction(t *testing.T) {
+	cfg := &Config{
+		DBUrl:              "postgres://localhost:5432/healthcare",
+		JWTSecret:          validProductionJWTSecret,
+		JWTPreviousSecrets: []string{validProductionJWTSecret + "-old"},
+		AppEnv:             "production",
+		FHIRBaseURL:        "http://localhost:8081/fhir",
+	}
+	if validationErr := cfg.validate(); validationErr != nil {
+		t.Fatalf("expected valid production config, got error: %v", validationErr)
+	}
+}
+
+func TestValidateAllowsShortPreviousJWTSecretOutsideProduction(t *testing.T) {
+	cfg := &Config{
+		DBUrl:              "postgres://localhost:5432/healthcare",
+		JWTSecret:          "secret",
+		JWTPreviousSecrets: []string{"old"},
+		AppEnv:             "development",
+		FHIRBaseURL:        "http://localhost:8081/fhir",
+	}
+	if validationErr := cfg.validate(); validationErr != nil {
+		t.Fatalf("expected warning only outside production, got error: %v", validationErr)
+	}
+}
