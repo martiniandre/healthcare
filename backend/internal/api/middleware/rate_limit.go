@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"fmt"
 	"log/slog"
 	"math"
 	"net"
@@ -31,73 +30,16 @@ func isAuthRateLimitedRoute(requestPath string) bool {
 }
 
 func ParseTrustedProxies(trustedProxyEntries []string) ([]*net.IPNet, error) {
-	trustedNetworks := make([]*net.IPNet, 0, len(trustedProxyEntries))
-	for _, rawEntry := range trustedProxyEntries {
-		trimmedEntry := strings.TrimSpace(rawEntry)
-		if trimmedEntry == "" {
-			continue
-		}
-		if !strings.Contains(trimmedEntry, "/") {
-			parsedIP := net.ParseIP(trimmedEntry)
-			if parsedIP == nil {
-				return nil, fmt.Errorf("invalid trusted proxy %q", trimmedEntry)
-			}
-			if parsedIP.To4() != nil {
-				trimmedEntry += "/32"
-			} else {
-				trimmedEntry += "/128"
-			}
-		}
-		_, parsedNetwork, parseError := net.ParseCIDR(trimmedEntry)
-		if parseError != nil {
-			return nil, fmt.Errorf("invalid trusted proxy %q: %w", trimmedEntry, parseError)
-		}
-		trustedNetworks = append(trustedNetworks, parsedNetwork)
-	}
-	return trustedNetworks, nil
-}
-
-func isTrustedProxy(trustedNetworks []*net.IPNet, candidateIP net.IP) bool {
-	for _, trustedNetwork := range trustedNetworks {
-		if trustedNetwork.Contains(candidateIP) {
-			return true
-		}
-	}
-	return false
+	return ratelimit.ParseTrustedProxies(trustedProxyEntries)
 }
 
 func extractClientIPAddress(httpRequest *http.Request, trustedNetworks []*net.IPNet) string {
-	remoteHost, _, splitError := net.SplitHostPort(httpRequest.RemoteAddr)
-	if splitError != nil {
-		remoteHost = httpRequest.RemoteAddr
-	}
-
-	remoteIP := net.ParseIP(remoteHost)
-	if remoteIP == nil || !isTrustedProxy(trustedNetworks, remoteIP) {
-		return remoteHost
-	}
-
-	forwardedFor := httpRequest.Header.Get("X-Forwarded-For")
-	if forwardedFor != "" {
-		forwardedHops := strings.Split(forwardedFor, ",")
-		for hopIndex := len(forwardedHops) - 1; hopIndex >= 0; hopIndex-- {
-			hop := strings.TrimSpace(forwardedHops[hopIndex])
-			parsedHop := net.ParseIP(hop)
-			if parsedHop == nil {
-				break
-			}
-			if !isTrustedProxy(trustedNetworks, parsedHop) {
-				return hop
-			}
-		}
-	}
-
-	realIP := strings.TrimSpace(httpRequest.Header.Get("X-Real-IP"))
-	if realIP != "" && net.ParseIP(realIP) != nil {
-		return realIP
-	}
-
-	return remoteHost
+	return ratelimit.ResolveClientIP(
+		httpRequest.RemoteAddr,
+		httpRequest.Header.Get("X-Forwarded-For"),
+		httpRequest.Header.Get("X-Real-IP"),
+		trustedNetworks,
+	)
 }
 
 func RateLimit(trustedNetworks []*net.IPNet, limiter ratelimit.Limiter) func(http.Handler) http.Handler {

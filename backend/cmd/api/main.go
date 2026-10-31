@@ -46,13 +46,14 @@ import (
 	"github.com/healthcare/backend/internal/modules/schedule"
 	"github.com/healthcare/backend/internal/modules/staff"
 	"github.com/healthcare/backend/internal/modules/telemetry"
+	"github.com/healthcare/backend/internal/modules/timeline"
 	"github.com/healthcare/backend/internal/shared/cache"
 	"github.com/healthcare/backend/internal/shared/config"
 	"github.com/healthcare/backend/internal/shared/database"
-	"github.com/healthcare/backend/internal/shared/eventbus"
 	"github.com/healthcare/backend/internal/shared/healthcare"
 	"github.com/healthcare/backend/internal/shared/logger"
 	"github.com/healthcare/backend/internal/shared/migrations"
+	"github.com/healthcare/backend/internal/shared/outbox"
 	"github.com/healthcare/backend/internal/shared/ratelimit"
 	"github.com/healthcare/backend/internal/shared/storage"
 	sharedtelemetry "github.com/healthcare/backend/internal/shared/telemetry"
@@ -116,9 +117,19 @@ func main() {
 
 	redisClient := cache.Connect(appConfig.RedisUrl)
 
-	eventBus := eventbus.New()
+	outboxStore := outbox.NewPostgresStore(databasePool)
+	outboxBus := outbox.NewBus(outboxStore)
+	eventBus := outboxBus
+	outboxDispatcher := outbox.NewDispatcher(outboxStore, outboxBus, outbox.Options{})
+	outboxBus.SetWakeup(outboxDispatcher.Wake)
 
-	applicationServer := app.NewServer(redisClient)
+	trustedProxyNetworks, trustedProxiesError := middleware.ParseTrustedProxies(appConfig.TrustedProxies)
+	if trustedProxiesError != nil {
+		slog.Error("Invalid TRUSTED_PROXIES configuration", "error", trustedProxiesError)
+		os.Exit(1)
+	}
+
+	applicationServer := app.NewServer(redisClient, trustedProxyNetworks)
 
 	authService := auth.Register(applicationServer.GRPCServer, auth.Dependency{DB: databasePool, EventBus: eventBus})
 	staffService := staff.Register(applicationServer.GRPCServer, staff.Dependency{DB: databasePool, FHIRClient: fhirClient})
@@ -151,11 +162,14 @@ func main() {
 	health.Register(applicationServer.GRPCServer, health.Dependency{DB: databasePool, Redis: redisClient})
 	analyticsHTTPHandler := analytics.Register(analytics.Dependency{DB: databasePool, FHIRClient: fhirClient})
 	portalHTTPHandler := portal.Register(portal.Dependency{FHIRClient: fhirClient, DB: databasePool})
+	timelineHTTPHandler := timeline.Register(timeline.Dependency{FHIRClient: fhirClient})
 	_, notificationsHTTPHandler := notifications.Register(notifications.Dependency{DB: databasePool, EventBus: eventBus})
 	scheduleHTTPHandler := schedule.Register(schedule.Dependency{DB: databasePool, EventBus: eventBus, AuditService: auditLogsService})
 
 	examAnalyzerRepo, examAnalyzerSvc, examAnalyzerWorker := exam_analyzer.Register(applicationServer.GRPCServer, exam_analyzer.Dependency{DB: databasePool, Storage: storageClient, ProjectID: appConfig.GCPProjectID, LocationID: appConfig.GCPLocationID, VertexModel: appConfig.GCPVertexModel, EventBus: eventBus})
 	go examAnalyzerWorker.Start(mainContext)
+
+	go outboxDispatcher.Start(mainContext)
 
 	imagingWorker := imaging.NewWorker(imaging.NewRepository(databasePool), redisClient, fhirClient)
 	go imagingWorker.Start(mainContext)
@@ -178,12 +192,6 @@ func main() {
 	auditLogsHTTPHandler := audit_logs.NewHTTPHandler(auditLogsService)
 	healthHTTPHandler := health.NewHTTPHandler(databasePool, redisClient)
 
-	trustedProxyNetworks, trustedProxiesError := middleware.ParseTrustedProxies(appConfig.TrustedProxies)
-	if trustedProxiesError != nil {
-		slog.Error("Invalid TRUSTED_PROXIES configuration", "error", trustedProxiesError)
-		os.Exit(1)
-	}
-
 	router := api.NewRouter(
 		secureCookies,
 		swaggerEnabled,
@@ -204,6 +212,7 @@ func main() {
 		examAnalyzerHTTPHandler,
 		analyticsHTTPHandler,
 		portalHTTPHandler,
+		timelineHTTPHandler,
 		auditLogsHTTPHandler,
 		notificationsHTTPHandler,
 		scheduleHTTPHandler,
@@ -270,6 +279,8 @@ func main() {
 		slog.Warn("gRPC graceful stop timed out, forcing stop")
 		applicationServer.GRPCServer.Stop()
 	}
+
+	outboxDispatcher.Stop()
 
 	if redisClient != nil {
 		if redisCloseError := redisClient.Close(); redisCloseError != nil {

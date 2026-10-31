@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/healthcare/backend/internal/modules/notifications"
 	"github.com/healthcare/backend/internal/modules/notifications/mocks"
+	"github.com/healthcare/backend/internal/shared/eventbus"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -236,4 +237,40 @@ func TestListNotificationEventDefinitions(testingInstance *testing.T) {
 		}
 		assert.True(testingInstance, foundEvent, "notification event %s not listed", expectedEventName)
 	}
+}
+
+func TestCreateNotificationIsDeterministicPerEventID(testingInstance *testing.T) {
+	mockRepository := mocks.NewMockNotificationRepository()
+	notificationService := notifications.NewService(mockRepository)
+	eventContext := eventbus.ContextWithEventID(context.Background(), "event-123")
+	recipients := []uuid.UUID{uuid.New()}
+	content := notifications.NotificationContent{Title: "Title", Body: "Body"}
+
+	firstNotification, firstError := notificationService.CreateNotification(eventContext, notifications.NotificationTypeSystem, content, nil, "", "", recipients)
+	secondNotification, secondError := notificationService.CreateNotification(eventContext, notifications.NotificationTypeSystem, content, nil, "", "", recipients)
+
+	assert.NoError(testingInstance, firstError)
+	assert.NoError(testingInstance, secondError)
+	assert.Equal(testingInstance, firstNotification.ID, secondNotification.ID)
+
+	otherContext := eventbus.ContextWithEventID(context.Background(), "event-456")
+	otherNotification, _ := notificationService.CreateNotification(otherContext, notifications.NotificationTypeSystem, content, nil, "", "", recipients)
+	assert.NotEqual(testingInstance, firstNotification.ID, otherNotification.ID)
+}
+
+func TestCreateNotificationTreatsDuplicateAsDelivered(testingInstance *testing.T) {
+	mockRepository := mocks.NewMockNotificationRepository()
+	mockRepository.CreateError = notifications.ErrNotificationAlreadyExists
+	notificationService := notifications.NewService(mockRepository)
+
+	createdNotification, createError := notificationService.CreateNotification(
+		eventbus.ContextWithEventID(context.Background(), "event-123"),
+		notifications.NotificationTypeSystem,
+		notifications.NotificationContent{Title: "Title"},
+		nil, "", "", []uuid.UUID{uuid.New()},
+	)
+
+	assert.NoError(testingInstance, createError)
+	assert.NotNil(testingInstance, createdNotification)
+	assert.Empty(testingInstance, mockRepository.Notifications)
 }

@@ -8,10 +8,12 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/healthcare/backend/internal/app/policy"
+	"github.com/healthcare/backend/internal/shared/eventbus"
 )
 
 var ErrNotificationNotFound = errors.New("notification not found")
 var ErrInvalidNotificationType = errors.New("invalid notification type")
+var ErrNotificationAlreadyExists = errors.New("notification already exists")
 
 var notificationPriorityDefaults = map[NotificationType]NotificationPriority{
 	NotificationTypeTelemetryAlert:  PriorityCritical,
@@ -85,7 +87,7 @@ func (notificationService *service) CreateNotification(ctx context.Context, noti
 	}
 
 	notification := &Notification{
-		ID:           uuid.New(),
+		ID:           notificationIDForContext(ctx),
 		Type:         notifType,
 		Priority:     priority,
 		Title:        content.Title,
@@ -100,6 +102,9 @@ func (notificationService *service) CreateNotification(ctx context.Context, noti
 	}
 
 	err := notificationService.repo.Create(ctx, notification, recipientIDs)
+	if errors.Is(err, ErrNotificationAlreadyExists) {
+		return notification, nil
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -220,4 +225,14 @@ func (notificationService *service) broadcast(notification *Notification) {
 		default:
 		}
 	}
+}
+
+var eventNotificationNamespace = uuid.MustParse("6f1c2a52-8d0e-4a57-9a53-0b7d9c1e4f10")
+
+func notificationIDForContext(ctx context.Context) uuid.UUID {
+	eventID, exists := eventbus.EventIDFromContext(ctx)
+	if !exists {
+		return uuid.New()
+	}
+	return uuid.NewSHA1(eventNotificationNamespace, []byte(eventID))
 }

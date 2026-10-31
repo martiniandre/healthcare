@@ -18,10 +18,11 @@ import { Spinner } from "../../shared/components/ui/spinner"
 import { Tabs, TabsList, TabsTrigger } from "../../shared/components/ui/tabs"
 import { Badge } from "../../shared/components/ui/badge"
 import { Button } from "../../shared/components/ui/button"
-import { History, Image as ImageIcon, Activity, ShieldAlert, Sparkles } from "lucide-react"
+import { History, Image as ImageIcon, Activity, ShieldAlert, Sparkles, GalleryVerticalEnd } from "lucide-react"
 
 const PatientTab = {
   Encounters: "encounters",
+  Timeline: "timeline",
   Conditions: "conditions",
   Allergies: "allergies",
   Pacs: "pacs",
@@ -30,6 +31,7 @@ const PatientTab = {
 type PatientTab = (typeof PatientTab)[keyof typeof PatientTab]
 
 const EncounterHistory = lazy(() => import("./components/EncounterHistory"))
+const ClinicalTimeline = lazy(() => import("./components/timeline/ClinicalTimeline"))
 const ClinicalConditions = lazy(() => import("./components/ClinicalConditions"))
 const ClinicalAllergies = lazy(() => import("./components/ClinicalAllergies"))
 
@@ -72,9 +74,11 @@ export const PatientDetails = () => {
   const canReadConditions = ability.can(Action.Read, Feature.Condition)
   const canReadAllergies = ability.can(Action.Read, Feature.Allergy)
   const canReadStudies = ability.can(Action.Read, Feature.ImagingStudy)
+  const canReadTimeline = ability.can(Action.Read, Feature.Condition) && ability.can(Action.Read, Feature.Observation)
 
   const availableTabs: Record<string, boolean> = {
     [PatientTab.Encounters]: true,
+    [PatientTab.Timeline]: canReadTimeline,
     [PatientTab.Conditions]: canReadConditions,
     [PatientTab.Allergies]: canReadAllergies,
     [PatientTab.Pacs]: canReadStudies,
@@ -118,6 +122,16 @@ export const PatientDetails = () => {
             {encounters.length}
           </Badge>
         </TabsTrigger>
+
+        {canReadTimeline && (
+          <TabsTrigger
+            value={PatientTab.Timeline}
+            className="h-auto flex-none justify-start gap-3 px-4 py-3 text-xs font-extrabold text-muted-foreground data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-none"
+          >
+            <GalleryVerticalEnd className="w-4 h-4 shrink-0" />
+            {t("details.timeline")}
+          </TabsTrigger>
+        )}
 
         {canReadConditions && (
           <TabsTrigger
@@ -182,6 +196,8 @@ export const PatientDetails = () => {
       >
         <Suspense fallback={<TabFallback />}>
           {resolvedActiveTab === PatientTab.Encounters && <EncounterHistory patientId={id} />}
+
+          {resolvedActiveTab === PatientTab.Timeline && <ClinicalTimeline patientId={id} />}
 
           {resolvedActiveTab === PatientTab.Conditions && <ClinicalConditions patientId={id} />}
 

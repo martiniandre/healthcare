@@ -7,6 +7,7 @@ import (
 )
 
 type Event struct {
+	ID   string
 	Name string
 	Data map[string]any
 }
@@ -56,4 +57,15 @@ func (eventBus *bus) Subscribe(eventName string, handler Handler) {
 	defer eventBus.mu.Unlock()
 
 	eventBus.handlers[eventName] = append(eventBus.handlers[eventName], handler)
+}
+
+type eventIDContextKey struct{}
+
+func ContextWithEventID(ctx context.Context, eventID string) context.Context {
+	return context.WithValue(ctx, eventIDContextKey{}, eventID)
+}
+
+func EventIDFromContext(ctx context.Context) (string, bool) {
+	eventID, exists := ctx.Value(eventIDContextKey{}).(string)
+	return eventID, exists && eventID != ""
 }
