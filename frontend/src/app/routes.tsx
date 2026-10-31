@@ -4,6 +4,8 @@ import { useAuthStore } from "../shared/store/auth_store"
 import { AbilityProvider } from "../shared/auth/AbilityContext"
 import { AppSidebar } from "../shared/components/AppSidebar"
 import { AppHeader } from "../shared/components/AppHeader"
+import { RoleRoute } from "../shared/auth/RoleRoute"
+import { getHomePathForRole, routeAllowedRoles } from "../shared/auth/route_access"
 import { Spinner } from "../shared/components/ui/Spinner"
 
 const Login = lazy(() => import("../modules/auth/Login").then((module) => ({ default: module.Login })))
@@ -49,24 +51,18 @@ export const AppRoutes = () => {
                       <AppHeader />
                       <main className="flex-1 flex flex-col">
                         <Routes>
-                          <Route path="/" element={role === "PATIENT" ? <Navigate to="/portal" replace /> : <Patients />} />
-                          <Route path="/portal/*" element={<PortalPage />} />
-                          <Route path="/dashboard" element={<ClinicalDashboard />} />
-                          <Route path="/patients/:id" element={<PatientDetails />} />
-                          <Route path="/patients/:id/encounters/:encounterId" element={<EncounterDetail />} />
-                          <Route path="/telemetry" element={<Telemetry />} />
-                          <Route path="/analytics" element={<Stats />} />
-                          <Route path="/staff" element={<Staff />} />
-                          <Route
-                            path="/schedule"
-                            element={role === "PATIENT" ? <Navigate to="/portal" replace /> : <Schedule />}
-                          />
-                          <Route path="/exam-analyzer" element={<ExamAnalyzer />} />
-                          <Route
-                            path="/audit-logs"
-                            element={role === "ADMIN" ? <AuditLogs /> : <Navigate to="/" replace />}
-                          />
-                          <Route path="*" element={<Navigate to="/" replace />} />
+                          <Route path="/" element={<RoleRoute allowedRoles={routeAllowedRoles.patients}><Patients /></RoleRoute>} />
+                          <Route path="/portal/*" element={<RoleRoute allowedRoles={routeAllowedRoles.portal}><PortalPage /></RoleRoute>} />
+                          <Route path="/dashboard" element={<RoleRoute allowedRoles={routeAllowedRoles.dashboard}><ClinicalDashboard /></RoleRoute>} />
+                          <Route path="/patients/:id" element={<RoleRoute allowedRoles={routeAllowedRoles.patients}><PatientDetails /></RoleRoute>} />
+                          <Route path="/patients/:id/encounters/:encounterId" element={<RoleRoute allowedRoles={routeAllowedRoles.patients}><EncounterDetail /></RoleRoute>} />
+                          <Route path="/telemetry" element={<RoleRoute allowedRoles={routeAllowedRoles.telemetry}><Telemetry /></RoleRoute>} />
+                          <Route path="/analytics" element={<RoleRoute allowedRoles={routeAllowedRoles.analytics}><Stats /></RoleRoute>} />
+                          <Route path="/staff" element={<RoleRoute allowedRoles={routeAllowedRoles.staff}><Staff /></RoleRoute>} />
+                          <Route path="/schedule" element={<RoleRoute allowedRoles={routeAllowedRoles.schedule}><Schedule /></RoleRoute>} />
+                          <Route path="/exam-analyzer" element={<RoleRoute allowedRoles={routeAllowedRoles.examAnalyzer}><ExamAnalyzer /></RoleRoute>} />
+                          <Route path="/audit-logs" element={<RoleRoute allowedRoles={routeAllowedRoles.auditLogs}><AuditLogs /></RoleRoute>} />
+                          <Route path="*" element={<Navigate to={getHomePathForRole(role)} replace />} />
                         </Routes>
                       </main>
                     </div>

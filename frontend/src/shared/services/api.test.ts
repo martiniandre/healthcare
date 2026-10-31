@@ -1,4 +1,4 @@
-import { api, setCsrfToken, clearCsrfToken } from "./api"
+import { api, setCsrfToken, clearCsrfToken, setUnauthorizedHandler } from "./api"
 
 const interceptorHandlers = vi.hoisted(() => ({
   requestFulfilled: (config: unknown) => config,
@@ -111,5 +111,46 @@ describe("api client", () => {
     expect(headers.set).toHaveBeenCalledWith("X-CSRF-Token", "stored-token-789")
     document.cookie = "csrf_token=; Path=/; Max-Age=0"
     clearCsrfToken()
+  })
+
+  describe("unauthorized handling", () => {
+    afterEach(() => {
+      setUnauthorizedHandler(null)
+    })
+
+    it("should notify the handler when a protected request returns 401", async () => {
+      const unauthorizedHandler = vi.fn()
+      setUnauthorizedHandler(unauthorizedHandler)
+      const expiredSessionError = { config: { url: "/patients" }, response: { status: 401, data: {} } }
+
+      await expect(interceptorHandlers.rejected(expiredSessionError)).rejects.toBeDefined()
+
+      expect(unauthorizedHandler).toHaveBeenCalledTimes(1)
+    })
+
+    it("should not notify the handler for failed login or session probe requests", async () => {
+      const unauthorizedHandler = vi.fn()
+      setUnauthorizedHandler(unauthorizedHandler)
+
+      await expect(
+        interceptorHandlers.rejected({ config: { url: "/auth/login" }, response: { status: 401, data: {} } }),
+      ).rejects.toBeDefined()
+      await expect(
+        interceptorHandlers.rejected({ config: { url: "/auth/me" }, response: { status: 401, data: {} } }),
+      ).rejects.toBeDefined()
+
+      expect(unauthorizedHandler).not.toHaveBeenCalled()
+    })
+
+    it("should not notify the handler for 403 responses", async () => {
+      const unauthorizedHandler = vi.fn()
+      setUnauthorizedHandler(unauthorizedHandler)
+
+      await expect(
+        interceptorHandlers.rejected({ config: { url: "/patients" }, response: { status: 403, data: {} } }),
+      ).rejects.toBeDefined()
+
+      expect(unauthorizedHandler).not.toHaveBeenCalled()
+    })
   })
 })

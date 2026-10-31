@@ -4,15 +4,14 @@ import { useAuthStore } from "../store/auth_store"
 import { useLayoutStore } from "../store/layout_store"
 import type { ComponentType } from "react"
 import { Activity, Users, BarChart3, LogOut, X, Sparkles, History, UserRound, LayoutDashboard, CalendarClock, Stethoscope, Sun, Moon } from "lucide-react"
+import { isRoleAllowed, routeAllowedRoles, type RouteAccessKey } from "../auth/route_access"
 import { LanguageSwitcher } from "./LanguageSwitcher"
 
 interface NavigationItem {
   key: string
   icon: ComponentType<{ className?: string }>
   path: string
-  staffOnly?: boolean
-  patientOnly?: boolean
-  adminOnly?: boolean
+  access: RouteAccessKey
   hiddenWhenProduction?: boolean
 }
 
@@ -25,30 +24,30 @@ const navigationGroups: NavigationGroup[] = [
   {
     key: "topics.clinical",
     items: [
-      { key: "patients", icon: Users, path: "/", staffOnly: true },
-      { key: "dashboard", icon: LayoutDashboard, path: "/dashboard", staffOnly: true },
-      { key: "schedule", icon: CalendarClock, path: "/schedule", staffOnly: true, hiddenWhenProduction: true },
+      { key: "patients", icon: Users, path: "/", access: "patients" },
+      { key: "dashboard", icon: LayoutDashboard, path: "/dashboard", access: "dashboard" },
+      { key: "schedule", icon: CalendarClock, path: "/schedule", access: "schedule", hiddenWhenProduction: true },
     ],
   },
   {
     key: "topics.diagnostics",
     items: [
-      { key: "telemetry", icon: Activity, path: "/telemetry", staffOnly: true },
-      { key: "examAnalyzer", icon: Sparkles, path: "/exam-analyzer", staffOnly: true },
+      { key: "telemetry", icon: Activity, path: "/telemetry", access: "telemetry" },
+      { key: "examAnalyzer", icon: Sparkles, path: "/exam-analyzer", access: "examAnalyzer" },
     ],
   },
   {
     key: "topics.operations",
     items: [
-      { key: "analytics", icon: BarChart3, path: "/analytics", staffOnly: true },
-      { key: "staffManagement", icon: Stethoscope, path: "/staff", staffOnly: true },
-      { key: "auditLogs", icon: History, path: "/audit-logs", adminOnly: true, staffOnly: true },
+      { key: "analytics", icon: BarChart3, path: "/analytics", access: "analytics" },
+      { key: "staffManagement", icon: Stethoscope, path: "/staff", access: "staff" },
+      { key: "auditLogs", icon: History, path: "/audit-logs", access: "auditLogs" },
     ],
   },
   {
     key: "topics.patient",
     items: [
-      { key: "portal", icon: UserRound, path: "/portal", patientOnly: true },
+      { key: "portal", icon: UserRound, path: "/portal", access: "portal" },
     ],
   },
 ]
@@ -62,12 +61,8 @@ export const AppSidebar = () => {
 
   const isItemVisible = (item: NavigationItem) => {
     if (item.hiddenWhenProduction && import.meta.env.PROD) return false
-    if (item.patientOnly) return role === "PATIENT"
-    if (item.staffOnly) return role !== "PATIENT"
-    return true
+    return isRoleAllowed(role, routeAllowedRoles[item.access])
   }
-
-  const isItemAccessible = (item: NavigationItem) => !item.adminOnly || role === "ADMIN"
 
   const isItemActive = (item: NavigationItem) => {
     const isPathActive =
@@ -80,7 +75,7 @@ export const AppSidebar = () => {
   const visibleGroups = navigationGroups
     .map((group) => ({
       ...group,
-      items: group.items.filter((item) => isItemVisible(item) && isItemAccessible(item)),
+      items: group.items.filter((item) => isItemVisible(item)),
     }))
     .filter((group) => group.items.length > 0)
 

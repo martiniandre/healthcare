@@ -10,7 +10,17 @@ interface AuthenticatedUserState {
   fullName: string | null
   isActive: boolean | null
   login: (sessionUserId: string, sessionRole: string, sessionEmail: string, sessionFullName?: string, sessionIsActive?: boolean) => void
+  clearSession: () => void
   logout: () => Promise<void>
+}
+
+const anonymousSessionState = {
+  isAuthenticated: false,
+  userId: null,
+  role: null,
+  email: null,
+  fullName: null,
+  isActive: null,
 }
 
 export const useAuthStore = create<AuthenticatedUserState>((set) => ({
@@ -29,6 +39,10 @@ export const useAuthStore = create<AuthenticatedUserState>((set) => ({
       fullName: sessionFullName ?? null,
       isActive: sessionIsActive ?? null,
     }),
+  clearSession: () => {
+    clearCsrfToken()
+    set(anonymousSessionState)
+  },
   logout: async () => {
     try {
       await authApi.logout()
@@ -36,14 +50,7 @@ export const useAuthStore = create<AuthenticatedUserState>((set) => ({
       console.error("Logout request failed:", logoutError)
     }
     clearCsrfToken()
-    set({
-      isAuthenticated: false,
-      userId: null,
-      role: null,
-      email: null,
-      fullName: null,
-      isActive: null,
-    })
+    set(anonymousSessionState)
   },
 }))
 
