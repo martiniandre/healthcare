@@ -1,5 +1,5 @@
 import { http } from "../../shared/utils/http"
-import type { LoginRequest, LoginResponse, RegisterRequest } from "./types"
+import type { LoginRequest, LoginResponse, PermissionsResponse, RegisterRequest } from "./types"
 
 export const authApi = {
   login: async (data: LoginRequest): Promise<LoginResponse> => {
@@ -8,6 +8,10 @@ export const authApi = {
 
   me: async (): Promise<LoginResponse> => {
     return http.get<LoginResponse>("/auth/me")
+  },
+
+  getPermissions: async (): Promise<PermissionsResponse> => {
+    return http.get<PermissionsResponse>("/auth/permissions")
   },
 
   logout: async (): Promise<void> => {

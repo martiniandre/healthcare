@@ -3,7 +3,7 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { AxiosError, AxiosHeaders, type AxiosResponse } from "axios"
 import ClinicalMedications from "./ClinicalMedications"
-import { AbilityProvider } from "../../../shared/auth/AbilityContext"
+import { TestAbilityProvider } from "../../../test/TestAbilityProvider"
 
 vi.mock("react-i18next", async (importOriginal) => {
   const actual = await importOriginal<typeof import("react-i18next")>()
@@ -51,9 +51,9 @@ const renderSection = () => {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
   render(
     <QueryClientProvider client={queryClient}>
-      <AbilityProvider role="DOCTOR">
+      <TestAbilityProvider role="DOCTOR">
         <ClinicalMedications patientId="patient-1" encounterId="enc-1" />
-      </AbilityProvider>
+      </TestAbilityProvider>
     </QueryClientProvider>,
   )
 }

@@ -9,7 +9,6 @@ export const Action = {
 export type Action = typeof Action[keyof typeof Action]
 
 export const Feature = {
-  All: "all",
   Patient: "Patient",
   Condition: "Condition",
   Allergy: "Allergy",
@@ -24,6 +23,12 @@ export const Feature = {
   ImagingStudy: "ImagingStudy",
   Portal: "Portal",
   Appointment: "Appointment",
+  OwnAppointment: "OwnAppointment",
+  Unavailability: "Unavailability",
+  Analytics: "Analytics",
+  Notification: "Notification",
+  DesignSystem: "DesignSystem",
+  Timeline: "Timeline",
 } as const
 
 export type Feature = typeof Feature[keyof typeof Feature]

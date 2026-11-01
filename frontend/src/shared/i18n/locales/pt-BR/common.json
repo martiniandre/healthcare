@@ -6,6 +6,13 @@
     "comfortable": "Linhas confortáveis"
   },
   "loading": "Carregando",
+  "retry": "Tentar novamente",
+  "permissions": {
+    "forbidden": "Você não tem acesso a esta área.",
+    "loadingMessage": "Carregando suas permissões",
+    "errorTitle": "Não foi possível carregar suas permissões",
+    "errorDescription": "Não conseguimos confirmar o que você pode acessar. Verifique sua conexão e tente novamente."
+  },
   "discardChanges": {
     "title": "Descartar alterações?",
     "description": "Você tem alterações não salvas. Se sair agora, elas serão perdidas.",

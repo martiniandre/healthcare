@@ -1,7 +1,8 @@
 import { describe, it, expect, vi } from "vitest"
 import { render, screen } from "@testing-library/react"
 import { MemoryRouter, Route, Routes } from "react-router-dom"
-import { AbilityProvider } from "../../shared/auth/AbilityContext"
+import { TestAbilityProvider } from "../../test/TestAbilityProvider"
+import type { RoleFixtureName } from "../../test/backend_matrix_role_fixtures"
 import { PatientDetails } from "./PatientDetails"
 
 vi.mock("./queries", () => ({
@@ -35,19 +36,19 @@ vi.mock("./components/ClinicalConditions", () => ({ default: () => null }))
 vi.mock("./components/ClinicalAllergies", () => ({ default: () => null }))
 vi.mock("./components/timeline/ClinicalTimeline", () => ({ default: () => <div>timeline content</div> }))
 
-const renderDetails = (role: string, url = "/patients/patient-1?tab=timeline") =>
+const renderDetails = (role: RoleFixtureName, url = "/patients/patient-1?tab=timeline") =>
   render(
-    <AbilityProvider role={role}>
+    <TestAbilityProvider role={role}>
       <MemoryRouter initialEntries={[url]}>
         <Routes>
           <Route path="/patients/:id" element={<PatientDetails />} />
         </Routes>
       </MemoryRouter>
-    </AbilityProvider>,
+    </TestAbilityProvider>,
   )
 
 describe("PatientDetails timeline tab", () => {
-  it.each(["ADMIN", "DOCTOR", "NURSE"])("should show the timeline tab and content for %s", async (role) => {
+  it.each<RoleFixtureName>(["ADMIN", "DOCTOR", "NURSE"])("should show the timeline tab and content for %s", async (role) => {
     renderDetails(role)
 
     expect(screen.getByRole("tab", { name: "Timeline" })).toBeInTheDocument()

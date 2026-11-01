@@ -31,6 +31,15 @@ describe("authApi", () => {
     expect(http.get).toHaveBeenCalledWith("/auth/me")
   })
 
+  it("should fetch the permissions granted to the current session", async () => {
+    vi.mocked(http.get).mockResolvedValue({ role: "DOCTOR", capabilities: ["patient:read"] })
+
+    const permissions = await authApi.getPermissions()
+
+    expect(http.get).toHaveBeenCalledWith("/auth/permissions")
+    expect(permissions).toEqual({ role: "DOCTOR", capabilities: ["patient:read"] })
+  })
+
   it("should register a new user", async () => {
     vi.mocked(http.post).mockResolvedValue(undefined)
 
