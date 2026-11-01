@@ -12,7 +12,6 @@ export default defineConfig({
     trace: "on-first-retry",
     screenshot: "only-on-failure",
     locale: "pt-BR",
-    video: "on",
   },
   projects: [
     {

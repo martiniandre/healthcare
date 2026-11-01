@@ -2,9 +2,7 @@ package integration
 
 import (
 	"context"
-	"fmt"
 	"net/http"
-	"net/url"
 	"os"
 	"strings"
 	"sync"
@@ -39,6 +37,7 @@ import (
 	"github.com/healthcare/backend/internal/shared/outbox"
 	"github.com/healthcare/backend/internal/shared/ratelimit"
 	"github.com/healthcare/backend/internal/shared/storage"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"
 	"golang.org/x/crypto/bcrypt"
@@ -49,7 +48,6 @@ import (
 
 const (
 	defaultAdminDatabaseURL = "postgres://postgres:mauroloremi@localhost:5432/postgres?sslmode=disable"
-	testDatabaseName        = "healthcare_test"
 	migrationsSourcePath    = "file://../../../migrations"
 	testJWTSecret           = "integration-test-secret"
 )
@@ -57,11 +55,14 @@ const (
 var environment = &testEnvironment{}
 
 type testEnvironment struct {
-	once        sync.Once
-	valid       bool
-	pool        *pgxpool.Pool
-	redisClient *redis.Client
-	databaseURL string
+	once                sync.Once
+	teardownOnce        sync.Once
+	valid               bool
+	pool                *pgxpool.Pool
+	redisClient         *redis.Client
+	databaseURL         string
+	adminDatabaseURL    string
+	createdDatabaseName string
 }
 
 func getEnvOrDefault(key, fallback string) string {
@@ -76,40 +77,39 @@ func (environment *testEnvironment) ensure(t *testing.T) {
 		t.Log("preparing integration test environment")
 
 		adminDatabaseURL := getEnvOrDefault("TEST_ADMIN_DB_URL", defaultAdminDatabaseURL)
-		parsedAdminURL, parseError := url.Parse(adminDatabaseURL)
-		if parseError != nil {
-			t.Logf("integration tests skipped: invalid admin database url: %v", parseError)
+		baseDatabaseURL := getEnvOrDefault("TEST_DB_URL", adminDatabaseURL)
+
+		databaseName, nameError := newIsolatedDatabaseName()
+		if nameError != nil {
+			t.Logf("integration tests skipped: %v", nameError)
 			return
 		}
-		parsedAdminURL.Path = "/" + testDatabaseName
-		testDatabaseURL := getEnvOrDefault("TEST_DB_URL", parsedAdminURL.String())
+		testDatabaseURL, urlError := databaseURLWithName(baseDatabaseURL, databaseName)
+		if urlError != nil {
+			t.Logf("integration tests skipped: %v", urlError)
+			return
+		}
 
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 
+		adminPool, adminConnectError := database.Connect(ctx, adminDatabaseURL)
+		if adminConnectError != nil {
+			t.Logf("integration tests skipped: postgres not reachable: %v", adminConnectError)
+			return
+		}
+		_, createError := adminPool.Exec(ctx, "CREATE DATABASE "+pgx.Identifier{databaseName}.Sanitize())
+		adminPool.Close()
+		if createError != nil {
+			t.Logf("integration tests skipped: failed to create isolated test database: %v", createError)
+			return
+		}
+		environment.adminDatabaseURL = adminDatabaseURL
+		environment.createdDatabaseName = databaseName
+
 		pool, connectError := database.Connect(ctx, testDatabaseURL)
 		if connectError != nil {
-			adminPool, adminConnectError := database.Connect(ctx, adminDatabaseURL)
-			if adminConnectError != nil {
-				t.Logf("integration tests skipped: postgres not reachable: %v", adminConnectError)
-				return
-			}
-			_, createError := adminPool.Exec(ctx, "CREATE DATABASE "+testDatabaseName)
-			adminPool.Close()
-			if createError != nil && !strings.Contains(createError.Error(), "already exists") {
-				t.Logf("integration tests skipped: failed to create test database: %v", createError)
-				return
-			}
-			pool, connectError = database.Connect(ctx, testDatabaseURL)
-			if connectError != nil {
-				t.Logf("integration tests skipped: cannot connect to test database: %v", connectError)
-				return
-			}
-		}
-
-		if resetError := resetTestSchemaIfStale(pool, testDatabaseURL); resetError != nil {
-			t.Logf("integration tests skipped: failed to reset stale test schema: %v", resetError)
-			pool.Close()
+			t.Logf("integration tests skipped: cannot connect to isolated test database: %v", connectError)
 			return
 		}
 
@@ -186,6 +186,7 @@ func newTestServer(t *testing.T) *testServer {
 		Storage:      storageClient,
 		Redis:        environment.redisClient,
 		AuditService: auditLogsService,
+		FHIRClient:   fhirClient,
 	})
 	telemetryService := telemetry.Register(grpcServer, telemetry.Dependency{DB: environment.pool, EventBus: eventBus})
 	health.Register(grpcServer, health.Dependency{DB: environment.pool, Redis: environment.redisClient})
@@ -245,22 +246,6 @@ func newTestServer(t *testing.T) *testServer {
 		fhir:       fhirClient,
 		grpcServer: grpcServer,
 	}
-}
-
-func resetTestSchemaIfStale(pool *pgxpool.Pool, testDatabaseURL string) error {
-	parsedTestURL, parseError := url.Parse(testDatabaseURL)
-	if parseError != nil {
-		return parseError
-	}
-	databaseName := strings.TrimPrefix(parsedTestURL.Path, "/")
-	if !strings.HasSuffix(databaseName, "test") {
-		return fmt.Errorf("refusing to reset schema of non-test database %q", databaseName)
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
-	_, execError := pool.Exec(ctx, "DROP SCHEMA public CASCADE; CREATE SCHEMA public;")
-	return execError
 }
 
 func seedTestUsers(t *testing.T, pool *pgxpool.Pool) {

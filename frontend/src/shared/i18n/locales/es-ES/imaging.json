@@ -43,7 +43,23 @@
     "modality": "Modalidad Clínica",
     "busStatus": "Status del Bus",
     "seriesSlices": "Serie / Rebanadas",
-    "activeSlice": "Rebanada #1 (Visualización Activa)"
+    "activeSlice": "Rebanada #1 (Visualización Activa)",
+    "studyDate": "Fecha del Estudio",
+    "accessionNumber": "Número de Acceso",
+    "studyUid": "UID del Estudio",
+    "seriesUid": "UID de la Serie",
+    "instanceUid": "UID de la Instancia",
+    "files": {
+      "show": "Mostrar archivos",
+      "hide": "Ocultar archivos",
+      "loading": "Cargando archivos...",
+      "loadError": "No se pudieron cargar los archivos de este estudio.",
+      "empty": "No se encontraron archivos en este estudio.",
+      "count_one": "{{count}} archivo",
+      "count_other": "{{count}} archivos",
+      "download": "Descargar",
+      "downloadLabel": "Descargar {{fileName}}"
+    }
   },
   "retry": "Reintentar",
   "studyNotFound": "Estudio no encontrado",
@@ -52,17 +68,69 @@
     "sectionLabel": "Enviar estudio DICOM",
     "dropTitle": "Arrastre un archivo DICOM aquí o elija uno",
     "dropActive": "Suelte el archivo para iniciar el envío",
-    "guidelines": "Formato admitido: DICOM (.dcm), hasta {{maxSize}} GB. El envío comienza en cuanto elige el archivo.",
+    "guidelines": "Formato admitido: DICOM (.dcm), hasta {{maxSize}} GB. Un examen: un único archivo .dcm o un .zip con todos sus archivos (ZIP hasta {{maxSize}} GB y {{maxEntries}} archivos). El envío comienza en cuanto elige el archivo.",
     "errorEmpty": "\"{{fileName}}\" está vacío (0 bytes). Elija otro archivo.",
-    "errorType": "\"{{fileName}}\" no es un archivo DICOM. Elija un archivo terminado en .dcm.",
+    "errorType": "\"{{fileName}}\" no es un archivo DICOM ni ZIP. Elija un archivo terminado en .dcm o .zip.",
     "errorLimit": "\"{{fileName}}\" pesa {{size}}, por encima del límite de {{maxSize}} GB. Elija un archivo más pequeño.",
+    "errorZipLimit": "\"{{fileName}}\" pesa {{size}}, por encima del límite de {{maxSize}} GB para ZIP. Elija un archivo más pequeño.",
+    "errorZipInvalid": "\"{{fileName}}\" no es un archivo ZIP válido. Elija el .zip con todos los archivos de un examen.",
     "cancel": "Cancelar envío",
     "retry": "Intentar de nuevo",
-    "successTitle": "DICOM enviado. Se está procesando.",
     "successNextStep": "Las nuevas imágenes estarán disponibles en los estudios de imagen de este paciente en breve.",
     "failedTitle": "No se pudo enviar el archivo DICOM.",
     "failedHelp": "\"{{fileName}}\" se conservó. Revise su conexión e intente de nuevo.",
     "cancelledTitle": "Envío cancelado.",
-    "cancelledHelp": "No se guardó nada. Puede intentar de nuevo con el mismo archivo."
+    "cancelledHelp": "No se guardó nada. Puede intentar de nuevo con el mismo archivo.",
+    "result": {
+      "created": "Nuevo estudio creado",
+      "appended": "Archivos añadidos al estudio existente",
+      "acceptedCount_one": "{{count}} imagen aceptada",
+      "acceptedCount_other": "{{count}} imágenes aceptadas",
+      "rejectedTitle_one": "{{count}} archivo no se añadió",
+      "rejectedTitle_other": "{{count}} archivos no se añadieron",
+      "reasons": {
+        "duplicate": "Ya almacenada en este estudio",
+        "invalid": "No es un archivo DICOM válido",
+        "unsupportedTransferSyntax": "Formato comprimido no compatible",
+        "missingIdentifiers": "Faltan identificadores del paciente o del estudio",
+        "unknown": "No se pudo leer el archivo"
+      }
+    },
+    "summary": {
+      "title": "Lo que se leyó del archivo",
+      "modality": "Modalidad",
+      "studyDate": "Fecha del estudio",
+      "accessionNumber": "Número de acceso",
+      "studyUid": "UID del estudio",
+      "seriesUid": "UID de la serie",
+      "instanceUid": "UID de la instancia",
+      "copyUid": "Copiar UID del estudio",
+      "copied": "UID del estudio copiado.",
+      "copyError": "No se pudo copiar el UID del estudio."
+    },
+    "warnings": {
+      "patient_identity_missing": "El archivo no tiene identificación del paciente, por lo que no se pudo comprobar con el paciente seleccionado. Confirme que pertenece a este paciente.",
+      "anonymized_study": "Este estudio parece estar anonimizado. Los datos del paciente pueden faltar o estar reemplazados.",
+      "duplicate_instance": "Esta imagen ya se envió antes. Puede haber un duplicado en el estudio.",
+      "modality_overridden": "La modalidad indicada se reemplazó por la que consta en el archivo DICOM.",
+      "unknown": "El servidor informó un aviso sobre este archivo. Revise el estudio antes de usarlo."
+    },
+    "errors": {
+      "patientMismatchTitle": "Este DICOM pertenece a un paciente distinto del seleccionado.",
+      "patientMismatchHelp": "No se guardó nada. Elija el archivo correcto para este paciente.",
+      "invalidDicomTitle": "Este no es un archivo DICOM válido o compatible.",
+      "invalidDicomHelp": "No se guardó nada. Elija otro archivo DICOM.",
+      "invalidDicomReason": "Motivo: {{reason}}",
+      "duplicateTitle": "Esta imagen DICOM ya fue enviada.",
+      "duplicateHelp": "No se guardó nada porque la misma imagen ya existe. Elija un archivo distinto.",
+      "zipInvalidTitle": "Este archivo no es un ZIP válido.",
+      "zipInvalidHelp": "No se guardó nada. Compruebe que el archivo se abre en su equipo e intente de nuevo.",
+      "zipUnsafeTitle": "El ZIP contiene un archivo con un nombre no seguro.",
+      "zipUnsafeHelp": "No se guardó nada. Vuelva a crear el ZIP usando solo nombres de archivo sencillos.",
+      "zipLimitsTitle": "El ZIP es demasiado grande o tiene demasiados archivos.",
+      "zipLimitsHelp": "No se guardó nada. Cada ZIP admite hasta {{maxSize}} GB y {{maxEntries}} archivos.",
+      "noValidInstancesTitle": "Ningún archivo del ZIP es un DICOM válido de este estudio.",
+      "noValidInstancesHelp": "No se guardó nada. Compruebe que el ZIP contiene los archivos DICOM de este examen."
+    }
   }
 }

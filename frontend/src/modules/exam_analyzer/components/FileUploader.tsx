@@ -1,12 +1,12 @@
 import { useState, useRef } from "react"
 import { useTranslation } from "react-i18next"
-import { UploadCloud, FileText, X, CheckCircle2, AlertCircle } from "lucide-react"
+import { UploadCloud, FileText, X, CheckCircle2, AlertCircle, ShieldAlert } from "lucide-react"
 import { Button } from "@/shared/components/ui/button"
 import { Progress } from "@/shared/components/ui/progress"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card"
 import { Input } from "@/shared/components/ui/input"
 import { Checkbox } from "@/shared/components/ui/checkbox"
-import { Alert, AlertDescription } from "@/shared/components/ui/alert"
+import { Alert, AlertDescription, AlertTitle } from "@/shared/components/ui/alert"
 import { Badge } from "@/shared/components/ui/badge"
 import { Spinner } from "@/shared/components/ui/spinner"
 import { Field, FieldContent, FieldDescription, FieldLabel, FieldTitle } from "@/shared/components/ui/field"
@@ -17,13 +17,50 @@ import {
   formatFileSize,
   validateExamFile,
 } from "../exam_file_validation"
+import { ExamUploadErrorCode } from "../types"
 
-export type UploadOutcome = "success" | "failed" | "cancelled"
+export type UploadStatus = "success" | "failed" | "cancelled"
 
-type UploadResult = "idle" | UploadOutcome
+export interface UploadOutcome {
+  status: UploadStatus
+  errorCode?: string
+}
+
+type UploadResult = "idle" | UploadStatus
+
+const SERVER_ERROR_MESSAGE_KEYS = {
+  [ExamUploadErrorCode.FILE_CONTENT_MISMATCH]: {
+    title: "uploader.serverError.contentMismatchTitle",
+    help: "uploader.serverError.contentMismatchHelp",
+  },
+  [ExamUploadErrorCode.FILE_CORRUPTED]: {
+    title: "uploader.serverError.corruptedTitle",
+    help: "uploader.serverError.corruptedHelp",
+  },
+  [ExamUploadErrorCode.FILE_EMPTY]: {
+    title: "uploader.serverError.emptyTitle",
+    help: "uploader.serverError.emptyHelp",
+  },
+  [ExamUploadErrorCode.DEIDENTIFICATION_REQUIRED]: {
+    title: "uploader.serverError.deidentificationTitle",
+    help: "uploader.serverError.deidentificationHelp",
+  },
+} as const
+
+const resolveServerErrorKeys = (errorCode: string | null) => {
+  if (errorCode && errorCode in SERVER_ERROR_MESSAGE_KEYS) {
+    return SERVER_ERROR_MESSAGE_KEYS[errorCode as keyof typeof SERVER_ERROR_MESSAGE_KEYS]
+  }
+  return { title: "uploader.failedTitle", help: "uploader.failedHelp" } as const
+}
 
 interface FileUploaderProperties {
-  onUpload: (file: File, consent: boolean, anonymize: boolean) => Promise<UploadOutcome>
+  onUpload: (
+    file: File,
+    consent: boolean,
+    anonymize: boolean,
+    acknowledgeExternalProcessing: boolean
+  ) => Promise<UploadOutcome>
   onCancel: () => void
   isPending: boolean
   uploadProgress: number | null
@@ -37,7 +74,9 @@ export const FileUploader = ({ onUpload, onCancel, isPending, uploadProgress }: 
   const { t } = useTranslation("examAnalyzer")
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [consentChecked, setConsentChecked] = useState(false)
-  const [anonymizeChecked, setAnonymizeChecked] = useState(false)
+  const [anonymizeChecked, setAnonymizeChecked] = useState(true)
+  const [externalProcessingAcknowledged, setExternalProcessingAcknowledged] = useState(false)
+  const [uploadErrorCode, setUploadErrorCode] = useState<string | null>(null)
   const [fileError, setFileError] = useState<string | null>(null)
   const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false)
   const [uploadResult, setUploadResult] = useState<UploadResult>("idle")
@@ -55,6 +94,7 @@ export const FileUploader = ({ onUpload, onCancel, isPending, uploadProgress }: 
 
   const validateAndSetFile = (file: File) => {
     setUploadResult("idle")
+    setUploadErrorCode(null)
     const validationError = validateExamFile(file)
     if (validationError) {
       const errorKeys = {
@@ -111,12 +151,25 @@ export const FileUploader = ({ onUpload, onCancel, isPending, uploadProgress }: 
     setSelectedFile(null)
     setFileError(null)
     setUploadResult("idle")
+    setUploadErrorCode(null)
     resetFileInput()
   }
+
+  const handleAnonymizeChange = (checked: boolean) => {
+    setAnonymizeChecked(checked)
+    if (checked) {
+      setExternalProcessingAcknowledged(false)
+    }
+  }
+
+  const requiresExternalProcessingAcknowledgement = !anonymizeChecked
 
   const missingRequirements = [
     ...(selectedFile ? [] : [t("uploader.missingFile")]),
     ...(consentChecked ? [] : [t("uploader.missingConsent")]),
+    ...(requiresExternalProcessingAcknowledgement && !externalProcessingAcknowledged
+      ? [t("uploader.missingAcknowledgement")]
+      : []),
   ]
 
   const handleFormSubmit = async (event: React.FormEvent) => {
@@ -125,16 +178,24 @@ export const FileUploader = ({ onUpload, onCancel, isPending, uploadProgress }: 
       return
     }
     setHasAttemptedSubmit(true)
-    if (!selectedFile || !consentChecked) {
+    if (!selectedFile || missingRequirements.length > 0) {
       return
     }
     setUploadResult("idle")
-    const outcome = await onUpload(selectedFile, consentChecked, anonymizeChecked)
-    setUploadResult(outcome)
-    if (outcome === "success") {
+    setUploadErrorCode(null)
+    const outcome = await onUpload(
+      selectedFile,
+      consentChecked,
+      anonymizeChecked,
+      requiresExternalProcessingAcknowledgement && externalProcessingAcknowledged
+    )
+    setUploadResult(outcome.status)
+    setUploadErrorCode(outcome.errorCode ?? null)
+    if (outcome.status === "success") {
       setSelectedFile(null)
       setConsentChecked(false)
-      setAnonymizeChecked(false)
+      setAnonymizeChecked(true)
+      setExternalProcessingAcknowledged(false)
       setHasAttemptedSubmit(false)
       resetFileInput()
     }
@@ -153,6 +214,8 @@ export const FileUploader = ({ onUpload, onCancel, isPending, uploadProgress }: 
     if (uploadResult === "cancelled") return t("uploader.cancelledTitle")
     return ""
   })()
+
+  const failureKeys = resolveServerErrorKeys(uploadErrorCode)
 
   const fileDescribedBy = fileError ? `${FILE_HINT_ID} ${FILE_ERROR_ID}` : FILE_HINT_ID
 
@@ -183,8 +246,8 @@ export const FileUploader = ({ onUpload, onCancel, isPending, uploadProgress }: 
             <Alert variant="destructive">
               <AlertCircle aria-hidden="true" />
               <AlertDescription className="flex flex-col gap-0.5">
-                <span className="font-semibold">{t("uploader.failedTitle")}</span>
-                <span className="text-xs">{t("uploader.failedHelp")}</span>
+                <span className="font-semibold">{t(failureKeys.title)}</span>
+                <span className="text-xs">{t(failureKeys.help)}</span>
               </AlertDescription>
             </Alert>
           )}
@@ -324,7 +387,7 @@ export const FileUploader = ({ onUpload, onCancel, isPending, uploadProgress }: 
                   checked={anonymizeChecked}
                   disabled={isUploading}
                   aria-describedby="exam-anonymize-description"
-                  onCheckedChange={(checked) => setAnonymizeChecked(checked === true)}
+                  onCheckedChange={(checked) => handleAnonymizeChange(checked === true)}
                 />
                 <FieldContent className="text-left">
                   <FieldTitle className="flex flex-wrap items-center gap-2 text-xs font-semibold">
@@ -334,11 +397,49 @@ export const FileUploader = ({ onUpload, onCancel, isPending, uploadProgress }: 
                     </Badge>
                   </FieldTitle>
                   <FieldDescription id="exam-anonymize-description" className="text-[11px] leading-relaxed">
-                    {t("uploader.anonymizeDesc")} {t("uploader.anonymizeIfUnchecked")}
+                    {t("uploader.anonymizeDesc")}
                   </FieldDescription>
+                  <p className="text-[11px] font-semibold leading-relaxed text-foreground">
+                    {t("uploader.anonymizeLimitation")}
+                  </p>
                 </FieldContent>
               </Field>
             </FieldLabel>
+
+            {requiresExternalProcessingAcknowledgement && (
+              <div className="flex animate-fade-in flex-col gap-3">
+                <Alert variant="warning">
+                  <ShieldAlert aria-hidden="true" />
+                  <AlertTitle className="line-clamp-none text-xs font-bold">
+                    {t("uploader.externalProcessingTitle")}
+                  </AlertTitle>
+                  <AlertDescription className="text-[11px] leading-relaxed text-warning">
+                    {t("uploader.externalProcessingWarning")}
+                  </AlertDescription>
+                </Alert>
+
+                <FieldLabel htmlFor="exam-acknowledge-external" className="cursor-pointer select-none">
+                  <Field orientation="horizontal" className="items-start p-3!">
+                    <Checkbox
+                      id="exam-acknowledge-external"
+                      checked={externalProcessingAcknowledged}
+                      disabled={isUploading}
+                      aria-required="true"
+                      aria-invalid={hasAttemptedSubmit && !externalProcessingAcknowledged}
+                      onCheckedChange={(checked) => setExternalProcessingAcknowledged(checked === true)}
+                    />
+                    <FieldContent className="text-left">
+                      <FieldTitle className="flex flex-wrap items-center gap-2 text-xs font-semibold">
+                        {t("uploader.acknowledgementTitle")}
+                        <Badge variant="destructive" className="text-[10px] uppercase">
+                          {t("uploader.required")}
+                        </Badge>
+                      </FieldTitle>
+                    </FieldContent>
+                  </Field>
+                </FieldLabel>
+              </div>
+            )}
           </section>
 
           <section

@@ -44,6 +44,32 @@ export interface ExamAnalysis {
   analysis_response: MedicalAnalysisResponse | { status: typeof ExamAnalysisStatus.INSUFFICIENT_DATA; message: string }
   consent_given: boolean
   anonymized: boolean
+  anonymizationReport?: AnonymizationReport | null
   created_at: string
   updated_at: string
+}
+
+export interface AnonymizationReport {
+  applied: boolean
+  steps: string[]
+  limitations: string[]
+}
+
+export const ExamUploadErrorCode = {
+  DEIDENTIFICATION_REQUIRED: "DEIDENTIFICATION_REQUIRED",
+  FILE_CONTENT_MISMATCH: "FILE_CONTENT_MISMATCH",
+  FILE_CORRUPTED: "FILE_CORRUPTED",
+  FILE_EMPTY: "FILE_EMPTY",
+} as const
+
+export type ExamUploadErrorCode = typeof ExamUploadErrorCode[keyof typeof ExamUploadErrorCode]
+
+export interface UploadExamPayload {
+  file: File
+  consent: boolean
+  anonymize: boolean
+  acknowledgeExternalProcessing?: boolean
+  patientFhirId?: string
+  onUploadProgress?: (progressPercentage: number) => void
+  signal?: AbortSignal
 }

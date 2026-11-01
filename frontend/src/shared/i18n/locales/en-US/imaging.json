@@ -43,7 +43,23 @@
     "modality": "Clinical Modality",
     "busStatus": "Bus Status",
     "seriesSlices": "Series / Slices",
-    "activeSlice": "Slice #1 (Active View)"
+    "activeSlice": "Slice #1 (Active View)",
+    "studyDate": "Study Date",
+    "accessionNumber": "Accession Number",
+    "studyUid": "Study UID",
+    "seriesUid": "Series UID",
+    "instanceUid": "Instance UID",
+    "files": {
+      "show": "Show files",
+      "hide": "Hide files",
+      "loading": "Loading files...",
+      "loadError": "The files of this study could not be loaded.",
+      "empty": "No files were found for this study.",
+      "count_one": "{{count}} file",
+      "count_other": "{{count}} files",
+      "download": "Download",
+      "downloadLabel": "Download {{fileName}}"
+    }
   },
   "retry": "Try again",
   "studyNotFound": "Study not found",
@@ -52,17 +68,69 @@
     "sectionLabel": "Upload DICOM study",
     "dropTitle": "Drag a DICOM file here or choose one",
     "dropActive": "Drop the file to start the upload",
-    "guidelines": "Accepted format: DICOM (.dcm), up to {{maxSize}} GB. The upload starts as soon as you pick the file.",
+    "guidelines": "Accepted format: DICOM (.dcm), up to {{maxSize}} GB. One exam: a single .dcm file or a .zip with all its files (ZIP up to {{maxSize}} GB and {{maxEntries}} files). The upload starts as soon as you pick the file.",
     "errorEmpty": "\"{{fileName}}\" is empty (0 bytes). Choose a different file.",
-    "errorType": "\"{{fileName}}\" is not a DICOM file. Choose a file ending in .dcm.",
+    "errorType": "\"{{fileName}}\" is not a DICOM or ZIP file. Choose a file ending in .dcm or .zip.",
     "errorLimit": "\"{{fileName}}\" is {{size}}, above the {{maxSize}} GB limit. Choose a smaller file.",
+    "errorZipLimit": "\"{{fileName}}\" is {{size}}, above the ZIP limit of {{maxSize}} GB. Choose a smaller archive.",
+    "errorZipInvalid": "\"{{fileName}}\" is not a valid ZIP file. Choose a .zip with all the files of one exam.",
     "cancel": "Cancel upload",
     "retry": "Try again",
-    "successTitle": "DICOM sent. It is being processed.",
     "successNextStep": "The new images will be available in the imaging studies of this patient shortly.",
     "failedTitle": "The DICOM file could not be uploaded.",
     "failedHelp": "\"{{fileName}}\" was kept. Check your connection and try again.",
     "cancelledTitle": "Upload cancelled.",
-    "cancelledHelp": "Nothing was saved. You can try the same file again."
+    "cancelledHelp": "Nothing was saved. You can try the same file again.",
+    "result": {
+      "created": "New study created",
+      "appended": "Files added to the existing study",
+      "acceptedCount_one": "{{count}} image accepted",
+      "acceptedCount_other": "{{count}} images accepted",
+      "rejectedTitle_one": "{{count}} file was not added",
+      "rejectedTitle_other": "{{count}} files were not added",
+      "reasons": {
+        "duplicate": "Already stored in this study",
+        "invalid": "Not a valid DICOM file",
+        "unsupportedTransferSyntax": "Compressed format not supported",
+        "missingIdentifiers": "Missing patient or study identifiers",
+        "unknown": "The file could not be read"
+      }
+    },
+    "summary": {
+      "title": "What was read from the file",
+      "modality": "Modality",
+      "studyDate": "Study date",
+      "accessionNumber": "Accession number",
+      "studyUid": "Study UID",
+      "seriesUid": "Series UID",
+      "instanceUid": "Instance UID",
+      "copyUid": "Copy study UID",
+      "copied": "Study UID copied.",
+      "copyError": "Could not copy the study UID."
+    },
+    "warnings": {
+      "patient_identity_missing": "The file has no patient identification, so it could not be checked against the selected patient. Confirm it belongs to this patient.",
+      "anonymized_study": "This study appears to be anonymized. Patient data may be missing or replaced.",
+      "duplicate_instance": "This image was already uploaded before. A duplicate may exist in the study.",
+      "modality_overridden": "The modality you entered was replaced by the one stored in the DICOM file.",
+      "unknown": "The server reported a notice about this file. Review the study before using it."
+    },
+    "errors": {
+      "patientMismatchTitle": "This DICOM belongs to a different patient than the one selected.",
+      "patientMismatchHelp": "Nothing was saved. Choose the correct file for this patient.",
+      "invalidDicomTitle": "This is not a valid or supported DICOM file.",
+      "invalidDicomHelp": "Nothing was saved. Choose another DICOM file.",
+      "invalidDicomReason": "Reason: {{reason}}",
+      "duplicateTitle": "This DICOM image was already uploaded.",
+      "duplicateHelp": "Nothing was saved because the same image already exists. Choose a different file.",
+      "zipInvalidTitle": "This file is not a valid ZIP archive.",
+      "zipInvalidHelp": "Nothing was saved. Check that the archive opens on your computer and try again.",
+      "zipUnsafeTitle": "The ZIP contains a file with an unsafe name.",
+      "zipUnsafeHelp": "Nothing was saved. Create the ZIP again with plain file names only.",
+      "zipLimitsTitle": "The ZIP is too large or has too many files.",
+      "zipLimitsHelp": "Nothing was saved. Each ZIP can hold up to {{maxSize}} GB and {{maxEntries}} files.",
+      "noValidInstancesTitle": "No file in the ZIP is a valid DICOM of this study.",
+      "noValidInstancesHelp": "Nothing was saved. Check that the ZIP contains the DICOM files of this exam."
+    }
   }
 }

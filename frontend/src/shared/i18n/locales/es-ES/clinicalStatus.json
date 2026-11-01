@@ -45,7 +45,12 @@
     "available": "Disponible",
     "cancelled": "Cancelado",
     "entered-in-error": "Registrado por error",
-    "unknown": "Desconocido"
+    "unknown": "Desconocido",
+    "RECEIVING": "Recibiendo",
+    "PROCESSING": "Procesando",
+    "READY": "Listo",
+    "PARTIAL": "Parcial",
+    "FAILED": "Falló"
   },
   "allergy": {
     "active": "Activa",

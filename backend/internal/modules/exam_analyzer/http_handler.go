@@ -2,6 +2,7 @@ package exam_analyzer
 
 import (
 	"encoding/json"
+	"errors"
 	"log/slog"
 	"net/http"
 	"path/filepath"
@@ -67,7 +68,7 @@ func (handler *HTTPHandler) ListAnalyses(httpResponseWriter http.ResponseWriter,
 // CreateAnalysis godoc
 //
 //	@Summary		Create exam analysis
-//	@Description	Uploads a medical exam file for AI analysis with consent tracking and optional anonymization
+//	@Description	Uploads a medical exam file for AI analysis with consent tracking and optional de-identification. The real file content is validated (magic bytes, structure, extension match) before anything is stored. When anonymize is true, embedded metadata (EXIF/XMP/IPTC, PNG text chunks, PDF info and XMP) is removed losslessly and a neutral file name is used for the AI call; text burned into the pixels is NOT removed and is reported in anonymizationReport.limitations. Error codes (HTTP 422): FILE_CONTENT_MISMATCH, FILE_CORRUPTED, FILE_EMPTY.
 //	@Tags			exam_analyzer
 //	@Accept			mpfd
 //	@Produce		json
@@ -78,6 +79,7 @@ func (handler *HTTPHandler) ListAnalyses(httpResponseWriter http.ResponseWriter,
 //	@Param			file			formData	file	true	"Medical exam file"
 //	@Success		201				{object}	ExamAnalysisResponse
 //	@Failure		400				{object}	map[string]string
+//	@Failure		413				{object}	map[string]string
 //	@Failure		422				{object}	map[string]string
 //	@Failure		500				{object}	map[string]string
 //	@Router			/exam-analyses [post]
@@ -157,6 +159,11 @@ func (handler *HTTPHandler) CreateAnalysis(httpResponseWriter http.ResponseWrite
 	}
 
 	if saveErr := handler.service.CreateAnalysis(httpRequest.Context(), newAnalysisRecord, file); saveErr != nil {
+		var appError apperrors.AppError
+		if errors.As(saveErr, &appError) {
+			render.ErrorFromAppError(httpResponseWriter, saveErr)
+			return
+		}
 		slog.Error("failed to save analysis metadata", "error", saveErr, "analysis_id", analysisID, "request_id", middleware.GetRequestID(httpRequest.Context()))
 		render.Error(httpResponseWriter, http.StatusInternalServerError, "Falha ao salvar metadados da análise.")
 		return
@@ -300,6 +307,14 @@ type ExamAnalysisResponse struct {
 	Anonymized       bool   `json:"anonymized"`
 	CreatedAt        string `json:"created_at"`
 	UpdatedAt        string `json:"updated_at"`
+
+	AnonymizationReport *AnonymizationReportResponse `json:"anonymizationReport"`
+}
+
+type AnonymizationReportResponse struct {
+	Applied     bool     `json:"applied"`
+	Steps       []string `json:"steps"`
+	Limitations []string `json:"limitations"`
 }
 
 type DeleteAnalysisResponse struct {

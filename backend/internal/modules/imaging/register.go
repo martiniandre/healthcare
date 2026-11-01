@@ -3,6 +3,7 @@ package imaging
 import (
 	"github.com/healthcare/backend/internal/modules/audit_logs"
 	"github.com/healthcare/backend/internal/modules/imaging/pb"
+	"github.com/healthcare/backend/internal/shared/healthcare"
 	"github.com/healthcare/backend/internal/shared/storage"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"
@@ -14,11 +15,16 @@ type Dependency struct {
 	Storage      storage.StorageClient
 	Redis        *redis.Client
 	AuditService audit_logs.Service
+	FHIRClient   healthcare.FHIRClient
 }
 
 func Register(grpcServer *grpc.Server, dep Dependency) Service {
 	repo := NewRepository(dep.DB)
-	svc := NewService(repo, dep.Storage, dep.Redis, dep.AuditService)
+	var identityReader PatientIdentityReader
+	if dep.FHIRClient != nil {
+		identityReader = NewFHIRPatientIdentityReader(dep.FHIRClient)
+	}
+	svc := NewService(repo, dep.Storage, dep.Redis, dep.AuditService, identityReader)
 	handler := NewGRPCHandler(svc)
 	pb.RegisterImagingServiceServer(grpcServer, handler)
 	return svc

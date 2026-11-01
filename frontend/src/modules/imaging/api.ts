@@ -1,5 +1,11 @@
 import { http } from "../../shared/utils/http"
-import type { ImagingStudy, UploadImagingStudyPayload } from "./types"
+import type { DicomUploadResult, ImagingStudy, ImagingStudyInstance, UploadImagingStudyPayload } from "./types"
+
+const DEFAULT_DICOM_FILE_NAME = "study.dcm"
+
+const resolveUploadFileName = (dicomBlob: Blob): string => {
+  return dicomBlob instanceof File && dicomBlob.name !== "" ? dicomBlob.name : DEFAULT_DICOM_FILE_NAME
+}
 
 export const imagingApi = {
   getImagingStudies: async (patientFhirId: string): Promise<ImagingStudy[]> => {
@@ -10,13 +16,21 @@ export const imagingApi = {
     return http.get<ImagingStudy>(`/studies/${imagingStudyId}`)
   },
 
-  uploadImagingStudy: async (payload: UploadImagingStudyPayload): Promise<ImagingStudy> => {
-    const uploadFormData = new FormData()
-    uploadFormData.append("title", payload.title)
-    uploadFormData.append("modality", payload.modality)
-    uploadFormData.append("file", payload.dicomBlob, "study.dcm")
+  getImagingStudyInstances: async (imagingStudyId: string): Promise<ImagingStudyInstance[]> => {
+    return http.get<ImagingStudyInstance[]>(`/studies/${imagingStudyId}/instances`)
+  },
 
-    return http.post<ImagingStudy>(`/patients/${payload.patientFhirId}/studies`, uploadFormData, {
+  uploadImagingStudy: async (payload: UploadImagingStudyPayload): Promise<DicomUploadResult> => {
+    const uploadFormData = new FormData()
+    if (payload.title) {
+      uploadFormData.append("title", payload.title)
+    }
+    if (payload.modality) {
+      uploadFormData.append("modality", payload.modality)
+    }
+    uploadFormData.append("file", payload.dicomBlob, resolveUploadFileName(payload.dicomBlob))
+
+    return http.post<DicomUploadResult>(`/patients/${payload.patientFhirId}/studies`, uploadFormData, {
       signal: payload.signal,
       onUploadProgress: (progressEvent) => {
         if (payload.onUploadProgress && progressEvent.total) {

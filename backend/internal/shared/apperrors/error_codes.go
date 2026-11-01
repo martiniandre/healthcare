@@ -181,6 +181,54 @@ var (
 		GRPCCode: codes.InvalidArgument,
 		HTTPCode: http.StatusBadRequest,
 		Message:  "invalid dicom file structure or preamble signature",
+		Code:     "INVALID_DICOM",
+	}
+	ErrDICOMPatientMismatch = AppError{
+		GRPCCode: codes.FailedPrecondition,
+		HTTPCode: http.StatusUnprocessableEntity,
+		Message:  "the dicom file does not belong to the selected patient",
+		Code:     "DICOM_PATIENT_MISMATCH",
+	}
+	ErrDICOMDuplicateInstance = AppError{
+		GRPCCode: codes.AlreadyExists,
+		HTTPCode: http.StatusConflict,
+		Message:  "this dicom study was already uploaded",
+		Code:     "DICOM_DUPLICATE_INSTANCE",
+	}
+
+	ErrZIPInvalid = AppError{
+		GRPCCode: codes.InvalidArgument,
+		HTTPCode: http.StatusUnprocessableEntity,
+		Message:  "uploaded archive is not a readable ZIP file",
+		Code:     "ZIP_INVALID",
+	}
+
+	ErrZIPUnsafeEntry = AppError{
+		GRPCCode: codes.InvalidArgument,
+		HTTPCode: http.StatusUnprocessableEntity,
+		Message:  "archive contains an entry with an unsafe path or link",
+		Code:     "ZIP_UNSAFE_ENTRY",
+	}
+
+	ErrZIPLimitsExceeded = AppError{
+		GRPCCode: codes.ResourceExhausted,
+		HTTPCode: http.StatusRequestEntityTooLarge,
+		Message:  "archive exceeds the allowed size, entry count or compression limits",
+		Code:     "ZIP_LIMITS_EXCEEDED",
+	}
+
+	ErrDICOMNoValidInstances = AppError{
+		GRPCCode: codes.InvalidArgument,
+		HTTPCode: http.StatusUnprocessableEntity,
+		Message:  "no DICOM instance in the upload could be accepted",
+		Code:     "DICOM_NO_VALID_INSTANCES",
+	}
+
+	ErrDICOMMultipleInstances = AppError{
+		GRPCCode: codes.FailedPrecondition,
+		HTTPCode: http.StatusConflict,
+		Message:  "imaging study has multiple instances; download them through the instances endpoint",
+		Code:     "MULTIPLE_INSTANCES",
 	}
 
 	ErrDeidentificationRequired = AppError{
@@ -193,6 +241,27 @@ var (
 		GRPCCode: codes.ResourceExhausted,
 		HTTPCode: http.StatusRequestEntityTooLarge,
 		Message:  "uploaded file exceeds the maximum allowed size",
+	}
+
+	ErrFileContentMismatch = AppError{
+		GRPCCode: codes.InvalidArgument,
+		HTTPCode: http.StatusUnprocessableEntity,
+		Message:  "file content does not match its extension",
+		Code:     "FILE_CONTENT_MISMATCH",
+	}
+
+	ErrFileCorrupted = AppError{
+		GRPCCode: codes.InvalidArgument,
+		HTTPCode: http.StatusUnprocessableEntity,
+		Message:  "file is corrupted or incomplete",
+		Code:     "FILE_CORRUPTED",
+	}
+
+	ErrFileEmpty = AppError{
+		GRPCCode: codes.InvalidArgument,
+		HTTPCode: http.StatusUnprocessableEntity,
+		Message:  "file is empty",
+		Code:     "FILE_EMPTY",
 	}
 
 	ErrRateLimitExceeded = AppError{

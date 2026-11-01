@@ -29,6 +29,7 @@ import {
   type UrgencyTone,
 } from "../exam_analysis_domain"
 import { cn } from "@/shared/utils/cn"
+import { AnonymizationSummary } from "./AnonymizationSummary"
 
 interface AnalysisCardProperties {
   activeAnalysis: ExamAnalysis | null
@@ -250,6 +251,10 @@ export const AnalysisCard = ({ activeAnalysis }: AnalysisCardProperties) => {
               )}
             </AlertDescription>
           </Alert>
+
+          {activeAnalysis.anonymizationReport !== undefined && (
+            <AnonymizationSummary report={activeAnalysis.anonymizationReport} />
+          )}
 
           {qualityWarnings.length > 0 && (
             <Alert>

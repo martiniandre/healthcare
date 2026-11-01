@@ -146,6 +146,8 @@ func TestHTTPRoutePermissions(testingInstance *testing.T) {
 		"GET /api/v1/patients/{patientFhirId}/studies":  "ADMIN,DOCTOR,NURSE",
 		"POST /api/v1/patients/{patientFhirId}/studies": "ADMIN,DOCTOR,NURSE",
 		"GET /api/v1/studies/{studyId}":                 "ADMIN,DOCTOR,NURSE",
+		"GET /api/v1/studies/{studyId}/download-url":    "ADMIN,DOCTOR,NURSE",
+		"GET /api/v1/studies/{studyId}/instances":       "ADMIN,DOCTOR,NURSE",
 
 		"GET /api/v1/exam-analyses":                 "ADMIN,DOCTOR,NURSE",
 		"POST /api/v1/exam-analyses":                "ADMIN,DOCTOR,NURSE",

@@ -18,8 +18,8 @@
     "fileGuidelines": "Formatos admitidos: PNG, JPG o PDF. Hasta {{maxSize}} MB, un archivo cada vez.",
     "consentTitle": "Consentimiento del Paciente",
     "consentDesc": "Confirmo que poseo la autorización expresa del paciente para enviar sus datos e imágenes a procesamiento clínico asistido.",
-    "anonymizeTitle": "Anonimización de Seguridad (Recomendado)",
-    "anonymizeDesc": "Sustituye el nombre del archivo enviado por un identificador UUID criptográfico seguro antes de guardarlo en almacenamiento temporal.",
+    "anonymizeTitle": "Eliminar datos identificativos del archivo (recomendado)",
+    "anonymizeDesc": "Elimina los metadatos del archivo y su nombre original antes de enviar el examen a análisis.",
     "clearFile": "Quitar archivo seleccionado",
     "uploading": "Transmitiendo archivo al servidor...",
     "processing": "Procesando Análisis...",
@@ -36,7 +36,6 @@
     "required": "Obligatorio",
     "optional": "Opcional",
     "consentIfUnchecked": "Sin esta confirmación no se puede enviar el examen.",
-    "anonymizeIfUnchecked": "Si no se marca, se conserva el nombre original del archivo y no se aplica desidentificación.",
     "missingFile": "Elija el archivo del examen (paso 1).",
     "missingConsent": "Confirme el consentimiento del paciente (paso 2).",
     "stillNeeded": "Para enviar, aún falta:",
@@ -48,7 +47,22 @@
     "failedTitle": "No se pudo enviar el examen.",
     "failedHelp": "Se conservaron el archivo y las opciones. Revise su conexión e intente enviar de nuevo.",
     "cancelledTitle": "Envío cancelado.",
-    "cancelledHelp": "No se envió nada. Se conservaron el archivo y las opciones para que pueda intentarlo de nuevo."
+    "cancelledHelp": "No se envió nada. Se conservaron el archivo y las opciones para que pueda intentarlo de nuevo.",
+    "anonymizeLimitation": "El texto impreso dentro de la imagen NO se elimina. Evite imágenes en las que se vean nombres o números de documento.",
+    "externalProcessingTitle": "El examen se enviará con datos identificativos",
+    "externalProcessingWarning": "El archivo original, incluidos los datos que identifican al paciente, como nombre, números de documento, metadatos y nombre del archivo, será procesado por un servicio externo de inteligencia artificial.",
+    "acknowledgementTitle": "Entiendo que el examen se procesará sin anonimización",
+    "missingAcknowledgement": "Confirme que entiende que el examen se procesará sin anonimización (paso 2).",
+    "serverError": {
+      "contentMismatchTitle": "El contenido del archivo no coincide con su extensión.",
+      "contentMismatchHelp": "El archivo parece ser de un tipo distinto al que indica su nombre. Se conservó su archivo: elija el archivo correcto del examen con Cambiar archivo y envíe de nuevo.",
+      "corruptedTitle": "El archivo parece estar dañado.",
+      "corruptedHelp": "No se pudo leer este archivo. Se conservó su archivo: elija otra copia del examen con Cambiar archivo y envíe de nuevo.",
+      "emptyTitle": "El servidor recibió un archivo vacío.",
+      "emptyHelp": "El archivo no tiene contenido. Se conservó su archivo: elija el archivo correcto del examen con Cambiar archivo y envíe de nuevo.",
+      "deidentificationTitle": "El envío sin anonimización necesita su confirmación.",
+      "deidentificationHelp": "Mantenga la anonimización marcada o confirme que entiende que el examen se procesará sin ella y envíe de nuevo."
+    }
   },
   "card": {
     "noExam": "Ningún Examen Seleccionado",
@@ -102,7 +116,24 @@
     "interpretations": "Posibles Interpretaciones Clínicas",
     "limitations": "Limitaciones del Análisis Asistido",
     "disclaimerTitle": "Aviso Legal y Límite Tecnológico",
-    "loadError": "No se pudieron cargar los detalles de este análisis."
+    "loadError": "No se pudieron cargar los detalles de este análisis.",
+    "anonymization": {
+      "appliedBadge": "Anonimizado",
+      "notAppliedBadge": "Enviado sin anonimización",
+      "notAppliedDescription": "El archivo original, incluidos los datos identificativos, fue procesado por un servicio externo de inteligencia artificial.",
+      "stepsTitle": "Qué se hizo",
+      "steps": {
+        "metadata_removed": "Metadatos del archivo eliminados",
+        "filename_neutralized": "Nombre original del archivo reemplazado"
+      },
+      "limitationsTitle": "Lo que la anonimización no cubre",
+      "limitations": {
+        "burned_in_text_not_removed": "El texto impreso dentro de la imagen (nombres, números de documento) no se eliminó.",
+        "pdf_metadata_not_removed": "Los metadatos del PDF no se eliminaron."
+      },
+      "unknownStep": "Paso adicional de anonimización aplicado",
+      "unknownLimitation": "Limitación adicional informada por el servidor"
+    }
   },
   "history": {
     "title": "Historial de Análisis",

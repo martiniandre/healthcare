@@ -43,7 +43,7 @@ describe("examAnalyzerApi", () => {
     vi.mocked(http.post).mockResolvedValue({ id: "analysis-2" })
     const file = new File(["dicom-data"], "study.dcm", { type: "application/dicom" })
 
-    await examAnalyzerApi.uploadExamFile(file, true, false, "patient-9")
+    await examAnalyzerApi.uploadExamFile({ file, consent: true, anonymize: false, patientFhirId: "patient-9" })
 
     expect(http.post).toHaveBeenCalledWith("/exam-analyses", expect.any(FormData), expect.any(Object))
     const formData = vi.mocked(http.post).mock.calls[0][1] as FormData
@@ -51,13 +51,27 @@ describe("examAnalyzerApi", () => {
     expect(formData.get("consent")).toBe("true")
     expect(formData.get("anonymize")).toBe("false")
     expect(formData.get("patientFhirId")).toBe("patient-9")
+    expect(formData.get("acknowledgeExternalProcessing")).toBeNull()
+  })
+
+  it("should send the external processing acknowledgement only when anonymization is off", async () => {
+    vi.mocked(http.post).mockResolvedValue({ id: "analysis-6" })
+    const file = new File(["pdf"], "labs.pdf", { type: "application/pdf" })
+
+    await examAnalyzerApi.uploadExamFile({ file, consent: true, anonymize: false, acknowledgeExternalProcessing: true })
+    await examAnalyzerApi.uploadExamFile({ file, consent: true, anonymize: true, acknowledgeExternalProcessing: true })
+
+    const withoutAnonymization = vi.mocked(http.post).mock.calls[0][1] as FormData
+    const withAnonymization = vi.mocked(http.post).mock.calls[1][1] as FormData
+    expect(withoutAnonymization.get("acknowledgeExternalProcessing")).toBe("true")
+    expect(withAnonymization.get("acknowledgeExternalProcessing")).toBeNull()
   })
 
   it("should omit the patient filter from the upload when absent", async () => {
     vi.mocked(http.post).mockResolvedValue({ id: "analysis-3" })
     const file = new File(["dicom-data"], "study.dcm", { type: "application/dicom" })
 
-    await examAnalyzerApi.uploadExamFile(file, false, true)
+    await examAnalyzerApi.uploadExamFile({ file, consent: false, anonymize: true })
 
     const formData = vi.mocked(http.post).mock.calls[0][1] as FormData
     expect(formData.get("patientFhirId")).toBeNull()
@@ -68,7 +82,7 @@ describe("examAnalyzerApi", () => {
     const file = new File(["dicom-data"], "study.dcm", { type: "application/dicom" })
     const onUploadProgress = vi.fn()
 
-    await examAnalyzerApi.uploadExamFile(file, true, true, undefined, onUploadProgress)
+    await examAnalyzerApi.uploadExamFile({ file, consent: true, anonymize: true, onUploadProgress })
 
     const requestConfig = vi.mocked(http.post).mock.calls[0][2] as { onUploadProgress: (event: { loaded: number; total: number }) => void }
     requestConfig.onUploadProgress({ loaded: 50, total: 200 })

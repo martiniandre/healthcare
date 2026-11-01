@@ -17,6 +17,7 @@ import { Badge } from "@/shared/components/ui/badge"
 import { Alert, AlertDescription } from "@/shared/components/ui/alert"
 import { Button } from "@/shared/components/ui/button"
 import { PageContainer } from "../../shared/components/ui/PageContainer"
+import { extractApiErrorDetails } from "@/shared/utils/api_error"
 import type { ExamAnalysis } from "./types"
 
 export interface ExamAnalyzerProps {
@@ -95,7 +96,8 @@ export const ExamAnalyzer = ({ patientFhirId }: ExamAnalyzerProps = {}) => {
   const handleFileUpload = async (
     file: File,
     consent: boolean,
-    anonymize: boolean
+    anonymize: boolean,
+    acknowledgeExternalProcessing: boolean
   ): Promise<UploadOutcome> => {
     const abortController = new AbortController()
     uploadAbortControllerReference.current = abortController
@@ -105,6 +107,7 @@ export const ExamAnalyzer = ({ patientFhirId }: ExamAnalyzerProps = {}) => {
         file,
         consent,
         anonymize,
+        acknowledgeExternalProcessing,
         patientFhirId,
         signal: abortController.signal,
         onUploadProgress: (percentage) => {
@@ -114,13 +117,13 @@ export const ExamAnalyzer = ({ patientFhirId }: ExamAnalyzerProps = {}) => {
       
       toast.success(t("toast.uploadSuccess"))
       setSelectedAnalysisID(createdRecord.id)
-      return "success"
-    } catch {
+      return { status: "success" }
+    } catch (uploadError) {
       if (abortController.signal.aborted) {
-        return "cancelled"
+        return { status: "cancelled" }
       }
       toast.error(t("toast.uploadError"))
-      return "failed"
+      return { status: "failed", errorCode: extractApiErrorDetails(uploadError).code }
     } finally {
       uploadAbortControllerReference.current = null
       setUploadPercentageValue(null)

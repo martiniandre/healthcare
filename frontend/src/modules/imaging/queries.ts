@@ -6,12 +6,21 @@ export const imagingQueryKeys = {
   all: ["imaging"] as const,
   studies: (patientFhirId: string) => [...imagingQueryKeys.all, "studies", patientFhirId] as const,
   study: (imagingStudyId: string) => [...imagingQueryKeys.all, "study", imagingStudyId] as const,
+  instances: (imagingStudyId: string) => [...imagingQueryKeys.all, "instances", imagingStudyId] as const,
 }
 
 export const useImagingStudyQuery = (studyId: string) => {
   return useQuery({
     queryKey: imagingQueryKeys.study(studyId),
     queryFn: () => imagingApi.getImagingStudy(studyId),
+    enabled: !!studyId,
+  })
+}
+
+export const useImagingStudyInstancesQuery = (studyId: string) => {
+  return useQuery({
+    queryKey: imagingQueryKeys.instances(studyId),
+    queryFn: () => imagingApi.getImagingStudyInstances(studyId),
     enabled: !!studyId,
   })
 }
@@ -29,9 +38,11 @@ export const useUploadImagingStudyMutation = () => {
 
   return useMutation({
     mutationFn: (payload: UploadImagingStudyPayload) => imagingApi.uploadImagingStudy(payload),
-    onSuccess: (createdStudy, variables) => {
-      queryClient.setQueryData(imagingQueryKeys.study(createdStudy.id), createdStudy)
+    onSuccess: (uploadedStudy, variables) => {
+      const targetStudyId = uploadedStudy.studyId ?? uploadedStudy.id
+      queryClient.setQueryData(imagingQueryKeys.study(targetStudyId), uploadedStudy)
       queryClient.invalidateQueries({ queryKey: imagingQueryKeys.studies(variables.patientFhirId) })
+      queryClient.invalidateQueries({ queryKey: imagingQueryKeys.instances(targetStudyId) })
     },
   })
 }

@@ -2,6 +2,7 @@ package imaging
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -13,6 +14,8 @@ import (
 	"github.com/healthcare/backend/internal/shared/healthcare"
 	"github.com/redis/go-redis/v9"
 )
+
+const imagingStudyResourceType = "ImagingStudy"
 
 type Worker struct {
 	dbRepository     Repository
@@ -47,7 +50,7 @@ func (worker *Worker) Start(ctx context.Context) {
 				continue
 			}
 
-			popResults, popError := worker.redisClient.BRPop(ctx, 5*time.Second, "dicom_processing_queue").Result()
+			popResults, popError := worker.redisClient.BRPop(ctx, 5*time.Second, processingQueueKey).Result()
 			if popError != nil {
 				if !errors.Is(popError, redis.Nil) && !errors.Is(popError, context.Canceled) {
 					slog.Warn("failed to pop imaging job from queue", "error", popError)
@@ -91,49 +94,40 @@ func (worker *Worker) processDICOM(ctx context.Context, studyIDString string) {
 		return
 	}
 
-	studyInstanceUID := fmt.Sprintf("1.2.826.0.1.3680043.8.498.%s", uuid.New().String())
+	imagingSeries, seriesError := worker.buildImagingSeries(ctx, study)
+	if seriesError != nil {
+		slog.Error("failed to load imaging study instances", "id", studyIDString, "error", seriesError)
+		study.Status = ImagingStudyStatusFailed
+		study.UpdatedAt = time.Now()
+		if updateError := worker.dbRepository.UpdateImagingStudy(ctx, study); updateError != nil {
+			slog.Error("failed to persist failed imaging study status", "id", studyIDString, "error", updateError)
+		}
+		return
+	}
 
-	imagingSeries := []fhir.Series{
-		{
-			Uid:    fmt.Sprintf("1.2.826.0.1.3680043.8.498.series.%s", uuid.New().String()),
-			Number: 1,
-			Modality: fhir.Coding{
-				System:  "http://dicom.nema.org/resources/ontology/DCM",
-				Code:    study.Modality,
-				Display: study.Modality,
-			},
-			Instance: []fhir.Instance{
-				{
-					Uid: studyInstanceUID,
-					SopClass: fhir.Coding{
-						System: "http://dicom.nema.org/resources/ontology/DCM",
-						Code:   "1.2.840.10008.5.1.4.1.1.7",
-					},
-					Number: 1,
-				},
-			},
-		},
+	startedAt := study.CreatedAt
+	if study.StudyDateTime != nil {
+		startedAt = *study.StudyDateTime
 	}
 
 	fhirStudy := fhir.NewImagingStudyResource(
 		study.PatientFhirID,
 		"available",
-		study.CreatedAt.Format(time.RFC3339),
+		startedAt.Format(time.RFC3339),
 		study.Title,
 		imagingSeries,
 	)
 
-	var creationError error
+	var registrationError error
 	if worker.healthcareClient != nil {
-		_, creationError = worker.healthcareClient.CreateResource(ctx, "ImagingStudy", fhirStudy)
+		registrationError = worker.registerImagingStudy(ctx, study, fhirStudy)
 	}
 
-	if creationError != nil {
-		slog.Error("failed to register ImagingStudy FHIR resource", "id", studyIDString, "error", creationError)
+	if registrationError != nil {
+		slog.Error("failed to register ImagingStudy FHIR resource", "id", studyIDString, "error", registrationError)
 		study.Status = ImagingStudyStatusFailed
 	} else {
-		study.Status = ImagingStudyStatusProcessed
-		study.StudyInstanceUID = studyInstanceUID
+		study.Status = ImagingStudyStatusReady
 	}
 
 	study.UpdatedAt = time.Now()
@@ -142,4 +136,65 @@ func (worker *Worker) processDICOM(ctx context.Context, studyIDString string) {
 		return
 	}
 	slog.Info("imaging study processed and registered successfully", "id", studyIDString, "status", study.Status)
+}
+
+func (worker *Worker) registerImagingStudy(ctx context.Context, study *ImagingStudy, fhirStudy *fhir.ImagingStudyResource) error {
+	if study.FHIRResourceID != "" {
+		fhirStudy.ID = study.FHIRResourceID
+		_, updateError := worker.healthcareClient.UpdateResource(ctx, imagingStudyResourceType, study.FHIRResourceID, fhirStudy)
+		return updateError
+	}
+
+	responseBody, createError := worker.healthcareClient.CreateResource(ctx, imagingStudyResourceType, fhirStudy)
+	if createError != nil {
+		return createError
+	}
+	var createdResource struct {
+		ID string `json:"id"`
+	}
+	if decodeError := json.Unmarshal(responseBody, &createdResource); decodeError != nil {
+		return fmt.Errorf("failed to read created ImagingStudy id: %w", decodeError)
+	}
+	study.FHIRResourceID = createdResource.ID
+	return nil
+}
+
+func (worker *Worker) buildImagingSeries(ctx context.Context, study *ImagingStudy) ([]fhir.Series, error) {
+	instances, listError := worker.dbRepository.ListInstances(ctx, study.ID)
+	if listError != nil {
+		return nil, listError
+	}
+
+	var seriesOrder []string
+	seriesByUID := make(map[string]*fhir.Series)
+	for _, instance := range instances {
+		series, known := seriesByUID[instance.SeriesInstanceUID]
+		if !known {
+			series = &fhir.Series{
+				Uid:    instance.SeriesInstanceUID,
+				Number: instance.SeriesNumber,
+				Modality: fhir.Coding{
+					System:  "http://dicom.nema.org/resources/ontology/DCM",
+					Code:    instance.Modality,
+					Display: instance.Modality,
+				},
+			}
+			seriesByUID[instance.SeriesInstanceUID] = series
+			seriesOrder = append(seriesOrder, instance.SeriesInstanceUID)
+		}
+		series.Instance = append(series.Instance, fhir.Instance{
+			Uid: instance.SOPInstanceUID,
+			SopClass: fhir.Coding{
+				System: "urn:ietf:rfc:3986",
+				Code:   "urn:oid:" + instance.SOPClassUID,
+			},
+			Number: instance.InstanceNumber,
+		})
+	}
+
+	imagingSeries := make([]fhir.Series, 0, len(seriesOrder))
+	for _, seriesUID := range seriesOrder {
+		imagingSeries = append(imagingSeries, *seriesByUID[seriesUID])
+	}
+	return imagingSeries, nil
 }

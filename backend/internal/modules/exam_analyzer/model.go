@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/healthcare/backend/internal/shared/filecontent"
 )
 
 type ExamAnalysis struct {
@@ -17,8 +18,11 @@ type ExamAnalysis struct {
 	AnalysisResponse json.RawMessage `db:"analysis_response" json:"analysis_response"`
 	ConsentGiven     bool            `db:"consent_given"    json:"consent_given"`
 	Anonymized       bool            `db:"anonymized"       json:"anonymized"`
-	CreatedAt        time.Time       `db:"created_at"       json:"created_at"`
-	UpdatedAt        time.Time       `db:"updated_at"       json:"updated_at"`
+
+	AnonymizationReport *filecontent.AnonymizationReport `db:"anonymization_report" json:"anonymizationReport"`
+
+	CreatedAt time.Time `db:"created_at"       json:"created_at"`
+	UpdatedAt time.Time `db:"updated_at"       json:"updated_at"`
 }
 
 type ExamAnalysisAuditLog struct {

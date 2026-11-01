@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { examAnalyzerApi } from "./api"
+import type { UploadExamPayload } from "./types"
 
 export const examAnalyzerKeys = {
   all: ["exam_analyses"] as const,
@@ -29,22 +30,7 @@ export const useExamAnalysisQuery = (
 export const useUploadExamMutation = () => {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (variables: {
-      file: File
-      consent: boolean
-      anonymize: boolean
-      patientFhirId?: string
-      onUploadProgress?: (progressPercentage: number) => void
-      signal?: AbortSignal
-    }) =>
-      examAnalyzerApi.uploadExamFile(
-        variables.file,
-        variables.consent,
-        variables.anonymize,
-        variables.patientFhirId,
-        variables.onUploadProgress,
-        variables.signal
-      ),
+    mutationFn: (payload: UploadExamPayload) => examAnalyzerApi.uploadExamFile(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: examAnalyzerKeys.all })
     },

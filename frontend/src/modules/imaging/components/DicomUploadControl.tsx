@@ -1,19 +1,30 @@
 import { useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { AlertCircle, CheckCircle2, UploadCloud } from "lucide-react"
+import { AlertCircle, AlertTriangle, UploadCloud } from "lucide-react"
 import { Alert, AlertDescription } from "@/shared/components/ui/alert"
 import { Button } from "@/shared/components/ui/button"
 import { Input } from "@/shared/components/ui/input"
 import { cn } from "@/shared/utils/cn"
 import { toast } from "../../../shared/store/toast_store"
+import { extractApiErrorDetails } from "../../../shared/utils/api_error"
 import { useUploadImagingStudyMutation } from "../queries"
 import {
   DICOM_ACCEPT_ATTRIBUTE,
+  DICOM_MAX_ARCHIVE_ENTRIES,
+  DICOM_MAX_ARCHIVE_GIGABYTES,
   DICOM_MAX_FILE_GIGABYTES,
   formatDicomFileSize,
   validateDicomFile,
 } from "../utils/dicom_file_validation"
+import {
+  resolveUploadRejectionMessageKeys,
+  resolveValidationMessageKey,
+  resolveWarningMessageKey,
+} from "../utils/dicom_upload_messages"
 import { ImagingUploadProgress } from "./ImagingUploadProgress"
+import { DicomUploadOutcome } from "./DicomUploadOutcome"
+import { DicomUploadSummary } from "./DicomUploadSummary"
+import { DicomUploadErrorCode, type DicomUploadResult } from "../types"
 
 interface DicomUploadControlProperties {
   patientFhirId: string
@@ -22,9 +33,14 @@ interface DicomUploadControlProperties {
 type UploadFeedback =
   | { kind: "idle" }
   | { kind: "validation"; message: string }
-  | { kind: "success" }
-  | { kind: "failed" }
+  | { kind: "success"; result: DicomUploadResult }
+  | { kind: "failed"; errorCode?: string; reason?: string }
   | { kind: "cancelled" }
+
+const ARCHIVE_LIMIT_PARAMETERS = {
+  maxSize: DICOM_MAX_ARCHIVE_GIGABYTES,
+  maxEntries: DICOM_MAX_ARCHIVE_ENTRIES,
+}
 
 const HINT_ID = "dicom-upload-hint"
 const FEEDBACK_ID = "dicom-upload-feedback"
@@ -66,22 +82,26 @@ export const DicomUploadControl = ({ patientFhirId }: DicomUploadControlProperti
     setFeedback({ kind: "idle" })
     setUploadPercentage(0)
     try {
-      await uploadImagingStudyMutation.mutateAsync({
+      const uploadResult = await uploadImagingStudyMutation.mutateAsync({
         patientFhirId,
-        title: file.name.replace(/\.[^/.]+$/, "") || "Nova Ressonância Magnética",
-        modality: "MR",
         dicomBlob: file,
         signal: abortController.signal,
         onUploadProgress: setUploadPercentage,
       })
+      if (uploadResult.instancesAccepted === 0) {
+        setFeedback({ kind: "failed", errorCode: DicomUploadErrorCode.NO_VALID_INSTANCES })
+        toast.error(t("toast.uploadError"))
+        return
+      }
       setLastAttemptedFile(null)
-      setFeedback({ kind: "success" })
+      setFeedback({ kind: "success", result: uploadResult })
       toast.success(t("toast.uploadSuccess"))
-    } catch {
+    } catch (uploadError) {
       if (abortController.signal.aborted) {
         setFeedback({ kind: "cancelled" })
       } else {
-        setFeedback({ kind: "failed" })
+        const { code, message, reason } = extractApiErrorDetails(uploadError)
+        setFeedback({ kind: "failed", errorCode: code, reason: reason ?? message })
         toast.error(t("toast.uploadError"))
       }
     } finally {
@@ -91,20 +111,15 @@ export const DicomUploadControl = ({ patientFhirId }: DicomUploadControlProperti
     }
   }
 
-  const handleSelectedFile = (file: File) => {
-    const validationError = validateDicomFile(file)
+  const handleSelectedFile = async (file: File) => {
+    const validationError = await validateDicomFile(file)
     if (validationError) {
-      const errorKeys = {
-        empty: "upload.errorEmpty",
-        type: "upload.errorType",
-        tooLarge: "upload.errorLimit",
-      } as const
       setFeedback({
         kind: "validation",
-        message: t(errorKeys[validationError], {
+        message: t(resolveValidationMessageKey(validationError), {
           fileName: file.name,
           size: formatDicomFileSize(file.size),
-          maxSize: DICOM_MAX_FILE_GIGABYTES,
+          maxSize: validationError === "zipTooLarge" ? DICOM_MAX_ARCHIVE_GIGABYTES : DICOM_MAX_FILE_GIGABYTES,
         }),
       })
       resetFileInput()
@@ -116,7 +131,7 @@ export const DicomUploadControl = ({ patientFhirId }: DicomUploadControlProperti
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const chosenFile = event.target.files?.[0]
     if (chosenFile) {
-      handleSelectedFile(chosenFile)
+      void handleSelectedFile(chosenFile)
     }
   }
 
@@ -140,7 +155,7 @@ export const DicomUploadControl = ({ patientFhirId }: DicomUploadControlProperti
     }
     const droppedFile = event.dataTransfer.files?.[0]
     if (droppedFile) {
-      handleSelectedFile(droppedFile)
+      void handleSelectedFile(droppedFile)
     }
   }
 
@@ -156,6 +171,13 @@ export const DicomUploadControl = ({ patientFhirId }: DicomUploadControlProperti
 
   const progressStatus =
     uploadPercentage !== null && uploadPercentage >= 100 ? t("uploadStatus.grpcCompleted") : t("uploadStatus.initial")
+
+  const rejectionKeys = feedback.kind === "failed" ? resolveUploadRejectionMessageKeys(feedback.errorCode) : null
+  const invalidDicomReason =
+    feedback.kind === "failed" && feedback.errorCode === DicomUploadErrorCode.INVALID_DICOM ? feedback.reason : undefined
+  const isRetryAllowed =
+    lastAttemptedFile !== null &&
+    !(feedback.kind === "failed" && feedback.errorCode === DicomUploadErrorCode.PATIENT_MISMATCH)
 
   const describedBy = feedback.kind === "validation" ? `${HINT_ID} ${FEEDBACK_ID}` : HINT_ID
 
@@ -184,7 +206,7 @@ export const DicomUploadControl = ({ patientFhirId }: DicomUploadControlProperti
               {isDragActive ? t("upload.dropActive") : t("upload.dropTitle")}
             </p>
             <p id={HINT_ID} className="text-xs text-muted-foreground">
-              {t("upload.guidelines", { maxSize: DICOM_MAX_FILE_GIGABYTES })}
+              {t("upload.guidelines", ARCHIVE_LIMIT_PARAMETERS)}
             </p>
           </div>
 
@@ -221,13 +243,20 @@ export const DicomUploadControl = ({ patientFhirId }: DicomUploadControlProperti
       )}
 
       {feedback.kind === "success" && (
-        <Alert variant="success" role="status">
-          <CheckCircle2 aria-hidden="true" />
-          <AlertDescription className="flex flex-col gap-0.5 text-success">
-            <span className="font-semibold">{t("upload.successTitle")}</span>
-            <span className="text-xs">{t("upload.successNextStep")}</span>
-          </AlertDescription>
-        </Alert>
+        <>
+          <DicomUploadOutcome result={feedback.result} />
+
+          <DicomUploadSummary result={feedback.result} />
+
+          {(feedback.result.warnings ?? []).map((warningItem, index) => (
+            <Alert key={`${warningItem.code}-${index}`} variant="warning">
+              <AlertTriangle aria-hidden="true" />
+              <AlertDescription className="text-xs font-semibold text-warning">
+                {t(resolveWarningMessageKey(warningItem.code))}
+              </AlertDescription>
+            </Alert>
+          ))}
+        </>
       )}
 
       {feedback.kind === "cancelled" && (
@@ -252,12 +281,19 @@ export const DicomUploadControl = ({ patientFhirId }: DicomUploadControlProperti
           <AlertCircle aria-hidden="true" />
           <AlertDescription className="flex flex-wrap items-center gap-3">
             <span className="flex flex-col gap-0.5">
-              <span className="font-semibold">{t("upload.failedTitle")}</span>
-              <span className="text-xs">
-                {t("upload.failedHelp", { fileName: lastAttemptedFile?.name ?? "" })}
+              <span className="font-semibold">
+                {rejectionKeys ? t(rejectionKeys.title) : t("upload.failedTitle")}
               </span>
+              <span className="text-xs">
+                {rejectionKeys
+                  ? t(rejectionKeys.help, ARCHIVE_LIMIT_PARAMETERS)
+                  : t("upload.failedHelp", { fileName: lastAttemptedFile?.name ?? "" })}
+              </span>
+              {invalidDicomReason && (
+                <span className="text-xs">{t("upload.errors.invalidDicomReason", { reason: invalidDicomReason })}</span>
+              )}
             </span>
-            {lastAttemptedFile && (
+            {lastAttemptedFile && isRetryAllowed && (
               <Button type="button" variant="outline" size="sm" onClick={handleRetry} className="max-sm:min-h-11">
                 {t("upload.retry")}
               </Button>

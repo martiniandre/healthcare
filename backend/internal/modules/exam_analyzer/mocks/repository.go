@@ -2,12 +2,14 @@ package mocks
 
 import (
 	"context"
+	"sync"
 
 	"github.com/google/uuid"
 	"github.com/healthcare/backend/internal/modules/exam_analyzer"
 )
 
 type MockExamAnalysisRepository struct {
+	mutex     sync.Mutex
 	Analyses  map[uuid.UUID]*exam_analyzer.ExamAnalysis
 	AuditLogs []*exam_analyzer.ExamAnalysisAuditLog
 	MockError error
@@ -21,6 +23,8 @@ func NewMockExamAnalysisRepository() *MockExamAnalysisRepository {
 }
 
 func (mockRepo *MockExamAnalysisRepository) CreateAnalysis(ctx context.Context, analysis *exam_analyzer.ExamAnalysis) error {
+	mockRepo.mutex.Lock()
+	defer mockRepo.mutex.Unlock()
 	if mockRepo.MockError != nil {
 		return mockRepo.MockError
 	}
@@ -29,6 +33,8 @@ func (mockRepo *MockExamAnalysisRepository) CreateAnalysis(ctx context.Context, 
 }
 
 func (mockRepo *MockExamAnalysisRepository) GetAnalysis(ctx context.Context, id uuid.UUID) (*exam_analyzer.ExamAnalysis, error) {
+	mockRepo.mutex.Lock()
+	defer mockRepo.mutex.Unlock()
 	if mockRepo.MockError != nil {
 		return nil, mockRepo.MockError
 	}
@@ -40,6 +46,8 @@ func (mockRepo *MockExamAnalysisRepository) GetAnalysis(ctx context.Context, id 
 }
 
 func (mockRepo *MockExamAnalysisRepository) ListAnalyses(ctx context.Context, patientFhirID *string) ([]*exam_analyzer.ExamAnalysis, error) {
+	mockRepo.mutex.Lock()
+	defer mockRepo.mutex.Unlock()
 	if mockRepo.MockError != nil {
 		return nil, mockRepo.MockError
 	}
@@ -54,6 +62,8 @@ func (mockRepo *MockExamAnalysisRepository) ListAnalyses(ctx context.Context, pa
 }
 
 func (mockRepo *MockExamAnalysisRepository) UpdateAnalysis(ctx context.Context, analysis *exam_analyzer.ExamAnalysis) error {
+	mockRepo.mutex.Lock()
+	defer mockRepo.mutex.Unlock()
 	if mockRepo.MockError != nil {
 		return mockRepo.MockError
 	}
@@ -62,6 +72,8 @@ func (mockRepo *MockExamAnalysisRepository) UpdateAnalysis(ctx context.Context, 
 }
 
 func (mockRepo *MockExamAnalysisRepository) DeleteAnalysis(ctx context.Context, id uuid.UUID) error {
+	mockRepo.mutex.Lock()
+	defer mockRepo.mutex.Unlock()
 	if mockRepo.MockError != nil {
 		return mockRepo.MockError
 	}
@@ -70,6 +82,8 @@ func (mockRepo *MockExamAnalysisRepository) DeleteAnalysis(ctx context.Context, 
 }
 
 func (mockRepo *MockExamAnalysisRepository) CreateAuditLog(ctx context.Context, log *exam_analyzer.ExamAnalysisAuditLog) error {
+	mockRepo.mutex.Lock()
+	defer mockRepo.mutex.Unlock()
 	if mockRepo.MockError != nil {
 		return mockRepo.MockError
 	}

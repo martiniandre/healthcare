@@ -275,6 +275,8 @@ var routeCapabilities = map[string]Capability{
 	"GET /api/v1/patients/{patientFhirId}/studies":  CapabilityImagingRead,
 	"POST /api/v1/patients/{patientFhirId}/studies": CapabilityImagingCreate,
 	"GET /api/v1/studies/{studyId}":                 CapabilityImagingRead,
+	"GET /api/v1/studies/{studyId}/download-url":    CapabilityImagingRead,
+	"GET /api/v1/studies/{studyId}/instances":       CapabilityImagingRead,
 
 	"GET /api/v1/exam-analyses":                 CapabilityExamAnalysisRead,
 	"POST /api/v1/exam-analyses":                CapabilityExamAnalysisCreate,

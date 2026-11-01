@@ -407,6 +407,19 @@ definitions:
       status:
         type: string
     type: object
+  internal_modules_exam_analyzer.AnonymizationReportResponse:
+    properties:
+      applied:
+        type: boolean
+      limitations:
+        items:
+          type: string
+        type: array
+      steps:
+        items:
+          type: string
+        type: array
+    type: object
   internal_modules_exam_analyzer.DeleteAnalysisResponse:
     properties:
       success:
@@ -416,6 +429,8 @@ definitions:
     properties:
       analysis_response:
         type: string
+      anonymizationReport:
+        $ref: '#/definitions/internal_modules_exam_analyzer.AnonymizationReportResponse'
       anonymized:
         type: boolean
       consent_given:
@@ -454,6 +469,87 @@ definitions:
       study_instance_uid:
         type: string
       title:
+        type: string
+    type: object
+  internal_modules_imaging.HTTPRejectedInstance:
+    properties:
+      code:
+        type: string
+      fileName:
+        type: string
+      reason:
+        type: string
+    type: object
+  internal_modules_imaging.HTTPStudyDownloadURLResponse:
+    properties:
+      downloadUrl:
+        type: string
+      expiresAt:
+        type: string
+    type: object
+  internal_modules_imaging.HTTPStudyInstanceResponse:
+    properties:
+      downloadUrl:
+        type: string
+      expiresAt:
+        type: string
+      fileName:
+        type: string
+      id:
+        type: string
+      instanceNumber:
+        type: integer
+      seriesInstanceUid:
+        type: string
+      sopInstanceUid:
+        type: string
+    type: object
+  internal_modules_imaging.HTTPUploadStudyResponse:
+    properties:
+      accessionNumber:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      instancesAccepted:
+        type: integer
+      instancesRejected:
+        items:
+          $ref: '#/definitions/internal_modules_imaging.HTTPRejectedInstance'
+        type: array
+      modality:
+        type: string
+      patient_fhir_id:
+        type: string
+      seriesInstanceUid:
+        type: string
+      sopInstanceUid:
+        type: string
+      status:
+        type: string
+      study_instance_uid:
+        type: string
+      studyCreated:
+        type: boolean
+      studyDate:
+        type: string
+      studyId:
+        type: string
+      studyInstanceUid:
+        type: string
+      title:
+        type: string
+      warnings:
+        items:
+          $ref: '#/definitions/internal_modules_imaging.HTTPUploadWarning'
+        type: array
+    type: object
+  internal_modules_imaging.HTTPUploadWarning:
+    properties:
+      code:
+        type: string
+      message:
         type: string
     type: object
   internal_modules_medication.CheckMedicationSafetyRequest:
@@ -1715,8 +1811,13 @@ paths:
     post:
       consumes:
       - multipart/form-data
-      description: Uploads a medical exam file for AI analysis with consent tracking
-        and optional anonymization
+      description: 'Uploads a medical exam file for AI analysis with consent tracking
+        and optional de-identification. The real file content is validated (magic
+        bytes, structure, extension match) before anything is stored. When anonymize
+        is true, embedded metadata (EXIF/XMP/IPTC, PNG text chunks, PDF info and XMP)
+        is removed losslessly and a neutral file name is used for the AI call; text
+        burned into the pixels is NOT removed and is reported in anonymizationReport.limitations.
+        Error codes (HTTP 422): FILE_CONTENT_MISMATCH, FILE_CORRUPTED, FILE_EMPTY.'
       parameters:
       - description: Patient FHIR ID
         in: formData
@@ -1749,6 +1850,12 @@ paths:
             $ref: '#/definitions/internal_modules_exam_analyzer.ExamAnalysisResponse'
         "400":
           description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "413":
+          description: Request Entity Too Large
           schema:
             additionalProperties:
               type: string
@@ -2329,25 +2436,43 @@ paths:
     post:
       consumes:
       - multipart/form-data
-      description: Uploads a DICOM imaging study for a patient with metadata via multipart
-        form
+      description: Uploads one DICOM file, or a ZIP archive of DICOM files of the
+        same study, for a patient. The first DICOM instance of a StudyInstanceUID
+        creates the study; later uploads of the same StudyInstanceUID for the same
+        patient append their instances (duplicated SOP instances are rejected). A
+        StudyInstanceUID that already belongs to another patient is rejected with
+        422 DICOM_PATIENT_MISMATCH. In a ZIP, a patient mismatch in any instance rejects
+        the whole request and nothing is stored; other per-instance problems are listed
+        in instancesRejected while the remaining instances are stored, and an archive
+        with no accepted instance returns 422 DICOM_NO_VALID_INSTANCES. Archives must
+        hold one study, reject unsafe entry paths and links (422 ZIP_UNSAFE_ENTRY),
+        and exceed size, entry count or compression limits with 413 ZIP_LIMITS_EXCEEDED.
+        Content sent as a ZIP that is not a ZIP is 422 ZIP_INVALID. A single DICOM
+        file that was already uploaded is rejected with 409 DICOM_DUPLICATE_INSTANCE.
+        Title and modality are optional fallbacks; the DICOM modality wins when both
+        are present. The multipart form fields title and modality must be sent BEFORE
+        the file part; fields that arrive after the file part are ignored. The read
+        deadline of this route is extended to 2 hours because the global 30 second
+        read timeout would cut large uploads; the request body is streamed to storage
+        and never spooled to disk as a whole form, except ZIP archives which are spooled
+        to a temporary file with size limits.
       parameters:
       - description: Patient FHIR ID
         in: path
         name: patientFhirId
         required: true
         type: string
-      - description: Study title
+      - description: Study title (derived from the DICOM header when empty). Must
+          precede the file part.
         in: formData
         name: title
-        required: true
         type: string
-      - description: Modality (e.g., CT, MR, XR)
+      - description: Fallback modality (e.g., CT, MR, XR) used only when the DICOM
+          header has none. Must precede the file part.
         in: formData
         name: modality
-        required: true
         type: string
-      - description: DICOM file
+      - description: DICOM file or ZIP archive of DICOM files (.zip)
         in: formData
         name: file
         required: true
@@ -2358,9 +2483,33 @@ paths:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/internal_modules_imaging.HTTPImagingStudyResponse'
+            $ref: '#/definitions/internal_modules_imaging.HTTPUploadStudyResponse'
         "400":
           description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: Conflict
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "413":
+          description: Request Entity Too Large
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "422":
+          description: Unprocessable Entity
           schema:
             additionalProperties:
               type: string
@@ -2377,7 +2526,7 @@ paths:
             additionalProperties:
               type: string
             type: object
-      summary: Upload DICOM study
+      summary: Upload DICOM study or ZIP archive
       tags:
       - imaging
   /patients/{patientFhirId}/timeline:
@@ -2726,7 +2875,8 @@ paths:
       consumes:
       - application/json
       description: Returns details of a specific imaging study including download
-        URL
+        URL. The download URL is omitted for studies with more than one instance;
+        use the instances endpoint for those.
       parameters:
       - description: Study UUID
         in: path
@@ -2753,6 +2903,95 @@ paths:
               type: string
             type: object
       summary: Get imaging study details
+      tags:
+      - imaging
+  /studies/{studyId}/download-url:
+    get:
+      consumes:
+      - application/json
+      description: Returns a presigned download URL (valid 15 minutes) for a single-instance
+        study. Studies with more than one instance return 409 MULTIPLE_INSTANCES;
+        use GET /studies/{studyId}/instances instead.
+      parameters:
+      - description: Study UUID
+        in: path
+        name: studyId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_modules_imaging.HTTPStudyDownloadURLResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: Conflict
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get study download URL
+      tags:
+      - imaging
+  /studies/{studyId}/instances:
+    get:
+      consumes:
+      - application/json
+      description: Returns every stored DICOM instance of a study with a presigned
+        download URL (valid 15 minutes) for each one. Each download is audited.
+      parameters:
+      - description: Study UUID
+        in: path
+        name: studyId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/internal_modules_imaging.HTTPStudyInstanceResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List study instances with download URLs
       tags:
       - imaging
   /telemetry/beds/{bedId}/condition:
