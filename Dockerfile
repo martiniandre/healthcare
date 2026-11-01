@@ -10,6 +10,7 @@ RUN go mod download
 COPY backend/ .
 
 RUN CGO_ENABLED=0 GOOS=linux go build -o /app/api ./cmd/api
+RUN CGO_ENABLED=0 GOOS=linux go build -o /app/migrate ./cmd/migrate
 
 FROM alpine:3.20
 
@@ -20,12 +21,15 @@ RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 WORKDIR /app
 
 COPY --from=builder /app/api /app/api
+COPY --from=builder /app/migrate /app/migrate
 COPY --from=builder /app/migrations /app/migrations
+COPY deploy/fly-entrypoint.sh /app/entrypoint.sh
 
-RUN printf '#!/bin/sh\nif [ -n "$GCP_KEY_B64" ]; then\n  mkdir -p /tmp/gcp\n  echo "$GCP_KEY_B64" | base64 -d > /tmp/gcp/key.json\n  export GOOGLE_APPLICATION_CREDENTIALS=/tmp/gcp/key.json\nfi\nexec /app/api\n' > /app/entrypoint.sh && chmod +x /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
 
 USER appuser
 
 EXPOSE 50051 8080
 
 ENTRYPOINT ["/app/entrypoint.sh"]
+CMD ["/app/api"]

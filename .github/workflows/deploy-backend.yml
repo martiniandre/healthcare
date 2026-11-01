@@ -1,186 +1,58 @@
-name: Deploy Backend to Cloud Run
+name: Deploy Backend to Fly.io
 
 on:
   push:
     branches: [main]
     paths:
       - 'backend/**'
+      - 'Dockerfile'
+      - 'deploy/**'
+      - 'fly.toml'
       - '.github/workflows/deploy-backend.yml'
   workflow_dispatch:
 
 permissions:
   contents: read
-  id-token: write
 
 concurrency:
-  group: deploy-backend
+  group: deploy-backend-fly
   cancel-in-progress: false
 
 env:
-  GCP_REGION: us-central1
-  CLOUD_RUN_SERVICE: healthcare-api
-  ARTIFACT_REGISTRY: us-central1-docker.pkg.dev
-  IMAGE_REPO: healthcare
+  FLY_APP: healthcare-api-small-dust-5285
 
 jobs:
-  preflight:
-    name: Check deploy configuration
+  deploy:
+    name: Deploy to Fly.io
     runs-on: ubuntu-latest
-
-    steps:
-      - name: Verify required secrets and variables
-        env:
-          GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
-          CLOUD_RUN_DB_URL: ${{ secrets.CLOUD_RUN_DB_URL }}
-          CLOUD_RUN_REDIS_URL: ${{ secrets.CLOUD_RUN_REDIS_URL }}
-          CLOUD_RUN_JWT_SECRET: ${{ secrets.CLOUD_RUN_JWT_SECRET }}
-          GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
-          GCP_SERVICE_ACCOUNT: ${{ vars.GCP_SERVICE_ACCOUNT }}
-          GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
-        run: |
-          missing=()
-          for name in GCP_PROJECT_ID CLOUD_RUN_DB_URL CLOUD_RUN_REDIS_URL CLOUD_RUN_JWT_SECRET; do
-            if [ -z "${!name}" ]; then
-              missing+=("secret:$name")
-            fi
-          done
-          if [ -n "$GCP_WORKLOAD_IDENTITY_PROVIDER" ]; then
-            if [ -z "$GCP_SERVICE_ACCOUNT" ]; then
-              missing+=("variable:GCP_SERVICE_ACCOUNT")
-            fi
-          elif [ -z "$GCP_SA_KEY" ]; then
-            missing+=("secret:GCP_SA_KEY or variable:GCP_WORKLOAD_IDENTITY_PROVIDER")
-          fi
-          if [ "${#missing[@]}" -gt 0 ]; then
-            echo "Configuração de deploy incompleta. Falta configurar:"
-            printf '  - %s\n' "${missing[@]}"
-            echo "Veja a seção 'Deploy automatizado' em backend/README.md."
-            exit 1
-          fi
-          echo "Configuração completa."
-
-  build:
-    name: Build Image
-    needs: preflight
-    runs-on: ubuntu-latest
-    outputs:
-      image: ${{ steps.build.outputs.image }}
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Authenticate to Google Cloud (Workload Identity)
-        if: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER != '' }}
-        uses: google-github-actions/auth@v2
-        with:
-          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
-          service_account: ${{ vars.GCP_SERVICE_ACCOUNT }}
-
-      - name: Authenticate to Google Cloud (service account key)
-        if: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER == '' }}
-        uses: google-github-actions/auth@v2
-        with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
-
-      - name: Configure Docker for Artifact Registry
-        run: gcloud auth configure-docker ${{ env.ARTIFACT_REGISTRY }} --quiet
-
-      - name: Build and push Docker image
-        id: build
-        working-directory: backend
+      - name: Verify Fly.io token
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
         run: |
-          IMAGE="${{ env.ARTIFACT_REGISTRY }}/${{ secrets.GCP_PROJECT_ID }}/${{ env.IMAGE_REPO }}/${{ env.CLOUD_RUN_SERVICE }}:${{ github.sha }}"
-          docker build -t "$IMAGE" .
-          docker push "$IMAGE"
-          echo "image=$IMAGE" >> "$GITHUB_OUTPUT"
+          if [ -z "$FLY_API_TOKEN" ]; then
+            echo "Falta o secret FLY_API_TOKEN."
+            echo "Crie com: fly tokens create deploy -a $FLY_APP"
+            exit 1
+          fi
+          echo "Token do Fly.io presente."
 
-  migrate:
-    name: Run Database Migrations
-    needs: build
-    runs-on: ubuntu-latest
+      - name: Set up flyctl
+        uses: superfly/flyctl-actions/setup-flyctl@master
 
-    steps:
-      - name: Authenticate to Google Cloud (Workload Identity)
-        if: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER != '' }}
-        uses: google-github-actions/auth@v2
-        with:
-          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
-          service_account: ${{ vars.GCP_SERVICE_ACCOUNT }}
-
-      - name: Authenticate to Google Cloud (service account key)
-        if: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER == '' }}
-        uses: google-github-actions/auth@v2
-        with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
-
-      - name: Set up gcloud
-        uses: google-github-actions/setup-gcloud@v2
-
-      - name: Create or update migration job
-        run: |
-          gcloud run jobs deploy "${{ env.CLOUD_RUN_SERVICE }}-migrate" \
-            --image "${{ needs.build.outputs.image }}" \
-            --command /app/migrate \
-            --region "${{ env.GCP_REGION }}" \
-            --max-retries 0 \
-            --task-timeout 600 \
-            --set-env-vars "DB_URL=${{ secrets.CLOUD_RUN_DB_URL }}" \
-            --project "${{ secrets.GCP_PROJECT_ID }}"
-
-      - name: Execute migration job
-        run: |
-          gcloud run jobs execute "${{ env.CLOUD_RUN_SERVICE }}-migrate" \
-            --region "${{ env.GCP_REGION }}" \
-            --project "${{ secrets.GCP_PROJECT_ID }}" \
-            --wait
-
-  deploy:
-    name: Deploy to Cloud Run
-    needs: [build, migrate]
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Authenticate to Google Cloud (Workload Identity)
-        if: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER != '' }}
-        uses: google-github-actions/auth@v2
-        with:
-          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
-          service_account: ${{ vars.GCP_SERVICE_ACCOUNT }}
-
-      - name: Authenticate to Google Cloud (service account key)
-        if: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER == '' }}
-        uses: google-github-actions/auth@v2
-        with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
-
-      - name: Set up gcloud
-        uses: google-github-actions/setup-gcloud@v2
-
-      - name: Deploy to Cloud Run
-        run: |
-          gcloud run deploy "${{ env.CLOUD_RUN_SERVICE }}" \
-            --image "${{ needs.build.outputs.image }}" \
-            --region "${{ env.GCP_REGION }}" \
-            --platform managed \
-            --allow-unauthenticated \
-            --port 8080 \
-            --memory 512Mi \
-            --cpu 1 \
-            --min-instances 0 \
-            --max-instances 3 \
-            --set-env-vars "^@^APP_ENV=production@RUN_MIGRATIONS_ON_START=false@GCP_PROJECT_ID=${{ secrets.GCP_PROJECT_ID }}@GCP_LOCATION_ID=${{ secrets.GCP_LOCATION_ID }}@GCP_DATASET_ID=${{ secrets.GCP_DATASET_ID }}@GCP_FHIR_STORE_ID=${{ secrets.GCP_FHIR_STORE_ID }}@GCP_VERTEX_MODEL=${{ secrets.GCP_VERTEX_MODEL }}@GCS_BUCKET_NAME=${{ secrets.GCS_BUCKET_NAME }}@DB_URL=${{ secrets.CLOUD_RUN_DB_URL }}@REDIS_URL=${{ secrets.CLOUD_RUN_REDIS_URL }}@JWT_SECRET=${{ secrets.CLOUD_RUN_JWT_SECRET }}@SENTRY_DSN=${{ secrets.SENTRY_DSN }}" \
-            --project "${{ secrets.GCP_PROJECT_ID }}"
+      - name: Deploy (migrations run as release command before rollout)
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+        run: flyctl deploy --remote-only --app "$FLY_APP" --wait-timeout 600
 
       - name: Verify deployment health
         run: |
-          SERVICE_URL=$(gcloud run services describe "${{ env.CLOUD_RUN_SERVICE }}" \
-            --region "${{ env.GCP_REGION }}" \
-            --project "${{ secrets.GCP_PROJECT_ID }}" \
-            --format 'value(status.url)')
-          echo "Service URL: $SERVICE_URL"
           for attempt in 1 2 3 4 5 6 7 8 9 10; do
-            if curl --fail --silent --max-time 15 "$SERVICE_URL/health" > /dev/null; then
+            if curl --fail --silent --max-time 15 "https://$FLY_APP.fly.dev/health" > /dev/null; then
               echo "Health check passed (attempt $attempt)"
               exit 0
             fi
