@@ -43,7 +43,12 @@
     "modality": "Clinical Modality",
     "busStatus": "Bus Status",
     "seriesSlices": "Series / Slices",
-    "activeSlice": "Slice #1 (Active View)"
+    "activeSlice": "Slice #1 (Active View)",
+    "studyDate": "Study Date",
+    "accessionNumber": "Accession Number",
+    "studyUid": "Study UID",
+    "seriesUid": "Series UID",
+    "instanceUid": "Instance UID"
   },
   "retry": "Try again",
   "studyNotFound": "Study not found",
@@ -63,6 +68,34 @@
     "failedTitle": "The DICOM file could not be uploaded.",
     "failedHelp": "\"{{fileName}}\" was kept. Check your connection and try again.",
     "cancelledTitle": "Upload cancelled.",
-    "cancelledHelp": "Nothing was saved. You can try the same file again."
+    "cancelledHelp": "Nothing was saved. You can try the same file again.",
+    "summary": {
+      "title": "What was read from the file",
+      "modality": "Modality",
+      "studyDate": "Study date",
+      "accessionNumber": "Accession number",
+      "studyUid": "Study UID",
+      "seriesUid": "Series UID",
+      "instanceUid": "Instance UID",
+      "copyUid": "Copy study UID",
+      "copied": "Study UID copied.",
+      "copyError": "Could not copy the study UID."
+    },
+    "warnings": {
+      "patient_identity_missing": "The file has no patient identification, so it could not be checked against the selected patient. Confirm it belongs to this patient.",
+      "anonymized_study": "This study appears to be anonymized. Patient data may be missing or replaced.",
+      "duplicate_instance": "This image was already uploaded before. A duplicate may exist in the study.",
+      "modality_overridden": "The modality you entered was replaced by the one stored in the DICOM file.",
+      "unknown": "The server reported a notice about this file. Review the study before using it."
+    },
+    "errors": {
+      "patientMismatchTitle": "This DICOM belongs to a different patient than the one selected.",
+      "patientMismatchHelp": "Nothing was saved. Choose the correct file for this patient.",
+      "invalidDicomTitle": "This is not a valid or supported DICOM file.",
+      "invalidDicomHelp": "Nothing was saved. Choose another DICOM file.",
+      "invalidDicomReason": "Reason: {{reason}}",
+      "duplicateTitle": "This DICOM image was already uploaded.",
+      "duplicateHelp": "Nothing was saved because the same image already exists. Choose a different file."
+    }
   }
 }

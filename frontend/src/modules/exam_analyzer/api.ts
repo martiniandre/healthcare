@@ -1,5 +1,5 @@
 import { http } from "../../shared/utils/http"
-import type { ExamAnalysis } from "./types"
+import type { ExamAnalysis, UploadExamPayload } from "./types"
 
 export const examAnalyzerApi = {
   getAnalyses: async (patientFhirId?: string): Promise<ExamAnalysis[]> => {
@@ -11,28 +11,24 @@ export const examAnalyzerApi = {
     return http.get<ExamAnalysis>(`/exam-analyses/${id}`)
   },
 
-  uploadExamFile: async (
-    file: File,
-    consent: boolean,
-    anonymize: boolean,
-    patientFhirId?: string,
-    onUploadProgress?: (progressPercentage: number) => void,
-    signal?: AbortSignal
-  ): Promise<ExamAnalysis> => {
+  uploadExamFile: async (payload: UploadExamPayload): Promise<ExamAnalysis> => {
     const formData = new FormData()
-    formData.append("file", file)
-    formData.append("consent", consent ? "true" : "false")
-    formData.append("anonymize", anonymize ? "true" : "false")
-    if (patientFhirId) {
-      formData.append("patientFhirId", patientFhirId)
+    formData.append("file", payload.file)
+    formData.append("consent", payload.consent ? "true" : "false")
+    formData.append("anonymize", payload.anonymize ? "true" : "false")
+    if (!payload.anonymize && payload.acknowledgeExternalProcessing) {
+      formData.append("acknowledgeExternalProcessing", "true")
+    }
+    if (payload.patientFhirId) {
+      formData.append("patientFhirId", payload.patientFhirId)
     }
 
     return http.post<ExamAnalysis, FormData>("/exam-analyses", formData, {
-      signal,
+      signal: payload.signal,
       onUploadProgress: (progressEvent) => {
-        if (onUploadProgress && progressEvent.total) {
+        if (payload.onUploadProgress && progressEvent.total) {
           const percentage = Math.round((progressEvent.loaded * 100) / progressEvent.total)
-          onUploadProgress(percentage)
+          payload.onUploadProgress(percentage)
         }
       },
     })

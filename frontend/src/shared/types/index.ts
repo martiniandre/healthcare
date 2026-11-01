@@ -121,7 +121,12 @@ export const ImagingStudyStatus = {
   Available: "available",
   Cancelled: "cancelled",
   EnteredInError: "entered-in-error",
-  Unknown: "unknown"
+  Unknown: "unknown",
+  Receiving: "RECEIVING",
+  Processing: "PROCESSING",
+  Ready: "READY",
+  Partial: "PARTIAL",
+  Failed: "FAILED"
 } as const
 
 export type ImagingStudyStatus = typeof ImagingStudyStatus[keyof typeof ImagingStudyStatus]

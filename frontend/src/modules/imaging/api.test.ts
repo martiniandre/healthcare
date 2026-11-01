@@ -50,4 +50,16 @@ describe("imagingApi", () => {
     expect(uploadedFile.type).toBe("application/dicom")
     expect(uploadedFile.size).toBe(dicomBlob.size)
   })
+
+  it("should leave title and modality out so the server fills them from the file", async () => {
+    vi.mocked(http.post).mockResolvedValue({ id: "study-3" })
+    const dicomBlob = new Blob(["dicom"], { type: "application/dicom" })
+
+    await imagingApi.uploadImagingStudy({ patientFhirId: "patient-1", dicomBlob })
+
+    const formData = vi.mocked(http.post).mock.calls[0][1] as FormData
+    expect(formData.has("title")).toBe(false)
+    expect(formData.has("modality")).toBe(false)
+    expect(formData.get("file")).toBeInstanceOf(Blob)
+  })
 })

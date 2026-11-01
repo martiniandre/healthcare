@@ -55,8 +55,114 @@ describe("DicomUploadControl", () => {
     selectFile(new File(["dicom"], "mri.dcm"))
 
     await waitFor(() => expect(mutationState.mutateAsync).toHaveBeenCalledTimes(1))
-    expect(mutationState.mutateAsync.mock.calls[0][0]).toMatchObject({ patientFhirId: "patient-1", title: "mri" })
+    const sentPayload = mutationState.mutateAsync.mock.calls[0][0] as Record<string, unknown>
+    expect(sentPayload).toMatchObject({ patientFhirId: "patient-1" })
+    expect(sentPayload.title).toBeUndefined()
+    expect(sentPayload.modality).toBeUndefined()
     expect(await screen.findByText("DICOM sent. It is being processed.")).toBeInTheDocument()
+  })
+
+  it("should summarize what the server read from the file", async () => {
+    mutationState.mutateAsync.mockResolvedValue({
+      id: "study-2",
+      modality: "CT",
+      studyDate: "20260315",
+      accessionNumber: "ACC-778",
+      studyInstanceUid: "1.2.840.113619.2.55.3.604688119.969.1234567890.123",
+      seriesInstanceUid: "1.2.840.113619.2.55.3.604688119.969.1234567890.456",
+      sopInstanceUid: "1.2.840.113619.2.55.3.604688119.969.1234567890.789",
+      warnings: [],
+    })
+    render(<DicomUploadControl patientFhirId="patient-1" />)
+
+    selectFile(new File(["dicom"], "ct.dcm"))
+
+    const summary = await screen.findByTestId("dicom-upload-summary")
+    expect(summary).toHaveTextContent("CT")
+    expect(summary).toHaveTextContent("2026")
+    expect(summary).toHaveTextContent("ACC-778")
+    expect(summary).toHaveTextContent("1.2.840.11…567890.123")
+    expect(screen.getByTitle("1.2.840.113619.2.55.3.604688119.969.1234567890.123")).toBeInTheDocument()
+    expect(screen.getByText("Series UID")).toBeInTheDocument()
+    expect(screen.getByText("Instance UID")).toBeInTheDocument()
+  })
+
+  it("should copy the full study UID", async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined)
+    Object.defineProperty(navigator, "clipboard", { value: { writeText }, configurable: true })
+    mutationState.mutateAsync.mockResolvedValue({
+      id: "study-2",
+      modality: "CT",
+      studyInstanceUid: "1.2.840.113619.2.55.3.604688119.969.1234567890.123",
+    })
+    render(<DicomUploadControl patientFhirId="patient-1" />)
+
+    selectFile(new File(["dicom"], "ct.dcm"))
+    fireEvent.click(await screen.findByRole("button", { name: "Copy study UID" }))
+
+    await waitFor(() =>
+      expect(writeText).toHaveBeenCalledWith("1.2.840.113619.2.55.3.604688119.969.1234567890.123")
+    )
+  })
+
+  it("should translate the server warnings and ignore their raw text", async () => {
+    mutationState.mutateAsync.mockResolvedValue({
+      id: "study-2",
+      modality: "MR",
+      warnings: [
+        { code: "patient_identity_missing", message: "raw one" },
+        { code: "anonymized_study", message: "raw two" },
+        { code: "duplicate_instance", message: "raw three" },
+        { code: "brand_new_code", message: "raw four" },
+      ],
+    })
+    render(<DicomUploadControl patientFhirId="patient-1" />)
+
+    selectFile(new File(["dicom"], "mr.dcm"))
+
+    expect(await screen.findByText(/The file has no patient identification/)).toBeInTheDocument()
+    expect(screen.getByText(/appears to be anonymized/)).toBeInTheDocument()
+    expect(screen.getByText(/already uploaded before/)).toBeInTheDocument()
+    expect(screen.getByText(/The server reported a notice about this file/)).toBeInTheDocument()
+    expect(screen.queryByText(/raw one/)).not.toBeInTheDocument()
+  })
+
+  it("should explain a patient mismatch without exposing patient data and not offer retry", async () => {
+    mutationState.mutateAsync.mockRejectedValueOnce({
+      response: { data: { code: "DICOM_PATIENT_MISMATCH", error: "patient Jane Doe does not match" } },
+    })
+    render(<DicomUploadControl patientFhirId="patient-1" />)
+
+    selectFile(new File(["dicom"], "mri.dcm"))
+
+    expect(
+      await screen.findByText("This DICOM belongs to a different patient than the one selected.")
+    ).toBeInTheDocument()
+    expect(screen.queryByText(/Jane Doe/)).not.toBeInTheDocument()
+    expect(screen.queryByRole("button", { name: "Try again" })).not.toBeInTheDocument()
+  })
+
+  it("should explain an invalid DICOM with the reason returned by the server", async () => {
+    mutationState.mutateAsync.mockRejectedValueOnce({
+      response: { data: { code: "INVALID_DICOM", error: "invalid", reason: "missing preamble" } },
+    })
+    render(<DicomUploadControl patientFhirId="patient-1" />)
+
+    selectFile(new File(["dicom"], "mri.dcm"))
+
+    expect(await screen.findByText("This is not a valid or supported DICOM file.")).toBeInTheDocument()
+    expect(screen.getByText("Reason: missing preamble")).toBeInTheDocument()
+  })
+
+  it("should explain a duplicate DICOM instance", async () => {
+    mutationState.mutateAsync.mockRejectedValueOnce({
+      response: { data: { code: "DICOM_DUPLICATE_INSTANCE", error: "duplicate" } },
+    })
+    render(<DicomUploadControl patientFhirId="patient-1" />)
+
+    selectFile(new File(["dicom"], "mri.dcm"))
+
+    expect(await screen.findByText("This DICOM image was already uploaded.")).toBeInTheDocument()
   })
 
   it("should show a determinate progress bar and cancel the upload", async () => {

@@ -15,7 +15,6 @@ interface NavigationItem {
   icon: ComponentType<{ className?: string }>
   path: string
   access: RouteAccessKey
-  hiddenWhenProduction?: boolean
 }
 
 interface NavigationGroup {
@@ -29,7 +28,7 @@ const navigationGroups: NavigationGroup[] = [
     items: [
       { key: "patients", icon: Users, path: "/", access: "patients" },
       { key: "dashboard", icon: LayoutDashboard, path: "/dashboard", access: "dashboard" },
-      { key: "schedule", icon: CalendarClock, path: "/schedule", access: "schedule", hiddenWhenProduction: true },
+      { key: "schedule", icon: CalendarClock, path: "/schedule", access: "schedule" },
     ],
   },
   {
@@ -64,7 +63,6 @@ export const AppSidebar = () => {
   const { isMobileSidebarOpen, closeMobileSidebar, theme, toggleTheme } = useLayoutStore()
 
   const isItemVisible = (item: NavigationItem) => {
-    if (item.hiddenWhenProduction && import.meta.env.PROD) return false
     return isCapabilityGranted(capabilities, routeRequiredCapability[item.access])
   }
 

@@ -1,5 +1,5 @@
 import { http } from "../../shared/utils/http"
-import type { ImagingStudy, UploadImagingStudyPayload } from "./types"
+import type { DicomUploadResult, ImagingStudy, UploadImagingStudyPayload } from "./types"
 
 export const imagingApi = {
   getImagingStudies: async (patientFhirId: string): Promise<ImagingStudy[]> => {
@@ -10,13 +10,17 @@ export const imagingApi = {
     return http.get<ImagingStudy>(`/studies/${imagingStudyId}`)
   },
 
-  uploadImagingStudy: async (payload: UploadImagingStudyPayload): Promise<ImagingStudy> => {
+  uploadImagingStudy: async (payload: UploadImagingStudyPayload): Promise<DicomUploadResult> => {
     const uploadFormData = new FormData()
-    uploadFormData.append("title", payload.title)
-    uploadFormData.append("modality", payload.modality)
+    if (payload.title) {
+      uploadFormData.append("title", payload.title)
+    }
+    if (payload.modality) {
+      uploadFormData.append("modality", payload.modality)
+    }
     uploadFormData.append("file", payload.dicomBlob, "study.dcm")
 
-    return http.post<ImagingStudy>(`/patients/${payload.patientFhirId}/studies`, uploadFormData, {
+    return http.post<DicomUploadResult>(`/patients/${payload.patientFhirId}/studies`, uploadFormData, {
       signal: payload.signal,
       onUploadProgress: (progressEvent) => {
         if (payload.onUploadProgress && progressEvent.total) {

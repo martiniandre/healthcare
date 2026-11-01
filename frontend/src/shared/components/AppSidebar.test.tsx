@@ -143,12 +143,12 @@ describe("AppSidebar", () => {
     expect(window.localStorage.getItem("healthcare.theme")).toBe("dark")
   })
 
-  it("should hide the schedule item in production mode", () => {
+  it("should show the schedule item in production mode", () => {
     vi.stubEnv("PROD", true)
 
     renderSidebar()
 
-    expect(screen.queryByRole("button", { name: "schedule" })).not.toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "schedule" })).toBeInTheDocument()
     expect(screen.getByRole("button", { name: "patients" })).toBeInTheDocument()
     expect(screen.getByRole("button", { name: "dashboard" })).toBeInTheDocument()
     expect(screen.getByRole("button", { name: "telemetry" })).toBeInTheDocument()

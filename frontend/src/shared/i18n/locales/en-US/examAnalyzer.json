@@ -18,8 +18,8 @@
     "fileGuidelines": "Accepted formats: PNG, JPG or PDF. Up to {{maxSize}} MB, one file at a time.",
     "consentTitle": "Patient Consent",
     "consentDesc": "I confirm that I have the patient's express authorization to submit their data and images for assistive clinical processing.",
-    "anonymizeTitle": "Security Anonymization (Recommended)",
-    "anonymizeDesc": "Replace the submitted file name with a secure cryptographic UUID identifier before writing to temporary storage.",
+    "anonymizeTitle": "Remove identifying file data (recommended)",
+    "anonymizeDesc": "Removes the file metadata and the original file name before the exam is sent for analysis.",
     "clearFile": "Remove selected file",
     "uploading": "Transmitting file to server...",
     "processing": "Processing Analysis...",
@@ -36,7 +36,6 @@
     "required": "Required",
     "optional": "Optional",
     "consentIfUnchecked": "Without this confirmation the exam cannot be sent.",
-    "anonymizeIfUnchecked": "If left unchecked, the original file name is kept and no de-identification is applied.",
     "missingFile": "Choose an exam file (step 1).",
     "missingConsent": "Confirm the patient consent (step 2).",
     "stillNeeded": "To send, you still need to:",
@@ -48,7 +47,22 @@
     "failedTitle": "The exam could not be sent.",
     "failedHelp": "Your file and options were kept. Check your connection and try sending again.",
     "cancelledTitle": "Upload cancelled.",
-    "cancelledHelp": "Nothing was sent. Your file and options were kept, so you can try again."
+    "cancelledHelp": "Nothing was sent. Your file and options were kept, so you can try again.",
+    "anonymizeLimitation": "Text printed inside the image is NOT removed. Avoid images where names or ID numbers are visible.",
+    "externalProcessingTitle": "The exam will be sent with identifying data",
+    "externalProcessingWarning": "The original file, including any identifying data such as the patient name, ID numbers, file metadata and file name, will be processed by an external AI service.",
+    "acknowledgementTitle": "I understand the exam will be processed without anonymization",
+    "missingAcknowledgement": "Confirm that you understand the exam will be processed without anonymization (step 2).",
+    "serverError": {
+      "contentMismatchTitle": "The file content does not match its extension.",
+      "contentMismatchHelp": "The file looks like a different type than its name says. Your file was kept: pick the correct exam file with Replace file, then send again.",
+      "corruptedTitle": "The file appears to be corrupted.",
+      "corruptedHelp": "We could not read this file. Your file was kept: pick another copy of the exam with Replace file, then send again.",
+      "emptyTitle": "The server received an empty file.",
+      "emptyHelp": "The file has no content. Your file was kept: pick the correct exam file with Replace file, then send again.",
+      "deidentificationTitle": "Sending without anonymization needs your confirmation.",
+      "deidentificationHelp": "Keep anonymization checked, or confirm that you understand the exam will be processed without it, then send again."
+    }
   },
   "card": {
     "noExam": "No Exam Selected",
@@ -102,7 +116,24 @@
     "interpretations": "Possible Clinical Interpretations",
     "limitations": "Assistive Analysis Limitations",
     "disclaimerTitle": "Legal Disclaimer and Technological Limits",
-    "loadError": "Could not load the details of this analysis."
+    "loadError": "Could not load the details of this analysis.",
+    "anonymization": {
+      "appliedBadge": "Anonymized",
+      "notAppliedBadge": "Sent without anonymization",
+      "notAppliedDescription": "The original file, including any identifying data, was processed by an external AI service.",
+      "stepsTitle": "What was done",
+      "steps": {
+        "metadata_removed": "File metadata removed",
+        "filename_neutralized": "Original file name replaced"
+      },
+      "limitationsTitle": "What anonymization does not cover",
+      "limitations": {
+        "burned_in_text_not_removed": "Text printed inside the image (names, ID numbers) was not removed.",
+        "pdf_metadata_not_removed": "PDF metadata was not removed."
+      },
+      "unknownStep": "Additional anonymization step applied",
+      "unknownLimitation": "Additional limitation reported by the server"
+    }
   },
   "history": {
     "title": "Analysis History",

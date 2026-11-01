@@ -43,7 +43,12 @@
     "modality": "Modalidad Clínica",
     "busStatus": "Status del Bus",
     "seriesSlices": "Serie / Rebanadas",
-    "activeSlice": "Rebanada #1 (Visualización Activa)"
+    "activeSlice": "Rebanada #1 (Visualización Activa)",
+    "studyDate": "Fecha del Estudio",
+    "accessionNumber": "Número de Acceso",
+    "studyUid": "UID del Estudio",
+    "seriesUid": "UID de la Serie",
+    "instanceUid": "UID de la Instancia"
   },
   "retry": "Reintentar",
   "studyNotFound": "Estudio no encontrado",
@@ -63,6 +68,34 @@
     "failedTitle": "No se pudo enviar el archivo DICOM.",
     "failedHelp": "\"{{fileName}}\" se conservó. Revise su conexión e intente de nuevo.",
     "cancelledTitle": "Envío cancelado.",
-    "cancelledHelp": "No se guardó nada. Puede intentar de nuevo con el mismo archivo."
+    "cancelledHelp": "No se guardó nada. Puede intentar de nuevo con el mismo archivo.",
+    "summary": {
+      "title": "Lo que se leyó del archivo",
+      "modality": "Modalidad",
+      "studyDate": "Fecha del estudio",
+      "accessionNumber": "Número de acceso",
+      "studyUid": "UID del estudio",
+      "seriesUid": "UID de la serie",
+      "instanceUid": "UID de la instancia",
+      "copyUid": "Copiar UID del estudio",
+      "copied": "UID del estudio copiado.",
+      "copyError": "No se pudo copiar el UID del estudio."
+    },
+    "warnings": {
+      "patient_identity_missing": "El archivo no tiene identificación del paciente, por lo que no se pudo comprobar con el paciente seleccionado. Confirme que pertenece a este paciente.",
+      "anonymized_study": "Este estudio parece estar anonimizado. Los datos del paciente pueden faltar o estar reemplazados.",
+      "duplicate_instance": "Esta imagen ya se envió antes. Puede haber un duplicado en el estudio.",
+      "modality_overridden": "La modalidad indicada se reemplazó por la que consta en el archivo DICOM.",
+      "unknown": "El servidor informó un aviso sobre este archivo. Revise el estudio antes de usarlo."
+    },
+    "errors": {
+      "patientMismatchTitle": "Este DICOM pertenece a un paciente distinto del seleccionado.",
+      "patientMismatchHelp": "No se guardó nada. Elija el archivo correcto para este paciente.",
+      "invalidDicomTitle": "Este no es un archivo DICOM válido o compatible.",
+      "invalidDicomHelp": "No se guardó nada. Elija otro archivo DICOM.",
+      "invalidDicomReason": "Motivo: {{reason}}",
+      "duplicateTitle": "Esta imagen DICOM ya fue enviada.",
+      "duplicateHelp": "No se guardó nada porque la misma imagen ya existe. Elija un archivo distinto."
+    }
   }
 }
