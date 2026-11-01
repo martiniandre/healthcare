@@ -196,6 +196,41 @@ var (
 		Code:     "DICOM_DUPLICATE_INSTANCE",
 	}
 
+	ErrZIPInvalid = AppError{
+		GRPCCode: codes.InvalidArgument,
+		HTTPCode: http.StatusUnprocessableEntity,
+		Message:  "uploaded archive is not a readable ZIP file",
+		Code:     "ZIP_INVALID",
+	}
+
+	ErrZIPUnsafeEntry = AppError{
+		GRPCCode: codes.InvalidArgument,
+		HTTPCode: http.StatusUnprocessableEntity,
+		Message:  "archive contains an entry with an unsafe path or link",
+		Code:     "ZIP_UNSAFE_ENTRY",
+	}
+
+	ErrZIPLimitsExceeded = AppError{
+		GRPCCode: codes.ResourceExhausted,
+		HTTPCode: http.StatusRequestEntityTooLarge,
+		Message:  "archive exceeds the allowed size, entry count or compression limits",
+		Code:     "ZIP_LIMITS_EXCEEDED",
+	}
+
+	ErrDICOMNoValidInstances = AppError{
+		GRPCCode: codes.InvalidArgument,
+		HTTPCode: http.StatusUnprocessableEntity,
+		Message:  "no DICOM instance in the upload could be accepted",
+		Code:     "DICOM_NO_VALID_INSTANCES",
+	}
+
+	ErrDICOMMultipleInstances = AppError{
+		GRPCCode: codes.FailedPrecondition,
+		HTTPCode: http.StatusConflict,
+		Message:  "imaging study has multiple instances; download them through the instances endpoint",
+		Code:     "MULTIPLE_INSTANCES",
+	}
+
 	ErrDeidentificationRequired = AppError{
 		GRPCCode: codes.FailedPrecondition,
 		HTTPCode: http.StatusUnprocessableEntity,

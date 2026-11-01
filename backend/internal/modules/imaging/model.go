@@ -16,12 +16,15 @@ type ImagingStudy struct {
 	StudyDateTime    *time.Time `db:"study_datetime"`
 	AccessionNumber  string     `db:"accession_number"`
 	StudyDescription string     `db:"study_description"`
+	FHIRResourceID   string     `db:"fhir_resource_id"`
 	Status           string     `db:"status"`
 	CreatedAt        time.Time  `db:"created_at"`
 	UpdatedAt        time.Time  `db:"updated_at"`
 }
 
 type InstanceIndex struct {
+	ID                 uuid.UUID
+	StudyID            uuid.UUID
 	SeriesInstanceUID  string
 	SeriesNumber       int
 	SeriesDescription  string
@@ -35,4 +38,7 @@ type InstanceIndex struct {
 	Columns            int
 	PixelSpacingRow    float64
 	PixelSpacingColumn float64
+	FileName           string
+	ObjectKey          string
+	CreatedAt          time.Time
 }

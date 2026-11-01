@@ -36,11 +36,17 @@ func TestService_UploadDICOMStream_Success(testingInstance *testing.T) {
 	assert.Equal(testingInstance, fixtureSOPInstanceUID, result.SOPInstanceUID)
 	assert.Empty(testingInstance, result.Warnings)
 
-	instanceIndex, indexError := harness.repository.GetInstanceIndex(context.Background(), result.Study.ID)
-	require.NoError(testingInstance, indexError)
-	assert.Equal(testingInstance, fixtureSOPInstanceUID, instanceIndex.SOPInstanceUID)
-	assert.Equal(testingInstance, fixtureSOPClassUID, instanceIndex.SOPClassUID)
-	assert.Equal(testingInstance, dicom.TransferSyntaxExplicitVRLittleEndian, instanceIndex.TransferSyntaxUID)
+	storedInstances, listError := harness.repository.ListInstances(context.Background(), result.Study.ID)
+	require.NoError(testingInstance, listError)
+	require.Len(testingInstance, storedInstances, 1)
+	assert.True(testingInstance, result.StudyCreated)
+	assert.Equal(testingInstance, 1, result.InstancesAccepted)
+	assert.Empty(testingInstance, result.InstancesRejected)
+	assert.Equal(testingInstance, fixtureSOPInstanceUID, storedInstances[0].SOPInstanceUID)
+	assert.Equal(testingInstance, fixtureSOPClassUID, storedInstances[0].SOPClassUID)
+	assert.Equal(testingInstance, dicom.TransferSyntaxExplicitVRLittleEndian, storedInstances[0].TransferSyntaxUID)
+	assert.Equal(testingInstance, "scan.dcm", storedInstances[0].FileName)
+	assert.Equal(testingInstance, instanceObjectKeyFor(result.Study.PatientFhirID, result.Study.ID, storedInstances[0].ID), storedInstances[0].ObjectKey)
 
 	retrievedStudy, queryError := harness.service.GetImagingStudy(context.Background(), result.Study.ID.String())
 	require.NoError(testingInstance, queryError)
@@ -396,7 +402,7 @@ type racingDuplicateRepository struct {
 	*mocks.MockRepository
 }
 
-func (racing *racingDuplicateRepository) CreateImagingStudy(ctx context.Context, study *imaging.ImagingStudy, instanceIndex *imaging.InstanceIndex) error {
+func (racing *racingDuplicateRepository) CreateImagingStudy(ctx context.Context, study *imaging.ImagingStudy, instances []*imaging.InstanceIndex) error {
 	return apperrors.ErrDICOMDuplicateInstance
 }
 

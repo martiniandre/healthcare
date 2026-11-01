@@ -87,6 +87,8 @@ var goldenHTTPRouteRoles = map[string]string{
 	"GET /api/v1/staff/departments":                                        "ADMIN,DOCTOR,NURSE,RECEPTION",
 	"GET /api/v1/staff/employees":                                          "ADMIN,DOCTOR,NURSE,RECEPTION",
 	"GET /api/v1/studies/{studyId}":                                        "ADMIN,DOCTOR,NURSE",
+	"GET /api/v1/studies/{studyId}/download-url":                           "ADMIN,DOCTOR,NURSE",
+	"GET /api/v1/studies/{studyId}/instances":                              "ADMIN,DOCTOR,NURSE",
 	"GET /api/v1/telemetry/rooms":                                          "ADMIN,DOCTOR,NURSE,RECEPTION",
 	"GET /api/v1/telemetry/rooms/{roomId}/beds":                            "ADMIN,DOCTOR,NURSE",
 	"PATCH /api/v1/staff/employees/{employeeId}/status":                    "ADMIN,DOCTOR,NURSE",

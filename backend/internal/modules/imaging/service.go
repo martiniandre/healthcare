@@ -1,14 +1,13 @@
 package imaging
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"errors"
 	"fmt"
 	"io"
 	"log/slog"
-	"path/filepath"
-	"regexp"
 	"strings"
 	"time"
 
@@ -24,21 +23,34 @@ import (
 
 const MaxDICOMUploadBytes int64 = 2 << 30
 
-var unsafeObjectPathChars = regexp.MustCompile(`[^A-Za-z0-9-.]`)
-
-func sanitizeLeafName(rawName string) string {
-	baseName := strings.TrimSpace(filepath.Base(rawName))
-	if baseName == "" || baseName == "." || baseName == string(filepath.Separator) {
-		return ""
-	}
-	return unsafeObjectPathChars.ReplaceAllString(baseName, "_")
-}
+const (
+	uploadLeadingBytesLength = 4
+	uploadReadBufferBytes    = 64 << 10
+	downloadURLExpiration    = 15 * time.Minute
+	processingQueueKey       = "dicom_processing_queue"
+)
 
 type Service interface {
 	UploadDICOMStream(ctx context.Context, input UploadDICOMInput, streamReader io.Reader) (*UploadDICOMResult, error)
 	GetImagingStudy(ctx context.Context, studyID string) (*ImagingStudy, error)
 	ListImagingStudies(ctx context.Context, patientFhirID string) ([]*ImagingStudy, error)
 	GetDownloadURL(ctx context.Context, studyID string) (string, time.Time, error)
+	ListStudyInstanceDownloads(ctx context.Context, studyID string) ([]StudyInstanceDownload, error)
+}
+
+type StudyInstanceDownload struct {
+	Instance    *InstanceIndex
+	DownloadURL string
+	ExpiresAt   time.Time
+}
+
+type ServiceSettings struct {
+	ArchiveLimits  ArchiveLimits
+	SpoolDirectory string
+}
+
+func DefaultServiceSettings() ServiceSettings {
+	return ServiceSettings{ArchiveLimits: DefaultArchiveLimits()}
 }
 
 type service struct {
@@ -46,16 +58,22 @@ type service struct {
 	storageClient storage.StorageClient
 	redisClient   *redis.Client
 	auditService  audit_logs.Service
+	settings      ServiceSettings
 
 	patientIdentityReader PatientIdentityReader
 }
 
 func NewService(dbRepository Repository, storageClient storage.StorageClient, redisClient *redis.Client, auditService audit_logs.Service, patientIdentityReader PatientIdentityReader) Service {
+	return NewServiceWithSettings(dbRepository, storageClient, redisClient, auditService, patientIdentityReader, DefaultServiceSettings())
+}
+
+func NewServiceWithSettings(dbRepository Repository, storageClient storage.StorageClient, redisClient *redis.Client, auditService audit_logs.Service, patientIdentityReader PatientIdentityReader, settings ServiceSettings) Service {
 	return &service{
 		dbRepository:          dbRepository,
 		storageClient:         storageClient,
 		redisClient:           redisClient,
 		auditService:          auditService,
+		settings:              settings,
 		patientIdentityReader: patientIdentityReader,
 	}
 }
@@ -65,8 +83,17 @@ func (serviceInstance *service) UploadDICOMStream(ctx context.Context, input Upl
 		return nil, apperrors.InvalidArgument("invalid dicom upload input", fieldViolations)
 	}
 
+	bufferedReader := bufio.NewReaderSize(streamReader, uploadReadBufferBytes)
+	leadingBytes, _ := bufferedReader.Peek(uploadLeadingBytesLength)
+	if isArchiveUpload(leadingBytes, input.FileName) {
+		return serviceInstance.uploadArchive(ctx, input, bufferedReader)
+	}
+	return serviceInstance.uploadSingleInstance(ctx, input, bufferedReader)
+}
+
+func (serviceInstance *service) uploadSingleInstance(ctx context.Context, input UploadDICOMInput, source io.Reader) (*UploadDICOMResult, error) {
 	limitedReader := &io.LimitedReader{
-		R: streamReader,
+		R: source,
 		N: MaxDICOMUploadBytes + 1,
 	}
 
@@ -90,61 +117,112 @@ func (serviceInstance *service) UploadDICOMStream(ctx context.Context, input Upl
 		return nil, inspectionError
 	}
 
-	validated, validationError := validateDICOMMetadata(inspection.metadata)
-	if validationError != nil {
-		return nil, validationError
+	prepared, prepareError := prepareInstance(inspection.metadata, input.Modality)
+	if prepareError != nil {
+		return nil, singleFileUploadError(prepareError)
 	}
+	validated := prepared.validated
 
-	resolvedModality, modalityWarnings, modalityError := resolveModality(validated.modality, input.Modality)
-	if modalityError != nil {
-		return nil, modalityError
+	identity, identityLoadError := serviceInstance.loadPatientIdentity(ctx, input.PatientFhirID)
+	if identityLoadError != nil {
+		return nil, identityLoadError
 	}
-	validated.modality = resolvedModality
-	validated.instanceIndex.Modality = resolvedModality
-
-	identityWarnings, identityError := serviceInstance.verifyPatientIdentity(ctx, input.PatientFhirID, validated.source)
+	identityWarnings, identityError := evaluateInstancePatient(input.PatientFhirID, identity, validated.source)
 	if identityError != nil {
 		return nil, identityError
 	}
 
-	if duplicateError := serviceInstance.rejectDuplicateStudy(ctx, validated.studyInstanceUID); duplicateError != nil {
-		return nil, duplicateError
+	existingStudy, resolveError := serviceInstance.resolveExistingStudy(ctx, input.PatientFhirID, validated.studyInstanceUID)
+	if resolveError != nil {
+		return nil, resolveError
 	}
-
-	reconstructedReader := io.MultiReader(bytes.NewReader(inspection.consumedBytes), limitedReader)
-	boundedReader := &uploadLimitReader{reader: reconstructedReader, remainingBytes: MaxDICOMUploadBytes}
+	if existingStudy != nil {
+		alreadyStored, lookupError := serviceInstance.dbRepository.HasInstance(ctx, existingStudy.ID, validated.sopInstanceUID)
+		if lookupError != nil {
+			return nil, fmt.Errorf("failed to check duplicate imaging instance: %w", lookupError)
+		}
+		if alreadyStored {
+			return nil, apperrors.ErrDICOMDuplicateInstance
+		}
+	}
 
 	studyID := uuid.New()
-	sanitizedPatientFhirID := unsafeObjectPathChars.ReplaceAllString(input.PatientFhirID, "_")
-	sanitizedFileName := sanitizeLeafName(input.FileName)
-	studyExtension := filepath.Ext(sanitizedFileName)
-	if studyExtension == "" {
-		studyExtension = ".dcm"
+	if existingStudy != nil {
+		studyID = existingStudy.ID
 	}
-	studyFileName := studyID.String() + studyExtension
-	key := fmt.Sprintf("pacs/%s/%s", sanitizedPatientFhirID, studyFileName)
+	instance := validated.instanceIndex
+	instance.ID = uuid.New()
+	instance.StudyID = studyID
+	instance.FileName = singleFileDisplayName(input.FileName, instance.ID)
+	instance.ObjectKey = instanceObjectKey(input.PatientFhirID, studyID, instance.ID)
 
-	uploadError := serviceInstance.storageClient.Upload(ctx, key, boundedReader, "application/dicom")
+	boundedReader := &uploadLimitReader{
+		reader:         io.MultiReader(bytes.NewReader(inspection.consumedBytes), limitedReader),
+		remainingBytes: MaxDICOMUploadBytes,
+	}
+	uploadError := serviceInstance.storageClient.Upload(ctx, instance.ObjectKey, boundedReader, "application/dicom")
 	if uploadError != nil {
 		return nil, fmt.Errorf("failed to upload dicom to storage: %w", uploadError)
 	}
 
-	if sanitizedFileName == "" {
-		sanitizedFileName = studyFileName
+	study, persistError := serviceInstance.persistInstances(ctx, input, existingStudy, studyID, validated, instance.FileName, []*InstanceIndex{instance})
+	if persistError != nil {
+		serviceInstance.discardStoredObjects(ctx, []string{instance.ObjectKey})
+		return nil, persistError
 	}
 
+	if enqueueError := serviceInstance.enqueueStudyProcessing(ctx, study.ID); enqueueError != nil {
+		return nil, enqueueError
+	}
+
+	return &UploadDICOMResult{
+		Study:             study,
+		StudyCreated:      existingStudy == nil,
+		SeriesInstanceUID: validated.seriesInstanceUID,
+		SOPInstanceUID:    validated.sopInstanceUID,
+		Warnings:          appendUniqueWarnings(prepared.warnings, identityWarnings...),
+		InstancesAccepted: 1,
+		InstancesRejected: []RejectedInstance{},
+	}, nil
+}
+
+func (serviceInstance *service) persistInstances(ctx context.Context, input UploadDICOMInput, existingStudy *ImagingStudy, studyID uuid.UUID, validated *validatedDICOMMetadata, fileName string, instances []*InstanceIndex) (*ImagingStudy, error) {
+	now := time.Now()
+	if existingStudy != nil {
+		appendError := serviceInstance.dbRepository.AppendInstances(ctx, existingStudy.ID, instances, now)
+		if appendError != nil {
+			if errors.Is(appendError, apperrors.ErrDICOMDuplicateInstance) {
+				return nil, appendError
+			}
+			return nil, fmt.Errorf("failed to append imaging instances: %w", appendError)
+		}
+		existingStudy.Status = ImagingStudyStatusReceiving
+		existingStudy.UpdatedAt = now
+		return existingStudy, nil
+	}
+
+	study := newImagingStudy(input, studyID, validated, fileName, now)
+	createError := serviceInstance.dbRepository.CreateImagingStudy(ctx, study, instances)
+	if createError != nil {
+		if errors.Is(createError, apperrors.ErrDICOMDuplicateInstance) {
+			return nil, createError
+		}
+		return nil, fmt.Errorf("failed to persist imaging study operational record: %w", createError)
+	}
+	return study, nil
+}
+
+func newImagingStudy(input UploadDICOMInput, studyID uuid.UUID, validated *validatedDICOMMetadata, fileName string, now time.Time) *ImagingStudy {
 	studyTitle := truncateRunes(strings.TrimSpace(input.Title), maximumTitleLength)
 	if studyTitle == "" {
 		studyTitle = buildStudyTitle(validated.modality, validated.studyDescription, validated.studyDateTime)
 	}
-
-	now := time.Now()
-	study := &ImagingStudy{
+	return &ImagingStudy{
 		ID:               studyID,
 		PatientFhirID:    input.PatientFhirID,
 		Title:            studyTitle,
 		Modality:         validated.modality,
-		FileName:         sanitizedFileName,
+		FileName:         fileName,
 		StudyInstanceUID: validated.studyInstanceUID,
 		StudyDateTime:    validated.studyDateTime,
 		AccessionNumber:  validated.accessionNumber,
@@ -153,76 +231,75 @@ func (serviceInstance *service) UploadDICOMStream(ctx context.Context, input Upl
 		CreatedAt:        now,
 		UpdatedAt:        now,
 	}
-
-	dbError := serviceInstance.dbRepository.CreateImagingStudy(ctx, study, validated.instanceIndex)
-	if dbError != nil {
-		serviceInstance.discardStoredObject(ctx, key)
-		if errors.Is(dbError, apperrors.ErrDICOMDuplicateInstance) {
-			return nil, dbError
-		}
-		return nil, fmt.Errorf("failed to persist imaging study operational record: %w", dbError)
-	}
-
-	if serviceInstance.redisClient != nil {
-		enqueueError := serviceInstance.redisClient.LPush(ctx, "dicom_processing_queue", studyID.String()).Err()
-		if enqueueError != nil {
-			return nil, fmt.Errorf("failed to enqueue dicom processing job: %w", enqueueError)
-		}
-	}
-
-	return &UploadDICOMResult{
-		Study:             study,
-		SeriesInstanceUID: validated.seriesInstanceUID,
-		SOPInstanceUID:    validated.sopInstanceUID,
-		Warnings:          append(modalityWarnings, identityWarnings...),
-	}, nil
 }
 
-func resolveModality(fileModality string, userModality string) (string, []UploadWarning, error) {
-	typedModality := strings.ToUpper(strings.TrimSpace(userModality))
-	if fileModality == "" {
-		if typedModality == "" {
-			return "", nil, apperrors.WithDetail(apperrors.ErrInvalidDICOM, "Modality is missing")
-		}
-		return typedModality, nil, nil
+func singleFileDisplayName(rawFileName string, instanceID uuid.UUID) string {
+	if sanitizedName := sanitizeLeafName(rawFileName); sanitizedName != "" {
+		return truncateRunes(sanitizedName, maximumDisplayNameRunes)
 	}
-	if typedModality != "" && typedModality != fileModality {
-		return fileModality, []UploadWarning{newUploadWarning(WarningCodeModalityOverridden)}, nil
-	}
-	return fileModality, nil, nil
+	return instanceID.String() + defaultDICOMExtension
 }
 
-func (serviceInstance *service) verifyPatientIdentity(ctx context.Context, patientFhirID string, source *dicom.InstanceMetadata) ([]UploadWarning, error) {
-	var patientIdentity PatientIdentity
-	if serviceInstance.patientIdentityReader != nil {
-		readIdentity, readError := serviceInstance.patientIdentityReader.ReadPatientIdentity(ctx, patientFhirID)
-		if readError != nil {
-			return nil, readError
-		}
-		patientIdentity = readIdentity
+func (serviceInstance *service) loadPatientIdentity(ctx context.Context, patientFhirID string) (PatientIdentity, error) {
+	if serviceInstance.patientIdentityReader == nil {
+		return PatientIdentity{}, nil
 	}
+	return serviceInstance.patientIdentityReader.ReadPatientIdentity(ctx, patientFhirID)
+}
 
+func evaluateInstancePatient(patientFhirID string, identity PatientIdentity, source *dicom.InstanceMetadata) ([]UploadWarning, error) {
 	return evaluatePatientMatch(patientFhirID, dicomPatientIdentity{
 		patientID:   source.PatientID,
 		patientName: source.PatientName,
-	}, patientIdentity)
+	}, identity)
 }
 
-func (serviceInstance *service) rejectDuplicateStudy(ctx context.Context, studyInstanceUID string) error {
-	_, findError := serviceInstance.dbRepository.FindImagingStudyByStudyInstanceUID(ctx, studyInstanceUID)
-	if findError == nil {
-		return apperrors.ErrDICOMDuplicateInstance
+func (serviceInstance *service) resolveExistingStudy(ctx context.Context, patientFhirID string, studyInstanceUID string) (*ImagingStudy, error) {
+	existingStudy, findError := serviceInstance.dbRepository.FindImagingStudyByStudyInstanceUID(ctx, studyInstanceUID)
+	if findError != nil {
+		if errors.Is(findError, apperrors.ErrImagingStudyNotFound) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("failed to check existing imaging study: %w", findError)
 	}
-	if errors.Is(findError, apperrors.ErrImagingStudyNotFound) {
+	if existingStudy.PatientFhirID != patientFhirID {
+		return nil, apperrors.ErrDICOMPatientMismatch
+	}
+	return existingStudy, nil
+}
+
+func (serviceInstance *service) enqueueStudyProcessing(ctx context.Context, studyID uuid.UUID) error {
+	if serviceInstance.redisClient == nil {
 		return nil
 	}
-	return fmt.Errorf("failed to check duplicate imaging study: %w", findError)
+	if enqueueError := serviceInstance.redisClient.LPush(ctx, processingQueueKey, studyID.String()).Err(); enqueueError != nil {
+		return fmt.Errorf("failed to enqueue dicom processing job: %w", enqueueError)
+	}
+	return nil
 }
 
-func (serviceInstance *service) discardStoredObject(ctx context.Context, key string) {
-	if deleteError := serviceInstance.storageClient.Delete(context.WithoutCancel(ctx), key); deleteError != nil {
-		slog.Warn("failed to discard orphaned dicom object", "error", deleteError)
+func (serviceInstance *service) discardStoredObjects(ctx context.Context, keys []string) {
+	for _, key := range keys {
+		if deleteError := serviceInstance.storageClient.Delete(context.WithoutCancel(ctx), key); deleteError != nil {
+			slog.Warn("failed to discard orphaned dicom object", "error", deleteError)
+		}
 	}
+}
+
+func appendUniqueWarnings(existing []UploadWarning, additions ...UploadWarning) []UploadWarning {
+	for _, addition := range additions {
+		alreadyPresent := false
+		for _, current := range existing {
+			if current.Code == addition.Code {
+				alreadyPresent = true
+				break
+			}
+		}
+		if !alreadyPresent {
+			existing = append(existing, addition)
+		}
+	}
+	return existing
 }
 
 type uploadLimitReader struct {
@@ -273,26 +350,80 @@ func (serviceInstance *service) GetDownloadURL(ctx context.Context, studyID stri
 		return "", time.Time{}, dbError
 	}
 
-	expirationDuration := 15 * time.Minute
-	studyKey := serviceInstance.buildStorageKey(study)
-	downloadURL, presignError := serviceInstance.storageClient.GetPresignedURL(ctx, studyKey, expirationDuration)
+	storedObjects, objectsError := serviceInstance.storedObjects(ctx, study)
+	if objectsError != nil {
+		return "", time.Time{}, objectsError
+	}
+	if len(storedObjects) > 1 {
+		return "", time.Time{}, apperrors.ErrDICOMMultipleInstances
+	}
+
+	downloadURL, expiresAt, presignError := serviceInstance.presignObject(ctx, storedObjects[0].ObjectKey)
 	if presignError != nil {
-		return "", time.Time{}, fmt.Errorf("failed to generate presigned url: %w", presignError)
+		return "", time.Time{}, presignError
 	}
 
 	serviceInstance.auditDownloadURLIssuance(ctx, parsedStudyID)
-
-	expiresAt := time.Now().Add(expirationDuration)
 	return downloadURL, expiresAt, nil
 }
 
-func (serviceInstance *service) buildStorageKey(study *ImagingStudy) string {
-	studyExtension := filepath.Ext(study.FileName)
-	if studyExtension == "" {
-		studyExtension = ".dcm"
+func (serviceInstance *service) ListStudyInstanceDownloads(ctx context.Context, studyID string) ([]StudyInstanceDownload, error) {
+	parsedStudyID, err := uuid.Parse(studyID)
+	if err != nil {
+		return nil, apperrors.InvalidArgument("invalid study instances input", map[string]string{"study_id": "must be a valid UUID"})
 	}
-	sanitizedPatientFhirID := unsafeObjectPathChars.ReplaceAllString(study.PatientFhirID, "_")
-	return fmt.Sprintf("pacs/%s/%s%s", sanitizedPatientFhirID, study.ID.String(), studyExtension)
+
+	study, dbError := serviceInstance.dbRepository.GetImagingStudy(ctx, parsedStudyID)
+	if dbError != nil {
+		return nil, dbError
+	}
+
+	storedObjects, objectsError := serviceInstance.storedObjects(ctx, study)
+	if objectsError != nil {
+		return nil, objectsError
+	}
+
+	downloads := make([]StudyInstanceDownload, 0, len(storedObjects))
+	for _, storedObject := range storedObjects {
+		downloadURL, expiresAt, presignError := serviceInstance.presignObject(ctx, storedObject.ObjectKey)
+		if presignError != nil {
+			return nil, presignError
+		}
+		downloads = append(downloads, StudyInstanceDownload{Instance: storedObject, DownloadURL: downloadURL, ExpiresAt: expiresAt})
+	}
+
+	serviceInstance.auditDownloadURLIssuance(ctx, parsedStudyID)
+	return downloads, nil
+}
+
+func (serviceInstance *service) storedObjects(ctx context.Context, study *ImagingStudy) ([]*InstanceIndex, error) {
+	instances, listError := serviceInstance.dbRepository.ListInstances(ctx, study.ID)
+	if listError != nil {
+		return nil, listError
+	}
+	if len(instances) == 0 {
+		return []*InstanceIndex{{
+			ID:        study.ID,
+			StudyID:   study.ID,
+			FileName:  study.FileName,
+			ObjectKey: legacyStudyObjectKey(study),
+			CreatedAt: study.CreatedAt,
+		}}, nil
+	}
+	for _, instance := range instances {
+		if instance.ObjectKey == "" {
+			instance.ObjectKey = legacyStudyObjectKey(study)
+		}
+	}
+	return instances, nil
+}
+
+func (serviceInstance *service) presignObject(ctx context.Context, objectKey string) (string, time.Time, error) {
+	downloadURL, presignError := serviceInstance.storageClient.GetPresignedURL(ctx, objectKey, downloadURLExpiration)
+	if presignError != nil {
+		return "", time.Time{}, fmt.Errorf("failed to generate presigned url: %w", presignError)
+	}
+	return downloadURL, time.Now().Add(downloadURLExpiration), nil
 }
 
 func (serviceInstance *service) auditDownloadURLIssuance(ctx context.Context, studyID uuid.UUID) {

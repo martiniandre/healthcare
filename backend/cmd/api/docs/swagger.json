@@ -2140,7 +2140,7 @@
                 }
             },
             "post": {
-                "description": "Uploads a DICOM imaging study for a patient. The DICOM header is read to fill StudyInstanceUID, modality, study date, accession number and series/instance UIDs, and the file is rejected when it belongs to a different patient (422 DICOM_PATIENT_MISMATCH) or was already uploaded (409 DICOM_DUPLICATE_INSTANCE). Title and modality are optional fallbacks; the DICOM modality wins when both are present.",
+                "description": "Uploads one DICOM file, or a ZIP archive of DICOM files of the same study, for a patient. The first DICOM instance of a StudyInstanceUID creates the study; later uploads of the same StudyInstanceUID for the same patient append their instances (duplicated SOP instances are rejected). A StudyInstanceUID that already belongs to another patient is rejected with 422 DICOM_PATIENT_MISMATCH. In a ZIP, a patient mismatch in any instance rejects the whole request and nothing is stored; other per-instance problems are listed in instancesRejected while the remaining instances are stored, and an archive with no accepted instance returns 422 DICOM_NO_VALID_INSTANCES. Archives must hold one study, reject unsafe entry paths and links (422 ZIP_UNSAFE_ENTRY), and exceed size, entry count or compression limits with 413 ZIP_LIMITS_EXCEEDED. Content sent as a ZIP that is not a ZIP is 422 ZIP_INVALID. A single DICOM file that was already uploaded is rejected with 409 DICOM_DUPLICATE_INSTANCE. Title and modality are optional fallbacks; the DICOM modality wins when both are present. The multipart form fields title and modality must be sent BEFORE the file part; fields that arrive after the file part are ignored. The read deadline of this route is extended to 2 hours because the global 30 second read timeout would cut large uploads; the request body is streamed to storage and never spooled to disk as a whole form, except ZIP archives which are spooled to a temporary file with size limits.",
                 "consumes": [
                     "multipart/form-data"
                 ],
@@ -2150,7 +2150,7 @@
                 "tags": [
                     "imaging"
                 ],
-                "summary": "Upload DICOM study",
+                "summary": "Upload DICOM study or ZIP archive",
                 "parameters": [
                     {
                         "type": "string",
@@ -2161,19 +2161,19 @@
                     },
                     {
                         "type": "string",
-                        "description": "Study title (derived from the DICOM header when empty)",
+                        "description": "Study title (derived from the DICOM header when empty). Must precede the file part.",
                         "name": "title",
                         "in": "formData"
                     },
                     {
                         "type": "string",
-                        "description": "Fallback modality (e.g., CT, MR, XR) used only when the DICOM header has none",
+                        "description": "Fallback modality (e.g., CT, MR, XR) used only when the DICOM header has none. Must precede the file part.",
                         "name": "modality",
                         "in": "formData"
                     },
                     {
                         "type": "file",
-                        "description": "DICOM file",
+                        "description": "DICOM file or ZIP archive of DICOM files (.zip)",
                         "name": "file",
                         "in": "formData",
                         "required": true
@@ -2756,7 +2756,7 @@
         },
         "/studies/{studyId}": {
             "get": {
-                "description": "Returns details of a specific imaging study including download URL",
+                "description": "Returns details of a specific imaging study including download URL. The download URL is omitted for studies with more than one instance; use the instances endpoint for those.",
                 "consumes": [
                     "application/json"
                 ],
@@ -2794,6 +2794,136 @@
                     },
                     "404": {
                         "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/studies/{studyId}/download-url": {
+            "get": {
+                "description": "Returns a presigned download URL (valid 15 minutes) for a single-instance study. Studies with more than one instance return 409 MULTIPLE_INSTANCES; use GET /studies/{studyId}/instances instead.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "imaging"
+                ],
+                "summary": "Get study download URL",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Study UUID",
+                        "name": "studyId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_modules_imaging.HTTPStudyDownloadURLResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/studies/{studyId}/instances": {
+            "get": {
+                "description": "Returns every stored DICOM instance of a study with a presigned download URL (valid 15 minutes) for each one. Each download is audited.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "imaging"
+                ],
+                "summary": "List study instances with download URLs",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Study UUID",
+                        "name": "studyId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/internal_modules_imaging.HTTPStudyInstanceResponse"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -3751,6 +3881,57 @@
                 }
             }
         },
+        "internal_modules_imaging.HTTPRejectedInstance": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "fileName": {
+                    "type": "string"
+                },
+                "reason": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_modules_imaging.HTTPStudyDownloadURLResponse": {
+            "type": "object",
+            "properties": {
+                "downloadUrl": {
+                    "type": "string"
+                },
+                "expiresAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_modules_imaging.HTTPStudyInstanceResponse": {
+            "type": "object",
+            "properties": {
+                "downloadUrl": {
+                    "type": "string"
+                },
+                "expiresAt": {
+                    "type": "string"
+                },
+                "fileName": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "instanceNumber": {
+                    "type": "integer"
+                },
+                "seriesInstanceUid": {
+                    "type": "string"
+                },
+                "sopInstanceUid": {
+                    "type": "string"
+                }
+            }
+        },
         "internal_modules_imaging.HTTPUploadStudyResponse": {
             "type": "object",
             "properties": {
@@ -3762,6 +3943,15 @@
                 },
                 "id": {
                     "type": "string"
+                },
+                "instancesAccepted": {
+                    "type": "integer"
+                },
+                "instancesRejected": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/internal_modules_imaging.HTTPRejectedInstance"
+                    }
                 },
                 "modality": {
                     "type": "string"
@@ -3778,7 +3968,13 @@
                 "status": {
                     "type": "string"
                 },
+                "studyCreated": {
+                    "type": "boolean"
+                },
                 "studyDate": {
+                    "type": "string"
+                },
+                "studyId": {
                     "type": "string"
                 },
                 "studyInstanceUid": {

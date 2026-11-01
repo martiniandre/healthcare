@@ -471,6 +471,39 @@ definitions:
       title:
         type: string
     type: object
+  internal_modules_imaging.HTTPRejectedInstance:
+    properties:
+      code:
+        type: string
+      fileName:
+        type: string
+      reason:
+        type: string
+    type: object
+  internal_modules_imaging.HTTPStudyDownloadURLResponse:
+    properties:
+      downloadUrl:
+        type: string
+      expiresAt:
+        type: string
+    type: object
+  internal_modules_imaging.HTTPStudyInstanceResponse:
+    properties:
+      downloadUrl:
+        type: string
+      expiresAt:
+        type: string
+      fileName:
+        type: string
+      id:
+        type: string
+      instanceNumber:
+        type: integer
+      seriesInstanceUid:
+        type: string
+      sopInstanceUid:
+        type: string
+    type: object
   internal_modules_imaging.HTTPUploadStudyResponse:
     properties:
       accessionNumber:
@@ -479,6 +512,12 @@ definitions:
         type: string
       id:
         type: string
+      instancesAccepted:
+        type: integer
+      instancesRejected:
+        items:
+          $ref: '#/definitions/internal_modules_imaging.HTTPRejectedInstance'
+        type: array
       modality:
         type: string
       patient_fhir_id:
@@ -491,7 +530,11 @@ definitions:
         type: string
       study_instance_uid:
         type: string
+      studyCreated:
+        type: boolean
       studyDate:
+        type: string
+      studyId:
         type: string
       studyInstanceUid:
         type: string
@@ -2393,28 +2436,43 @@ paths:
     post:
       consumes:
       - multipart/form-data
-      description: Uploads a DICOM imaging study for a patient. The DICOM header is
-        read to fill StudyInstanceUID, modality, study date, accession number and
-        series/instance UIDs, and the file is rejected when it belongs to a different
-        patient (422 DICOM_PATIENT_MISMATCH) or was already uploaded (409 DICOM_DUPLICATE_INSTANCE).
+      description: Uploads one DICOM file, or a ZIP archive of DICOM files of the
+        same study, for a patient. The first DICOM instance of a StudyInstanceUID
+        creates the study; later uploads of the same StudyInstanceUID for the same
+        patient append their instances (duplicated SOP instances are rejected). A
+        StudyInstanceUID that already belongs to another patient is rejected with
+        422 DICOM_PATIENT_MISMATCH. In a ZIP, a patient mismatch in any instance rejects
+        the whole request and nothing is stored; other per-instance problems are listed
+        in instancesRejected while the remaining instances are stored, and an archive
+        with no accepted instance returns 422 DICOM_NO_VALID_INSTANCES. Archives must
+        hold one study, reject unsafe entry paths and links (422 ZIP_UNSAFE_ENTRY),
+        and exceed size, entry count or compression limits with 413 ZIP_LIMITS_EXCEEDED.
+        Content sent as a ZIP that is not a ZIP is 422 ZIP_INVALID. A single DICOM
+        file that was already uploaded is rejected with 409 DICOM_DUPLICATE_INSTANCE.
         Title and modality are optional fallbacks; the DICOM modality wins when both
-        are present.
+        are present. The multipart form fields title and modality must be sent BEFORE
+        the file part; fields that arrive after the file part are ignored. The read
+        deadline of this route is extended to 2 hours because the global 30 second
+        read timeout would cut large uploads; the request body is streamed to storage
+        and never spooled to disk as a whole form, except ZIP archives which are spooled
+        to a temporary file with size limits.
       parameters:
       - description: Patient FHIR ID
         in: path
         name: patientFhirId
         required: true
         type: string
-      - description: Study title (derived from the DICOM header when empty)
+      - description: Study title (derived from the DICOM header when empty). Must
+          precede the file part.
         in: formData
         name: title
         type: string
       - description: Fallback modality (e.g., CT, MR, XR) used only when the DICOM
-          header has none
+          header has none. Must precede the file part.
         in: formData
         name: modality
         type: string
-      - description: DICOM file
+      - description: DICOM file or ZIP archive of DICOM files (.zip)
         in: formData
         name: file
         required: true
@@ -2468,7 +2526,7 @@ paths:
             additionalProperties:
               type: string
             type: object
-      summary: Upload DICOM study
+      summary: Upload DICOM study or ZIP archive
       tags:
       - imaging
   /patients/{patientFhirId}/timeline:
@@ -2817,7 +2875,8 @@ paths:
       consumes:
       - application/json
       description: Returns details of a specific imaging study including download
-        URL
+        URL. The download URL is omitted for studies with more than one instance;
+        use the instances endpoint for those.
       parameters:
       - description: Study UUID
         in: path
@@ -2844,6 +2903,95 @@ paths:
               type: string
             type: object
       summary: Get imaging study details
+      tags:
+      - imaging
+  /studies/{studyId}/download-url:
+    get:
+      consumes:
+      - application/json
+      description: Returns a presigned download URL (valid 15 minutes) for a single-instance
+        study. Studies with more than one instance return 409 MULTIPLE_INSTANCES;
+        use GET /studies/{studyId}/instances instead.
+      parameters:
+      - description: Study UUID
+        in: path
+        name: studyId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_modules_imaging.HTTPStudyDownloadURLResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: Conflict
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get study download URL
+      tags:
+      - imaging
+  /studies/{studyId}/instances:
+    get:
+      consumes:
+      - application/json
+      description: Returns every stored DICOM instance of a study with a presigned
+        download URL (valid 15 minutes) for each one. Each download is audited.
+      parameters:
+      - description: Study UUID
+        in: path
+        name: studyId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/internal_modules_imaging.HTTPStudyInstanceResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List study instances with download URLs
       tags:
       - imaging
   /telemetry/beds/{bedId}/condition:

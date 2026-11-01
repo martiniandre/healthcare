@@ -88,33 +88,30 @@ type validatedDICOMMetadata struct {
 
 func validateDICOMMetadata(metadata *dicom.InstanceMetadata) (*validatedDICOMMetadata, error) {
 	if !dicom.IsSupportedTransferSyntax(metadata.TransferSyntaxUID) {
-		return nil, apperrors.WithDetail(apperrors.ErrInvalidDICOM, fmt.Sprintf(
-			"transfer syntax %s is not supported; send an uncompressed Implicit or Explicit VR Little Endian file",
-			dicom.DescribeTransferSyntax(metadata.TransferSyntaxUID),
-		))
+		return nil, unsupportedTransferSyntaxRejection(dicom.DescribeTransferSyntax(metadata.TransferSyntaxUID))
 	}
 
 	studyInstanceUID := strings.TrimSpace(metadata.StudyInstanceUID)
 	if studyInstanceUID == "" {
-		return nil, apperrors.WithDetail(apperrors.ErrInvalidDICOM, "StudyInstanceUID is missing")
+		return nil, newInstanceRejection(RejectionCodeMissingIdentifiers, "StudyInstanceUID is missing")
 	}
 	if !isValidDICOMUID(studyInstanceUID) {
-		return nil, apperrors.WithDetail(apperrors.ErrInvalidDICOM, "StudyInstanceUID is not a valid UID")
+		return nil, newInstanceRejection(RejectionCodeMissingIdentifiers, "StudyInstanceUID is not a valid UID")
 	}
 
 	sopInstanceUID := metadata.SOPUID()
 	if sopInstanceUID == "" {
-		return nil, apperrors.WithDetail(apperrors.ErrInvalidDICOM, "SOPInstanceUID is missing")
+		return nil, newInstanceRejection(RejectionCodeMissingIdentifiers, "SOPInstanceUID is missing")
 	}
 	if !isValidDICOMUID(sopInstanceUID) {
-		return nil, apperrors.WithDetail(apperrors.ErrInvalidDICOM, "SOPInstanceUID is not a valid UID")
+		return nil, newInstanceRejection(RejectionCodeMissingIdentifiers, "SOPInstanceUID is not a valid UID")
 	}
 
 	seriesInstanceUID := strings.TrimSpace(metadata.SeriesInstanceUID)
 	if seriesInstanceUID == "" {
 		seriesInstanceUID = studyInstanceUID + ".1"
 	} else if !isValidDICOMUID(seriesInstanceUID) {
-		return nil, apperrors.WithDetail(apperrors.ErrInvalidDICOM, "SeriesInstanceUID is not a valid UID")
+		return nil, newInstanceRejection(RejectionCodeMissingIdentifiers, "SeriesInstanceUID is not a valid UID")
 	}
 
 	validated := &validatedDICOMMetadata{
@@ -129,6 +126,27 @@ func validateDICOMMetadata(metadata *dicom.InstanceMetadata) (*validatedDICOMMet
 	}
 	validated.instanceIndex = buildInstanceIndex(validated, metadata)
 	return validated, nil
+}
+
+type preparedInstance struct {
+	validated *validatedDICOMMetadata
+	warnings  []UploadWarning
+}
+
+func prepareInstance(metadata *dicom.InstanceMetadata, userModality string) (*preparedInstance, error) {
+	validated, validationError := validateDICOMMetadata(metadata)
+	if validationError != nil {
+		return nil, validationError
+	}
+
+	resolvedModality, modalityWarnings, modalityError := resolveModality(validated.modality, userModality)
+	if modalityError != nil {
+		return nil, modalityError
+	}
+	validated.modality = resolvedModality
+	validated.instanceIndex.Modality = resolvedModality
+
+	return &preparedInstance{validated: validated, warnings: modalityWarnings}, nil
 }
 
 func isValidDICOMUID(uid string) bool {
@@ -198,4 +216,18 @@ func truncateRunes(value string, maximumRunes int) string {
 		return value
 	}
 	return string([]rune(value)[:maximumRunes])
+}
+
+func resolveModality(fileModality string, userModality string) (string, []UploadWarning, error) {
+	typedModality := strings.ToUpper(strings.TrimSpace(userModality))
+	if fileModality == "" {
+		if typedModality == "" {
+			return "", nil, newInstanceRejection(RejectionCodeInvalidDICOM, "Modality is missing")
+		}
+		return typedModality, nil, nil
+	}
+	if typedModality != "" && typedModality != fileModality {
+		return fileModality, []UploadWarning{newUploadWarning(WarningCodeModalityOverridden)}, nil
+	}
+	return fileModality, nil, nil
 }
