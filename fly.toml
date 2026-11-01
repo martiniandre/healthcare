@@ -8,6 +8,9 @@ primary_region = 'gru'
 
 [build]
 
+[deploy]
+  release_command = '/app/migrate'
+
 [env]
   APP_ENV = 'production'
   HTTP_PORT = '8080'

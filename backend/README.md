@@ -138,66 +138,34 @@ DB_URL=postgres://... go run ./cmd/migrate
 ```
 A imagem Docker contém `/app/migrate` e `/app/migrations`.
 
-**Deploy (Cloud Run):** `deploy-backend.yml` tem o job `migrate`, que constrói a imagem, executa `/app/migrate` via Cloud Run Job (`healthcare-api-migrate`, mesma imagem, `DB_URL` = secret `CLOUD_RUN_DB_URL`, `--wait`) e só então o job `deploy` roda (`needs: migrate`). Falha de migration interrompe o rollout e as réplicas atuais continuam servindo. Nenhum secret novo; a service account do `GCP_SA_KEY` precisa de permissão para criar/executar Cloud Run Jobs (`roles/run.developer`). Para forçar migração no startup em produção, defina `RUN_MIGRATIONS_ON_START=true`.
+**Deploy (Fly.io):** o app `healthcare-api-small-dust-5285` roda no Fly.io. O workflow `.github/workflows/deploy-backend.yml` dispara o deploy a cada push na `main` que altere `backend/`, `Dockerfile`, `deploy/`, `fly.toml` ou o próprio workflow, e também manualmente (**Actions → Deploy Backend to Fly.io → Run workflow**).
 
-### Deploy automatizado (Cloud Run)
+**Migrations antes do rollout.** O `fly.toml` define `release_command = '/app/migrate'`. O Fly executa a migração em uma máquina temporária com a imagem nova e os secrets do app, e só troca as réplicas se ela terminar sem erro. Se a migração falhar, a versão atual continua no ar. Como `APP_ENV=production`, a API não migra no startup: ela só verifica se o schema está na versão esperada.
 
-O workflow `.github/workflows/deploy-backend.yml` roda a cada push na `main` que altere `backend/**`, ou manualmente em **Actions → Deploy Backend to Cloud Run → Run workflow**. Ordem: `preflight` (checa a configuração e lista o que falta) → `build` (imagem para o Artifact Registry) → `migrate` (Cloud Run Job com `/app/migrate`) → `deploy` (Cloud Run + checagem de `/health`). Se a migração falhar, o deploy não acontece e a versão atual continua no ar.
+**Configuração única:**
 
-**Autenticação.** Preferida: Workload Identity Federation (sem chave de longa duração). Alternativa: chave JSON da service account em `GCP_SA_KEY`. O workflow usa WIF sempre que a variável `GCP_WORKLOAD_IDENTITY_PROVIDER` estiver definida.
-
-**Configuração única (faça uma vez, com `gcloud` autenticado no projeto):**
+1. Gerar o token de deploy e cadastrá-lo como secret do GitHub (`FLY_API_TOKEN`):
 
 ```bash
-export PROJECT_ID=seu-projeto-gcp
-export PROJECT_NUMBER=$(gcloud projects describe "$PROJECT_ID" --format='value(projectNumber)')
-export REPO=martiniandre/healthcare
-export SA_NAME=github-deployer
-export SA_EMAIL="$SA_NAME@$PROJECT_ID.iam.gserviceaccount.com"
-
-gcloud iam service-accounts create "$SA_NAME" --project "$PROJECT_ID"
-
-for ROLE in roles/run.developer roles/artifactregistry.writer roles/iam.serviceAccountUser; do
-  gcloud projects add-iam-policy-binding "$PROJECT_ID" --member "serviceAccount:$SA_EMAIL" --role "$ROLE"
-done
-
-gcloud iam workload-identity-pools create github --location global --project "$PROJECT_ID"
-
-gcloud iam workload-identity-pools providers create-oidc github-provider   --location global --workload-identity-pool github --project "$PROJECT_ID"   --issuer-uri https://token.actions.githubusercontent.com   --attribute-mapping "google.subject=assertion.sub,attribute.repository=assertion.repository"   --attribute-condition "assertion.repository=='$REPO'"
-
-gcloud iam service-accounts add-iam-policy-binding "$SA_EMAIL"   --role roles/iam.workloadIdentityUser --project "$PROJECT_ID"   --member "principalSet://iam.googleapis.com/projects/$PROJECT_NUMBER/locations/global/workloadIdentityPools/github/attribute.repository/$REPO"
-
-echo "projects/$PROJECT_NUMBER/locations/global/workloadIdentityPools/github/providers/github-provider"
+fly tokens create deploy -a healthcare-api-small-dust-5285
+gh secret set FLY_API_TOKEN --repo martiniandre/healthcare
 ```
 
-**Variáveis do repositório** (Settings → Secrets and variables → Actions → Variables):
-
-| Nome | Valor |
-|------|-------|
-| `GCP_WORKLOAD_IDENTITY_PROVIDER` | a linha impressa pelo último comando acima |
-| `GCP_SERVICE_ACCOUNT` | `github-deployer@<projeto>.iam.gserviceaccount.com` |
-
-**Secrets do repositório** (Settings → Secrets and variables → Actions → Secrets):
-
-| Nome | Obrigatório | Uso |
-|------|-------------|-----|
-| `GCP_PROJECT_ID` | sim | projeto GCP |
-| `CLOUD_RUN_DB_URL` | sim | `DB_URL` da API e do job de migração |
-| `CLOUD_RUN_REDIS_URL` | sim | `REDIS_URL` |
-| `CLOUD_RUN_JWT_SECRET` | sim | `JWT_SECRET` (mínimo 32 caracteres em produção) |
-| `GCP_LOCATION_ID`, `GCP_DATASET_ID`, `GCP_FHIR_STORE_ID`, `GCP_VERTEX_MODEL`, `GCS_BUCKET_NAME` | sim | configuração GCP |
-| `SENTRY_DSN` | não | monitoramento de erros |
-| `GCP_SA_KEY` | só sem WIF | chave JSON da service account |
-
-Para cadastrar um secret pela linha de comando, sem colar o valor no histórico do shell:
+2. Conferir os secrets do app no Fly (os nomes aparecem, os valores não):
 
 ```bash
-gh secret set CLOUD_RUN_JWT_SECRET --repo martiniandre/healthcare
+fly secrets list -a healthcare-api-small-dust-5285
 ```
 
-Depois do primeiro push na `main`, a checagem `preflight` mostra exatamente o que ainda falta, se houver algo.
+Os necessários são `DB_URL`, `JWT_SECRET`, `REDIS_URL`, `GCP_PROJECT_ID`, `GCP_DATASET_ID`, `GCP_FHIR_STORE_ID`, `GCP_KEY_B64` (JSON da service account em base64) e `FRONTEND_URL`. Opcionais: `JWT_SECRET_PREVIOUS`, `GCP_LOCATION_ID`, `GCP_VERTEX_MODEL`, `GCS_BUCKET_NAME`, `SENTRY_DSN`. Para cadastrar um valor sem deixá-lo no histórico do shell:
 
-**Pré-requisito de produção:** antes do primeiro deploy com a migration `028`, rode a consulta de verificação descrita no cabeçalho de `backend/migrations/032_imaging_study_identity.up.sql`.
+```bash
+fly secrets set NOME_DO_SECRET -a healthcare-api-small-dust-5285
+```
+
+**Antes do primeiro deploy com a migration `028`:** rode a consulta de verificação descrita no cabeçalho de `backend/migrations/032_imaging_study_identity.up.sql`.
+
+**Verificação do app:** `fly apps list` mostrava o app como `suspended`. Confirme que ele está ativo (ou reative-o pelo painel do Fly) antes de disparar o deploy.
 
 ### 3. Compilar e Rodar o Servidor Go
 ```bash
