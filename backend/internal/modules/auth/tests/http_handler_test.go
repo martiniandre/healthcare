@@ -1,8 +1,10 @@
 package tests
 
 import (
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"sort"
 	"strings"
 	"testing"
 
@@ -149,4 +151,86 @@ func TestHTTPHandler_Logout_WithoutCookiesIsUnauthorized(testingInstance *testin
 	serveMux.ServeHTTP(responseRecorder, httptest.NewRequest(http.MethodPost, "/api/v1/auth/logout", nil))
 
 	assert.Equal(testingInstance, http.StatusUnauthorized, responseRecorder.Code)
+}
+
+func permissionsRequest(testingInstance *testing.T, roleName string) *http.Request {
+	testingInstance.Helper()
+	accessToken, tokenError := auth.GenerateJWT(uuid.New().String(), roleName, "user@example.com")
+	require.NoError(testingInstance, tokenError)
+	httpRequest := httptest.NewRequest(http.MethodGet, "/api/v1/auth/permissions", nil)
+	httpRequest.AddCookie(&http.Cookie{Name: "token", Value: accessToken})
+	return httpRequest
+}
+
+func TestHTTPHandler_Permissions_ReturnsSortedCapabilitiesForRole(testingInstance *testing.T) {
+	_, serveMux := newHTTPHandlerFixture()
+	responseRecorder := httptest.NewRecorder()
+
+	serveMux.ServeHTTP(responseRecorder, permissionsRequest(testingInstance, "DOCTOR"))
+
+	require.Equal(testingInstance, http.StatusOK, responseRecorder.Code)
+	var permissionsResponse auth.PermissionsResponse
+	require.NoError(testingInstance, json.Unmarshal(responseRecorder.Body.Bytes(), &permissionsResponse))
+	assert.Equal(testingInstance, "DOCTOR", permissionsResponse.Role)
+	assert.Contains(testingInstance, permissionsResponse.Capabilities, "medication:create")
+	assert.Contains(testingInstance, permissionsResponse.Capabilities, "patient:read")
+	assert.NotContains(testingInstance, permissionsResponse.Capabilities, "portal:read")
+	assert.True(testingInstance, sort.StringsAreSorted(permissionsResponse.Capabilities))
+}
+
+func TestHTTPHandler_Permissions_NurseCannotCreateMedicationButAdminCan(testingInstance *testing.T) {
+	_, serveMux := newHTTPHandlerFixture()
+
+	nurseRecorder := httptest.NewRecorder()
+	serveMux.ServeHTTP(nurseRecorder, permissionsRequest(testingInstance, "NURSE"))
+	adminRecorder := httptest.NewRecorder()
+	serveMux.ServeHTTP(adminRecorder, permissionsRequest(testingInstance, "ADMIN"))
+
+	var nurseResponse, adminResponse auth.PermissionsResponse
+	require.NoError(testingInstance, json.Unmarshal(nurseRecorder.Body.Bytes(), &nurseResponse))
+	require.NoError(testingInstance, json.Unmarshal(adminRecorder.Body.Bytes(), &adminResponse))
+	assert.Contains(testingInstance, nurseResponse.Capabilities, "medication:read")
+	assert.NotContains(testingInstance, nurseResponse.Capabilities, "medication:create")
+	assert.Contains(testingInstance, adminResponse.Capabilities, "medication:create")
+}
+
+func TestHTTPHandler_Permissions_PatientGetsOnlySelfServiceCapabilities(testingInstance *testing.T) {
+	_, serveMux := newHTTPHandlerFixture()
+	responseRecorder := httptest.NewRecorder()
+
+	serveMux.ServeHTTP(responseRecorder, permissionsRequest(testingInstance, "PATIENT"))
+
+	require.Equal(testingInstance, http.StatusOK, responseRecorder.Code)
+	var permissionsResponse auth.PermissionsResponse
+	require.NoError(testingInstance, json.Unmarshal(responseRecorder.Body.Bytes(), &permissionsResponse))
+	assert.Equal(testingInstance, []string{
+		"appointment:read_own",
+		"auth:permissions",
+		"notification:read",
+		"notification:update",
+		"portal:read",
+	}, permissionsResponse.Capabilities)
+}
+
+func TestHTTPHandler_Permissions_RejectsMissingAndInvalidSession(testingInstance *testing.T) {
+	_, serveMux := newHTTPHandlerFixture()
+
+	missingCookieRecorder := httptest.NewRecorder()
+	serveMux.ServeHTTP(missingCookieRecorder, httptest.NewRequest(http.MethodGet, "/api/v1/auth/permissions", nil))
+	assert.Equal(testingInstance, http.StatusUnauthorized, missingCookieRecorder.Code)
+
+	invalidRequest := httptest.NewRequest(http.MethodGet, "/api/v1/auth/permissions", nil)
+	invalidRequest.AddCookie(&http.Cookie{Name: "token", Value: "not-a-jwt"})
+	invalidRecorder := httptest.NewRecorder()
+	serveMux.ServeHTTP(invalidRecorder, invalidRequest)
+	assert.Equal(testingInstance, http.StatusUnauthorized, invalidRecorder.Code)
+}
+
+func TestHTTPHandler_Permissions_RejectsUnknownRole(testingInstance *testing.T) {
+	_, serveMux := newHTTPHandlerFixture()
+	responseRecorder := httptest.NewRecorder()
+
+	serveMux.ServeHTTP(responseRecorder, permissionsRequest(testingInstance, "GUEST"))
+
+	assert.Equal(testingInstance, http.StatusForbidden, responseRecorder.Code)
 }

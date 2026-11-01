@@ -1,35 +1,27 @@
-export const AppRole = {
-  Admin: "ADMIN",
-  Doctor: "DOCTOR",
-  Nurse: "NURSE",
-  Reception: "RECEPTION",
-  Patient: "PATIENT",
-} as const
+import { Capability } from "./capabilities"
 
-export type AppRole = typeof AppRole[keyof typeof AppRole]
+export const routeRequiredCapability = {
+  patients: Capability.PatientRead,
+  dashboard: Capability.AnalyticsRead,
+  schedule: Capability.AppointmentRead,
+  telemetry: Capability.TelemetryRead,
+  examAnalyzer: Capability.ExamAnalysisRead,
+  analytics: Capability.AnalyticsRead,
+  staff: Capability.StaffRead,
+  auditLogs: Capability.AuditLogRead,
+  portal: Capability.PortalRead,
+  designSystem: Capability.DesignSystemRead,
+} as const satisfies Record<string, Capability>
 
-const STAFF_ROLES: readonly AppRole[] = [AppRole.Admin, AppRole.Doctor, AppRole.Nurse, AppRole.Reception]
-const CLINICAL_ROLES: readonly AppRole[] = [AppRole.Admin, AppRole.Doctor, AppRole.Nurse]
+export type RouteAccessKey = keyof typeof routeRequiredCapability
 
-export const routeAllowedRoles = {
-  patients: STAFF_ROLES,
-  dashboard: CLINICAL_ROLES,
-  schedule: STAFF_ROLES,
-  telemetry: STAFF_ROLES,
-  examAnalyzer: CLINICAL_ROLES,
-  analytics: CLINICAL_ROLES,
-  staff: STAFF_ROLES,
-  auditLogs: [AppRole.Admin],
-  portal: [AppRole.Patient],
-  designSystem: STAFF_ROLES,
-} as const satisfies Record<string, readonly AppRole[]>
-
-export type RouteAccessKey = keyof typeof routeAllowedRoles
-
-export function isRoleAllowed(userRole: string | null, allowedRoles: readonly string[]): boolean {
-  return userRole !== null && allowedRoles.includes(userRole)
+export function isCapabilityGranted(
+  grantedCapabilities: ReadonlySet<string>,
+  requiredCapability: Capability,
+): boolean {
+  return grantedCapabilities.has(requiredCapability)
 }
 
-export function getHomePathForRole(userRole: string | null): string {
-  return userRole === AppRole.Patient ? "/portal" : "/"
+export function getHomePathForRole(grantedCapabilities: ReadonlySet<string>): string {
+  return grantedCapabilities.has(Capability.PortalRead) ? "/portal" : "/"
 }

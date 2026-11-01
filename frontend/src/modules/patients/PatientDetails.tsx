@@ -74,7 +74,7 @@ export const PatientDetails = () => {
   const canReadConditions = ability.can(Action.Read, Feature.Condition)
   const canReadAllergies = ability.can(Action.Read, Feature.Allergy)
   const canReadStudies = ability.can(Action.Read, Feature.ImagingStudy)
-  const canReadTimeline = ability.can(Action.Read, Feature.Condition) && ability.can(Action.Read, Feature.Observation)
+  const canReadTimeline = ability.can(Action.Read, Feature.Timeline)
 
   const availableTabs: Record<string, boolean> = {
     [PatientTab.Encounters]: true,

@@ -243,6 +243,19 @@ definitions:
       userId:
         type: string
     type: object
+  internal_modules_auth.PermissionsResponse:
+    properties:
+      capabilities:
+        example:
+        - patient:read
+        - medication:create
+        items:
+          type: string
+        type: array
+      role:
+        example: DOCTOR
+        type: string
+    type: object
   internal_modules_condition.ConditionResponse:
     properties:
       clinical_status:
@@ -1395,6 +1408,35 @@ paths:
               type: string
             type: object
       summary: Get current user
+      tags:
+      - auth
+  /auth/permissions:
+    get:
+      consumes:
+      - application/json
+      description: Returns the authenticated user's role and the sorted list of capabilities
+        granted to it by the backend permission matrix. Available to every authenticated
+        role.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_modules_auth.PermissionsResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get current role capabilities
       tags:
       - auth
   /auth/refresh:

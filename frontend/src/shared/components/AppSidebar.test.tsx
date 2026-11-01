@@ -3,6 +3,8 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react"
 import { AppSidebar } from "./AppSidebar"
 import { useAuthStore } from "../store/auth_store"
 import { useLayoutStore } from "../store/layout_store"
+import { TestAbilityProvider } from "../../test/TestAbilityProvider"
+import type { RoleFixtureName } from "../../test/backend_matrix_role_fixtures"
 
 const mockTranslateFunction = (key: string) => key
 const mockChangeLanguage = vi.fn()
@@ -37,6 +39,13 @@ vi.mock("../services/api", () => ({
   clearCsrfToken: vi.fn(),
 }))
 
+const renderSidebar = (role: RoleFixtureName = "DOCTOR") =>
+  render(
+    <TestAbilityProvider role={role}>
+      <AppSidebar />
+    </TestAbilityProvider>,
+  )
+
 describe("AppSidebar", () => {
   afterEach(() => {
     vi.unstubAllEnvs()
@@ -58,7 +67,7 @@ describe("AppSidebar", () => {
   })
 
   it("should render navigation grouped by clinical topics for staff roles", () => {
-    render(<AppSidebar />)
+    renderSidebar()
 
     expect(screen.getByRole("heading", { name: "topics.clinical" })).toBeInTheDocument()
     expect(screen.getByRole("heading", { name: "topics.diagnostics" })).toBeInTheDocument()
@@ -81,20 +90,17 @@ describe("AppSidebar", () => {
     expect(screen.queryByRole("button", { name: "settings" })).not.toBeInTheDocument()
   })
 
-  it("should show audit logs topic item only for admin users", () => {
-    useAuthStore.setState({ role: "DOCTOR" })
-    const { unmount } = render(<AppSidebar />)
+  it("should show audit logs topic item only when the audit log capability is granted", () => {
+    const { unmount } = renderSidebar("DOCTOR")
     expect(screen.queryByRole("button", { name: "auditLogs" })).not.toBeInTheDocument()
     unmount()
 
-    useAuthStore.setState({ role: "ADMIN" })
-    render(<AppSidebar />)
+    renderSidebar("ADMIN")
     expect(screen.getByRole("button", { name: "auditLogs" })).toBeInTheDocument()
   })
 
   it("should render only the patient access topic for patient roles", () => {
-    useAuthStore.setState({ role: "PATIENT" })
-    render(<AppSidebar />)
+    renderSidebar("PATIENT")
 
     expect(screen.getByRole("heading", { name: "topics.patient" })).toBeInTheDocument()
     expect(screen.getByRole("button", { name: "portal" })).toBeInTheDocument()
@@ -108,7 +114,7 @@ describe("AppSidebar", () => {
 
   it("should mark the active navigation item with aria-current", () => {
     mockLocation.pathname = "/analytics"
-    render(<AppSidebar />)
+    renderSidebar()
 
     expect(screen.getByRole("button", { name: "analytics" })).toHaveAttribute("aria-current", "page")
     expect(screen.getByRole("button", { name: "patients" })).not.toHaveAttribute("aria-current")
@@ -116,7 +122,7 @@ describe("AppSidebar", () => {
 
   it("should navigate on click and close the mobile sidebar", () => {
     useLayoutStore.setState({ isMobileSidebarOpen: true })
-    render(<AppSidebar />)
+    renderSidebar()
 
     fireEvent.click(screen.getByRole("button", { name: "telemetry" }))
     expect(mockNavigate).toHaveBeenCalledWith("/telemetry")
@@ -124,7 +130,7 @@ describe("AppSidebar", () => {
   })
 
   it("should toggle the dark theme via the appearance control", () => {
-    render(<AppSidebar />)
+    renderSidebar()
 
     const appearanceToggle = screen.getByRole("button", { name: "appearance" })
     expect(appearanceToggle).toHaveAttribute("aria-pressed", "false")
@@ -140,7 +146,7 @@ describe("AppSidebar", () => {
   it("should hide the schedule item in production mode", () => {
     vi.stubEnv("PROD", true)
 
-    render(<AppSidebar />)
+    renderSidebar()
 
     expect(screen.queryByRole("button", { name: "schedule" })).not.toBeInTheDocument()
     expect(screen.getByRole("button", { name: "patients" })).toBeInTheDocument()
@@ -150,7 +156,7 @@ describe("AppSidebar", () => {
 
   it("should logout and close the sidebar", async () => {
     useLayoutStore.setState({ isMobileSidebarOpen: true })
-    render(<AppSidebar />)
+    renderSidebar()
 
     fireEvent.click(screen.getByRole("button", { name: "logout" }))
     expect(useLayoutStore.getState().isMobileSidebarOpen).toBe(false)

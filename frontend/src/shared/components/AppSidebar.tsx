@@ -4,7 +4,8 @@ import { useAuthStore } from "../store/auth_store"
 import { useLayoutStore } from "../store/layout_store"
 import type { ComponentType } from "react"
 import { Activity, Users, BarChart3, LogOut, X, Sparkles, History, UserRound, LayoutDashboard, CalendarClock, Stethoscope, Sun, Moon } from "lucide-react"
-import { isRoleAllowed, routeAllowedRoles, type RouteAccessKey } from "../auth/route_access"
+import { useCapabilities } from "../auth/capabilities_context"
+import { isCapabilityGranted, routeRequiredCapability, type RouteAccessKey } from "../auth/route_access"
 import { LanguageSwitcher } from "./LanguageSwitcher"
 import { Button } from "@/shared/components/ui/button"
 import { cn } from "@/shared/utils/cn"
@@ -58,12 +59,13 @@ export const AppSidebar = () => {
   const { t } = useTranslation("sidebar")
   const navigate = useNavigate()
   const location = useLocation()
-  const { email, logout, role } = useAuthStore()
+  const { email, logout } = useAuthStore()
+  const { capabilities } = useCapabilities()
   const { isMobileSidebarOpen, closeMobileSidebar, theme, toggleTheme } = useLayoutStore()
 
   const isItemVisible = (item: NavigationItem) => {
     if (item.hiddenWhenProduction && import.meta.env.PROD) return false
-    return isRoleAllowed(role, routeAllowedRoles[item.access])
+    return isCapabilityGranted(capabilities, routeRequiredCapability[item.access])
   }
 
   const isItemActive = (item: NavigationItem) => {

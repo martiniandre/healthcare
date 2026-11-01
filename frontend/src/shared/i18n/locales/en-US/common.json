@@ -6,6 +6,13 @@
     "comfortable": "Comfortable rows"
   },
   "loading": "Loading",
+  "retry": "Retry",
+  "permissions": {
+    "forbidden": "You do not have access to this area.",
+    "loadingMessage": "Loading your permissions",
+    "errorTitle": "Could not load your permissions",
+    "errorDescription": "We could not confirm what you can access. Check your connection and try again."
+  },
   "discardChanges": {
     "title": "Discard changes?",
     "description": "You have unsaved changes. If you leave now, they will be lost.",

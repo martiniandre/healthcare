@@ -13,6 +13,8 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/healthcare/backend/internal/api/render"
+	"github.com/healthcare/backend/internal/app/policy"
+	"github.com/healthcare/backend/internal/shared/role"
 )
 
 const (
@@ -22,6 +24,8 @@ const (
 	accessTokenCookiePath  = "/"
 	csrfTokenCookiePath    = "/"
 	refreshTokenCookiePath = "/api/v1/auth"
+
+	permissionsRoutePattern = "GET /api/v1/auth/permissions"
 )
 
 type HTTPHandler struct {
@@ -50,6 +54,7 @@ func (handler *HTTPHandler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("POST /api/v1/auth/refresh", handler.HandleRefresh)
 	mux.HandleFunc("POST /api/v1/auth/logout", handler.HandleLogout)
 	mux.HandleFunc("GET /api/v1/auth/me", handler.HandleMe)
+	mux.HandleFunc(permissionsRoutePattern, handler.HandlePermissions)
 }
 
 func isRefreshRejection(refreshError error) bool {
@@ -339,4 +344,67 @@ type LoginResponse struct {
 	Role      string `json:"role"`
 	Email     string `json:"email"`
 	CSRFToken string `json:"csrfToken"`
+}
+
+type PermissionsResponse struct {
+	Role         string   `json:"role" example:"DOCTOR"`
+	Capabilities []string `json:"capabilities" example:"patient:read,medication:create"`
+}
+
+// HandlePermissions godoc
+//
+//	@Summary		Get current role capabilities
+//	@Description	Returns the authenticated user's role and the sorted list of capabilities granted to it by the backend permission matrix. Available to every authenticated role.
+//	@Tags			auth
+//	@Accept			json
+//	@Produce		json
+//	@Success		200	{object}	PermissionsResponse
+//	@Failure		401	{object}	map[string]string
+//	@Failure		403	{object}	map[string]string
+//	@Router			/auth/permissions [get]
+func (handler *HTTPHandler) HandlePermissions(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
+	cookie, cookieError := httpRequest.Cookie(accessTokenCookieName)
+	if cookieError != nil {
+		render.Error(httpResponseWriter, http.StatusUnauthorized, "Não autenticado.")
+		return
+	}
+
+	claims, jwtValidationError := ValidateJWT(cookie.Value)
+	if jwtValidationError != nil {
+		render.Error(httpResponseWriter, http.StatusUnauthorized, "Sessão expirada.")
+		return
+	}
+
+	roleClaim, roleClaimExists := claims["role"].(string)
+	if !roleClaimExists || roleClaim == "" {
+		render.Error(httpResponseWriter, http.StatusUnauthorized, "Função de usuário inválida.")
+		return
+	}
+
+	callerRole := role.Role(roleClaim)
+	allowedRoles, routeIsDefined := policy.HTTPRouteRoles(permissionsRoutePattern)
+	if !routeIsDefined || !containsRole(allowedRoles, callerRole) {
+		render.Error(httpResponseWriter, http.StatusForbidden, "Acesso negado.")
+		return
+	}
+
+	grantedCapabilities := policy.CapabilitiesForRole(callerRole)
+	capabilityNames := make([]string, 0, len(grantedCapabilities))
+	for _, grantedCapability := range grantedCapabilities {
+		capabilityNames = append(capabilityNames, string(grantedCapability))
+	}
+
+	render.JSON(httpResponseWriter, http.StatusOK, PermissionsResponse{
+		Role:         string(callerRole),
+		Capabilities: capabilityNames,
+	})
+}
+
+func containsRole(allowedRoles []role.Role, candidate role.Role) bool {
+	for _, allowedRole := range allowedRoles {
+		if allowedRole == candidate {
+			return true
+		}
+	}
+	return false
 }

@@ -4,7 +4,8 @@ import { useDebounce } from "../../shared/hooks/useDebounce"
 import { Card, CardContent } from "@/shared/components/ui/card"
 import { PageContainer } from "../../shared/components/ui/PageContainer"
 import { toast } from "../../shared/store/toast_store"
-import { useAuthStore } from "../../shared/store/auth_store"
+import { useAbility } from "../../shared/auth/useAbility"
+import { Action, Feature } from "../../shared/auth/types"
 import {
   useStaffListQuery,
   useSetEmployeeStatusMutation,
@@ -17,8 +18,6 @@ import { StaffTable } from "./components/StaffTable"
 import { StaffModal } from "./components/StaffModal"
 import { DeleteStaffModal } from "./components/DeleteStaffModal"
 
-const rolesAllowedToManageStatus = ["ADMIN", "DOCTOR", "NURSE"]
-
 export const Staff = () => {
   const { t } = useTranslation("staff")
   const [filterRole, setFilterRole] = useState<string>("All")
@@ -29,13 +28,13 @@ export const Staff = () => {
 
   const debouncedSearchQuery = useDebounce(searchQuery, 500)
 
-  const sessionRole = useAuthStore((state) => state.role)
+  const ability = useAbility()
   const { data: staffList = [], isLoading, isError, refetch } = useStaffListQuery(debouncedSearchQuery, filterRole)
   const setEmployeeStatusMutation = useSetEmployeeStatusMutation()
   const deleteEmployeeMutation = useDeleteEmployeeMutation()
 
-  const canManageStatus = sessionRole !== null && rolesAllowedToManageStatus.includes(sessionRole)
-  const canDelete = sessionRole === "ADMIN"
+  const canManageStatus = ability.can(Action.Update, Feature.Staff)
+  const canDelete = ability.can(Action.Delete, Feature.Staff)
 
   const handleToggleStatus = async (member: StaffMember) => {
     const nextIsActive = !member.isActive

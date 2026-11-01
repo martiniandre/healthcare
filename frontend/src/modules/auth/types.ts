@@ -20,3 +20,8 @@ export interface RegisterRequest {
   password: string
   name: string
 }
+
+export interface PermissionsResponse {
+  role: string
+  capabilities: string[]
+}
