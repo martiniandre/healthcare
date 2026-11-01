@@ -5,6 +5,7 @@ import { StatusBadge } from "@/shared/components/ui/status-badge"
 import { useClinicalStatusLabels } from "../../../shared/hooks/useClinicalStatusLabels"
 import { formatDate } from "../../../shared/utils/dates"
 import { normalizeDicomStudyDate, resolveStudyClinicalStatus } from "../utils/pacs_helpers"
+import { ImagingStudyFiles } from "./ImagingStudyFiles"
 import type { ImagingStudy } from "../types"
 
 interface ImagingStudyDetailsProperties {
@@ -81,6 +82,10 @@ export const ImagingStudyDetails = ({ study }: ImagingStudyDetailsProperties) =>
         <div className={DETAIL_BOX_CLASS}>
           <span className={DETAIL_LABEL_CLASS}>{t("details.seriesSlices")}</span>
           <span className="mt-1 block text-xs font-bold text-foreground">{t("details.activeSlice")}</span>
+        </div>
+
+        <div className={DETAIL_BOX_CLASS}>
+          <ImagingStudyFiles studyId={study.id} />
         </div>
       </CardContent>
     </Card>

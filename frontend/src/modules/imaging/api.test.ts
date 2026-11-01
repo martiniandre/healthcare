@@ -51,6 +51,26 @@ describe("imagingApi", () => {
     expect(uploadedFile.size).toBe(dicomBlob.size)
   })
 
+  it("should keep the original zip file name so the server reads the archive", async () => {
+    vi.mocked(http.post).mockResolvedValue({ id: "study-4" })
+    const archiveBlob = new File([new Uint8Array([0x50, 0x4b, 0x03, 0x04])], "exam-export.zip", { type: "application/zip" })
+
+    await imagingApi.uploadImagingStudy({ patientFhirId: "patient-1", dicomBlob: archiveBlob })
+
+    const formData = vi.mocked(http.post).mock.calls[0][1] as FormData
+    const uploadedEntry = formData.get("file") as File
+    expect(uploadedEntry.name).toBe("exam-export.zip")
+    expect(uploadedEntry.type).toBe("application/zip")
+  })
+
+  it("should list the instances of a study", async () => {
+    vi.mocked(http.get).mockResolvedValue([])
+
+    await imagingApi.getImagingStudyInstances("study-9")
+
+    expect(http.get).toHaveBeenCalledWith("/studies/study-9/instances")
+  })
+
   it("should leave title and modality out so the server fills them from the file", async () => {
     vi.mocked(http.post).mockResolvedValue({ id: "study-3" })
     const dicomBlob = new Blob(["dicom"], { type: "application/dicom" })

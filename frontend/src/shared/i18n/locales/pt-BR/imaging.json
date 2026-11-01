@@ -48,7 +48,18 @@
     "accessionNumber": "Número de Acesso",
     "studyUid": "UID do Estudo",
     "seriesUid": "UID da Série",
-    "instanceUid": "UID da Instância"
+    "instanceUid": "UID da Instância",
+    "files": {
+      "show": "Mostrar arquivos",
+      "hide": "Ocultar arquivos",
+      "loading": "Carregando arquivos...",
+      "loadError": "Não foi possível carregar os arquivos deste estudo.",
+      "empty": "Nenhum arquivo encontrado neste estudo.",
+      "count_one": "{{count}} arquivo",
+      "count_other": "{{count}} arquivos",
+      "download": "Baixar",
+      "downloadLabel": "Baixar {{fileName}}"
+    }
   },
   "retry": "Tentar novamente",
   "studyNotFound": "Estudo não encontrado",
@@ -57,18 +68,34 @@
     "sectionLabel": "Enviar estudo DICOM",
     "dropTitle": "Arraste um arquivo DICOM até aqui ou escolha um",
     "dropActive": "Solte o arquivo para iniciar o envio",
-    "guidelines": "Formato aceito: DICOM (.dcm), até {{maxSize}} GB. O envio começa assim que você escolhe o arquivo.",
+    "guidelines": "Formato aceito: DICOM (.dcm), até {{maxSize}} GB. Um exame: um único arquivo .dcm ou um .zip com todos os seus arquivos (ZIP até {{maxSize}} GB e {{maxEntries}} arquivos). O envio começa assim que você escolhe o arquivo.",
     "errorEmpty": "\"{{fileName}}\" está vazio (0 bytes). Escolha outro arquivo.",
-    "errorType": "\"{{fileName}}\" não é um arquivo DICOM. Escolha um arquivo terminado em .dcm.",
+    "errorType": "\"{{fileName}}\" não é um arquivo DICOM ou ZIP. Escolha um arquivo terminado em .dcm ou .zip.",
     "errorLimit": "\"{{fileName}}\" tem {{size}}, acima do limite de {{maxSize}} GB. Escolha um arquivo menor.",
+    "errorZipLimit": "\"{{fileName}}\" tem {{size}}, acima do limite de {{maxSize}} GB para ZIP. Escolha um arquivo menor.",
+    "errorZipInvalid": "\"{{fileName}}\" não é um arquivo ZIP válido. Escolha o .zip com todos os arquivos de um exame.",
     "cancel": "Cancelar envio",
     "retry": "Tentar novamente",
-    "successTitle": "DICOM enviado. Ele está sendo processado.",
     "successNextStep": "As novas imagens estarão disponíveis nos estudos de imagem deste paciente em instantes.",
     "failedTitle": "Não foi possível enviar o arquivo DICOM.",
     "failedHelp": "\"{{fileName}}\" foi mantido. Verifique sua conexão e tente novamente.",
     "cancelledTitle": "Envio cancelado.",
     "cancelledHelp": "Nada foi salvo. Você pode tentar o mesmo arquivo novamente.",
+    "result": {
+      "created": "Novo estudo criado",
+      "appended": "Arquivos adicionados ao estudo existente",
+      "acceptedCount_one": "{{count}} imagem aceita",
+      "acceptedCount_other": "{{count}} imagens aceitas",
+      "rejectedTitle_one": "{{count}} arquivo não foi adicionado",
+      "rejectedTitle_other": "{{count}} arquivos não foram adicionados",
+      "reasons": {
+        "duplicate": "Já armazenado neste estudo",
+        "invalid": "Não é um arquivo DICOM válido",
+        "unsupportedTransferSyntax": "Formato comprimido não suportado",
+        "missingIdentifiers": "Faltam identificadores do paciente ou do estudo",
+        "unknown": "O arquivo não pôde ser lido"
+      }
+    },
     "summary": {
       "title": "O que foi lido do arquivo",
       "modality": "Modalidade",
@@ -95,7 +122,15 @@
       "invalidDicomHelp": "Nada foi salvo. Escolha outro arquivo DICOM.",
       "invalidDicomReason": "Motivo: {{reason}}",
       "duplicateTitle": "Esta imagem DICOM já foi enviada.",
-      "duplicateHelp": "Nada foi salvo porque a mesma imagem já existe. Escolha um arquivo diferente."
+      "duplicateHelp": "Nada foi salvo porque a mesma imagem já existe. Escolha um arquivo diferente.",
+      "zipInvalidTitle": "Este arquivo não é um ZIP válido.",
+      "zipInvalidHelp": "Nada foi salvo. Verifique se o arquivo abre no seu computador e tente novamente.",
+      "zipUnsafeTitle": "O ZIP contém um arquivo com nome não seguro.",
+      "zipUnsafeHelp": "Nada foi salvo. Gere o ZIP novamente usando apenas nomes de arquivo simples.",
+      "zipLimitsTitle": "O ZIP é muito grande ou tem arquivos demais.",
+      "zipLimitsHelp": "Nada foi salvo. Cada ZIP suporta até {{maxSize}} GB e {{maxEntries}} arquivos.",
+      "noValidInstancesTitle": "Nenhum arquivo do ZIP é um DICOM válido deste estudo.",
+      "noValidInstancesHelp": "Nada foi salvo. Verifique se o ZIP contém os arquivos DICOM deste exame."
     }
   }
 }

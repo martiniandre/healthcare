@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { AlertCircle, AlertTriangle, CheckCircle2, UploadCloud } from "lucide-react"
+import { AlertCircle, AlertTriangle, UploadCloud } from "lucide-react"
 import { Alert, AlertDescription } from "@/shared/components/ui/alert"
 import { Button } from "@/shared/components/ui/button"
 import { Input } from "@/shared/components/ui/input"
@@ -10,13 +10,21 @@ import { extractApiErrorDetails } from "../../../shared/utils/api_error"
 import { useUploadImagingStudyMutation } from "../queries"
 import {
   DICOM_ACCEPT_ATTRIBUTE,
+  DICOM_MAX_ARCHIVE_ENTRIES,
+  DICOM_MAX_ARCHIVE_GIGABYTES,
   DICOM_MAX_FILE_GIGABYTES,
   formatDicomFileSize,
   validateDicomFile,
 } from "../utils/dicom_file_validation"
+import {
+  resolveUploadRejectionMessageKeys,
+  resolveValidationMessageKey,
+  resolveWarningMessageKey,
+} from "../utils/dicom_upload_messages"
 import { ImagingUploadProgress } from "./ImagingUploadProgress"
+import { DicomUploadOutcome } from "./DicomUploadOutcome"
 import { DicomUploadSummary } from "./DicomUploadSummary"
-import { DicomUploadErrorCode, DicomUploadWarningCode, type DicomUploadResult } from "../types"
+import { DicomUploadErrorCode, type DicomUploadResult } from "../types"
 
 interface DicomUploadControlProperties {
   patientFhirId: string
@@ -29,38 +37,9 @@ type UploadFeedback =
   | { kind: "failed"; errorCode?: string; reason?: string }
   | { kind: "cancelled" }
 
-const WARNING_MESSAGE_KEYS = {
-  [DicomUploadWarningCode.PATIENT_IDENTITY_MISSING]: "upload.warnings.patient_identity_missing",
-  [DicomUploadWarningCode.ANONYMIZED_STUDY]: "upload.warnings.anonymized_study",
-  [DicomUploadWarningCode.DUPLICATE_INSTANCE]: "upload.warnings.duplicate_instance",
-  [DicomUploadWarningCode.MODALITY_OVERRIDDEN]: "upload.warnings.modality_overridden",
-} as const
-
-const REJECTION_MESSAGE_KEYS = {
-  [DicomUploadErrorCode.PATIENT_MISMATCH]: {
-    title: "upload.errors.patientMismatchTitle",
-    help: "upload.errors.patientMismatchHelp",
-  },
-  [DicomUploadErrorCode.INVALID_DICOM]: {
-    title: "upload.errors.invalidDicomTitle",
-    help: "upload.errors.invalidDicomHelp",
-  },
-  [DicomUploadErrorCode.DUPLICATE_INSTANCE]: {
-    title: "upload.errors.duplicateTitle",
-    help: "upload.errors.duplicateHelp",
-  },
-} as const
-
-const resolveWarningMessageKey = (warningCode: string): string => {
-  return warningCode in WARNING_MESSAGE_KEYS
-    ? WARNING_MESSAGE_KEYS[warningCode as keyof typeof WARNING_MESSAGE_KEYS]
-    : "upload.warnings.unknown"
-}
-
-const resolveRejectionMessageKeys = (errorCode: string | undefined) => {
-  return errorCode && errorCode in REJECTION_MESSAGE_KEYS
-    ? REJECTION_MESSAGE_KEYS[errorCode as keyof typeof REJECTION_MESSAGE_KEYS]
-    : null
+const ARCHIVE_LIMIT_PARAMETERS = {
+  maxSize: DICOM_MAX_ARCHIVE_GIGABYTES,
+  maxEntries: DICOM_MAX_ARCHIVE_ENTRIES,
 }
 
 const HINT_ID = "dicom-upload-hint"
@@ -109,6 +88,11 @@ export const DicomUploadControl = ({ patientFhirId }: DicomUploadControlProperti
         signal: abortController.signal,
         onUploadProgress: setUploadPercentage,
       })
+      if (uploadResult.instancesAccepted === 0) {
+        setFeedback({ kind: "failed", errorCode: DicomUploadErrorCode.NO_VALID_INSTANCES })
+        toast.error(t("toast.uploadError"))
+        return
+      }
       setLastAttemptedFile(null)
       setFeedback({ kind: "success", result: uploadResult })
       toast.success(t("toast.uploadSuccess"))
@@ -127,20 +111,15 @@ export const DicomUploadControl = ({ patientFhirId }: DicomUploadControlProperti
     }
   }
 
-  const handleSelectedFile = (file: File) => {
-    const validationError = validateDicomFile(file)
+  const handleSelectedFile = async (file: File) => {
+    const validationError = await validateDicomFile(file)
     if (validationError) {
-      const errorKeys = {
-        empty: "upload.errorEmpty",
-        type: "upload.errorType",
-        tooLarge: "upload.errorLimit",
-      } as const
       setFeedback({
         kind: "validation",
-        message: t(errorKeys[validationError], {
+        message: t(resolveValidationMessageKey(validationError), {
           fileName: file.name,
           size: formatDicomFileSize(file.size),
-          maxSize: DICOM_MAX_FILE_GIGABYTES,
+          maxSize: validationError === "zipTooLarge" ? DICOM_MAX_ARCHIVE_GIGABYTES : DICOM_MAX_FILE_GIGABYTES,
         }),
       })
       resetFileInput()
@@ -152,7 +131,7 @@ export const DicomUploadControl = ({ patientFhirId }: DicomUploadControlProperti
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const chosenFile = event.target.files?.[0]
     if (chosenFile) {
-      handleSelectedFile(chosenFile)
+      void handleSelectedFile(chosenFile)
     }
   }
 
@@ -176,7 +155,7 @@ export const DicomUploadControl = ({ patientFhirId }: DicomUploadControlProperti
     }
     const droppedFile = event.dataTransfer.files?.[0]
     if (droppedFile) {
-      handleSelectedFile(droppedFile)
+      void handleSelectedFile(droppedFile)
     }
   }
 
@@ -193,9 +172,12 @@ export const DicomUploadControl = ({ patientFhirId }: DicomUploadControlProperti
   const progressStatus =
     uploadPercentage !== null && uploadPercentage >= 100 ? t("uploadStatus.grpcCompleted") : t("uploadStatus.initial")
 
-  const rejectionKeys = feedback.kind === "failed" ? resolveRejectionMessageKeys(feedback.errorCode) : null
+  const rejectionKeys = feedback.kind === "failed" ? resolveUploadRejectionMessageKeys(feedback.errorCode) : null
   const invalidDicomReason =
     feedback.kind === "failed" && feedback.errorCode === DicomUploadErrorCode.INVALID_DICOM ? feedback.reason : undefined
+  const isRetryAllowed =
+    lastAttemptedFile !== null &&
+    !(feedback.kind === "failed" && feedback.errorCode === DicomUploadErrorCode.PATIENT_MISMATCH)
 
   const describedBy = feedback.kind === "validation" ? `${HINT_ID} ${FEEDBACK_ID}` : HINT_ID
 
@@ -224,7 +206,7 @@ export const DicomUploadControl = ({ patientFhirId }: DicomUploadControlProperti
               {isDragActive ? t("upload.dropActive") : t("upload.dropTitle")}
             </p>
             <p id={HINT_ID} className="text-xs text-muted-foreground">
-              {t("upload.guidelines", { maxSize: DICOM_MAX_FILE_GIGABYTES })}
+              {t("upload.guidelines", ARCHIVE_LIMIT_PARAMETERS)}
             </p>
           </div>
 
@@ -262,13 +244,7 @@ export const DicomUploadControl = ({ patientFhirId }: DicomUploadControlProperti
 
       {feedback.kind === "success" && (
         <>
-          <Alert variant="success" role="status">
-            <CheckCircle2 aria-hidden="true" />
-            <AlertDescription className="flex flex-col gap-0.5 text-success">
-              <span className="font-semibold">{t("upload.successTitle")}</span>
-              <span className="text-xs">{t("upload.successNextStep")}</span>
-            </AlertDescription>
-          </Alert>
+          <DicomUploadOutcome result={feedback.result} />
 
           <DicomUploadSummary result={feedback.result} />
 
@@ -310,14 +286,14 @@ export const DicomUploadControl = ({ patientFhirId }: DicomUploadControlProperti
               </span>
               <span className="text-xs">
                 {rejectionKeys
-                  ? t(rejectionKeys.help)
+                  ? t(rejectionKeys.help, ARCHIVE_LIMIT_PARAMETERS)
                   : t("upload.failedHelp", { fileName: lastAttemptedFile?.name ?? "" })}
               </span>
               {invalidDicomReason && (
                 <span className="text-xs">{t("upload.errors.invalidDicomReason", { reason: invalidDicomReason })}</span>
               )}
             </span>
-            {lastAttemptedFile && !rejectionKeys && (
+            {lastAttemptedFile && isRetryAllowed && (
               <Button type="button" variant="outline" size="sm" onClick={handleRetry} className="max-sm:min-h-11">
                 {t("upload.retry")}
               </Button>
