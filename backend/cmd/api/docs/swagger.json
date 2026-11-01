@@ -766,6 +766,47 @@
                 }
             }
         },
+        "/auth/permissions": {
+            "get": {
+                "description": "Returns the authenticated user's role and the sorted list of capabilities granted to it by the backend permission matrix. Available to every authenticated role.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Get current role capabilities",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_modules_auth.PermissionsResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/auth/refresh": {
             "post": {
                 "description": "Rotates the refresh token cookie and issues a new short-lived access token cookie. Requires the X-CSRF-Token header matching the csrf_token cookie. Reuse of an already rotated refresh token revokes the whole session family.",
@@ -3315,6 +3356,25 @@
                 },
                 "userId": {
                     "type": "string"
+                }
+            }
+        },
+        "internal_modules_auth.PermissionsResponse": {
+            "type": "object",
+            "properties": {
+                "capabilities": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "patient:read",
+                        "medication:create"
+                    ]
+                },
+                "role": {
+                    "type": "string",
+                    "example": "DOCTOR"
                 }
             }
         },
