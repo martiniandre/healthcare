@@ -13,12 +13,17 @@ test.describe("Login Form Interactions", () => {
 
     await expect(passwordInput).toHaveAttribute("type", "password")
 
-    await page.getByRole("button", { name: "Mostrar senha" }).click()
+    const toggleButton = page.getByRole("button", { name: "Exibir senha" })
+    await expect(toggleButton).toHaveAttribute("aria-pressed", "false")
+
+    await toggleButton.click()
     await expect(passwordInput).toHaveAttribute("type", "text")
     await expect(passwordInput).toHaveValue("senha123")
+    await expect(toggleButton).toHaveAttribute("aria-pressed", "true")
 
-    await page.getByRole("button", { name: "Ocultar senha" }).click()
+    await toggleButton.click()
     await expect(passwordInput).toHaveAttribute("type", "password")
+    await expect(toggleButton).toHaveAttribute("aria-pressed", "false")
   })
 
   test("should show i18n validation errors on empty submit instead of native browser validation", async ({ page }) => {
@@ -26,7 +31,7 @@ test.describe("Login Form Interactions", () => {
     await page.getByRole("button", { name: "Entrar no Console" }).click()
 
     await expect(page.getByText("O e-mail é obrigatório")).toBeVisible()
-    await expect(page.getByText("A senha deve ter no mínimo 8 caracteres")).toBeVisible()
+    await expect(page.getByText("A senha é obrigatória")).toBeVisible()
   })
 })
 
@@ -81,7 +86,7 @@ test.describe("Login Form Loading State", () => {
     const loadingSubmitButton = page.getByRole("button", { name: "Autenticando via gRPC..." })
     await expect(loadingSubmitButton).toBeVisible()
     await expect(loadingSubmitButton).toBeDisabled()
-    await expect(loadingSubmitButton).toHaveAttribute("aria-busy", "true")
+    await expect(page.locator("form[aria-busy]")).toHaveAttribute("aria-busy", "true")
 
     await expect(page).toHaveURL(/\/$/)
   })

@@ -40,10 +40,11 @@ test.describe("Patient Portal Module", () => {
 
     await page.goto("/portal?tab=appointments")
 
-    await expect(page.getByText("Consulta de Rotina Geral")).toBeVisible()
-    await expect(page.getByText("Retorno Cardiológico")).toBeVisible()
-    await expect(page.getByText("Agendado", { exact: true })).toBeVisible()
-    await expect(page.getByText("Confirmado", { exact: true })).toBeVisible()
+    const appointmentsTable = page.getByRole("table")
+    await expect(appointmentsTable.getByText("Consulta de Rotina Geral")).toBeVisible()
+    await expect(appointmentsTable.getByText("Retorno Cardiológico")).toBeVisible()
+    await expect(appointmentsTable.getByText("Agendado", { exact: true })).toBeVisible()
+    await expect(appointmentsTable.getByText("Confirmado", { exact: true })).toBeVisible()
   })
 
   test("should show report version badge for patient reports", async ({ page }) => {
@@ -92,7 +93,8 @@ test.describe("Patient Portal Module", () => {
 
     await page.goto("/portal?tab=encounters")
 
-    await expect(page.getByText("Dor abdominal persistente")).toBeVisible()
-    await expect(page.getByText("Retorno Cardiológico")).toBeVisible()
+    const encountersTable = page.getByRole("table")
+    await expect(encountersTable.getByText("Dor abdominal persistente")).toBeVisible()
+    await expect(encountersTable.getByText("Retorno Cardiológico")).toBeVisible()
   })
 })

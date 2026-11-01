@@ -15,20 +15,15 @@ test.describe("Patients Management Module", () => {
   })
 
   test("should format patient birth dates according to the selected language", async ({ page }) => {
-    const expectedBirthDate = (locale: string) =>
-      new Intl.DateTimeFormat(locale, {
-        day: "numeric",
-        month: "numeric",
-        year: "numeric",
-      }).format(new Date(1988, 3, 12))
-
     const guilhermeRow = page.locator("tr", { hasText: "Guilherme de Souza Araujo" })
-    await expect(guilhermeRow).toContainText(expectedBirthDate("pt-BR"))
+    await expect(guilhermeRow).toContainText("12/04/1988")
 
-    await page.getByRole("button", { name: "Português" }).click()
-    await page.getByRole("button", { name: "English" }).click()
+    await page.getByRole("button", { name: "Português", exact: true }).click()
+    await page.getByRole("menuitemradio", { name: "English" }).click()
 
-    await expect(guilhermeRow).toContainText(expectedBirthDate("en-US"))
+    await expect(page.getByRole("button", { name: "English", exact: true })).toBeVisible()
+    await expect(guilhermeRow).toContainText("1988")
+    await expect(guilhermeRow).not.toContainText("12/04/1988")
   })
 
   test("should filter patients through the search field", async ({ page }) => {

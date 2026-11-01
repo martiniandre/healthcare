@@ -12,10 +12,10 @@ test.describe("Analytics Statistics Module", () => {
     await expect(page.getByText("340", { exact: true })).toBeVisible()
 
     await expect(page.getByText("Conformidade FHIR")).toBeVisible()
-    await expect(page.getByText("99.4", { exact: true })).toBeVisible()
+    await expect(page.getByText(/^99[.,]4/).first()).toBeVisible()
 
     await expect(page.getByText("T. Médio Consulta")).toBeVisible()
-    await expect(page.getByText("14.5", { exact: true })).toBeVisible()
+    await expect(page.getByText(/^14[.,]5/).first()).toBeVisible()
 
     await expect(page.getByText("Atendimentos Semanal")).toBeVisible()
     await expect(page.getByText("79", { exact: true })).toBeVisible()

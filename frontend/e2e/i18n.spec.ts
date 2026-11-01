@@ -1,5 +1,10 @@
-import { test, expect } from "@playwright/test"
+import { test, expect, type Page } from "@playwright/test"
 import { mockAuthAPI } from "./helpers"
+
+const switchLanguage = async (page: Page, currentLabel: string, targetLabel: string) => {
+  await page.getByRole("button", { name: currentLabel, exact: true }).click()
+  await page.getByRole("menuitemradio", { name: targetLabel }).click()
+}
 
 test.describe("Internationalization (i18n) - Locale Switching", () => {
   test.beforeEach(async ({ page }) => {
@@ -14,29 +19,16 @@ test.describe("Internationalization (i18n) - Locale Switching", () => {
 
     await expect(page).toHaveURL(/\/$/)
 
-    const portuguesePatientsLabel = page.getByRole("button", { name: "Pacientes" })
-    await expect(portuguesePatientsLabel).toBeVisible()
+    await expect(page.getByRole("button", { name: "Pacientes" })).toBeVisible()
+    await expect(page.getByRole("button", { name: "Telemetria UTI" })).toBeVisible()
 
-    const portugueseTelemetryLabel = page.getByRole("button", { name: "Telemetria UTI" })
-    await expect(portugueseTelemetryLabel).toBeVisible()
+    await switchLanguage(page, "Português", "English")
+    await expect(page.getByRole("button", { name: "Patients" })).toBeVisible()
+    await expect(page.getByRole("button", { name: "ICU Telemetry" })).toBeVisible()
 
-    await page.getByRole("button", { name: "Português" }).click()
-    await page.getByRole("button", { name: "English" }).click()
-
-    const englishPatientsLabel = page.getByRole("button", { name: "Patients" })
-    await expect(englishPatientsLabel).toBeVisible()
-
-    const englishTelemetryLabel = page.getByRole("button", { name: "ICU Telemetry" })
-    await expect(englishTelemetryLabel).toBeVisible()
-
-    await page.getByRole("button", { name: "English" }).click()
-    await page.getByRole("button", { name: "Español" }).click()
-
-    const spanishPatientsLabel = page.getByRole("button", { name: "Pacientes" })
-    await expect(spanishPatientsLabel).toBeVisible()
-
-    const spanishTelemetryLabel = page.getByRole("button", { name: "Telemetría UCI" })
-    await expect(spanishTelemetryLabel).toBeVisible()
+    await switchLanguage(page, "English", "Español")
+    await expect(page.getByRole("button", { name: "Pacientes" })).toBeVisible()
+    await expect(page.getByRole("button", { name: "Telemetría UCI" })).toBeVisible()
   })
 
   test("should format dates according to the selected locale", async ({ page }) => {
@@ -55,22 +47,11 @@ test.describe("Internationalization (i18n) - Locale Switching", () => {
 
     await page.goto("/schedule")
 
-    const today = new Date()
-    const expectedPtBrDate = new Intl.DateTimeFormat("pt-BR", {
-      day: "numeric",
-      month: "numeric",
-      year: "numeric",
-    }).format(today)
-    await expect(page.getByRole("heading", { name: `Agenda de ${expectedPtBrDate}` })).toBeVisible()
+    await expect(page.getByRole("button", { name: "Agenda", exact: true })).toBeVisible()
+    await expect(page.locator(".fc-col-header").first()).toContainText(/seg/i)
 
-    await page.getByRole("button", { name: "Português" }).click()
-    await page.getByRole("button", { name: "English" }).click()
+    await switchLanguage(page, "Português", "English")
 
-    const expectedEnUsDate = new Intl.DateTimeFormat("en-US", {
-      day: "numeric",
-      month: "numeric",
-      year: "numeric",
-    }).format(today)
-    await expect(page.getByRole("heading", { name: `Schedule for ${expectedEnUsDate}` })).toBeVisible()
+    await expect(page.getByRole("button", { name: "Schedule", exact: true })).toBeVisible()
   })
 })

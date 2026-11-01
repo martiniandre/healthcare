@@ -8,7 +8,7 @@ test.describe("Medications / Prescriptions Module", () => {
   })
 
   test("should render the empty medications list initially", async ({ page }) => {
-    const title = page.locator("h3", { hasText: "Prescrições (MedicationRequest - FHIR)" })
+    const title = page.getByText("Prescrições (MedicationRequest - FHIR)", { exact: true })
     await expect(title).toBeVisible()
 
     const emptyMessage = page.locator("text=Nenhuma medicação prescrita para este atendimento")
@@ -16,6 +16,14 @@ test.describe("Medications / Prescriptions Module", () => {
   })
 
   test("should create a new medication prescription", async ({ page }) => {
+    await page.route("**/api/v1/patients/*/medications/check", async (networkRoute) => {
+      await networkRoute.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ alerts: [] }),
+      })
+    })
+
     await page.getByRole("button", { name: "Nova Prescrição" }).click()
 
     await page.getByPlaceholder("Ex: Amoxicilina 500mg, Losartana Potássica 50mg").fill("Dipirona 500mg")

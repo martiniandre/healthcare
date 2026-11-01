@@ -1,4 +1,15 @@
 import { type Page, expect } from "@playwright/test"
+import { capabilitiesForRole, type MockRole } from "./capabilities"
+
+const mockPermissionsAPI = async (pageInstance: Page, role: MockRole): Promise<void> => {
+  await pageInstance.route("**/api/v1/auth/permissions", async (networkRoute) => {
+    await networkRoute.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ role, capabilities: capabilitiesForRole(role) }),
+    })
+  })
+}
 
 interface MockAuthCredentials {
   email: string
@@ -14,6 +25,8 @@ export const mockAuthAPI = async (
   const sessionUserId = `user-${sessionRole.toLowerCase()}-123`
   const sessionFullName = sessionRole === "PATIENT" ? "Guilherme de Souza Araujo" : "Dr. AndrǸ Silva de Araujo"
   let sessionLoggedIn = false
+
+  await mockPermissionsAPI(pageInstance, sessionRole as MockRole)
 
   await pageInstance.route("**/api/v1/auth/login", async (networkRoute) => {
     const httpRequest = networkRoute.request()
@@ -1502,30 +1515,10 @@ export const loginAsPatient = async (pageInstance: Page): Promise<void> => {
   await expect(pageInstance).toHaveURL(/\/portal/)
 }
 
-export const adminCapabilities = [
-  "patient:read", "patient:create", "staff:read", "staff:create", "staff:update_status", "staff:delete",
-  "encounter:read", "encounter:create", "encounter:update", "encounter:delete",
-  "observation:read", "observation:create", "observation:update", "observation:delete",
-  "condition:read", "condition:create", "condition:update", "condition:delete",
-  "allergy:read", "allergy:create", "allergy:update", "allergy:delete",
-  "medication:read", "medication:create", "report:read", "report:create", "report:update",
-  "imaging:read", "imaging:create", "exam_analysis:read", "exam_analysis:create", "exam_analysis:delete",
-  "telemetry:read", "telemetry:update_bed", "appointment:read", "appointment:create", "appointment:update",
-  "appointment:cancel", "appointment:read_own", "unavailability:read", "unavailability:create",
-  "unavailability:delete", "analytics:read", "audit_log:read", "audit_log:create", "notification:read",
-  "portal:read", "design_system:read", "timeline:read",
-]
-
 export const loginAsAdmin = async (pageInstance: Page): Promise<void> => {
   let adminSessionLoggedIn = false
 
-  await pageInstance.route("**/api/v1/auth/permissions", async (networkRoute) => {
-    await networkRoute.fulfill({
-      status: 200,
-      contentType: "application/json",
-      body: JSON.stringify({ role: "ADMIN", capabilities: adminCapabilities }),
-    })
-  })
+  await mockPermissionsAPI(pageInstance, "ADMIN")
 
   await pageInstance.route("**/api/v1/auth/login", async (networkRoute) => {
     const httpRequest = networkRoute.request()
