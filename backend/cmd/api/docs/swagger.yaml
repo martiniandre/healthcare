@@ -407,6 +407,19 @@ definitions:
       status:
         type: string
     type: object
+  internal_modules_exam_analyzer.AnonymizationReportResponse:
+    properties:
+      applied:
+        type: boolean
+      limitations:
+        items:
+          type: string
+        type: array
+      steps:
+        items:
+          type: string
+        type: array
+    type: object
   internal_modules_exam_analyzer.DeleteAnalysisResponse:
     properties:
       success:
@@ -416,6 +429,8 @@ definitions:
     properties:
       analysis_response:
         type: string
+      anonymizationReport:
+        $ref: '#/definitions/internal_modules_exam_analyzer.AnonymizationReportResponse'
       anonymized:
         type: boolean
       consent_given:
@@ -454,6 +469,44 @@ definitions:
       study_instance_uid:
         type: string
       title:
+        type: string
+    type: object
+  internal_modules_imaging.HTTPUploadStudyResponse:
+    properties:
+      accessionNumber:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      modality:
+        type: string
+      patient_fhir_id:
+        type: string
+      seriesInstanceUid:
+        type: string
+      sopInstanceUid:
+        type: string
+      status:
+        type: string
+      study_instance_uid:
+        type: string
+      studyDate:
+        type: string
+      studyInstanceUid:
+        type: string
+      title:
+        type: string
+      warnings:
+        items:
+          $ref: '#/definitions/internal_modules_imaging.HTTPUploadWarning'
+        type: array
+    type: object
+  internal_modules_imaging.HTTPUploadWarning:
+    properties:
+      code:
+        type: string
+      message:
         type: string
     type: object
   internal_modules_medication.CheckMedicationSafetyRequest:
@@ -1715,8 +1768,13 @@ paths:
     post:
       consumes:
       - multipart/form-data
-      description: Uploads a medical exam file for AI analysis with consent tracking
-        and optional anonymization
+      description: 'Uploads a medical exam file for AI analysis with consent tracking
+        and optional de-identification. The real file content is validated (magic
+        bytes, structure, extension match) before anything is stored. When anonymize
+        is true, embedded metadata (EXIF/XMP/IPTC, PNG text chunks, PDF info and XMP)
+        is removed losslessly and a neutral file name is used for the AI call; text
+        burned into the pixels is NOT removed and is reported in anonymizationReport.limitations.
+        Error codes (HTTP 422): FILE_CONTENT_MISMATCH, FILE_CORRUPTED, FILE_EMPTY.'
       parameters:
       - description: Patient FHIR ID
         in: formData
@@ -1749,6 +1807,12 @@ paths:
             $ref: '#/definitions/internal_modules_exam_analyzer.ExamAnalysisResponse'
         "400":
           description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "413":
+          description: Request Entity Too Large
           schema:
             additionalProperties:
               type: string
@@ -2329,23 +2393,26 @@ paths:
     post:
       consumes:
       - multipart/form-data
-      description: Uploads a DICOM imaging study for a patient with metadata via multipart
-        form
+      description: Uploads a DICOM imaging study for a patient. The DICOM header is
+        read to fill StudyInstanceUID, modality, study date, accession number and
+        series/instance UIDs, and the file is rejected when it belongs to a different
+        patient (422 DICOM_PATIENT_MISMATCH) or was already uploaded (409 DICOM_DUPLICATE_INSTANCE).
+        Title and modality are optional fallbacks; the DICOM modality wins when both
+        are present.
       parameters:
       - description: Patient FHIR ID
         in: path
         name: patientFhirId
         required: true
         type: string
-      - description: Study title
+      - description: Study title (derived from the DICOM header when empty)
         in: formData
         name: title
-        required: true
         type: string
-      - description: Modality (e.g., CT, MR, XR)
+      - description: Fallback modality (e.g., CT, MR, XR) used only when the DICOM
+          header has none
         in: formData
         name: modality
-        required: true
         type: string
       - description: DICOM file
         in: formData
@@ -2358,9 +2425,33 @@ paths:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/internal_modules_imaging.HTTPImagingStudyResponse'
+            $ref: '#/definitions/internal_modules_imaging.HTTPUploadStudyResponse'
         "400":
           description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: Conflict
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "413":
+          description: Request Entity Too Large
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "422":
+          description: Unprocessable Entity
           schema:
             additionalProperties:
               type: string

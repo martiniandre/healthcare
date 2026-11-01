@@ -158,7 +158,7 @@ func main() {
 		slog.Warn("Failed to initialize GCS client, falling back to dummy", "error", storageClientErr)
 		storageClient = storage.NewStorageClient(appConfig.GCSBucketName, appConfig.StorageRoot)
 	}
-	imagingService := imaging.Register(applicationServer.GRPCServer, imaging.Dependency{DB: databasePool, Storage: storageClient, Redis: redisClient, AuditService: auditLogsService})
+	imagingService := imaging.Register(applicationServer.GRPCServer, imaging.Dependency{DB: databasePool, Storage: storageClient, Redis: redisClient, AuditService: auditLogsService, FHIRClient: fhirClient})
 	telemetryService := telemetry.Register(applicationServer.GRPCServer, telemetry.Dependency{DB: databasePool, EventBus: eventBus})
 	var telemetrySimulator *telemetry.Simulator
 	if telemetry.ShouldRunSimulator(appConfig.AppEnv, appConfig.EnableTelemetrySimulator) {

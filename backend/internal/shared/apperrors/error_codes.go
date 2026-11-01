@@ -181,6 +181,19 @@ var (
 		GRPCCode: codes.InvalidArgument,
 		HTTPCode: http.StatusBadRequest,
 		Message:  "invalid dicom file structure or preamble signature",
+		Code:     "INVALID_DICOM",
+	}
+	ErrDICOMPatientMismatch = AppError{
+		GRPCCode: codes.FailedPrecondition,
+		HTTPCode: http.StatusUnprocessableEntity,
+		Message:  "the dicom file does not belong to the selected patient",
+		Code:     "DICOM_PATIENT_MISMATCH",
+	}
+	ErrDICOMDuplicateInstance = AppError{
+		GRPCCode: codes.AlreadyExists,
+		HTTPCode: http.StatusConflict,
+		Message:  "this dicom study was already uploaded",
+		Code:     "DICOM_DUPLICATE_INSTANCE",
 	}
 
 	ErrDeidentificationRequired = AppError{
@@ -193,6 +206,27 @@ var (
 		GRPCCode: codes.ResourceExhausted,
 		HTTPCode: http.StatusRequestEntityTooLarge,
 		Message:  "uploaded file exceeds the maximum allowed size",
+	}
+
+	ErrFileContentMismatch = AppError{
+		GRPCCode: codes.InvalidArgument,
+		HTTPCode: http.StatusUnprocessableEntity,
+		Message:  "file content does not match its extension",
+		Code:     "FILE_CONTENT_MISMATCH",
+	}
+
+	ErrFileCorrupted = AppError{
+		GRPCCode: codes.InvalidArgument,
+		HTTPCode: http.StatusUnprocessableEntity,
+		Message:  "file is corrupted or incomplete",
+		Code:     "FILE_CORRUPTED",
+	}
+
+	ErrFileEmpty = AppError{
+		GRPCCode: codes.InvalidArgument,
+		HTTPCode: http.StatusUnprocessableEntity,
+		Message:  "file is empty",
+		Code:     "FILE_EMPTY",
 	}
 
 	ErrRateLimitExceeded = AppError{

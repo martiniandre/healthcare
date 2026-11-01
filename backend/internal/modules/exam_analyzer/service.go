@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
+	"github.com/healthcare/backend/internal/shared/filecontent"
 	"github.com/healthcare/backend/internal/shared/storage"
 	"golang.org/x/oauth2/google"
 )
@@ -53,8 +54,26 @@ func NewService(repository Repository, storageClient storage.StorageClient, proj
 }
 
 func (svc *service) CreateAnalysis(ctx context.Context, analysis *ExamAnalysis, fileContent io.Reader) error {
+	fileBytes, readErr := readBoundedExamFile(fileContent)
+	if readErr != nil {
+		return mapFileContentError(readErr)
+	}
+
+	kind := filecontent.Detect(headOf(fileBytes))
+	if validationErr := filecontent.Validate(kind, analysis.FileName, fileBytes); validationErr != nil {
+		return mapFileContentError(validationErr)
+	}
+
+	if analysis.Anonymized {
+		preparedInput, prepareErr := prepareAIInput(analysis, fileBytes)
+		if prepareErr != nil {
+			return mapFileContentError(prepareErr)
+		}
+		analysis.AnonymizationReport = preparedInput.Report
+	}
+
 	objectKey := buildExamStorageKey(analysis.ID, patientIDOrDefault(analysis.PatientFhirID), analysis.FileName)
-	if uploadError := svc.storageClient.Upload(ctx, objectKey, fileContent, examContentType(analysis.FileName)); uploadError != nil {
+	if uploadError := svc.storageClient.Upload(ctx, objectKey, bytes.NewReader(fileBytes), examContentType(analysis.FileName)); uploadError != nil {
 		return fmt.Errorf("failed to upload exam file to storage: %w", uploadError)
 	}
 

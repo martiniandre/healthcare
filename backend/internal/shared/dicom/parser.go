@@ -18,12 +18,19 @@ const (
 	defaultScanByteBudget   = 1 << 20
 	maximumReasonableFrames = 100000
 	headerFixedBytes        = 8
+	maximumMetaValueBytes   = 64 * 1024
+	maximumSequenceDepth    = 8
+	itemTag                 = 0xFFFEE000
+	itemDelimitationTag     = 0xFFFEE00D
+	sequenceDelimitationTag = 0xFFFEE0DD
 )
 
 var (
 	ErrNotDICOM             = errors.New("not a DICOM Part 10 file")
 	ErrMetaGroupMalformed   = errors.New("DICOM file meta group is malformed")
 	ErrTransferSyntaxAbsent = errors.New("DICOM file meta group has no TransferSyntaxUID")
+	errScanBudgetExhausted  = errors.New("DICOM dataset scan budget exhausted")
+	errSequenceMalformed    = errors.New("DICOM sequence is malformed")
 )
 
 type valueRepresentation struct {
@@ -84,6 +91,8 @@ type InstanceMetadata struct {
 	StudyDate                 string
 	StudyTime                 string
 	AccessionNumber           string
+	PatientName               string
+	PatientID                 string
 	ScanTruncatedBeforePixels bool
 }
 
@@ -173,6 +182,10 @@ func parseFileMetaGroup(sourceReader *bufio.Reader) (FileMeta, uint32, error) {
 			return fileMeta, 0, fmt.Errorf("%w: %v", ErrMetaGroupMalformed, headerError)
 		}
 
+		if header.valueLength > maximumMetaValueBytes {
+			return fileMeta, 0, fmt.Errorf("%w: element value is too large", ErrMetaGroupMalformed)
+		}
+
 		valueBytes, valueError := readPaddedValue(sourceReader, header)
 		if valueError != nil {
 			return fileMeta, 0, fmt.Errorf("%w: %v", ErrMetaGroupMalformed, valueError)
@@ -195,7 +208,7 @@ func parseFileMetaGroup(sourceReader *bufio.Reader) (FileMeta, uint32, error) {
 
 func parseDataset(sourceReader *bufio.Reader, metadata *InstanceMetadata, pendingTagValue uint32) {
 	explicitValueRepresentation := strings.TrimSpace(metadata.TransferSyntaxUID) == TransferSyntaxExplicitVRLittleEndian
-	remainingBudget := uint32(defaultScanByteBudget)
+	remainingBudget := int64(defaultScanByteBudget)
 	tagValue := pendingTagValue
 
 	for remainingBudget > 0 {
@@ -222,17 +235,21 @@ func parseDataset(sourceReader *bufio.Reader, metadata *InstanceMetadata, pendin
 			return
 		}
 
+		remainingBudget -= int64(headerFixedBytes + header.lengthFieldWidth)
+
 		if header.valueLength == undefinedElementLength {
-			metadata.ScanTruncatedBeforePixels = true
-			return
+			if skipError := skipUndefinedLengthSequence(sourceReader, explicitValueRepresentation, &remainingBudget, 0); skipError != nil {
+				metadata.ScanTruncatedBeforePixels = true
+				return
+			}
+			continue
 		}
 
-		headerWidth := headerFixedBytes + header.lengthFieldWidth
-		if header.valueLength+headerWidth > remainingBudget {
+		if int64(header.valueLength) > remainingBudget {
 			metadata.ScanTruncatedBeforePixels = true
 			return
 		}
-		remainingBudget -= headerWidth
+		remainingBudget -= int64(header.valueLength)
 
 		if isCollectedDatasetTag(currentTagValue) {
 			valueBytes, valueError := readPaddedValue(sourceReader, header)
@@ -251,6 +268,93 @@ func parseDataset(sourceReader *bufio.Reader, metadata *InstanceMetadata, pendin
 	}
 
 	metadata.ScanTruncatedBeforePixels = true
+}
+
+func skipUndefinedLengthSequence(sourceReader *bufio.Reader, explicitValueRepresentation bool, remainingBudget *int64, depth int) error {
+	if depth > maximumSequenceDepth {
+		return errSequenceMalformed
+	}
+
+	for {
+		if *remainingBudget <= 0 {
+			return errScanBudgetExhausted
+		}
+
+		delimiterTag, tagError := readTag(sourceReader)
+		if tagError != nil {
+			return tagError
+		}
+		lengthBytes := make([]byte, 4)
+		if _, readError := io.ReadFull(sourceReader, lengthBytes); readError != nil {
+			return readError
+		}
+		itemLength := binary.LittleEndian.Uint32(lengthBytes)
+		*remainingBudget -= headerFixedBytes
+
+		switch delimiterTag {
+		case sequenceDelimitationTag:
+			return nil
+		case itemTag:
+			if itemLength == undefinedElementLength {
+				if itemError := skipUndefinedLengthItem(sourceReader, explicitValueRepresentation, remainingBudget, depth); itemError != nil {
+					return itemError
+				}
+				continue
+			}
+			if skipError := skipBudgetedValue(sourceReader, itemLength, remainingBudget); skipError != nil {
+				return skipError
+			}
+		default:
+			return errSequenceMalformed
+		}
+	}
+}
+
+func skipUndefinedLengthItem(sourceReader *bufio.Reader, explicitValueRepresentation bool, remainingBudget *int64, depth int) error {
+	for {
+		if *remainingBudget <= 0 {
+			return errScanBudgetExhausted
+		}
+
+		elementTag, tagError := readTag(sourceReader)
+		if tagError != nil {
+			return tagError
+		}
+
+		if elementTag == itemDelimitationTag {
+			lengthBytes := make([]byte, 4)
+			if _, readError := io.ReadFull(sourceReader, lengthBytes); readError != nil {
+				return readError
+			}
+			*remainingBudget -= headerFixedBytes
+			return nil
+		}
+
+		header, headerError := finishElementHeader(sourceReader, elementTag, explicitValueRepresentation)
+		if headerError != nil {
+			return headerError
+		}
+		*remainingBudget -= int64(headerFixedBytes + header.lengthFieldWidth)
+
+		if header.valueLength == undefinedElementLength {
+			if nestedError := skipUndefinedLengthSequence(sourceReader, explicitValueRepresentation, remainingBudget, depth+1); nestedError != nil {
+				return nestedError
+			}
+			continue
+		}
+
+		if skipError := skipBudgetedValue(sourceReader, header.valueLength, remainingBudget); skipError != nil {
+			return skipError
+		}
+	}
+}
+
+func skipBudgetedValue(sourceReader *bufio.Reader, valueLength uint32, remainingBudget *int64) error {
+	if int64(valueLength) > *remainingBudget {
+		return errScanBudgetExhausted
+	}
+	*remainingBudget -= int64(valueLength)
+	return skipValue(sourceReader, valueLength)
 }
 
 func readTag(sourceReader *bufio.Reader) (uint32, error) {
@@ -338,6 +442,7 @@ func isStreamEnd(readError error) bool {
 func isCollectedDatasetTag(tagValue uint32) bool {
 	switch tagValue {
 	case 0x00080020, 0x00080030, 0x00080050, 0x00080060, 0x00081030, 0x0008103E,
+		0x00100010, 0x00100020,
 		0x0020000D, 0x0020000E, 0x00200011, 0x00200013,
 		0x00200032, 0x00200037, 0x00280008, 0x00280010, 0x00280011,
 		0x00280030, 0x00280100, 0x00280101, 0x00280102, 0x00280103:
@@ -362,6 +467,10 @@ func applyDatasetValue(metadata *InstanceMetadata, tagValue uint32, valueBytes [
 		metadata.StudyDescription = decodedValue
 	case 0x0008103E:
 		metadata.SeriesDescription = decodedValue
+	case 0x00100010:
+		metadata.PatientName = decodedValue
+	case 0x00100020:
+		metadata.PatientID = decodedValue
 	case 0x0020000D:
 		metadata.StudyInstanceUID = decodedValue
 	case 0x0020000E:

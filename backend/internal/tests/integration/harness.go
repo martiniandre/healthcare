@@ -186,6 +186,7 @@ func newTestServer(t *testing.T) *testServer {
 		Storage:      storageClient,
 		Redis:        environment.redisClient,
 		AuditService: auditLogsService,
+		FHIRClient:   fhirClient,
 	})
 	telemetryService := telemetry.Register(grpcServer, telemetry.Dependency{DB: environment.pool, EventBus: eventBus})
 	health.Register(grpcServer, health.Dependency{DB: environment.pool, Redis: environment.redisClient})

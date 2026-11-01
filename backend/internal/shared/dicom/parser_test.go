@@ -309,3 +309,62 @@ func TestDescribeTransferSyntaxNamesKnownSyntaxes(testingInstance *testing.T) {
 	assert.Equal(testingInstance, "unknown", DescribeTransferSyntax(""))
 	assert.Equal(testingInstance, "1.2.3.4.custom", DescribeTransferSyntax("1.2.3.4.custom"))
 }
+
+func writeUndefinedLengthSequenceWithNestedItem(targetBuffer *bytes.Buffer, groupNumber uint16, elementNumber uint16) {
+	writeTag(targetBuffer, groupNumber, elementNumber)
+	targetBuffer.WriteString("SQ")
+	targetBuffer.Write([]byte{0, 0})
+	targetBuffer.Write([]byte{0xFF, 0xFF, 0xFF, 0xFF})
+	targetBuffer.Write([]byte{0xFE, 0xFF, 0x00, 0xE0, 0xFF, 0xFF, 0xFF, 0xFF})
+	buildExplicitElement(targetBuffer, 0x0008, 0x0100, "SH", []byte("CODE"))
+	targetBuffer.Write([]byte{0xFE, 0xFF, 0x0D, 0xE0, 0x00, 0x00, 0x00, 0x00})
+	targetBuffer.Write([]byte{0xFE, 0xFF, 0xDD, 0xE0, 0x00, 0x00, 0x00, 0x00})
+}
+
+func TestParseInstanceReadsPatientIdentityAfterUndefinedLengthSequence(testingInstance *testing.T) {
+	var instanceBuffer bytes.Buffer
+	writePreambleAndMagic(&instanceBuffer)
+	buildMetaGroup(&instanceBuffer, TransferSyntaxExplicitVRLittleEndian, "1.2.840.10008.5.1.4.1.1.2", "1.2.826.0.1.3680043.8.498.100")
+	buildExplicitElement(&instanceBuffer, 0x0008, 0x0060, "CS", []byte("CT"))
+	writeUndefinedLengthSequenceWithNestedItem(&instanceBuffer, 0x0008, 0x1032)
+	buildExplicitElement(&instanceBuffer, 0x0010, 0x0010, "PN", []byte("SILVA^JOAO"))
+	buildExplicitElement(&instanceBuffer, 0x0010, 0x0020, "LO", []byte("123.456.789-09"))
+	buildExplicitElement(&instanceBuffer, 0x0020, 0x000D, "UI", []byte("1.2.826.0.1.3680043.8.498.200"))
+	buildExplicitElement(&instanceBuffer, 0x7FE0, 0x0010, "OW", []byte{0, 0})
+
+	metadata, parseError := ParseInstance(bytes.NewReader(instanceBuffer.Bytes()))
+
+	require.NoError(testingInstance, parseError)
+	assert.Equal(testingInstance, "SILVA^JOAO", metadata.PatientName)
+	assert.Equal(testingInstance, "123.456.789-09", metadata.PatientID)
+	assert.Equal(testingInstance, "1.2.826.0.1.3680043.8.498.200", metadata.StudyInstanceUID)
+	assert.False(testingInstance, metadata.ScanTruncatedBeforePixels)
+}
+
+func TestParseInstanceRejectsOversizedFileMetaValue(testingInstance *testing.T) {
+	var instanceBuffer bytes.Buffer
+	writePreambleAndMagic(&instanceBuffer)
+	writeTag(&instanceBuffer, 0x0002, 0x0001)
+	instanceBuffer.WriteString("OB")
+	instanceBuffer.Write([]byte{0, 0})
+	instanceBuffer.Write([]byte{0xF0, 0xFF, 0xFF, 0xFF})
+
+	_, parseError := ParseInstance(bytes.NewReader(instanceBuffer.Bytes()))
+
+	assert.ErrorIs(testingInstance, parseError, ErrMetaGroupMalformed)
+}
+
+func TestParseInstanceStopsOnOversizedDatasetValueWithoutOverflow(testingInstance *testing.T) {
+	var instanceBuffer bytes.Buffer
+	writePreambleAndMagic(&instanceBuffer)
+	buildMetaGroup(&instanceBuffer, TransferSyntaxExplicitVRLittleEndian, "1.2.840.10008.5.1.4.1.1.2", "1.2.826.0.1.3680043.8.498.100")
+	writeTag(&instanceBuffer, 0x0008, 0x0070)
+	instanceBuffer.WriteString("OB")
+	instanceBuffer.Write([]byte{0, 0})
+	instanceBuffer.Write([]byte{0xF0, 0xFF, 0xFF, 0xFF})
+
+	metadata, parseError := ParseInstance(bytes.NewReader(instanceBuffer.Bytes()))
+
+	require.NoError(testingInstance, parseError)
+	assert.True(testingInstance, metadata.ScanTruncatedBeforePixels)
+}

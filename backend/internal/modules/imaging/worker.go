@@ -3,7 +3,6 @@ package imaging
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log/slog"
 	"sync"
 	"time"
@@ -91,34 +90,17 @@ func (worker *Worker) processDICOM(ctx context.Context, studyIDString string) {
 		return
 	}
 
-	studyInstanceUID := fmt.Sprintf("1.2.826.0.1.3680043.8.498.%s", uuid.New().String())
+	imagingSeries := worker.buildImagingSeries(ctx, study)
 
-	imagingSeries := []fhir.Series{
-		{
-			Uid:    fmt.Sprintf("1.2.826.0.1.3680043.8.498.series.%s", uuid.New().String()),
-			Number: 1,
-			Modality: fhir.Coding{
-				System:  "http://dicom.nema.org/resources/ontology/DCM",
-				Code:    study.Modality,
-				Display: study.Modality,
-			},
-			Instance: []fhir.Instance{
-				{
-					Uid: studyInstanceUID,
-					SopClass: fhir.Coding{
-						System: "http://dicom.nema.org/resources/ontology/DCM",
-						Code:   "1.2.840.10008.5.1.4.1.1.7",
-					},
-					Number: 1,
-				},
-			},
-		},
+	startedAt := study.CreatedAt
+	if study.StudyDateTime != nil {
+		startedAt = *study.StudyDateTime
 	}
 
 	fhirStudy := fhir.NewImagingStudyResource(
 		study.PatientFhirID,
 		"available",
-		study.CreatedAt.Format(time.RFC3339),
+		startedAt.Format(time.RFC3339),
 		study.Title,
 		imagingSeries,
 	)
@@ -132,8 +114,7 @@ func (worker *Worker) processDICOM(ctx context.Context, studyIDString string) {
 		slog.Error("failed to register ImagingStudy FHIR resource", "id", studyIDString, "error", creationError)
 		study.Status = ImagingStudyStatusFailed
 	} else {
-		study.Status = ImagingStudyStatusProcessed
-		study.StudyInstanceUID = studyInstanceUID
+		study.Status = ImagingStudyStatusReady
 	}
 
 	study.UpdatedAt = time.Now()
@@ -142,4 +123,34 @@ func (worker *Worker) processDICOM(ctx context.Context, studyIDString string) {
 		return
 	}
 	slog.Info("imaging study processed and registered successfully", "id", studyIDString, "status", study.Status)
+}
+
+func (worker *Worker) buildImagingSeries(ctx context.Context, study *ImagingStudy) []fhir.Series {
+	instanceIndex, indexError := worker.dbRepository.GetInstanceIndex(ctx, study.ID)
+	if indexError != nil {
+		slog.Warn("imaging study has no instance index", "id", study.ID.String(), "error", indexError)
+		return nil
+	}
+
+	return []fhir.Series{
+		{
+			Uid:    instanceIndex.SeriesInstanceUID,
+			Number: instanceIndex.SeriesNumber,
+			Modality: fhir.Coding{
+				System:  "http://dicom.nema.org/resources/ontology/DCM",
+				Code:    study.Modality,
+				Display: study.Modality,
+			},
+			Instance: []fhir.Instance{
+				{
+					Uid: instanceIndex.SOPInstanceUID,
+					SopClass: fhir.Coding{
+						System: "urn:ietf:rfc:3986",
+						Code:   "urn:oid:" + instanceIndex.SOPClassUID,
+					},
+					Number: instanceIndex.InstanceNumber,
+				},
+			},
+		},
+	}
 }

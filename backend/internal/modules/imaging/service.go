@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log/slog"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -15,6 +16,7 @@ import (
 	"github.com/healthcare/backend/internal/modules/audit_logs"
 	"github.com/healthcare/backend/internal/shared/apperrors"
 	"github.com/healthcare/backend/internal/shared/ctxkeys"
+	"github.com/healthcare/backend/internal/shared/dicom"
 	"github.com/healthcare/backend/internal/shared/storage"
 	"github.com/healthcare/backend/internal/shared/validator"
 	"github.com/redis/go-redis/v9"
@@ -33,7 +35,7 @@ func sanitizeLeafName(rawName string) string {
 }
 
 type Service interface {
-	UploadDICOMStream(ctx context.Context, input UploadDICOMInput, streamReader io.Reader) (*ImagingStudy, error)
+	UploadDICOMStream(ctx context.Context, input UploadDICOMInput, streamReader io.Reader) (*UploadDICOMResult, error)
 	GetImagingStudy(ctx context.Context, studyID string) (*ImagingStudy, error)
 	ListImagingStudies(ctx context.Context, patientFhirID string) ([]*ImagingStudy, error)
 	GetDownloadURL(ctx context.Context, studyID string) (string, time.Time, error)
@@ -44,18 +46,21 @@ type service struct {
 	storageClient storage.StorageClient
 	redisClient   *redis.Client
 	auditService  audit_logs.Service
+
+	patientIdentityReader PatientIdentityReader
 }
 
-func NewService(dbRepository Repository, storageClient storage.StorageClient, redisClient *redis.Client, auditService audit_logs.Service) Service {
+func NewService(dbRepository Repository, storageClient storage.StorageClient, redisClient *redis.Client, auditService audit_logs.Service, patientIdentityReader PatientIdentityReader) Service {
 	return &service{
-		dbRepository:  dbRepository,
-		storageClient: storageClient,
-		redisClient:   redisClient,
-		auditService:  auditService,
+		dbRepository:          dbRepository,
+		storageClient:         storageClient,
+		redisClient:           redisClient,
+		auditService:          auditService,
+		patientIdentityReader: patientIdentityReader,
 	}
 }
 
-func (serviceInstance *service) UploadDICOMStream(ctx context.Context, input UploadDICOMInput, streamReader io.Reader) (*ImagingStudy, error) {
+func (serviceInstance *service) UploadDICOMStream(ctx context.Context, input UploadDICOMInput, streamReader io.Reader) (*UploadDICOMResult, error) {
 	if fieldViolations := validateUploadDICOMInput(input); len(fieldViolations) > 0 {
 		return nil, apperrors.InvalidArgument("invalid dicom upload input", fieldViolations)
 	}
@@ -80,7 +85,33 @@ func (serviceInstance *service) UploadDICOMStream(ctx context.Context, input Upl
 		return nil, fmt.Errorf("%w: magic bytes DICM signature missing", apperrors.ErrInvalidDICOM)
 	}
 
-	reconstructedReader := io.MultiReader(bytes.NewReader(headerBytes[:bytesRead]), limitedReader)
+	inspection, inspectionError := inspectDICOMHeader(headerBytes[:bytesRead], limitedReader)
+	if inspectionError != nil {
+		return nil, inspectionError
+	}
+
+	validated, validationError := validateDICOMMetadata(inspection.metadata)
+	if validationError != nil {
+		return nil, validationError
+	}
+
+	resolvedModality, modalityWarnings, modalityError := resolveModality(validated.modality, input.Modality)
+	if modalityError != nil {
+		return nil, modalityError
+	}
+	validated.modality = resolvedModality
+	validated.instanceIndex.Modality = resolvedModality
+
+	identityWarnings, identityError := serviceInstance.verifyPatientIdentity(ctx, input.PatientFhirID, validated.source)
+	if identityError != nil {
+		return nil, identityError
+	}
+
+	if duplicateError := serviceInstance.rejectDuplicateStudy(ctx, validated.studyInstanceUID); duplicateError != nil {
+		return nil, duplicateError
+	}
+
+	reconstructedReader := io.MultiReader(bytes.NewReader(inspection.consumedBytes), limitedReader)
 	boundedReader := &uploadLimitReader{reader: reconstructedReader, remainingBytes: MaxDICOMUploadBytes}
 
 	studyID := uuid.New()
@@ -102,20 +133,33 @@ func (serviceInstance *service) UploadDICOMStream(ctx context.Context, input Upl
 		sanitizedFileName = studyFileName
 	}
 
+	studyTitle := truncateRunes(strings.TrimSpace(input.Title), maximumTitleLength)
+	if studyTitle == "" {
+		studyTitle = buildStudyTitle(validated.modality, validated.studyDescription, validated.studyDateTime)
+	}
+
+	now := time.Now()
 	study := &ImagingStudy{
 		ID:               studyID,
 		PatientFhirID:    input.PatientFhirID,
-		Title:            input.Title,
-		Modality:         input.Modality,
+		Title:            studyTitle,
+		Modality:         validated.modality,
 		FileName:         sanitizedFileName,
-		StudyInstanceUID: "",
-		Status:           ImagingStudyStatusPending,
-		CreatedAt:        time.Now(),
-		UpdatedAt:        time.Now(),
+		StudyInstanceUID: validated.studyInstanceUID,
+		StudyDateTime:    validated.studyDateTime,
+		AccessionNumber:  validated.accessionNumber,
+		StudyDescription: validated.studyDescription,
+		Status:           ImagingStudyStatusReceiving,
+		CreatedAt:        now,
+		UpdatedAt:        now,
 	}
 
-	dbError := serviceInstance.dbRepository.CreateImagingStudy(ctx, study)
+	dbError := serviceInstance.dbRepository.CreateImagingStudy(ctx, study, validated.instanceIndex)
 	if dbError != nil {
+		serviceInstance.discardStoredObject(ctx, key)
+		if errors.Is(dbError, apperrors.ErrDICOMDuplicateInstance) {
+			return nil, dbError
+		}
 		return nil, fmt.Errorf("failed to persist imaging study operational record: %w", dbError)
 	}
 
@@ -126,7 +170,59 @@ func (serviceInstance *service) UploadDICOMStream(ctx context.Context, input Upl
 		}
 	}
 
-	return study, nil
+	return &UploadDICOMResult{
+		Study:             study,
+		SeriesInstanceUID: validated.seriesInstanceUID,
+		SOPInstanceUID:    validated.sopInstanceUID,
+		Warnings:          append(modalityWarnings, identityWarnings...),
+	}, nil
+}
+
+func resolveModality(fileModality string, userModality string) (string, []UploadWarning, error) {
+	typedModality := strings.ToUpper(strings.TrimSpace(userModality))
+	if fileModality == "" {
+		if typedModality == "" {
+			return "", nil, apperrors.WithDetail(apperrors.ErrInvalidDICOM, "Modality is missing")
+		}
+		return typedModality, nil, nil
+	}
+	if typedModality != "" && typedModality != fileModality {
+		return fileModality, []UploadWarning{newUploadWarning(WarningCodeModalityOverridden)}, nil
+	}
+	return fileModality, nil, nil
+}
+
+func (serviceInstance *service) verifyPatientIdentity(ctx context.Context, patientFhirID string, source *dicom.InstanceMetadata) ([]UploadWarning, error) {
+	var patientIdentity PatientIdentity
+	if serviceInstance.patientIdentityReader != nil {
+		readIdentity, readError := serviceInstance.patientIdentityReader.ReadPatientIdentity(ctx, patientFhirID)
+		if readError != nil {
+			return nil, readError
+		}
+		patientIdentity = readIdentity
+	}
+
+	return evaluatePatientMatch(patientFhirID, dicomPatientIdentity{
+		patientID:   source.PatientID,
+		patientName: source.PatientName,
+	}, patientIdentity)
+}
+
+func (serviceInstance *service) rejectDuplicateStudy(ctx context.Context, studyInstanceUID string) error {
+	_, findError := serviceInstance.dbRepository.FindImagingStudyByStudyInstanceUID(ctx, studyInstanceUID)
+	if findError == nil {
+		return apperrors.ErrDICOMDuplicateInstance
+	}
+	if errors.Is(findError, apperrors.ErrImagingStudyNotFound) {
+		return nil
+	}
+	return fmt.Errorf("failed to check duplicate imaging study: %w", findError)
+}
+
+func (serviceInstance *service) discardStoredObject(ctx context.Context, key string) {
+	if deleteError := serviceInstance.storageClient.Delete(context.WithoutCancel(ctx), key); deleteError != nil {
+		slog.Warn("failed to discard orphaned dicom object", "error", deleteError)
+	}
 }
 
 type uploadLimitReader struct {
@@ -230,10 +326,7 @@ func validateUploadDICOMInput(input UploadDICOMInput) map[string]string {
 	if strings.TrimSpace(input.PatientFhirID) == "" {
 		fieldViolations["patient_fhir_id"] = "is required"
 	}
-	if strings.TrimSpace(input.Title) == "" {
-		fieldViolations["title"] = "is required"
-	}
-	if !validator.IsValidDICOMModality(input.Modality) {
+	if strings.TrimSpace(input.Modality) != "" && !validator.IsValidDICOMModality(input.Modality) {
 		fieldViolations["modality"] = "invalid dicom modality"
 	}
 	return fieldViolations

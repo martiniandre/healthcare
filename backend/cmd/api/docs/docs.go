@@ -1215,7 +1215,7 @@ const docTemplate = `{
                 }
             },
             "post": {
-                "description": "Uploads a medical exam file for AI analysis with consent tracking and optional anonymization",
+                "description": "Uploads a medical exam file for AI analysis with consent tracking and optional de-identification. The real file content is validated (magic bytes, structure, extension match) before anything is stored. When anonymize is true, embedded metadata (EXIF/XMP/IPTC, PNG text chunks, PDF info and XMP) is removed losslessly and a neutral file name is used for the AI call; text burned into the pixels is NOT removed and is reported in anonymizationReport.limitations. Error codes (HTTP 422): FILE_CONTENT_MISMATCH, FILE_CORRUPTED, FILE_EMPTY.",
                 "consumes": [
                     "multipart/form-data"
                 ],
@@ -1269,6 +1269,15 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "413": {
+                        "description": "Request Entity Too Large",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -2137,7 +2146,7 @@ const docTemplate = `{
                 }
             },
             "post": {
-                "description": "Uploads a DICOM imaging study for a patient with metadata via multipart form",
+                "description": "Uploads a DICOM imaging study for a patient. The DICOM header is read to fill StudyInstanceUID, modality, study date, accession number and series/instance UIDs, and the file is rejected when it belongs to a different patient (422 DICOM_PATIENT_MISMATCH) or was already uploaded (409 DICOM_DUPLICATE_INSTANCE). Title and modality are optional fallbacks; the DICOM modality wins when both are present.",
                 "consumes": [
                     "multipart/form-data"
                 ],
@@ -2158,17 +2167,15 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Study title",
+                        "description": "Study title (derived from the DICOM header when empty)",
                         "name": "title",
-                        "in": "formData",
-                        "required": true
+                        "in": "formData"
                     },
                     {
                         "type": "string",
-                        "description": "Modality (e.g., CT, MR, XR)",
+                        "description": "Fallback modality (e.g., CT, MR, XR) used only when the DICOM header has none",
                         "name": "modality",
-                        "in": "formData",
-                        "required": true
+                        "in": "formData"
                     },
                     {
                         "type": "file",
@@ -2182,11 +2189,47 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/internal_modules_imaging.HTTPImagingStudyResponse"
+                            "$ref": "#/definitions/internal_modules_imaging.HTTPUploadStudyResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "413": {
+                        "description": "Request Entity Too Large",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -3616,6 +3659,26 @@ const docTemplate = `{
                 }
             }
         },
+        "internal_modules_exam_analyzer.AnonymizationReportResponse": {
+            "type": "object",
+            "properties": {
+                "applied": {
+                    "type": "boolean"
+                },
+                "limitations": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "steps": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "internal_modules_exam_analyzer.DeleteAnalysisResponse": {
             "type": "object",
             "properties": {
@@ -3629,6 +3692,9 @@ const docTemplate = `{
             "properties": {
                 "analysis_response": {
                     "type": "string"
+                },
+                "anonymizationReport": {
+                    "$ref": "#/definitions/internal_modules_exam_analyzer.AnonymizationReportResponse"
                 },
                 "anonymized": {
                     "type": "boolean"
@@ -3687,6 +3753,64 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_modules_imaging.HTTPUploadStudyResponse": {
+            "type": "object",
+            "properties": {
+                "accessionNumber": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "modality": {
+                    "type": "string"
+                },
+                "patient_fhir_id": {
+                    "type": "string"
+                },
+                "seriesInstanceUid": {
+                    "type": "string"
+                },
+                "sopInstanceUid": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "studyDate": {
+                    "type": "string"
+                },
+                "studyInstanceUid": {
+                    "type": "string"
+                },
+                "study_instance_uid": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "warnings": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/internal_modules_imaging.HTTPUploadWarning"
+                    }
+                }
+            }
+        },
+        "internal_modules_imaging.HTTPUploadWarning": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "message": {
                     "type": "string"
                 }
             }

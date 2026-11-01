@@ -52,16 +52,20 @@ func (handler *HTTPHandler) ListPatientStudies(httpResponseWriter http.ResponseW
 // UploadPatientStudy godoc
 //
 //	@Summary		Upload DICOM study
-//	@Description	Uploads a DICOM imaging study for a patient with metadata via multipart form
+//	@Description	Uploads a DICOM imaging study for a patient. The DICOM header is read to fill StudyInstanceUID, modality, study date, accession number and series/instance UIDs, and the file is rejected when it belongs to a different patient (422 DICOM_PATIENT_MISMATCH) or was already uploaded (409 DICOM_DUPLICATE_INSTANCE). Title and modality are optional fallbacks; the DICOM modality wins when both are present.
 //	@Tags			imaging
 //	@Accept			mpfd
 //	@Produce		json
 //	@Param			patientFhirId	path	string	true	"Patient FHIR ID"
-//	@Param			title			formData	string	true	"Study title"
-//	@Param			modality		formData	string	true	"Modality (e.g., CT, MR, XR)"
+//	@Param			title			formData	string	false	"Study title (derived from the DICOM header when empty)"
+//	@Param			modality		formData	string	false	"Fallback modality (e.g., CT, MR, XR) used only when the DICOM header has none"
 //	@Param			file			formData	file	true	"DICOM file"
-//	@Success		201				{object}	HTTPImagingStudyResponse
+//	@Success		201				{object}	HTTPUploadStudyResponse
 //	@Failure		400				{object}	map[string]string
+//	@Failure		404				{object}	map[string]string
+//	@Failure		409				{object}	map[string]string
+//	@Failure		413				{object}	map[string]string
+//	@Failure		422				{object}	map[string]string
 //	@Failure		429				{object}	map[string]string
 //	@Failure		500				{object}	map[string]string
 //	@Router			/patients/{patientFhirId}/studies [post]
@@ -85,7 +89,7 @@ func (handler *HTTPHandler) UploadPatientStudy(httpResponseWriter http.ResponseW
 	}
 	defer file.Close()
 
-	createdStudy, createErr := handler.service.UploadDICOMStream(httpRequest.Context(), UploadDICOMInput{
+	uploadResult, createErr := handler.service.UploadDICOMStream(httpRequest.Context(), UploadDICOMInput{
 		PatientFhirID: patientFhirID,
 		Title:         title,
 		Modality:      modality,
@@ -97,7 +101,7 @@ func (handler *HTTPHandler) UploadPatientStudy(httpResponseWriter http.ResponseW
 		return
 	}
 
-	render.JSON(httpResponseWriter, http.StatusCreated, NewHTTPImagingStudyResponse(createdStudy))
+	render.JSON(httpResponseWriter, http.StatusCreated, NewHTTPUploadStudyResponse(uploadResult))
 }
 
 // GetStudy godoc

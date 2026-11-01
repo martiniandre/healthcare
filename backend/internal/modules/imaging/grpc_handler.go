@@ -62,7 +62,7 @@ func (handler *GRPCHandler) UploadDICOM(stream pb.ImagingService_UploadDICOMServ
 		}
 	}()
 
-	study, uploadError := handler.service.UploadDICOMStream(stream.Context(), UploadDICOMInput{
+	uploadResult, uploadError := handler.service.UploadDICOMStream(stream.Context(), UploadDICOMInput{
 		PatientFhirID: metadataMsg.PatientFhirId,
 		Title:         metadataMsg.Title,
 		Modality:      metadataMsg.Modality,
@@ -72,8 +72,8 @@ func (handler *GRPCHandler) UploadDICOM(stream pb.ImagingService_UploadDICOMServ
 	}
 
 	response := &pb.UploadDICOMResponse{
-		ImagingStudyId: study.ID.String(),
-		Status:         study.Status,
+		ImagingStudyId: uploadResult.Study.ID.String(),
+		Status:         uploadResult.Study.Status,
 		BytesUploaded:  totalBytesUploaded,
 	}
 

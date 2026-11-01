@@ -89,12 +89,24 @@ func (worker *Worker) processAnalysisJob(ctx context.Context, analysisID uuid.UU
 		return
 	}
 
+	preparedInput, prepareErr := prepareAIInput(analysisRecord, fileBytes)
+	if prepareErr != nil {
+		slog.Error("Failed to prepare exam content for AI analysis", "analysisID", analysisID, "error", prepareErr)
+		analysisRecord.Status = "failed"
+		analysisRecord.UpdatedAt = time.Now()
+		_ = worker.repository.UpdateAnalysis(ctx, analysisRecord)
+		return
+	}
+	if preparedInput.Report != nil {
+		analysisRecord.AnonymizationReport = preparedInput.Report
+	}
+
 	var analysisResponse *MedicalAnalysisResponse
 	var statusResult string
 	maxRetries := 3
 
 	for attempt := 1; attempt <= maxRetries; attempt++ {
-		analysisResponse, statusResult, err = worker.service.AnalyzeExamFile(ctx, analysisRecord.FileName, fileBytes)
+		analysisResponse, statusResult, err = worker.service.AnalyzeExamFile(ctx, preparedInput.FileName, preparedInput.Bytes)
 		if err == nil {
 			break
 		}

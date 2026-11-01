@@ -32,8 +32,8 @@ func (repo *repository) CreateAnalysis(ctx context.Context, analysis *ExamAnalys
 	queryStatement := `
 		INSERT INTO exam_analyses (
 			id, user_id, patient_fhir_id, exam_type, file_name, status, 
-			analysis_response, consent_given, anonymized, created_at, updated_at
-		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+			analysis_response, consent_given, anonymized, anonymization_report, created_at, updated_at
+		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
 	`
 	_, executionError := repo.databasePool.Exec(
 		ctx,
@@ -47,6 +47,7 @@ func (repo *repository) CreateAnalysis(ctx context.Context, analysis *ExamAnalys
 		analysis.AnalysisResponse,
 		analysis.ConsentGiven,
 		analysis.Anonymized,
+		analysis.AnonymizationReport,
 		analysis.CreatedAt,
 		analysis.UpdatedAt,
 	)
@@ -57,7 +58,7 @@ func (repo *repository) GetAnalysis(ctx context.Context, id uuid.UUID) (*ExamAna
 	queryStatement := `
 		SELECT 
 			id, user_id, patient_fhir_id, exam_type, file_name, status, 
-			analysis_response, consent_given, anonymized, created_at, updated_at
+			analysis_response, consent_given, anonymized, anonymization_report, created_at, updated_at
 		FROM exam_analyses
 		WHERE id = $1
 	`
@@ -74,6 +75,7 @@ func (repo *repository) GetAnalysis(ctx context.Context, id uuid.UUID) (*ExamAna
 		&analysis.AnalysisResponse,
 		&analysis.ConsentGiven,
 		&analysis.Anonymized,
+		&analysis.AnonymizationReport,
 		&analysis.CreatedAt,
 		&analysis.UpdatedAt,
 	)
@@ -95,7 +97,7 @@ func (repo *repository) ListAnalyses(ctx context.Context, patientFhirID *string)
 		queryStatement = `
 			SELECT 
 				id, user_id, patient_fhir_id, exam_type, file_name, status, 
-				analysis_response, consent_given, anonymized, created_at, updated_at
+				analysis_response, consent_given, anonymized, anonymization_report, created_at, updated_at
 			FROM exam_analyses
 			WHERE patient_fhir_id = $1
 			ORDER BY created_at DESC
@@ -105,7 +107,7 @@ func (repo *repository) ListAnalyses(ctx context.Context, patientFhirID *string)
 		queryStatement = `
 			SELECT 
 				id, user_id, patient_fhir_id, exam_type, file_name, status, 
-				analysis_response, consent_given, anonymized, created_at, updated_at
+				analysis_response, consent_given, anonymized, anonymization_report, created_at, updated_at
 			FROM exam_analyses
 			ORDER BY created_at DESC
 		`
@@ -130,6 +132,7 @@ func (repo *repository) ListAnalyses(ctx context.Context, patientFhirID *string)
 			&analysis.AnalysisResponse,
 			&analysis.ConsentGiven,
 			&analysis.Anonymized,
+			&analysis.AnonymizationReport,
 			&analysis.CreatedAt,
 			&analysis.UpdatedAt,
 		)
@@ -149,7 +152,7 @@ func (repo *repository) UpdateAnalysis(ctx context.Context, analysis *ExamAnalys
 	queryStatement := `
 		UPDATE exam_analyses
 		SET user_id = $2, patient_fhir_id = $3, exam_type = $4, file_name = $5, 
-			status = $6, analysis_response = $7, consent_given = $8, anonymized = $9, updated_at = $10
+			status = $6, analysis_response = $7, consent_given = $8, anonymized = $9, anonymization_report = $10, updated_at = $11
 		WHERE id = $1
 	`
 	_, executionError := repo.databasePool.Exec(
@@ -164,6 +167,7 @@ func (repo *repository) UpdateAnalysis(ctx context.Context, analysis *ExamAnalys
 		analysis.AnalysisResponse,
 		analysis.ConsentGiven,
 		analysis.Anonymized,
+		analysis.AnonymizationReport,
 		analysis.UpdatedAt,
 	)
 	return executionError
