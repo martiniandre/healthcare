@@ -79,6 +79,11 @@ test.describe("Internal features - authenticated admin", () => {
     await page.getByRole("option", { name: "09:00", exact: true }).click()
     await page.getByRole("button", { name: "Agendar" }).click()
 
+    // Amanhã cai na semana seguinte quando é segunda-feira (a semana exibida começa na segunda).
+    if (appointmentDate.getDay() === 1) {
+      await page.locator(".fc-next-button").click()
+    }
+
     const appointmentEvent = page.locator(".fc-event").filter({ hasText: "Guilherme de Souza Araujo" }).first()
     await expect(appointmentEvent).toBeVisible()
 

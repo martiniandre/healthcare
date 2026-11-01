@@ -12,7 +12,7 @@ test.describe("Report Ready Notification Module", () => {
   })
 
   test("should show the report.ready notification in the patient notification bell", async ({ page }) => {
-    const bellButton = page.getByTitle("Notificações")
+    const bellButton = page.getByRole("button", { name: "Notificações" })
     await expect(bellButton).toBeVisible()
 
     const unreadBadge = bellButton.locator("text=1")

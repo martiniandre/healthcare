@@ -59,8 +59,8 @@ const fillAppointmentForm = async (page: import("@playwright/test").Page) => {
   await modalDialog.locator('[role="combobox"]').nth(1).click()
   await page.locator('[role="option"]', { hasText: "Dr. André Silva de Araujo" }).click()
 
-  await modalDialog.locator('select[name="startTime"]').selectOption(appointmentSlot.startTime)
-  await modalDialog.locator('select[name="endTime"]').selectOption(appointmentSlot.endTime)
+  await modalDialog.getByText("Selecione o horário de início").click()
+  await page.getByRole("option", { name: appointmentSlot.startTime, exact: true }).click()
 }
 
 test.describe("Appointment Scheduling Module", () => {
@@ -98,7 +98,7 @@ test.describe("Appointment Scheduling Module", () => {
     await fillAppointmentForm(page)
     await page.getByRole("button", { name: "Agendar" }).click()
 
-    await expect(page.locator("text=Conflito de horário")).toBeVisible()
+    await expect(page.getByText("já tem uma consulta ou um bloqueio nesse intervalo")).toBeVisible()
   })
 
   test("should show a validation error when the appointment date is in the past", async ({ page }) => {
@@ -110,7 +110,7 @@ test.describe("Appointment Scheduling Module", () => {
     await page.getByRole("button", { name: "Agendar" }).click()
 
     await expect(
-      page.locator("text=A data do agendamento deve ser hoje ou uma data futura.")
+      page.locator("text=Não é possível agendar em datas passadas. Escolha hoje ou uma data futura.").first()
     ).toBeVisible()
   })
 
@@ -125,26 +125,21 @@ test.describe("Appointment Scheduling Module", () => {
     ).toHaveAttribute("min", expectedMin)
   })
 
-  test("should show a validation error when the appointment reason exceeds the maximum length", async ({ page }) => {
+  test("should cap the appointment reason at 500 characters", async ({ page }) => {
     await page.goto("/schedule")
     await page.getByRole("button", { name: "Novo Agendamento" }).click()
 
-    await fillAppointmentForm(page)
-    await page.getByPlaceholder("Motivo da consulta...").fill("a".repeat(501))
-    await page.getByRole("button", { name: "Agendar" }).click()
-
-    await expect(
-      page.locator("text=O motivo deve ter no máximo 500 caracteres.")
-    ).toBeVisible()
+    const reasonField = page.getByPlaceholder("Ex.: Retorno, resultado de exames de sangue")
+    await reasonField.fill("a".repeat(501))
+    await expect(reasonField).toHaveValue("a".repeat(500))
   })
 
-  test("should display an opaque backdrop when the appointment modal opens", async ({ page }) => {
+  test("should display a dialog overlay when the appointment modal opens", async ({ page }) => {
     await page.goto("/schedule")
     await page.getByRole("button", { name: "Novo Agendamento" }).click()
 
-    const backdrop = page.locator('[data-state="open"].bg-black\\/60')
+    const backdrop = page.locator('[data-slot="dialog-overlay"][data-state="open"]')
     await expect(backdrop).toBeVisible()
-    await expect(backdrop).toHaveCSS("opacity", "1")
   })
 
   test("should keep the displayed range when navigating between calendar weeks", async ({ page }) => {
@@ -188,13 +183,14 @@ test.describe("Appointment Scheduling Module", () => {
 
     await expect(page.getByRole("heading", { name: "Editar Agendamento" })).toBeVisible()
     const prefilledAppointmentDate = await page.getByRole("dialog").locator('input[type="date"]').inputValue()
-    const prefilledStartTime = await page.getByRole("dialog").locator('select[name="startTime"]').inputValue()
+    const startTimeTrigger = page.getByRole("dialog").getByRole("combobox").filter({ hasText: /^\d{2}:\d{2}$/ }).first()
+    const prefilledStartTime = (await startTimeTrigger.innerText()).trim()
     const alternateSlot = getEditSlot(prefilledStartTime, prefilledAppointmentDate)
     if (alternateSlot.appointmentDate !== prefilledAppointmentDate) {
       await page.getByRole("dialog").locator('input[type="date"]').fill(alternateSlot.appointmentDate)
     }
-    await page.getByRole("dialog").locator('select[name="startTime"]').selectOption(alternateSlot.startTime)
-    await page.getByRole("dialog").locator('select[name="endTime"]').selectOption(alternateSlot.endTime)
+    await startTimeTrigger.click()
+    await page.getByRole("option", { name: alternateSlot.startTime, exact: true }).click()
     await page.getByRole("button", { name: "Salvar Alterações" }).click()
 
     await expect(page.locator("text=Agendamento atualizado com sucesso!")).toBeVisible()

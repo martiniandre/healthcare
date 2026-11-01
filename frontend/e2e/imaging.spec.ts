@@ -20,17 +20,17 @@ test.describe("Medical Imaging Module (PACS Console)", () => {
   })
 
   test("should select different tools from the control panel", async ({ page }) => {
-    const zoomToolButton = page.getByRole("button", { name: "Zoom (Arrastar)" })
-    const brightnessToolButton = page.getByRole("button", { name: "Luminosidade" })
-    const rulerToolButton = page.getByRole("button", { name: "Régua (Medir)" })
+    const zoomToolButton = page.getByRole("button", { name: "Zoom", exact: true })
+    const contrastToolButton = page.getByRole("button", { name: "Contraste", exact: true })
+    const measureToolButton = page.getByRole("button", { name: "Medir", exact: true })
 
-    await brightnessToolButton.click()
-    await expect(brightnessToolButton).toHaveClass(/.*bg-primary.*/)
-    await expect(zoomToolButton).not.toHaveClass(/.*bg-primary.*/)
+    await contrastToolButton.click()
+    await expect(contrastToolButton).toHaveAttribute("aria-pressed", "true")
+    await expect(zoomToolButton).toHaveAttribute("aria-pressed", "false")
 
-    await rulerToolButton.click()
-    await expect(rulerToolButton).toHaveClass(/.*bg-primary.*/)
-    await expect(brightnessToolButton).not.toHaveClass(/.*bg-primary.*/)
+    await measureToolButton.click()
+    await expect(measureToolButton).toHaveAttribute("aria-pressed", "true")
+    await expect(contrastToolButton).toHaveAttribute("aria-pressed", "false")
   })
 
   test("should allow triggering windowing presets", async ({ page }) => {

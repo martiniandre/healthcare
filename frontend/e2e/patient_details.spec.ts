@@ -11,18 +11,12 @@ test.describe("Patient Record and Clinical File Module", () => {
     const patientHeaderName = page.locator("h2", { hasText: "Guilherme de Souza Araujo" })
     await expect(patientHeaderName).toBeVisible()
 
-    const initialEncounter = page.locator("text=Consulta de Rotina Geral")
+    const initialEncounter = page.locator("text=Consulta de Rotina Geral").first()
     await expect(initialEncounter).toBeVisible()
   })
 
-  test("should format the header birth date according to the selected language", async ({ page }) => {
-    const expectedBirthDate = new Intl.DateTimeFormat("pt-BR", {
-      day: "numeric",
-      month: "numeric",
-      year: "numeric",
-    }).format(new Date(1988, 3, 12))
-
-    await expect(page.getByText(expectedBirthDate)).toBeVisible()
+  test("should show the patient's age computed from the birth date in the header", async ({ page }) => {
+    await expect(page.getByText("38 anos", { exact: true })).toBeVisible()
   })
 
   test("should create a new medical encounter", async ({ page }) => {
@@ -39,17 +33,24 @@ test.describe("Patient Record and Clinical File Module", () => {
 
   test("should add a new vital sign observation", async ({ page }) => {
     await page.goto("/patients/fhir-pat-1/encounters/enc-1")
+    let submittedVitalSignsPayload: { panel?: Record<string, unknown> } | undefined
+    await page.route("**/api/v1/encounters/*/observations/batch", async (networkRoute) => {
+      submittedVitalSignsPayload = networkRoute.request().postDataJSON()
+      await networkRoute.fulfill({
+        status: 201,
+        contentType: "application/json",
+        body: JSON.stringify([]),
+      })
+    })
+
     await page.getByRole("button", { name: "Adicionar Sinal" }).click()
 
-    await page.getByRole("combobox").click()
-    await page.getByRole("option", { name: "Temperatura Corporal (°C)" }).click()
+    await expect(page.getByRole("heading", { name: "Registrar Sinais Vitais" })).toBeVisible()
+    await page.getByLabel("Temperatura Corporal (°C)").fill("38.5")
+    await page.getByRole("button", { name: "Registrar Sinais Vitais" }).click()
 
-    await page.getByPlaceholder("Ex: 72, 36.5, 120").fill("38.5")
-    await page.getByRole("button", { name: "Registrar Sinal" }).click()
-
-    const temperatureValue = page.locator("text=38.5")
-    await expect(temperatureValue).toBeVisible()
-    await expect(page.locator("text=Temperatura Corporal").first()).toBeVisible()
+    await expect(page.getByRole("heading", { name: "Registrar Sinais Vitais" })).toBeHidden()
+    expect(submittedVitalSignsPayload?.panel).toMatchObject({ body_temperature: 38.5 })
   })
 
   test("should sign a new diagnostic report", async ({ page }) => {

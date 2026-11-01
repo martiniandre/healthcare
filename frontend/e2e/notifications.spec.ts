@@ -18,7 +18,7 @@ test.describe("In-App Notification Bell Module", () => {
   })
 
   test("should display unread notification count badge on the bell icon", async ({ page }) => {
-    const bellButton = page.getByTitle("Notificações")
+    const bellButton = page.getByRole("button", { name: "Notificações" })
     await expect(bellButton).toBeVisible()
 
     const unreadBadge = bellButton.locator("text=2")
@@ -26,9 +26,9 @@ test.describe("In-App Notification Bell Module", () => {
   })
 
   test("should open dropdown with notification list when bell is clicked", async ({ page }) => {
-    await page.getByTitle("Notificações").click()
+    await page.getByRole("button", { name: "Notificações" }).click()
 
-    const dropdownTitle = page.locator("text=Notificações")
+    const dropdownTitle = page.getByRole("heading", { name: "Notificações" })
     await expect(dropdownTitle).toBeVisible()
 
     const firstNotification = page.locator("text=Alerta Crítico - Leito 01")
@@ -36,7 +36,7 @@ test.describe("In-App Notification Bell Module", () => {
   })
 
   test("should mark notification as read when clicked", async ({ page }) => {
-    await page.getByTitle("Notificações").click()
+    await page.getByRole("button", { name: "Notificações" }).click()
 
     const criticalAlert = page.locator("text=Alerta Crítico - Leito 01")
     await criticalAlert.click()
@@ -95,7 +95,7 @@ test.describe("Notification Bell Error States", () => {
     await page.getByRole("button", { name: "Entrar no Console" }).click()
     await expect(page).toHaveURL(/\/$/)
 
-    await page.getByTitle("Notificações").click()
+    await page.getByRole("button", { name: "Notificações" }).click()
     await expect(page.getByText("Não foi possível carregar as notificações.")).toBeVisible()
   })
 })

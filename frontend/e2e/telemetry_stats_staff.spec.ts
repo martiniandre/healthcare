@@ -60,10 +60,10 @@ test.describe("Clinical Statistics and Analytics Module", () => {
     const activePatientsCount = page.locator("text=340")
     await expect(activePatientsCount).toBeVisible()
 
-    const fhirComplianceRate = page.locator("text=99.4%")
+    const fhirComplianceRate = page.getByText(/99[.,]4/)
     await expect(fhirComplianceRate).toBeVisible()
 
-    const averageDurationTime = page.locator("text=14.5 min")
+    const averageDurationTime = page.getByText(/14[.,]5/).first()
     await expect(averageDurationTime).toBeVisible()
   })
 

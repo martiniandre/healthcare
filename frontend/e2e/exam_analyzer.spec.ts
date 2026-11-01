@@ -15,30 +15,25 @@ test.describe("Exam Analyzer Module", () => {
     await expect(historyItem).toBeVisible()
   })
 
-  test("should explain why the submit button is disabled before a file is chosen", async ({ page }) => {
-    const submitButton = page.getByRole("button", { name: "Enviar para Análise" })
-    await expect(submitButton).toBeDisabled()
-    await expect(page.getByText("Selecione um arquivo para continuar.")).toBeVisible()
+  test("should list the missing requirements when submitted empty", async ({ page }) => {
+    await page.getByRole("button", { name: "Enviar para Análise" }).click()
+
+    await expect(page.getByText("Escolha o arquivo do exame (passo 1).")).toBeVisible()
+    await expect(page.getByText("Confirme o consentimento do paciente (passo 2).")).toBeVisible()
   })
 
-  test("should demand patient consent before the submit button unlocks", async ({ page }) => {
-    const fileChooserPromise = page.waitForEvent("filechooser")
-    await page.locator("label", { hasText: "Selecione um Arquivo" }).click()
-    const fileChooser = await fileChooserPromise
-    await fileChooser.setFiles({
+  test("should require patient consent after a file is chosen", async ({ page }) => {
+    await page.locator('[data-testid="exam-file-input"]').setInputFiles({
       name: "consent_check.jpg",
       mimeType: "image/jpeg",
-      buffer: Buffer.from("mock_content")
+      buffer: Buffer.from("mock_content"),
     })
 
-    const submitButton = page.getByRole("button", { name: "Enviar para Análise" })
-    await expect(submitButton).toBeDisabled()
-    await expect(
-      page.getByText("Confirme o consentimento do paciente para habilitar o envio.")
-    ).toBeVisible()
+    await page.getByRole("button", { name: "Enviar para Análise" }).click()
+    await expect(page.getByText("Confirme o consentimento do paciente (passo 2).")).toBeVisible()
 
-    await page.locator("input[type='checkbox']").first().check({ force: true })
-    await expect(submitButton).toBeEnabled()
+    await page.locator("#exam-consent").check()
+    await expect(page.getByText("Confirme o consentimento do paciente (passo 2).")).toBeHidden()
   })
 
   test("should surface the suggested course of action and the image quality verdict", async ({
@@ -109,16 +104,12 @@ test.describe("Exam Analyzer Module", () => {
   })
 
   test("should upload a new exam and wait for processing", async ({ page }) => {
-    const fileChooserPromise = page.waitForEvent("filechooser")
-    await page.locator("label", { hasText: "Selecione um Arquivo" }).click()
-    const fileChooser = await fileChooserPromise
-    await fileChooser.setFiles({
+    await page.locator('[data-testid="exam-file-input"]').setInputFiles({
       name: "mock_uploaded_exam.jpg",
       mimeType: "image/jpeg",
-      buffer: Buffer.from("mock_content")
+      buffer: Buffer.from("mock_content"),
     })
-    await page.locator("input[type='checkbox']").first().check({ force: true })
-    await page.locator("input[type='checkbox']").nth(1).check({ force: true })
+    await page.locator("#exam-consent").check()
     await page.getByRole("button", { name: "Enviar para Análise" }).click()
     const processingStatus = page.getByText("Processando Análise Clínica...")
     await expect(processingStatus).toBeVisible()
@@ -133,12 +124,8 @@ test.describe("Exam Analyzer Module", () => {
   })
 
   test("should delete an analysis from history", async ({ page }) => {
-    const historyItem = page.locator("text=rx_torax.png")
-    await expect(historyItem).toBeVisible()
-    const historyBlock = page.locator("div.group").filter({ hasText: "rx_torax.png" }).first()
-    await historyBlock.hover()
-    const deleteButton = historyBlock.locator("button.text-gray-400").first()
+    const deleteButton = page.getByRole("button", { name: "Excluir análise de rx_torax.png" })
     await deleteButton.click({ force: true })
-    await expect(historyItem).toBeHidden()
+    await expect(page.getByRole("button", { name: "Excluir análise de rx_torax.png" })).toBeHidden()
   })
 })

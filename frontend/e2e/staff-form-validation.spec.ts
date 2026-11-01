@@ -14,10 +14,10 @@ test.describe("Staff Registration Validation", () => {
 
     await page.getByRole("button", { name: "Salvar Cadastro" }).click()
 
-    await expect(page.locator("text=O nome deve ter no mínimo 3 caracteres")).toBeVisible()
-    await expect(page.locator("text=E-mail inválido")).toBeVisible()
-    await expect(page.locator("text=Formato inválido. Ex: CRM-SP 12345")).toBeVisible()
-    await expect(page.locator("text=Selecione um departamento")).toBeVisible()
+    await expect(page.locator("text=Informe o nome completo, com no mínimo 3 caracteres").first()).toBeVisible()
+    await expect(page.locator("text=Informe um e-mail válido, como nome@hospital.com").first()).toBeVisible()
+    await expect(page.locator("text=Formato inválido. Use CRM ou COREN, UF e número. Ex: CRM-SP 12345").first()).toBeVisible()
+    await expect(page.locator("text=Selecione um departamento").first()).toBeVisible()
   })
 
   test("should successfully register a new staff member with valid inputs", async ({ page }) => {
