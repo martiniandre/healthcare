@@ -4,6 +4,20 @@ Bem-vindo ao repositório unificado (**Monorepo**) do ecossistema **Healthcare**
 
 O ecossistema foi projetado desde o primeiro dia para conformidade estrita com as normas **HIPAA/LGPD**, arquitetado para integrar o padrão internacional de prontuário eletrônico **FHIR** e ingestão pesada de exames médicos **DICOM**.
 
+## 🎬 Demonstração
+
+<video src="docs/media/demo-healthcare.mp4" controls width="100%">
+  Seu navegador não suporta vídeo. <a href="docs/media/demo-healthcare.mp4">Baixar a demonstração (MP4)</a>.
+</video>
+
+O vídeo percorre o sistema de ponta a ponta: login, cadastro de paciente, consulta com sinais vitais, laudo, prescrição com alerta de segurança, alergias e diagnósticos, PACS com visualizador DICOM, análise de exame por IA, telemetria UTI, agenda, indicadores, equipes, auditoria, notificações e portal do paciente. Os dados são fictícios e vêm da API mockada do frontend.
+
+Para gerar a gravação novamente, na pasta `frontend`:
+
+```bash
+DEMO_VIDEO=1 npx playwright test e2e/demo/demo-completo.spec.ts --project=chromium --workers=1
+```
+
 ---
 
 ## 🏛️ Visão Geral da Arquitetura
