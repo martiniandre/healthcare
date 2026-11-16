@@ -53,6 +53,6 @@ describe("LanguageSwitcher", () => {
 
     const trigger = screen.getByRole("button", { name: "English" })
     expect(trigger.className).toContain("w-full")
-    expect(trigger.className).toContain("text-[13px]")
+    expect(trigger.className).toContain("text-sm")
   })
 })

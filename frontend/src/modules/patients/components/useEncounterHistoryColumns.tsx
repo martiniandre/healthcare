@@ -24,6 +24,7 @@ export const useEncounterHistoryColumns = ({
   isActionPending,
 }: EncounterHistoryColumnsDependencies): ColumnDef<Encounter>[] => {
   const { t } = useTranslation("patients")
+  const { t: translateStatus } = useTranslation("clinicalStatus")
 
   return useMemo(
     () => [
@@ -36,8 +37,8 @@ export const useEncounterHistoryColumns = ({
         id: "status",
         header: t("details.encountersCard.status"),
         cell: (info) => (
-          <StatusBadge status={resolveClinicalStatus("encounter", info.getValue())} className="uppercase tracking-wider">
-            {info.getValue()}
+          <StatusBadge status={resolveClinicalStatus("encounter", info.getValue())}>
+            {translateStatus(`encounter.${info.getValue()}`, { defaultValue: info.getValue() })}
           </StatusBadge>
         ),
       }),
@@ -92,6 +93,6 @@ export const useEncounterHistoryColumns = ({
         },
       }),
     ] as ColumnDef<Encounter>[],
-    [t, isActionPending, onFinishEncounter, onCancelEncounter, onOpenEncounter]
+    [t, translateStatus, isActionPending, onFinishEncounter, onCancelEncounter, onOpenEncounter]
   )
 }

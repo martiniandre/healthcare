@@ -5,6 +5,7 @@ import { usePatientQuery } from "./queries"
 import { Action, Feature } from "../../shared/auth/AbilityContext"
 import { useAbility } from "../../shared/auth/useAbility"
 import { PatientPageLayout } from "./components/PatientPageLayout"
+import { patientTabListClassName, patientTabTriggerClassName } from "./components/patientTabStyles"
 import { PatientPageSkeleton } from "./components/PatientPageSkeleton"
 import { QueryErrorAlert } from "./components/QueryErrorAlert"
 import { PageContainer } from "../../shared/components/ui/PageContainer"
@@ -78,16 +79,16 @@ export function EncounterDetail() {
 
   const sidebarTabs = (
     <Tabs
-      orientation="vertical"
+      orientation="horizontal"
       value={resolvedActiveTab}
       onValueChange={(tabName) => setActiveTab(tabName as EncounterTab)}
       className="w-full"
     >
-      <TabsList variant="line" className="w-full gap-1 p-0">
+      <TabsList variant="line" className={patientTabListClassName}>
         {canReadObservations && (
           <TabsTrigger
             value={EncounterTab.Vitals}
-            className="h-auto flex-none justify-start gap-3 px-4 py-3 text-xs font-extrabold text-muted-foreground data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-none"
+            className={patientTabTriggerClassName}
           >
             <Heart className="w-4 h-4 shrink-0" />
             {t("details.vitals")}
@@ -97,7 +98,7 @@ export function EncounterDetail() {
         {canReadReports && (
           <TabsTrigger
             value={EncounterTab.Reports}
-            className="h-auto flex-none justify-start gap-3 px-4 py-3 text-xs font-extrabold text-muted-foreground data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-none"
+            className={patientTabTriggerClassName}
           >
             <FileText className="w-4 h-4 shrink-0" />
             {t("details.reports")}
@@ -107,7 +108,7 @@ export function EncounterDetail() {
         {canReadMedications && (
           <TabsTrigger
             value={EncounterTab.Medications}
-            className="h-auto flex-none justify-start gap-3 px-4 py-3 text-xs font-extrabold text-muted-foreground data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-none"
+            className={patientTabTriggerClassName}
           >
             <Pill className="w-4 h-4 shrink-0" />
             {t("details.medications")}
@@ -123,7 +124,7 @@ export function EncounterDetail() {
       onBack={() => navigate(`/patients/${id}`)}
       sidebarTop={
         <>
-          <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest px-3 text-left">
+          <span className="sr-only">
             {t("details.clinicalResources")}
           </span>
           {sidebarTabs}

@@ -2,7 +2,6 @@ import { useState } from "react"
 import { useDebounce } from "../../shared/hooks/useDebounce"
 import { useSearchParams } from "react-router-dom"
 import { PatientsHeader } from "./components/PatientsHeader"
-import { PatientsMetricsGrid } from "./components/PatientsMetricsGrid"
 import { PatientsFilters } from "./components/PatientsFilters"
 import { PatientsLoadingState } from "./components/PatientsLoadingState"
 import { PatientsEmptyState } from "./components/PatientsEmptyState"
@@ -66,10 +65,8 @@ export const Patients = () => {
   }
 
   return (
-    <PageContainer className="gap-4 md:gap-5">
+    <PageContainer>
       <PatientsHeader onNewPatient={() => setIsModalOpen(true)} />
-      
-      <PatientsMetricsGrid totalPatients={totalPatientsCount} />
 
       <PatientsFilters
         searchTerm={searchTerm}

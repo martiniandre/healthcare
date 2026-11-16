@@ -4,9 +4,12 @@ import dayGridPlugin from "@fullcalendar/daygrid"
 import timeGridPlugin from "@fullcalendar/timegrid"
 import interactionPlugin from "@fullcalendar/interaction"
 import multiMonthPlugin from "@fullcalendar/multimonth"
-import type { EventContentArg, EventDropArg, EventClickArg, DateSelectArg } from "@fullcalendar/core"
+import type { EventContentArg, EventDropArg, EventClickArg, DateSelectArg, LocaleInput } from "@fullcalendar/core"
+import portugueseCalendarLocale from "@fullcalendar/core/locales/pt-br"
+import spanishCalendarLocale from "@fullcalendar/core/locales/es"
+import { useLocale } from "../../../shared/hooks/useLocale"
 import { ScheduleEventChip } from "./ScheduleEventChip"
-import type { CalendarEventShape } from "../schedule_calendar_helpers"
+import { resolveVisibleSlotRange, type CalendarEventShape } from "../schedule_calendar_helpers"
 import type { Appointment } from "../types"
 
 export type ScheduleViewMode = "week" | "day" | "month" | "year"
@@ -34,8 +37,14 @@ const toIsoDate = (dateValue: Date): string => {
   return `${year}-${month}-${day}`
 }
 
-const headerAccentGradient =
-  "linear-gradient(90deg, #2563eb 0%, #3b82f6 55%, #0d9488 100%)"
+const CALENDAR_LOCALES: LocaleInput[] = [portugueseCalendarLocale, spanishCalendarLocale]
+
+const resolveCalendarLocale = (appLocale: string): string => {
+  const normalizedLocale = appLocale.toLowerCase()
+  if (normalizedLocale.startsWith("pt")) return "pt-br"
+  if (normalizedLocale.startsWith("es")) return "es"
+  return "en"
+}
 
 const isAlignedToHalfHour = (dateValue: Date): boolean => {
   return dateValue.getMinutes() === 0 || dateValue.getMinutes() === 30
@@ -50,6 +59,8 @@ export const ScheduleCalendar = ({
   onEventClick,
 }: ScheduleCalendarProps) => {
   const calendarRef = useRef<FullCalendar>(null)
+  const calendarLocale = resolveCalendarLocale(useLocale())
+  const visibleSlotRange = useMemo(() => resolveVisibleSlotRange(events), [events])
   const latestEventsRef = useRef(events)
 
   useEffect(() => {
@@ -105,15 +116,17 @@ export const ScheduleCalendar = ({
   }
 
   return (
-    <div className="schedule-calendar-container relative overflow-hidden rounded-2xl border border-border/70 bg-white dark:bg-card dark:border-border/90 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_18px_40px_-26px_rgba(15,23,42,0.38)]">
-      <div className="h-1.5 w-full" style={{ background: headerAccentGradient }} />
+    <div className="schedule-calendar-container relative overflow-hidden rounded-lg border border-border bg-card shadow-xs">
       <div className="p-3 sm:p-5">
         <FullCalendar
           ref={calendarRef}
           plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin, multiMonthPlugin]}
           initialView={VIEW_TYPE_BY_MODE[viewMode]}
           key={viewMode}
-          locale="pt-br"
+          locales={CALENDAR_LOCALES}
+          locale={calendarLocale}
+          slotMinTime={visibleSlotRange.slotMinTime}
+          slotMaxTime={visibleSlotRange.slotMaxTime}
           firstDay={1}
           height="auto"
           headerToolbar={{ left: "prev,next today", center: "title", right: "" }}

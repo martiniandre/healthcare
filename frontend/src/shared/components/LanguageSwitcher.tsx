@@ -44,19 +44,20 @@ export const LanguageSwitcher = ({ sidebarLayout = false }: LanguageSwitcherProp
           aria-label={activeLanguage.label}
           className={cn(
             "group select-none",
-            sidebarLayout ? "w-full justify-start gap-3 px-3 py-2 text-[13px] font-medium text-muted-foreground" : "text-xs font-semibold"
+            sidebarLayout
+              ? "h-auto w-full justify-start gap-3 rounded-md px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-foreground md:size-11 md:justify-center md:p-0"
+              : "text-xs font-semibold"
           )}
         >
           {sidebarLayout ? (
             <>
-              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
-                <Globe className="h-4 w-4" />
-              </span>
-              <span className="flex items-center gap-2 truncate">
+              <Globe className="size-5 md:hidden" />
+              <span className="hidden text-lg leading-none md:inline" aria-hidden="true">{activeLanguage.flag}</span>
+              <span className="flex items-center gap-2 truncate md:sr-only">
                 <span className="text-[14px] leading-none shrink-0">{activeLanguage.flag}</span>
                 <span>{activeLanguage.label}</span>
               </span>
-              <ChevronDown className="ml-auto h-3 w-3 transition-transform duration-200 group-data-[state=open]:rotate-180" />
+              <ChevronDown className="ml-auto h-3 w-3 transition-transform duration-200 group-data-[state=open]:rotate-180 md:hidden" />
             </>
           ) : (
             <>
@@ -68,7 +69,7 @@ export const LanguageSwitcher = ({ sidebarLayout = false }: LanguageSwitcherProp
           )}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align={sidebarLayout ? "start" : "end"} className="w-44">
+      <DropdownMenuContent align={sidebarLayout ? "start" : "end"} side={sidebarLayout ? "right" : "bottom"} className="w-44">
         <DropdownMenuRadioGroup value={activeLanguage.code} onValueChange={handleLanguageChange}>
           {languageOptions.map((option) => (
             <DropdownMenuRadioItem key={option.code} value={option.code} className="gap-2 text-xs font-medium">

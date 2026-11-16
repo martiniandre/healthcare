@@ -8,6 +8,9 @@ import { Spinner } from "@/shared/components/ui/spinner"
 import { Skeleton } from "@/shared/components/ui/skeleton"
 import { Alert, AlertDescription, AlertTitle } from "@/shared/components/ui/alert"
 import { EmptyState } from "@/shared/components/ui/EmptyState"
+import { PageContainer, PageHeader } from "@/shared/components/ui/PageContainer"
+import { STAFF_ROLE_LABEL_KEYS } from "../staff/staff_roles"
+import type { StaffRole } from "@/shared/types"
 import { AppointmentModal } from "./components/AppointmentModal"
 import { CancelAppointmentModal } from "./components/CancelAppointmentModal"
 import { AppointmentDetailsModal } from "./components/AppointmentDetailsModal"
@@ -54,6 +57,8 @@ const toLocalTimeString = (dateValue: Date): string => {
 
 export const Schedule = () => {
   const { t } = useTranslation("schedule")
+  const { t: translateSidebar } = useTranslation("sidebar")
+  const { t: translateStaff } = useTranslation("staff")
   const {
     data: staffMembers = [],
     isLoading: isStaffLoading,
@@ -260,34 +265,37 @@ export const Schedule = () => {
   const upcomingUnavailabilityWindows = unavailabilityWindows
 
   return (
-    <div className="flex-1 p-4 sm:p-6 md:p-8 flex flex-col gap-4 md:gap-6 max-w-7xl mx-auto w-full">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-bold text-foreground">{t("title")}</h1>
-          <p className="text-sm text-muted-foreground">{t("subtitle")}</p>
-        </div>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            onClick={() => setIsCreateUnavailabilityOpen(true)}
-            disabled={!focusedStaffId}
-          >
-            <CalendarOff />
-            {t("unavailability.createButton")}
-          </Button>
-          <Button onClick={handleNewAppointmentButton} disabled={!focusedStaffId}>
-            <CalendarPlus />
-            {t("newAppointment")}
-          </Button>
-        </div>
-      </div>
+    <PageContainer>
+      <PageHeader
+        eyebrow={translateSidebar("topics.clinical")}
+        title={t("title")}
+        description={t("subtitle")}
+        actions={
+          <>
+            <Button
+              variant="outline"
+              size="lg"
+              onClick={() => setIsCreateUnavailabilityOpen(true)}
+              disabled={!focusedStaffId}
+            >
+              <CalendarOff />
+              {t("unavailability.createButton")}
+            </Button>
+            <Button size="lg" onClick={handleNewAppointmentButton} disabled={!focusedStaffId}>
+              <CalendarPlus />
+              {t("newAppointment")}
+            </Button>
+          </>
+        }
+      />
 
-      <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-4 items-start">
+      <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-[272px_1fr]">
         <StaffOverlaySidebar
+          viewControl={<ScheduleViewToggle value={viewMode} onChange={setViewMode} />}
           staffMembers={staffMemberOptions.map((staffMember) => ({
             id: staffMember.id,
             fullName: staffMember.fullName,
-            role: staffMember.role,
+            role: translateStaff(STAFF_ROLE_LABEL_KEYS[staffMember.role as StaffRole] ?? staffMember.role, { defaultValue: staffMember.role }),
           }))}
           selectedStaffIds={effectiveSelectedStaffIds}
           onToggleStaff={handleToggleStaff}
@@ -296,10 +304,7 @@ export const Schedule = () => {
           onRetry={() => refetchStaff()}
         />
 
-        <div className="flex flex-col gap-4 min-w-0">
-          <div className="flex justify-end">
-            <ScheduleViewToggle value={viewMode} onChange={setViewMode} />
-          </div>
+        <div className="flex min-w-0 flex-col gap-5">
           {rangeQueriesFailed && (
             <Alert variant="destructive">
               <TriangleAlert aria-hidden="true" />
@@ -328,7 +333,7 @@ export const Schedule = () => {
               onEventClick={handleEventClick}
             />
             {rangeQueriesLoading && effectiveSelectedStaffIds.length > 0 && (
-              <div className="absolute inset-0 z-10 flex items-center justify-center rounded-2xl bg-background/40 backdrop-blur-sm">
+              <div className="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-background/40 backdrop-blur-sm">
                 <Spinner className="size-7 text-primary" />
               </div>
             )}
@@ -336,11 +341,11 @@ export const Schedule = () => {
 
           {focusedStaffId && (
             <div className="flex flex-col gap-3">
-              <h2 className="text-sm font-bold text-foreground">{t("unavailability.blockedPeriodsTitle")}</h2>
+              <h2 className="font-display text-xl font-semibold text-foreground">{t("unavailability.blockedPeriodsTitle")}</h2>
               {isUnavailabilityLoading ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4" role="status" aria-label={t("loading.unavailability")}>
                   {Array.from({ length: 3 }).map((_, skeletonIndex) => (
-                    <Skeleton key={skeletonIndex} className="h-28 w-full rounded-xl" />
+                    <Skeleton key={skeletonIndex} className="h-28 w-full rounded-lg" />
                   ))}
                 </div>
               ) : isUnavailabilityError ? (
@@ -428,6 +433,6 @@ export const Schedule = () => {
         }}
         isPending={deleteUnavailabilityMutation.isPending}
       />
-    </div>
+    </PageContainer>
   )
 }

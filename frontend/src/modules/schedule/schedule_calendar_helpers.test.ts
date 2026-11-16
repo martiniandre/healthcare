@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { activeAppointmentsOnly, appointmentsToCalendarEvents, staffColorForIndex } from "./schedule_calendar_helpers"
+import { activeAppointmentsOnly, appointmentsToCalendarEvents, resolveVisibleSlotRange, staffColorForIndex } from "./schedule_calendar_helpers"
 import type { Appointment } from "./types"
 
 const buildAppointment = (overrides: Partial<Appointment> = {}): Appointment => ({
@@ -66,5 +66,34 @@ describe("staffColorForIndex", () => {
     expect(staffColorForIndex(0)).toBe(staffColorForIndex(0))
     expect(staffColorForIndex(0)).not.toBe(staffColorForIndex(1))
     expect(staffColorForIndex(8)).toBe(staffColorForIndex(0))
+  })
+})
+
+describe("resolveVisibleSlotRange", () => {
+  const localIso = (hour: number, minute = 0, dayOffset = 0): string =>
+    new Date(2026, 7, 20 + dayOffset, hour, minute).toISOString()
+
+  it("should use the business-day window when there are no events", () => {
+    expect(resolveVisibleSlotRange([])).toEqual({ slotMinTime: "06:00:00", slotMaxTime: "22:00:00" })
+  })
+
+  it("should keep the default window when events fit inside it", () => {
+    expect(resolveVisibleSlotRange([{ start: localIso(9), end: localIso(9, 30) }])).toEqual({
+      slotMinTime: "06:00:00",
+      slotMaxTime: "22:00:00",
+    })
+  })
+
+  it("should expand the window so early and late appointments stay visible", () => {
+    const range = resolveVisibleSlotRange([
+      { start: localIso(4, 30), end: localIso(5) },
+      { start: localIso(22, 15), end: localIso(22, 45) },
+    ])
+    expect(range).toEqual({ slotMinTime: "04:00:00", slotMaxTime: "23:00:00" })
+  })
+
+  it("should extend to midnight when an event crosses into the next day", () => {
+    const range = resolveVisibleSlotRange([{ start: localIso(23, 30), end: localIso(0, 30, 1) }])
+    expect(range.slotMaxTime).toBe("24:00:00")
   })
 })

@@ -78,6 +78,7 @@
   "details": {
     "back": "Voltar",
     "cpf": "CPF",
+    "fhirId": "ID FHIR",
     "birth": "Nascimento",
     "loadingDetails": "Carregando ficha clínica...",
     "loadError": "Não foi possível carregar a ficha clínica. Verifique se o paciente existe ou tente novamente.",

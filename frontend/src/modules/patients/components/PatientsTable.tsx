@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
-import { User, ArrowRight } from "lucide-react"
+import { ArrowRight, ArrowDown, ArrowUp } from "lucide-react"
 import {
   Table,
   TableHeader,
@@ -13,6 +13,7 @@ import { Button } from "../../../shared/components/ui/button"
 import { Card } from "../../../shared/components/ui/card"
 import { Skeleton } from "../../../shared/components/ui/skeleton"
 import { formatDate } from "../../../shared/utils/dates"
+import { cn } from "../../../shared/utils/cn"
 import type { Patient } from "../queries"
 
 export type SortDirection = "asc" | "desc"
@@ -30,6 +31,25 @@ interface PatientsTableProps {
   onPageChange: (page: number) => void
 }
 
+const AVATAR_TONES = [
+  "bg-sage-100 text-sage-800 dark:bg-primary/15 dark:text-primary",
+  "bg-clay-100 text-clay-800 dark:bg-secondary/15 dark:text-secondary",
+  "bg-sand-200 text-gray-700 dark:bg-muted dark:text-foreground",
+]
+
+const buildInitials = (fullName: string): string => {
+  const nameParts = fullName.trim().split(/\s+/).filter(Boolean)
+  if (nameParts.length === 0) return "?"
+  const firstInitial = nameParts[0].charAt(0)
+  const lastInitial = nameParts.length > 1 ? nameParts[nameParts.length - 1].charAt(0) : ""
+  return `${firstInitial}${lastInitial}`.toUpperCase()
+}
+
+const pickAvatarTone = (seed: string): string => {
+  const characterSum = Array.from(seed).reduce((total, character) => total + character.charCodeAt(0), 0)
+  return AVATAR_TONES[characterSum % AVATAR_TONES.length]
+}
+
 export const PatientsTable = ({
   isLoading,
   patients,
@@ -44,117 +64,103 @@ export const PatientsTable = ({
   const { t } = useTranslation("patients")
   const navigate = useNavigate()
 
-  const sortIndicator = (field: SortField) => {
-    if (sortField !== field) return ""
-    return sortDirection === "asc" ? " ↑" : " ↓"
+  const renderSortableHead = (field: SortField, label: string, className?: string) => {
+    const isSorted = sortField === field
+    const SortIcon = sortDirection === "asc" ? ArrowUp : ArrowDown
+    return (
+      <TableHead
+        className={cn("cursor-pointer select-none transition-colors hover:text-foreground", isSorted && "text-foreground", className)}
+        onClick={() => onSort(field)}
+        aria-sort={isSorted ? (sortDirection === "asc" ? "ascending" : "descending") : undefined}
+      >
+        <span className="inline-flex items-center gap-1">
+          {label}
+          {isSorted && <SortIcon className="size-3.5" aria-hidden="true" />}
+        </span>
+      </TableHead>
+    )
   }
 
   return (
     <Card className="gap-0 overflow-hidden py-0">
-      <div className="overflow-x-auto w-full">
-        <Table className="min-w-[650px] md:min-w-0">
-          <TableHeader>
-            <TableRow>
-              <TableHead
-                className="cursor-pointer hover:text-gray-700 transition-colors select-none"
-                onClick={() => onSort("full_name")}
-              >
-                {t("table.patient")}{sortIndicator("full_name")}
-              </TableHead>
-              <TableHead
-                className="cursor-pointer hover:text-gray-700 transition-colors select-none"
-                onClick={() => onSort("document_id")}
-              >
-                {t("table.document")}{sortIndicator("document_id")}
-              </TableHead>
-              <TableHead
-                className="cursor-pointer hover:text-gray-700 transition-colors select-none"
-                onClick={() => onSort("birth_date")}
-              >
-                {t("table.birthDate")}{sortIndicator("birth_date")}
-              </TableHead>
-              <TableHead>
-                {t("table.phone")}
-              </TableHead>
-              <TableHead className="text-right">
-                {t("table.action")}
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {isLoading ? (
-              Array.from({ length: 5 }).map((_, index) => (
-                <TableRow key={`skeleton-${index}`}>
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <Skeleton className="w-8 h-8 rounded-lg" />
-                      <div className="flex flex-col gap-1.5 min-w-0">
-                        <Skeleton className="h-4 w-32" />
-                        <Skeleton className="h-3 w-48 mt-0.5" />
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell><Skeleton className="h-4 w-28" /></TableCell>
-                  <TableCell><Skeleton className="h-4 w-20" /></TableCell>
-                  <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                  <TableCell className="text-right">
-                    <Skeleton className="h-6 w-24 ml-auto" />
-                  </TableCell>
-                </TableRow>
-              ))
-            ) : (
-              patients.map((patient) => (
-                <TableRow
-                  key={patient.patient_id}
-                  className="group"
-                >
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-primary/6 flex items-center justify-center shrink-0 group-hover:bg-primary/10 transition-colors">
-                        <User className="w-4 h-4 text-primary/60 group-hover:text-primary transition-colors" />
-                      </div>
-                      <div className="min-w-0">
-                        <span className="text-[13px] font-semibold text-gray-800 block truncate group-hover:text-primary transition-colors">
-                          {patient.full_name}
-                        </span>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <span className="text-xs font-mono text-gray-600">
-                      {patient.document_id}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    <span className="text-xs text-gray-500">
-                      {formatDate(patient.birth_date)}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    <span className="text-xs text-gray-500">
-                      {patient.phone_number}
-                    </span>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => navigate(`/patients/${patient.fhir_resource_id}`)}
-                      className="text-primary hover:text-primary"
+      <Table>
+        <TableHeader>
+          <TableRow className="hover:bg-transparent">
+            {renderSortableHead("full_name", t("table.patient"), "pl-6")}
+            {renderSortableHead("document_id", t("table.document"), "hidden sm:table-cell")}
+            {renderSortableHead("birth_date", t("table.birthDate"), "hidden md:table-cell")}
+            <TableHead className="hidden lg:table-cell">{t("table.phone")}</TableHead>
+            <TableHead className="pr-6 text-right">
+              <span className="sr-only sm:not-sr-only">{t("table.action")}</span>
+            </TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {isLoading ? (
+            Array.from({ length: 5 }).map((_, index) => (
+              <TableRow key={`skeleton-${index}`}>
+                <TableCell className="pl-6">
+                  <div className="flex items-center gap-3">
+                    <Skeleton className="size-9 rounded-full" />
+                    <Skeleton className="h-4 w-36" />
+                  </div>
+                </TableCell>
+                <TableCell className="hidden sm:table-cell"><Skeleton className="h-4 w-28" /></TableCell>
+                <TableCell className="hidden md:table-cell"><Skeleton className="h-4 w-20" /></TableCell>
+                <TableCell className="hidden lg:table-cell"><Skeleton className="h-4 w-24" /></TableCell>
+                <TableCell className="pr-6 text-right">
+                  <Skeleton className="ml-auto h-8 w-28" />
+                </TableCell>
+              </TableRow>
+            ))
+          ) : (
+            patients.map((patient) => (
+              <TableRow key={patient.patient_id} className="group">
+                <TableCell className="pl-6">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <span
+                      aria-hidden="true"
+                      className={cn(
+                        "flex size-9 shrink-0 items-center justify-center rounded-full text-xs font-semibold",
+                        pickAvatarTone(patient.full_name)
+                      )}
                     >
-                      {t("table.medicalRecord")}
-                      <ArrowRight className="transition-transform group-hover:translate-x-0.5" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
+                      {buildInitials(patient.full_name)}
+                    </span>
+                    <span className="block whitespace-normal break-words text-sm font-semibold text-foreground">
+                      {patient.full_name}
+                    </span>
+                  </div>
+                </TableCell>
+                <TableCell className="hidden sm:table-cell">
+                  <span className="font-mono text-xs tabular-nums text-muted-foreground">{patient.document_id}</span>
+                </TableCell>
+                <TableCell className="hidden md:table-cell">
+                  <span className="text-sm tabular-nums text-muted-foreground">{formatDate(patient.birth_date)}</span>
+                </TableCell>
+                <TableCell className="hidden lg:table-cell">
+                  <span className="text-sm tabular-nums text-muted-foreground">{patient.phone_number}</span>
+                </TableCell>
+                <TableCell className="pr-6 text-right">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => navigate(`/patients/${patient.fhir_resource_id}`)}
+                    aria-label={t("table.medicalRecord")}
+                    className="group-hover:border-primary/40 group-hover:bg-primary group-hover:text-primary-foreground"
+                  >
+                    <span className="hidden sm:inline">{t("table.medicalRecord")}</span>
+                    <ArrowRight className="transition-transform group-hover:translate-x-0.5" />
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))
+          )}
+        </TableBody>
+      </Table>
       {totalPages > 1 && (
-        <div className="flex items-center justify-between border-t border-border px-6 py-4 bg-muted/50">
-          <span className="text-xs text-muted-foreground font-semibold">
+        <div className="flex flex-col gap-3 border-t border-border/60 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
+          <span className="text-xs font-medium tabular-nums text-muted-foreground">
             {t("pagination.pageInfo", { currentPage, totalPages, total: totalPatients })}
           </span>
           <div className="flex gap-2">

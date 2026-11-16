@@ -83,7 +83,7 @@ test.describe("Patient Record and Clinical File Module", () => {
     await page.goto("/patients/fhir-pat-1")
     const newEncounterRow = page.locator("tr", { hasText: "Checkup Anual Geral" })
     await expect(newEncounterRow).toBeVisible()
-    await expect(newEncounterRow).toContainText("in-progress")
+    await expect(newEncounterRow).toContainText("Em andamento")
   })
 
   test("should finish an in-progress encounter", async ({ page }) => {
@@ -98,9 +98,9 @@ test.describe("Patient Record and Clinical File Module", () => {
 
     await page.goto("/patients/fhir-pat-1")
     const newEncounterRow = page.locator("tr", { hasText: "Checkup Anual Geral" })
-    await expect(newEncounterRow).toContainText("in-progress")
+    await expect(newEncounterRow).toContainText("Em andamento")
     await newEncounterRow.getByRole("button", { name: "Finalizar" }).click()
-    await expect(newEncounterRow).toContainText("finished")
+    await expect(newEncounterRow).toContainText("Finalizado")
   })
 })
 

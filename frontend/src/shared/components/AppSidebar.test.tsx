@@ -4,6 +4,7 @@ import { AppSidebar } from "./AppSidebar"
 import { useAuthStore } from "../store/auth_store"
 import { useLayoutStore } from "../store/layout_store"
 import { TestAbilityProvider } from "../../test/TestAbilityProvider"
+import { TooltipProvider } from "@/shared/components/ui/tooltip"
 import type { RoleFixtureName } from "../../test/backend_matrix_role_fixtures"
 
 const mockTranslateFunction = (key: string) => key
@@ -42,7 +43,9 @@ vi.mock("../services/api", () => ({
 const renderSidebar = (role: RoleFixtureName = "DOCTOR") =>
   render(
     <TestAbilityProvider role={role}>
-      <AppSidebar />
+      <TooltipProvider>
+        <AppSidebar />
+      </TooltipProvider>
     </TestAbilityProvider>,
   )
 

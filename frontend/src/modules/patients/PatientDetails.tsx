@@ -10,6 +10,7 @@ import { EncounterSelectionDialog } from "./components/EncounterSelectionDialog"
 import { ExamAnalyzerModal } from "./components/modals/ExamAnalyzerModal"
 import { Can } from "../../shared/auth/AbilityContext"
 import { PatientPageLayout } from "./components/PatientPageLayout"
+import { patientTabListClassName, patientTabTriggerClassName } from "./components/patientTabStyles"
 import { PatientPageSkeleton } from "./components/PatientPageSkeleton"
 import { QueryErrorAlert } from "./components/QueryErrorAlert"
 import { PageContainer } from "../../shared/components/ui/PageContainer"
@@ -106,19 +107,19 @@ export const PatientDetails = () => {
 
   const sidebarTabs = (
     <Tabs
-      orientation="vertical"
+      orientation="horizontal"
       value={resolvedActiveTab}
       onValueChange={(tabName) => setActiveTab(tabName as PatientTab)}
       className="w-full"
     >
-      <TabsList variant="line" className="w-full gap-1 p-0">
+      <TabsList variant="line" className={patientTabListClassName}>
         <TabsTrigger
           value={PatientTab.Encounters}
-          className="h-auto flex-none justify-start gap-3 px-4 py-3 text-xs font-extrabold text-muted-foreground data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-none"
+          className={patientTabTriggerClassName}
         >
           <History className="w-4 h-4 shrink-0" />
           {t("details.encounters")}
-          <Badge variant="secondary" className="ml-auto">
+          <Badge variant="secondary" className="rounded bg-muted px-1.5 text-[11px] tabular-nums text-muted-foreground group-data-[state=active]/trigger:bg-sage-100 group-data-[state=active]/trigger:text-sage-800">
             {encounters.length}
           </Badge>
         </TabsTrigger>
@@ -126,7 +127,7 @@ export const PatientDetails = () => {
         {canReadTimeline && (
           <TabsTrigger
             value={PatientTab.Timeline}
-            className="h-auto flex-none justify-start gap-3 px-4 py-3 text-xs font-extrabold text-muted-foreground data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-none"
+            className={patientTabTriggerClassName}
           >
             <GalleryVerticalEnd className="w-4 h-4 shrink-0" />
             {t("details.timeline")}
@@ -136,7 +137,7 @@ export const PatientDetails = () => {
         {canReadConditions && (
           <TabsTrigger
             value={PatientTab.Conditions}
-            className="h-auto flex-none justify-start gap-3 px-4 py-3 text-xs font-extrabold text-muted-foreground data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-none"
+            className={patientTabTriggerClassName}
           >
             <Activity className="w-4 h-4 shrink-0" />
             {t("details.conditions")}
@@ -146,7 +147,7 @@ export const PatientDetails = () => {
         {canReadAllergies && (
           <TabsTrigger
             value={PatientTab.Allergies}
-            className="h-auto flex-none justify-start gap-3 px-4 py-3 text-xs font-extrabold text-muted-foreground data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-none"
+            className={patientTabTriggerClassName}
           >
             <ShieldAlert className="w-4 h-4 shrink-0" />
             {t("details.allergies")}
@@ -156,11 +157,11 @@ export const PatientDetails = () => {
         {canReadStudies && (
           <TabsTrigger
             value={PatientTab.Pacs}
-            className="h-auto flex-none justify-start gap-3 px-4 py-3 text-xs font-extrabold text-muted-foreground data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-none"
+            className={patientTabTriggerClassName}
           >
             <ImageIcon className="w-4 h-4 shrink-0" />
             {t("details.pacs")}
-            <Badge variant="secondary" className="ml-auto">
+            <Badge variant="secondary" className="rounded bg-muted px-1.5 text-[11px] tabular-nums text-muted-foreground group-data-[state=active]/trigger:bg-sage-100 group-data-[state=active]/trigger:text-sage-800">
               {studies.length}
             </Badge>
           </TabsTrigger>
@@ -176,7 +177,7 @@ export const PatientDetails = () => {
         onBack={() => navigate("/")}
         sidebarTop={
           <>
-            <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest px-3 text-left">
+            <span className="sr-only">
               {t("details.clinicalResources")}
             </span>
             {sidebarTabs}
@@ -186,9 +187,10 @@ export const PatientDetails = () => {
           <Can I={Action.Create} a={Feature.ExamAnalysis}>
             <Button
               onClick={() => setIsExamModalOpen(true)}
-              className="gap-2 shrink-0 self-start xl:self-auto bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20 hover:border-primary/40 font-bold"
+              variant="secondary"
+              className="w-full sm:w-auto"
             >
-              <Sparkles className="w-4 h-4 text-primary" />
+              <Sparkles />
               {t("analyzeExamWithAi")}
             </Button>
           </Can>

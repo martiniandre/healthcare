@@ -78,6 +78,7 @@
   "details": {
     "back": "Back",
     "cpf": "Document / ID",
+    "fhirId": "FHIR ID",
     "birth": "Birth Date",
     "loadingDetails": "Loading clinical records...",
     "loadError": "Unable to load the clinical record. Check that the patient exists or try again.",

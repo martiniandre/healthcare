@@ -78,6 +78,7 @@
   "details": {
     "back": "Volver",
     "cpf": "Documento / ID",
+    "fhirId": "ID FHIR",
     "birth": "Fecha Nac.",
     "loadingDetails": "Cargando historia clínica...",
     "loadError": "No se pudo cargar la historia clínica. Verifique que el paciente exista o intente nuevamente.",

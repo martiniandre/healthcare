@@ -83,7 +83,7 @@ export function ClinicalTable<T>({
                   {headerGroup.headers.map((header) => (
                     <TableHead
                       key={header.id}
-                      className={cn("sticky top-0 z-10 bg-card px-4 text-xs font-black uppercase tracking-wider text-muted-foreground", header.column.getCanSort() && "cursor-pointer select-none")}
+                      className={cn("sticky top-0 z-10 bg-card px-4", header.column.getCanSort() && "cursor-pointer select-none hover:text-foreground")}
                       onClick={header.column.getToggleSortingHandler()}
                       aria-sort={header.column.getIsSorted() === "asc" ? "ascending" : header.column.getIsSorted() === "desc" ? "descending" : undefined}
                     >

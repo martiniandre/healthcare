@@ -35,7 +35,7 @@ export const PatientAlertGroup = ({
 
   return (
     <div data-testid={testId} className="flex flex-wrap items-center gap-1.5">
-      <span className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">{label}</span>
+      <span className="mr-1 text-xs font-semibold text-muted-foreground">{label}</span>
       {isLoading ? (
         <Skeleton data-testid={`${testId}-loading`} className="h-5 w-24" />
       ) : isError ? (
