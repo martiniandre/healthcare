@@ -1,13 +1,13 @@
 package fhir
 
 type ImagingStudyResource struct {
-	ResourceType string         `json:"resourceType"`
-	ID           string         `json:"id,omitempty"`
-	Status       string         `json:"status"`
-	Subject      Reference      `json:"subject"`
-	Started      string         `json:"started,omitempty"`
-	Description  string         `json:"description,omitempty"`
-	Series       []Series       `json:"series,omitempty"`
+	ResourceType string    `json:"resourceType"`
+	ID           string    `json:"id,omitempty"`
+	Status       string    `json:"status"`
+	Subject      Reference `json:"subject"`
+	Started      string    `json:"started,omitempty"`
+	Description  string    `json:"description,omitempty"`
+	Series       []Series  `json:"series,omitempty"`
 }
 
 type Series struct {

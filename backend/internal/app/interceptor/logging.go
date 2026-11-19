@@ -6,8 +6,8 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/healthcare/backend/internal/shared/ctxkeys"
 	"github.com/google/uuid"
+	"github.com/healthcare/backend/internal/shared/ctxkeys"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"

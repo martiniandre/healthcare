@@ -10,7 +10,7 @@ type MedicationRequestResource struct {
 	MedicationCodeableConcept CodeableConcept     `json:"medicationCodeableConcept"`
 	Subject                   Reference           `json:"subject"`
 	Encounter                 *Reference          `json:"encounter,omitempty"`
-	Requester                 Reference          `json:"requester,omitempty"`
+	Requester                 Reference           `json:"requester,omitempty"`
 	AuthoredOn                string              `json:"authoredOn"`
 	DosageInstruction         []DosageInstruction `json:"dosageInstruction"`
 }
@@ -30,7 +30,7 @@ func NewMedicationRequestResource(patientFHIRID, encounterFHIRID, practitionerFH
 			},
 			Text: medicationName,
 		},
-		Subject:   Reference{Reference: "Patient/" + patientFHIRID},
+		Subject:    Reference{Reference: "Patient/" + patientFHIRID},
 		AuthoredOn: time.Now().Format(time.RFC3339),
 		DosageInstruction: []DosageInstruction{
 			{Text: dosageInstructions},

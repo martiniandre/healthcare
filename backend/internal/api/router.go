@@ -26,7 +26,8 @@ func NewRouter(secureCookies bool, swaggerEnabled bool, frontendURL string, trus
 		registerer.RegisterRoutes(httpServeMux)
 	}
 
-	handlerPipeline := middleware.CORS(secureCookies, frontendURL)(httpServeMux)
+	handlerPipeline := middleware.BodyLimit(middleware.DefaultMaxJSONBodyBytes)(httpServeMux)
+	handlerPipeline = middleware.CORS(secureCookies, frontendURL)(handlerPipeline)
 	handlerPipeline = middleware.RateLimit(trustedProxies, rateLimiter)(handlerPipeline)
 	handlerPipeline = middleware.APIPrefixRewrite(handlerPipeline)
 	handlerPipeline = middleware.Recovery(handlerPipeline)

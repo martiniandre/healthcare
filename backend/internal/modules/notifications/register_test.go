@@ -77,3 +77,25 @@ func TestSubscribeByRoleHandler_PersistsReportReadyNotificationForPatients(testi
 	assert.Equal(testingInstance, "report-456", mockRepository.createdNotification.ResourceID)
 	assert.Equal(testingInstance, []uuid.UUID{patientID}, mockRepository.createdRecipients)
 }
+
+func TestNotificationContentFromEvent_CarriesPatientIDForDeepLinks(testingInstance *testing.T) {
+	content := notificationContentFromEvent(eventbus.Event{
+		Name: "report.ready",
+		Data: map[string]any{
+			"title":      "Laudo Disponível",
+			"patient_id": "fhir-pat-1",
+		},
+	})
+
+	assert.Equal(testingInstance, "fhir-pat-1", content.Params["patient_id"])
+}
+
+func TestNotificationContentFromEvent_OmitsEmptyPatientID(testingInstance *testing.T) {
+	content := notificationContentFromEvent(eventbus.Event{
+		Name: "system.notification",
+		Data: map[string]any{"title": "Aviso"},
+	})
+
+	_, hasPatientID := content.Params["patient_id"]
+	assert.False(testingInstance, hasPatientID)
+}

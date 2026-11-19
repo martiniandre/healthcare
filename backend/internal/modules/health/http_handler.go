@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"
@@ -13,6 +14,8 @@ type HTTPHandler struct {
 	databaseConnectionPool *pgxpool.Pool
 	cacheConnectionClient  *redis.Client
 }
+
+const healthCheckTimeout = 2 * time.Second
 
 func NewHTTPHandler(databaseConnectionPool *pgxpool.Pool, cacheConnectionClient *redis.Client) *HTTPHandler {
 	return &HTTPHandler{
@@ -32,7 +35,7 @@ type healthCheckResult struct {
 }
 
 type healthCheckResponse struct {
-	Status string             `json:"status"`
+	Status string              `json:"status"`
 	Checks []healthCheckResult `json:"checks"`
 }
 
@@ -62,7 +65,9 @@ func (healthHTTPHandler *HTTPHandler) HealthCheck(httpResponseWriter http.Respon
 	}
 
 	if healthHTTPHandler.cacheConnectionClient != nil {
-		cachePingError := healthHTTPHandler.cacheConnectionClient.Ping(context.Background()).Err()
+		cachePingContext, cancelCachePing := context.WithTimeout(httpRequest.Context(), healthCheckTimeout)
+		cachePingError := healthHTTPHandler.cacheConnectionClient.Ping(cachePingContext).Err()
+		cancelCachePing()
 		if cachePingError != nil {
 			overallUnhealthy = true
 			healthResponse.Checks = append(healthResponse.Checks, healthCheckResult{

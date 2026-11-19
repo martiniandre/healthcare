@@ -102,7 +102,15 @@ func (notificationRepository *repository) ListByUserID(ctx context.Context, user
 		FROM notifications n
 		INNER JOIN notification_recipients nr ON nr.notification_id = n.id
 		WHERE nr.user_id = $1
-		ORDER BY n.created_at DESC
+		ORDER BY nr.is_read ASC,
+			CASE n.priority
+				WHEN 'critical' THEN 0
+				WHEN 'high' THEN 1
+				WHEN 'medium' THEN 2
+				WHEN 'low' THEN 3
+				ELSE 4
+			END ASC,
+			n.created_at DESC
 		LIMIT $2 OFFSET $3`
 
 	rows, err := notificationRepository.db.Query(ctx, listQuery, userID, limit, offset)

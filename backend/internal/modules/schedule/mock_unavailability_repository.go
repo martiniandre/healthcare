@@ -9,10 +9,10 @@ import (
 )
 
 type MockUnavailabilityRepository struct {
-	CreateUnavailabilityFunc         func(ctx context.Context, unavailability *StaffUnavailability) (*StaffUnavailability, error)
-	ListUnavailabilityByStaffFunc    func(ctx context.Context, staffID uuid.UUID, from time.Time, to time.Time) ([]*StaffUnavailability, error)
-	GetUnavailabilityByIDFunc        func(ctx context.Context, unavailabilityID uuid.UUID) (*StaffUnavailability, error)
-	DeleteUnavailabilityFunc         func(ctx context.Context, unavailabilityID uuid.UUID) (*StaffUnavailability, error)
+	CreateUnavailabilityFunc           func(ctx context.Context, unavailability *StaffUnavailability) (*StaffUnavailability, error)
+	ListUnavailabilityByStaffFunc      func(ctx context.Context, staffID uuid.UUID, from time.Time, to time.Time) ([]*StaffUnavailability, error)
+	GetUnavailabilityByIDFunc          func(ctx context.Context, unavailabilityID uuid.UUID) (*StaffUnavailability, error)
+	DeleteUnavailabilityFunc           func(ctx context.Context, unavailabilityID uuid.UUID) (*StaffUnavailability, error)
 	ResolveActiveEmployeeIDByEmailFunc func(ctx context.Context, email string) (*uuid.UUID, error)
 }
 

@@ -29,8 +29,8 @@ type Observation struct {
 }
 
 type Condition struct {
-	ResourceType   string         `json:"resourceType"`
-	ID             string         `json:"id,omitempty"`
+	ResourceType   string          `json:"resourceType"`
+	ID             string          `json:"id,omitempty"`
 	ClinicalStatus CodeableConcept `json:"clinicalStatus"`
 	Code           CodeableConcept `json:"code"`
 	Subject        Reference       `json:"subject"`
@@ -50,14 +50,14 @@ type AllergyIntolerance struct {
 }
 
 type MedicationRequest struct {
-	ResourceType              string             `json:"resourceType"`
-	ID                        string             `json:"id,omitempty"`
-	Status                    string             `json:"status"`
-	MedicationCodeableConcept CodeableConcept    `json:"medicationCodeableConcept"`
-	Subject                   Reference          `json:"subject"`
-	Encounter                 Reference          `json:"encounter"`
-	Requester                 Requester          `json:"requester,omitempty"`
-	AuthoredOn                string             `json:"authoredOn,omitempty"`
+	ResourceType              string              `json:"resourceType"`
+	ID                        string              `json:"id,omitempty"`
+	Status                    string              `json:"status"`
+	MedicationCodeableConcept CodeableConcept     `json:"medicationCodeableConcept"`
+	Subject                   Reference           `json:"subject"`
+	Encounter                 Reference           `json:"encounter"`
+	Requester                 Requester           `json:"requester,omitempty"`
+	AuthoredOn                string              `json:"authoredOn,omitempty"`
 	DosageInstruction         []DosageInstruction `json:"dosageInstruction,omitempty"`
 }
 
@@ -66,9 +66,9 @@ type Requester struct {
 }
 
 type DiagnosticReport struct {
-	ResourceType string         `json:"resourceType"`
-	ID           string         `json:"id,omitempty"`
-	Status       string         `json:"status"`
+	ResourceType string          `json:"resourceType"`
+	ID           string          `json:"id,omitempty"`
+	Status       string          `json:"status"`
 	Code         CodeableConcept `json:"code"`
 	Subject      Reference       `json:"subject"`
 	Encounter    Reference       `json:"encounter"`
@@ -78,20 +78,20 @@ type DiagnosticReport struct {
 }
 
 type Patient struct {
-	ResourceType string          `json:"resourceType"`
-	ID           string          `json:"id,omitempty"`
-	Meta         *ResourceMeta   `json:"meta,omitempty"`
-	Name         []HumanName     `json:"name,omitempty"`
-	BirthDate    string          `json:"birthDate,omitempty"`
-	Telecom      []ContactPoint  `json:"telecom,omitempty"`
-	Identifier   []Identifier    `json:"identifier,omitempty"`
+	ResourceType string         `json:"resourceType"`
+	ID           string         `json:"id,omitempty"`
+	Meta         *ResourceMeta  `json:"meta,omitempty"`
+	Name         []HumanName    `json:"name,omitempty"`
+	BirthDate    string         `json:"birthDate,omitempty"`
+	Telecom      []ContactPoint `json:"telecom,omitempty"`
+	Identifier   []Identifier   `json:"identifier,omitempty"`
 }
 
 type ImagingStudy struct {
-	ResourceType string        `json:"resourceType"`
-	ID           string        `json:"id,omitempty"`
-	Status       string        `json:"status"`
-	Started      string        `json:"started,omitempty"`
-	Description  string        `json:"description,omitempty"`
-	Modality     []Coding      `json:"modality,omitempty"`
+	ResourceType string   `json:"resourceType"`
+	ID           string   `json:"id,omitempty"`
+	Status       string   `json:"status"`
+	Started      string   `json:"started,omitempty"`
+	Description  string   `json:"description,omitempty"`
+	Modality     []Coding `json:"modality,omitempty"`
 }

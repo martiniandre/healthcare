@@ -1,4 +1,4 @@
-﻿package telemetry
+package telemetry
 
 import (
 	"context"
@@ -74,23 +74,23 @@ func (simulator *Simulator) tick(ctx context.Context) {
 				continue
 			}
 
-		if bed.Status == BedStatusDanger && previousStatus != BedStatusDanger && simulator.eventBus != nil {
-			simulator.eventBus.Publish(ctx, eventbus.Event{
-				Name: "telemetry.alert",
-				Data: map[string]any{
-					"title_key": "notifications:event.telemetryAlert.title",
-					"body_key":  "notifications:event.telemetryAlert.body",
-					"params": map[string]any{
-						"bedNumber":   bed.BedNumber,
-						"condition":   string(bed.Condition),
-						"patientName": bed.PatientName,
-						"bpm":         bed.Bpm,
-						"spo2":        bed.Spo2,
+			if bed.Status == BedStatusDanger && previousStatus != BedStatusDanger && simulator.eventBus != nil {
+				simulator.eventBus.Publish(ctx, eventbus.Event{
+					Name: "telemetry.alert",
+					Data: map[string]any{
+						"title_key": "notifications:event.telemetryAlert.title",
+						"body_key":  "notifications:event.telemetryAlert.body",
+						"params": map[string]any{
+							"bedNumber":   bed.BedNumber,
+							"condition":   string(bed.Condition),
+							"patientName": bed.PatientName,
+							"bpm":         bed.Bpm,
+							"spo2":        bed.Spo2,
+						},
+						"resource_type": "bed",
+						"resource_id":   bed.ID.String(),
 					},
-					"resource_type": "bed",
-					"resource_id":   bed.ID.String(),
-				},
-			})
+				})
 
 				slog.Warn("telemetry alert published",
 					"bed_id", bed.ID,

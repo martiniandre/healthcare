@@ -8,13 +8,13 @@ import (
 )
 
 var (
-	emailRegex      = regexp.MustCompile(`^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$`)
-	phoneBRRegex    = regexp.MustCompile(`^\(\d{2}\) \d{4,5}-\d{4}$`)
-	phoneE164Regex  = regexp.MustCompile(`^\+55\d{10,11}$`)
-	icd10Regex      = regexp.MustCompile(`^[A-Z]\d{2}(\.\d{1,2})?$`)
-	loincRegex      = regexp.MustCompile(`^\d{3,6}-\d$`)
-	cpfRegex        = regexp.MustCompile(`^\d{3}\.\d{3}\.\d{3}-\d{2}$`)
-	crmRegex        = regexp.MustCompile(`^(CRM|COREN)(-[A-Z]{2})?[\s\-]?\d{1,6}$`)
+	emailRegex     = regexp.MustCompile(`^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$`)
+	phoneBRRegex   = regexp.MustCompile(`^\(\d{2}\) \d{4,5}-\d{4}$`)
+	phoneE164Regex = regexp.MustCompile(`^\+55\d{10,11}$`)
+	icd10Regex     = regexp.MustCompile(`^[A-Z]\d{2}(\.\d{1,2})?$`)
+	loincRegex     = regexp.MustCompile(`^\d{3,6}-\d$`)
+	cpfRegex       = regexp.MustCompile(`^\d{3}\.\d{3}\.\d{3}-\d{2}$`)
+	crmRegex       = regexp.MustCompile(`^(CRM|COREN)(-[A-Z]{2})?[\s\-]?\d{1,6}$`)
 )
 
 var validDICOMModalities = map[string]bool{

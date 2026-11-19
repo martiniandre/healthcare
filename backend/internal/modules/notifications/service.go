@@ -39,6 +39,8 @@ type subscriber struct {
 	channel chan *Notification
 }
 
+const recipientLookupTimeout = 5 * time.Second
+
 func (sub *subscriber) ID() string                  { return sub.id }
 func (sub *subscriber) UserID() uuid.UUID           { return sub.userID }
 func (sub *subscriber) Channel() chan *Notification { return sub.channel }
@@ -203,7 +205,9 @@ func (notificationService *service) Unsubscribe(sub Subscriber) {
 }
 
 func (notificationService *service) broadcast(notification *Notification) {
-	recipientUserIDs, recipientError := notificationService.repo.GetRecipientUserIDs(context.Background(), notification.ID)
+	recipientLookupContext, cancelRecipientLookup := context.WithTimeout(context.Background(), recipientLookupTimeout)
+	defer cancelRecipientLookup()
+	recipientUserIDs, recipientError := notificationService.repo.GetRecipientUserIDs(recipientLookupContext, notification.ID)
 	if recipientError != nil {
 		return
 	}

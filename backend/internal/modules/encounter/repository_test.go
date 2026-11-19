@@ -10,10 +10,10 @@ import (
 
 func TestMapFHIREncounterToDomain_ReasonMapping(t *testing.T) {
 	testCases := []struct {
-		name                string
-		fhirEncounter       *fhir.Encounter
-		expectedReasonCode  string
-		expectedReasonText  string
+		name               string
+		fhirEncounter      *fhir.Encounter
+		expectedReasonCode string
+		expectedReasonText string
 	}{
 		{
 			name: "code display and text maps code and display",
@@ -58,8 +58,8 @@ func TestMapFHIREncounterToDomain_ReasonMapping(t *testing.T) {
 			expectedReasonText: "Cholera",
 		},
 		{
-			name:          "no reason code leaves fields empty",
-			fhirEncounter: &fhir.Encounter{},
+			name:               "no reason code leaves fields empty",
+			fhirEncounter:      &fhir.Encounter{},
 			expectedReasonCode: "",
 			expectedReasonText: "",
 		},

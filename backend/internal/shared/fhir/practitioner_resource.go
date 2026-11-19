@@ -1,10 +1,10 @@
 package fhir
 
 type PractitionerResource struct {
-	ResourceType string        `json:"resourceType"`
-	ID           string        `json:"id,omitempty"`
-	Name         []HumanName   `json:"name"`
-	Identifier   []Identifier  `json:"identifier,omitempty"`
+	ResourceType  string          `json:"resourceType"`
+	ID            string          `json:"id,omitempty"`
+	Name          []HumanName     `json:"name"`
+	Identifier    []Identifier    `json:"identifier,omitempty"`
 	Qualification []Qualification `json:"qualification,omitempty"`
 }
 
@@ -35,8 +35,8 @@ func NewPractitionerResource(fullName, crmNumber string) *PractitionerResource {
 				Code: CodeableConcept{
 					Coding: []Coding{
 						{
-							System: "http://terminology.hl7.org/CodeSystem/v2-0360",
-							Code:   "MD",
+							System:  "http://terminology.hl7.org/CodeSystem/v2-0360",
+							Code:    "MD",
 							Display: "Medical Doctor",
 						},
 					},
@@ -51,7 +51,7 @@ func NewPractitionerResource(fullName, crmNumber string) *PractitionerResource {
 		Name: []HumanName{
 			{Use: "official", Family: familyName, Given: []string{givenName}},
 		},
-		Identifier:   identifier,
+		Identifier:    identifier,
 		Qualification: qualification,
 	}
 }

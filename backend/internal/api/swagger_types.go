@@ -5,10 +5,10 @@ type ErrorResponse struct {
 }
 
 type PaginatedResponse struct {
-	Data       interface{} `json:"data"`
-	Total      int         `json:"total"`
-	Page       int         `json:"page"`
-	Limit      int         `json:"limit"`
+	Data  interface{} `json:"data"`
+	Total int         `json:"total"`
+	Page  int         `json:"page"`
+	Limit int         `json:"limit"`
 }
 
 // Auth
@@ -257,9 +257,9 @@ type CreateEmployeeResponse struct {
 
 // Telemetry
 type TelemetryRoomResponse struct {
-	ID             string `json:"id" example:"550e8400-e29b-41d4-a716-446655440000"`
-	Name           string `json:"name" example:"Room 101"`
-	Status         string `json:"status" example:"locked"`
+	ID     string `json:"id" example:"550e8400-e29b-41d4-a716-446655440000"`
+	Name   string `json:"name" example:"Room 101"`
+	Status string `json:"status" example:"locked"`
 }
 
 type UnlockRoomRequest struct {
@@ -296,13 +296,13 @@ type UpdateBedConditionResponse struct {
 
 // Audit Logs
 type AuditLogEntry struct {
-	ID             string `json:"id" example:"550e8400-e29b-41d4-a716-446655440000"`
-	CorrelationID  string `json:"correlation_id" example:"corr-123"`
-	CallerUserID   string `json:"caller_user_id" example:"user-123"`
-	CallerRole     string `json:"caller_role" example:"admin"`
-	Method         string `json:"method" example:"GET /api/patients"`
-	AccessGranted  bool   `json:"access_granted" example:"true"`
-	CreatedAt      string `json:"created_at" example:"2024-01-01T10:00:00Z"`
+	ID            string `json:"id" example:"550e8400-e29b-41d4-a716-446655440000"`
+	CorrelationID string `json:"correlation_id" example:"corr-123"`
+	CallerUserID  string `json:"caller_user_id" example:"user-123"`
+	CallerRole    string `json:"caller_role" example:"admin"`
+	Method        string `json:"method" example:"GET /api/patients"`
+	AccessGranted bool   `json:"access_granted" example:"true"`
+	CreatedAt     string `json:"created_at" example:"2024-01-01T10:00:00Z"`
 }
 
 type AuditLogListResponse struct {

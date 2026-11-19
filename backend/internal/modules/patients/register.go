@@ -1,9 +1,9 @@
 package patients
 
 import (
+	patientspb "github.com/healthcare/backend/internal/modules/patients/pb"
 	"github.com/healthcare/backend/internal/shared/eventbus"
 	"github.com/healthcare/backend/internal/shared/healthcare"
-	patientspb "github.com/healthcare/backend/internal/modules/patients/pb"
 	"google.golang.org/grpc"
 )
 

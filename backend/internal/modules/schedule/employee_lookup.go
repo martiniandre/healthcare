@@ -5,9 +5,9 @@ import (
 	"errors"
 
 	"github.com/google/uuid"
+	"github.com/healthcare/backend/internal/shared/apperrors"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/healthcare/backend/internal/shared/apperrors"
 )
 
 func resolveActiveEmployeeIDByEmail(ctx context.Context, dbPool *pgxpool.Pool, email string) (*uuid.UUID, error) {
