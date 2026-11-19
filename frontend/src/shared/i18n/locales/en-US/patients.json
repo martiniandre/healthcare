@@ -2,13 +2,6 @@
   "title": "Patients",
   "subtitle": "Patient registry and medical records",
   "newPatient": "New patient",
-  "cards": {
-    "total": "Total registered",
-    "standard": "Data standard",
-    "integration": "Integration",
-    "fhirCompliant": "FHIR R4 Compliant",
-    "cloudIntegration": "Cloud Healthcare API"
-  },
   "loadingComponent": "Loading component...",
   "analyzeExamWithAi": "Analyze exam with AI",
   "searchPlaceholder": "Search by name, document or phone...",
@@ -318,8 +311,6 @@
   },
   "states": {
     "loading": "Loading...",
-    "errorTitle": "Could not load the data",
-    "errorDescription": "An error occurred while fetching the information. Please try again.",
     "retry": "Try again"
   },
   "header": {

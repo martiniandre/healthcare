@@ -29,14 +29,6 @@ export const cpfValidation = (rawCpf: string): boolean => {
   )
 }
 
-export const isPastDate = (dateStr: string): boolean => {
-  const parsedDate = new Date(dateStr)
-  if (isNaN(parsedDate.getTime())) {
-    return false
-  }
-  return parsedDate < new Date()
-}
-
 export const isTodayOrFutureDate = (dateStr: string): boolean => {
   const dateOnlyMatch = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateStr)
   if (!dateOnlyMatch) {

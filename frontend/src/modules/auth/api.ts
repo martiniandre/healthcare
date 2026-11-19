@@ -1,5 +1,5 @@
 import { http } from "../../shared/utils/http"
-import type { LoginRequest, LoginResponse, PermissionsResponse, RegisterRequest } from "./types"
+import type { LoginRequest, LoginResponse, PermissionsResponse } from "./types"
 
 export const authApi = {
   login: async (data: LoginRequest): Promise<LoginResponse> => {
@@ -20,9 +20,5 @@ export const authApi = {
     } catch (logoutError) {
       console.warn("Logout endpoint failed:", logoutError)
     }
-  },
-
-  register: async (data: RegisterRequest): Promise<void> => {
-    await http.post("/auth/register", data)
   },
 }

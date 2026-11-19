@@ -31,36 +31,12 @@ describe("scheduleApi", () => {
     expect(http.post).toHaveBeenCalledWith("/appointments", payload)
   })
 
-  it("should list appointments by staff and date", async () => {
-    vi.mocked(http.get).mockResolvedValue([])
-
-    await scheduleApi.listByStaffOnDate("staff-1", "2026-09-01")
-
-    expect(http.get).toHaveBeenCalledWith("/appointments?staff_id=staff-1&date=2026-09-01")
-  })
-
-  it("should list appointments by patient", async () => {
-    vi.mocked(http.get).mockResolvedValue([])
-
-    await scheduleApi.listByPatient("patient-1")
-
-    expect(http.get).toHaveBeenCalledWith("/appointments?patient_fhir_id=patient-1")
-  })
-
   it("should list the current user appointments", async () => {
     vi.mocked(http.get).mockResolvedValue([])
 
     await scheduleApi.listMyAppointments()
 
     expect(http.get).toHaveBeenCalledWith("/appointments/my")
-  })
-
-  it("should get a single appointment", async () => {
-    vi.mocked(http.get).mockResolvedValue({ id: "appointment-1" })
-
-    await scheduleApi.getAppointment("appointment-1")
-
-    expect(http.get).toHaveBeenCalledWith("/appointments/appointment-1")
   })
 
   it("should cancel an appointment", async () => {

@@ -15,12 +15,6 @@ export interface LoginResponse extends AuthUser {
   csrfToken?: string
 }
 
-export interface RegisterRequest {
-  email: string
-  password: string
-  name: string
-}
-
 export interface PermissionsResponse {
   role: string
   capabilities: string[]

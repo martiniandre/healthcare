@@ -104,7 +104,6 @@
     "description": "No se pudo obtener la lista de profesionales. Compruebe su conexión e inténtelo de nuevo.",
     "retry": "Reintentar"
   },
-  "searchLabel": "Buscar profesionales",
   "filterByRole": "Filtrar por categoría",
   "confirmDeactivate": {
     "title": "¿Desactivar acceso?",

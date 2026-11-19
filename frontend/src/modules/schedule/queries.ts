@@ -21,14 +21,6 @@ export const scheduleQueryKeys = {
     [...scheduleQueryKeys.unavailability(), "staff", staffId] as const,
 }
 
-export const useStaffDayAppointmentsQuery = (staffId: string, date: string) => {
-  return useQuery({
-    queryKey: scheduleQueryKeys.byStaff(staffId, date),
-    queryFn: () => scheduleApi.listByStaffOnDate(staffId, date),
-    enabled: !!staffId && !!date,
-  })
-}
-
 export interface StaffRangeFilter {
   staffId: string
   startDate: string
@@ -43,14 +35,6 @@ export const useStaffRangeAppointmentsQueries = (filters: StaffRangeFilter[]) =>
       enabled: !!filter.staffId && !!filter.startDate && !!filter.endDate,
       placeholderData: keepPreviousData,
     })),
-  })
-}
-
-export const usePatientAppointmentsQuery = (patientFhirId: string) => {
-  return useQuery({
-    queryKey: scheduleQueryKeys.byPatient(patientFhirId),
-    queryFn: () => scheduleApi.listByPatient(patientFhirId),
-    enabled: !!patientFhirId,
   })
 }
 

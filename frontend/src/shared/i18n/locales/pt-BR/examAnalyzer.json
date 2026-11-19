@@ -14,7 +14,6 @@
     "errorType": "\"{{fileName}}\" não é um formato aceito. Escolha um arquivo PNG, JPG ou PDF.",
     "title": "Enviar exame para análise",
     "subtitle": "Arraste arquivos de exames radiológicos, fotos clínicas ou PDFs laboratoriais. A análise é assistiva e probabilística.",
-    "selectFile": "Selecione um arquivo",
     "fileGuidelines": "Formatos aceitos: PNG, JPG ou PDF. Até {{maxSize}} MB, um arquivo por vez.",
     "consentTitle": "Consentimento do paciente",
     "consentDesc": "Confirmo que possuo a autorização expressa do paciente para submeter seus dados e imagens para processamento clínico assistivo.",

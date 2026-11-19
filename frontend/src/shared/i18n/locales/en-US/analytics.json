@@ -12,9 +12,7 @@
   },
   "metrics": {
     "activePatients": "Active patients",
-    "registeredBase": "Total registered base",
     "fhirCompliance": "FHIR Compliance",
-    "averageAcrossVisits": "Average across visits",
     "avgConsultationTime": "Avg consultation time",
     "weeklyConsultations": "Weekly consultations",
     "lastSevenDays": "Sum of last 7 days",
@@ -29,7 +27,6 @@
   },
   "exams": {
     "title": "Imaging exams by modality",
-    "subtitle": "Imaging exams by modality",
     "totalLabel": "Total",
     "studiesLabel": "Studies",
     "studiesUnit": "{{count}} studies",
@@ -37,7 +34,6 @@
   },
   "consultations": {
     "title": "Consultations volume",
-    "subtitle": "Daily evolution of medical consultations and triage",
     "consultationsLabel": "Consultations",
     "minLabel": "Min",
     "avgLabel": "Avg",
@@ -46,7 +42,6 @@
   },
   "epidemiology": {
     "title": "Epidemiology & diagnostics",
-    "subtitle": "Active clinical cases by diagnosis",
     "exportButton": "Export CSV",
     "activeCasesTotalLabel": "Cases",
     "activeCasesUnit": "{{count, number}} active",
@@ -68,16 +63,6 @@
       "proportion": "Proportion"
     }
   },
-  "pathologies": {
-    "asthma": "Unspecified asthma",
-    "hypertension": "Primary essential hypertension",
-    "diabetes": "Type 2 diabetes mellitus"
-  },
-  "categories": {
-    "respiratory": "Respiratory",
-    "cardiovascular": "Cardiovascular",
-    "endocrine": "Endocrine"
-  },
   "empty": {
     "title": "No statistics available",
     "description": "There is no clinical data to display. Start registering patients and encounters to see analytics.",
@@ -90,7 +75,6 @@
   },
   "errorTitle": "Error loading data",
   "errorDescription": "Could not load the indicators. Try again.",
-  "retryButton": "Try again",
   "dashboard": {
     "title": "Shift dashboard",
     "subtitle": "Real-time indicators for clinical follow-up",
@@ -101,7 +85,6 @@
       "consultationsToday": "Consultations today",
       "occupancyRate": "Occupancy rate",
       "avgWaitTime": "Average wait time",
-      "byDepartment": "By department",
       "activePatients": "Active patients",
       "inCare": "In care",
       "examsToday": "Exams today",
@@ -120,13 +103,11 @@
     },
     "occupancy": {
       "title": "Occupancy rate",
-      "subtitle": "Occupied vs available beds",
       "label": "Occupancy",
       "occupied": "Occupied",
       "total": "Total",
       "available": "Available",
       "bedsShort": "Beds",
-      "gaugeLabel": "Bed occupancy {{rate}} percent, {{occupied}} of {{total}} beds",
       "severity": {
         "critical": "Critical",
         "elevated": "Elevated",

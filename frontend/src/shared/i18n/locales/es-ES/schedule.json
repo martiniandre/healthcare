@@ -2,10 +2,6 @@
   "title": "Agenda",
   "subtitle": "Gestión de citas y horarios",
   "newAppointment": "Nueva cita",
-  "selectStaff": "Profesional",
-  "selectStaffPlaceholder": "Seleccione un profesional",
-  "selectDate": "Fecha",
-  "daySchedule": "Agenda de {{date}}",
   "status": {
     "scheduled": "Programada",
     "confirmed": "Confirmada",
@@ -14,8 +10,7 @@
   },
   "cards": {
     "noReason": "Sin motivo informado",
-    "unknownPatient": "Paciente no identificado",
-    "cancelAppointment": "Cancelar cita"
+    "unknownPatient": "Paciente no identificado"
   },
   "emptyState": {
     "selectStaff": "Seleccione un profesional y una fecha para ver la agenda.",

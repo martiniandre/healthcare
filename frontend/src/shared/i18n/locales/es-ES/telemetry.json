@@ -3,7 +3,6 @@
   "subtitle": "Monitoreo de signos vitales organizado por alas y salas protegidas por contraseña de guardia",
   "alarmsMuted": "Alarmas silenciadas",
   "alarmsActive": "Alarma sonora activa",
-  "monitoredWing": "Ala monitoreada",
   "unlocked": "Desbloqueada",
   "protected": "Protegida",
   "lockButton": "Bloquear",
@@ -17,7 +16,6 @@
   "noRoomSelected": "Ninguna sala seleccionada",
   "noRoomSelectedDesc": "Seleccione una sala para ver las camas.",
   "years": "años",
-  "criticalBadge": "Crítico",
   "ecgLead": "ECG - DERIVACIÓN II (DII)",
   "sensors": {
     "ecg": "Frec. Cardíaca",

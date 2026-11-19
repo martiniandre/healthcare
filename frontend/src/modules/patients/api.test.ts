@@ -130,14 +130,6 @@ describe("patientsApi", () => {
     expect(http.get).toHaveBeenCalledWith("/encounters/enc-1/observations")
   })
 
-  it("should list all observations for a patient", async () => {
-    vi.mocked(http.get).mockResolvedValue([])
-
-    await patientsApi.getAllPatientObservations("patient-1")
-
-    expect(http.get).toHaveBeenCalledWith("/patients/patient-1/observations")
-  })
-
   it("should post the vital signs batch with nulls for unmeasured metrics", async () => {
     vi.mocked(http.post).mockResolvedValue([])
 

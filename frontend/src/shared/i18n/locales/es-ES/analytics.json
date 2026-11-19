@@ -12,9 +12,7 @@
   },
   "metrics": {
     "activePatients": "Pacientes activos",
-    "registeredBase": "Base total de pacientes",
     "fhirCompliance": "Conformidad FHIR",
-    "averageAcrossVisits": "Media por atención",
     "avgConsultationTime": "T. medio consulta",
     "weeklyConsultations": "Consultas semanal",
     "lastSevenDays": "Suma de los últimos 7 días",
@@ -29,7 +27,6 @@
   },
   "exams": {
     "title": "Exámenes de imagen por modalidad",
-    "subtitle": "Exámenes de imagen por modalidad",
     "totalLabel": "Total",
     "studiesLabel": "Estudios",
     "studiesUnit": "{{count}} estudios",
@@ -37,7 +34,6 @@
   },
   "consultations": {
     "title": "Volumen de consultas",
-    "subtitle": "Evolución diaria de consultas médicas y triaje",
     "consultationsLabel": "Consultas",
     "minLabel": "Menor",
     "avgLabel": "Media",
@@ -46,7 +42,6 @@
   },
   "epidemiology": {
     "title": "Epidemiología y diagnósticos",
-    "subtitle": "Casos clínicos activos por diagnóstico",
     "exportButton": "Exportar CSV",
     "activeCasesTotalLabel": "Casos",
     "activeCasesUnit": "{{count, number}} activos",
@@ -68,16 +63,6 @@
       "proportion": "Proporción"
     }
   },
-  "pathologies": {
-    "asthma": "Asma no especificada",
-    "hypertension": "Hipertensión essencial primaria",
-    "diabetes": "Diabetes mellitus tipo 2"
-  },
-  "categories": {
-    "respiratory": "Respiratorio",
-    "cardiovascular": "Cardiovascular",
-    "endocrine": "Endocrino"
-  },
   "empty": {
     "title": "No hay estadísticas disponibles",
     "description": "No hay datos clínicos para mostrar. Comience registrando pacientes y consultas para ver los análisis.",
@@ -90,7 +75,6 @@
   },
   "errorTitle": "Error al cargar datos",
   "errorDescription": "No se pudieron cargar los indicadores. Inténtelo de nuevo.",
-  "retryButton": "Intentar de nuevo",
   "dashboard": {
     "title": "Panel del turno",
     "subtitle": "Indicadores en tiempo real para el seguimiento clínico",
@@ -101,7 +85,6 @@
       "consultationsToday": "Consultas hoy",
       "occupancyRate": "Tasa de ocupación",
       "avgWaitTime": "Tiempo medio de espera",
-      "byDepartment": "Por departamento",
       "activePatients": "Pacientes activos",
       "inCare": "En atención",
       "examsToday": "Exámenes hoy",
@@ -120,13 +103,11 @@
     },
     "occupancy": {
       "title": "Tasa de ocupación",
-      "subtitle": "Camas ocupadas vs disponibles",
       "label": "Ocupación",
       "occupied": "Ocupadas",
       "total": "Totales",
       "available": "Disponibles",
       "bedsShort": "Camas",
-      "gaugeLabel": "Ocupación de camas del {{rate}} por ciento, {{occupied}} de {{total}} camas",
       "severity": {
         "critical": "Crítico",
         "elevated": "Elevado",

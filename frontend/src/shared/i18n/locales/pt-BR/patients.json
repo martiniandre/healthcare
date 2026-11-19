@@ -2,13 +2,6 @@
   "title": "Pacientes",
   "subtitle": "Cadastro e prontuário dos pacientes",
   "newPatient": "Novo paciente",
-  "cards": {
-    "total": "Total cadastrados",
-    "standard": "Padrão de dados",
-    "integration": "Integração",
-    "fhirCompliant": "FHIR R4 Compliant",
-    "cloudIntegration": "Cloud Healthcare API"
-  },
   "loadingComponent": "Carregando componente...",
   "analyzeExamWithAi": "Analisar exame com IA",
   "searchPlaceholder": "Buscar por nome, CPF ou telefone...",
@@ -318,8 +311,6 @@
   },
   "states": {
     "loading": "Carregando...",
-    "errorTitle": "Não foi possível carregar os dados",
-    "errorDescription": "Ocorreu um erro ao buscar as informações. Tente novamente.",
     "retry": "Tentar novamente"
   },
   "header": {

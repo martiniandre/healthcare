@@ -12,27 +12,13 @@ export const scheduleApi = {
     return http.post<Appointment>("/appointments", payload)
   },
 
-  listByStaffOnDate: async (staffId: string, date: string): Promise<Appointment[]> => {
-    const queryParameters = new URLSearchParams({ staff_id: staffId, date })
-    return http.get<Appointment[]>(`/appointments?${queryParameters.toString()}`)
-  },
-
   listByStaffInRange: async (staffId: string, startDate: string, endDate: string): Promise<Appointment[]> => {
     const queryParameters = new URLSearchParams({ staff_id: staffId, start_date: startDate, end_date: endDate })
     return http.get<Appointment[]>(`/appointments?${queryParameters.toString()}`)
   },
 
-  listByPatient: async (patientFhirId: string): Promise<Appointment[]> => {
-    const queryParameters = new URLSearchParams({ patient_fhir_id: patientFhirId })
-    return http.get<Appointment[]>(`/appointments?${queryParameters.toString()}`)
-  },
-
   listMyAppointments: async (): Promise<Appointment[]> => {
     return http.get<Appointment[]>("/appointments/my")
-  },
-
-  getAppointment: async (appointmentId: string): Promise<Appointment> => {
-    return http.get<Appointment>(`/appointments/${appointmentId}`)
   },
 
   cancelAppointment: async (appointmentId: string): Promise<Appointment> => {

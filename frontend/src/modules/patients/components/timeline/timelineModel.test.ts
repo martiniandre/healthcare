@@ -5,9 +5,17 @@ import {
   parseTimelineFilters,
   resolveTimelineRange,
   serializeTimelineFilters,
-  DEFAULT_TIMELINE_FILTERS,
+  DEFAULT_TIMELINE_PERIOD,
   TimelinePeriod,
+  type TimelineFilterState,
 } from "./timelineModel"
+
+const DEFAULT_TIMELINE_FILTERS: TimelineFilterState = {
+  types: [],
+  period: DEFAULT_TIMELINE_PERIOD,
+  from: "",
+  to: "",
+}
 
 const buildItem = (identifier: string, occurredAt: string): TimelineItem => ({
   id: `encounter:${identifier}`,

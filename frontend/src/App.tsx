@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { TooltipProvider } from "@/shared/components/ui/tooltip"
 import { AppRoutes } from "./app/routes"
 import { ToastContainer } from "./shared/components/ui/ToastContainer"
+import { ErrorBoundary } from "./shared/components/ErrorBoundary"
 import { useAuthInit } from "./shared/hooks/useAuthInit"
 import { Spinner } from "./shared/components/ui/spinner"
 import { setUnauthorizedHandler } from "./shared/services/api"
@@ -47,7 +48,9 @@ function AppBootstrap() {
 
   return (
     <>
-      <AppRoutes />
+      <ErrorBoundary>
+        <AppRoutes />
+      </ErrorBoundary>
       <ToastContainer />
     </>
   )

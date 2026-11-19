@@ -104,7 +104,6 @@
     "description": "The professionals list could not be retrieved. Check your connection and try again.",
     "retry": "Try again"
   },
-  "searchLabel": "Search professionals",
   "filterByRole": "Filter by category",
   "confirmDeactivate": {
     "title": "Disable access?",

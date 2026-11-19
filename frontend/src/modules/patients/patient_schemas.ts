@@ -82,7 +82,6 @@ export type NewEncounterFormData = z.infer<typeof baseEncounterSchema>
 export type NewReportFormData = z.infer<typeof baseReportSchema>
 export type NewConditionFormData = z.infer<typeof baseConditionSchema>
 export type NewAllergyFormData = z.infer<typeof baseAllergySchema>
-export type NewMedicationFormData = z.infer<typeof baseMedicationSchema>
 
 export const getNewPatientSchema = (translateFunction: (key: string) => string) => z.object({
   fullName: z.string().min(3, translateFunction("validation.fullNameMin")).max(255, translateFunction("validation.maxLength")).trim(),

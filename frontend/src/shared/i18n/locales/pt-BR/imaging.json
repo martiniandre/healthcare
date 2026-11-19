@@ -4,9 +4,6 @@
   "tools": {
     "zoom": "Zoom",
     "contrast": "Contraste",
-    "rotate": "Rotacionar",
-    "pan": "Mover",
-    "reset": "Redefinir",
     "measure": "Medir"
   },
   "presets": {
@@ -14,10 +11,7 @@
     "bone": "Osso",
     "lung": "Pulmão"
   },
-  "studyDetails": "Detalhes do estudo",
-  "series": "Série",
   "instance": "Instância",
-  "loadingDICOM": "Carregando imagem DICOM...",
   "uploadStatus": {
     "initial": "Iniciando upload e validação de assinatura DICOM...",
     "grpcCompleted": "Transmissão gRPC concluída. Processando DICOM metadata..."

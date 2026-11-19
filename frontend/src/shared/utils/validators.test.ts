@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { cpfValidation, isPastDate, isTodayOrFutureDate, isValidICD10, todayDateString } from './validators'
+import { cpfValidation, isTodayOrFutureDate, isValidICD10, todayDateString } from './validators'
 
 describe('cpfValidation', () => {
   it('should accept a valid CPF', () => {
@@ -16,16 +16,6 @@ describe('cpfValidation', () => {
 
   it('should strip non-digits and validate', () => {
     expect(cpfValidation('111.222.333-44')).toBe(true)
-  })
-})
-
-describe('isPastDate', () => {
-  it('should return true for a date in the past', () => {
-    expect(isPastDate('2020-01-01')).toBe(true)
-  })
-
-  it('should return false for an invalid date string', () => {
-    expect(isPastDate('not-a-date')).toBe(false)
   })
 })
 

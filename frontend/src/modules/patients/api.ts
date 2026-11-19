@@ -60,10 +60,6 @@ export const patientsApi = {
     return http.get<Observation[]>(`/encounters/${encounterFhirId}/observations`)
   },
 
-  getAllPatientObservations: async (patientFhirId: string): Promise<Observation[]> => {
-    return http.get<Observation[]>(`/patients/${patientFhirId}/observations`)
-  },
-
   createVitalSignsBatch: async (encounterFhirId: string, patientFhirId: string, panelFormData: NewVitalSignsPanelFormData): Promise<Observation[]> => {
     return http.post<Observation[]>(`/encounters/${encounterFhirId}/observations/batch`, {
       patient_fhir_id: patientFhirId,

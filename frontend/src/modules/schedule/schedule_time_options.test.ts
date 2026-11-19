@@ -3,7 +3,6 @@ import {
   getTimeSlotOptions,
   getAvailableStartTimeOptions,
   getEndTimeOptionsForStart,
-  isTimeOnFifteenMinuteGrid,
   getDefaultAppointmentEndTime,
   getAppointmentEndTimeForNewStart,
   getSlotOptionsAfter,
@@ -107,19 +106,6 @@ describe("getEndTimeOptionsForStart", () => {
   })
 })
 
-describe("isTimeOnFifteenMinuteGrid", () => {
-  it("should accept every quarter hour", () => {
-    expect(isTimeOnFifteenMinuteGrid("09:00")).toBe(true)
-    expect(isTimeOnFifteenMinuteGrid("09:15")).toBe(true)
-    expect(isTimeOnFifteenMinuteGrid("09:30")).toBe(true)
-    expect(isTimeOnFifteenMinuteGrid("09:45")).toBe(true)
-  })
-
-  it("should reject off grid minutes", () => {
-    expect(isTimeOnFifteenMinuteGrid("09:07")).toBe(false)
-    expect(isTimeOnFifteenMinuteGrid("09:59")).toBe(false)
-  })
-})
 describe('end time helpers', () => {
   it('should default the appointment end to 30 minutes after the start', () => {
     expect(getDefaultAppointmentEndTime('09:15')).toBe('09:45')

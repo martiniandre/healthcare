@@ -40,14 +40,6 @@ describe("authApi", () => {
     expect(permissions).toEqual({ role: "DOCTOR", capabilities: ["patient:read"] })
   })
 
-  it("should register a new user", async () => {
-    vi.mocked(http.post).mockResolvedValue(undefined)
-
-    await authApi.register({ email: "novo@mail.com", password: "secret" })
-
-    expect(http.post).toHaveBeenCalledWith("/auth/register", { email: "novo@mail.com", password: "secret" })
-  })
-
   it("should request logout and swallow endpoint failures", async () => {
     const consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => {})
     vi.mocked(http.post).mockRejectedValue(new Error("session already closed"))

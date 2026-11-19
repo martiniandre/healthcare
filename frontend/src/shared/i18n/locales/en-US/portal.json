@@ -15,7 +15,6 @@
     "imaging": "Imaging"
   },
   "greeting": "Hello, {{firstName}}!",
-  "welcome": "Welcome to your health portal. Here you find all of your clinical information.",
   "summary": {
     "totalEncounters": "Total encounters",
     "activeConditions": "Active conditions",
@@ -50,6 +49,5 @@
     "title": "Unable to load",
     "description": "An error occurred while fetching your information. Please try again.",
     "retry": "Try again"
-  },
-  "navigationLabel": "Portal sections"
+  }
 }

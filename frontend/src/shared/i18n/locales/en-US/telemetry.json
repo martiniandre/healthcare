@@ -3,7 +3,6 @@
   "subtitle": "Vital signs monitoring organized by wings and rooms protected by duty passcode",
   "alarmsMuted": "Alarms muted",
   "alarmsActive": "Active sound alarm",
-  "monitoredWing": "Monitored wing",
   "unlocked": "Unlocked",
   "protected": "Protected",
   "lockButton": "Lock",
@@ -17,7 +16,6 @@
   "noRoomSelected": "No room selected",
   "noRoomSelectedDesc": "Select a room to see its beds.",
   "years": "years",
-  "criticalBadge": "Critical",
   "ecgLead": "ECG - LEAD II (DII)",
   "sensors": {
     "ecg": "Heart rate",

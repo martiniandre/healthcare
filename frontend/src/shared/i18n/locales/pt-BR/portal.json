@@ -15,7 +15,6 @@
     "imaging": "Imagens"
   },
   "greeting": "Olá, {{firstName}}!",
-  "welcome": "Bem-vindo ao seu portal de saúde. Aqui você encontra todas as suas informações clínicas.",
   "summary": {
     "totalEncounters": "Total de consultas",
     "activeConditions": "Condições ativas",
@@ -50,6 +49,5 @@
     "title": "Não foi possível carregar",
     "description": "Ocorreu um erro ao buscar suas informações. Tente novamente.",
     "retry": "Tentar novamente"
-  },
-  "navigationLabel": "Seções do portal"
+  }
 }

@@ -58,10 +58,6 @@ export const getEndTimeOptionsForStart = (startTimeValue: string): readonly Time
   return endTimeOptions
 }
 
-export const isTimeOnFifteenMinuteGrid = (timeValue: string): boolean => {
-  const minutePart = timeValue.split(":")[1]
-  return (MINUTES_ON_FIFTEEN_MINUTE_GRID as readonly number[]).includes(Number(minutePart))
-}
 export const getDefaultAppointmentEndTime = (startTimeValue: string): string => {
   return getEndTimeOptionsForStart(startTimeValue)[0]?.value ?? ""
 }

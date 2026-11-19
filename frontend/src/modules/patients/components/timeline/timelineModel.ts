@@ -27,13 +27,6 @@ export const TIMELINE_ENTRY_TYPES: readonly TimelineEntryType[] = Object.values(
 
 export const DEFAULT_TIMELINE_PERIOD: TimelinePeriod = TimelinePeriod.Last6Months
 
-export const DEFAULT_TIMELINE_FILTERS: TimelineFilterState = {
-  types: [],
-  period: DEFAULT_TIMELINE_PERIOD,
-  from: "",
-  to: "",
-}
-
 export const TIMELINE_PAGE_SIZE = 30
 
 const periodValues: readonly string[] = Object.values(TimelinePeriod)

@@ -14,7 +14,6 @@
     "errorType": "\"{{fileName}}\" is not a supported format. Choose a PNG, JPG or PDF file.",
     "title": "Submit exam for analysis",
     "subtitle": "Drag radiological exam files, clinical photos or laboratory PDFs. The analysis is assistive and probabilistic.",
-    "selectFile": "Select a file",
     "fileGuidelines": "Accepted formats: PNG, JPG or PDF. Up to {{maxSize}} MB, one file at a time.",
     "consentTitle": "Patient consent",
     "consentDesc": "I confirm that I have the patient's express authorization to submit their data and images for assistive clinical processing.",

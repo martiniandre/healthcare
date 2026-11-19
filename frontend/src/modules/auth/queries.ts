@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { authApi } from "./api"
-import type { LoginRequest, RegisterRequest } from "./types"
-import { setCsrfToken, clearCsrfToken } from "../../shared/services/api"
+import type { LoginRequest } from "./types"
+import { setCsrfToken } from "../../shared/services/api"
 import { useAuthStore } from "../../shared/store/auth_store"
 
 export const authKeys = {
@@ -20,36 +20,6 @@ export const useLoginMutation = () => {
       }
       queryClient.invalidateQueries({ queryKey: authKeys.me() })
       queryClient.invalidateQueries({ queryKey: authKeys.permissions() })
-    },
-  })
-}
-
-export const useRegisterMutation = () => {
-  return useMutation({
-    mutationFn: (data: RegisterRequest) => authApi.register(data),
-  })
-}
-
-export const useLogoutMutation = () => {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: () => authApi.logout(),
-    onSuccess: () => {
-      clearCsrfToken()
-      queryClient.clear()
-    },
-  })
-}
-
-export const useCurrentUserQuery = () => {
-  return useQuery({
-    queryKey: authKeys.me(),
-    queryFn: async () => {
-      const response = await authApi.me()
-      if (response.csrfToken) {
-        setCsrfToken(response.csrfToken)
-      }
-      return response
     },
   })
 }

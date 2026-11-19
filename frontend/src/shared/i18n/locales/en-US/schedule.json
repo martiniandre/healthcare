@@ -2,10 +2,6 @@
   "title": "Schedule",
   "subtitle": "Manage appointment booking and time slots",
   "newAppointment": "New appointment",
-  "selectStaff": "Professional",
-  "selectStaffPlaceholder": "Select a professional",
-  "selectDate": "Date",
-  "daySchedule": "Schedule for {{date}}",
   "status": {
     "scheduled": "Scheduled",
     "confirmed": "Confirmed",
@@ -14,8 +10,7 @@
   },
   "cards": {
     "noReason": "No reason provided",
-    "unknownPatient": "Unidentified patient",
-    "cancelAppointment": "Cancel appointment"
+    "unknownPatient": "Unidentified patient"
   },
   "emptyState": {
     "selectStaff": "Select a professional and a date to view the schedule.",

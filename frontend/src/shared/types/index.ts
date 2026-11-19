@@ -31,16 +31,6 @@ export const StaffStatus = {
 
 export type StaffStatus = typeof StaffStatus[keyof typeof StaffStatus]
 
-export interface AuthResponseDto {
-  userId: string
-  role: string
-  email: string
-  fullName?: string
-  isActive?: boolean
-  createdAt?: string
-  updatedAt?: string
-}
-
 export const EncounterStatus = {
   Planned: "planned",
   Arrived: "arrived",

@@ -15,7 +15,6 @@
     "imaging": "Imágenes"
   },
   "greeting": "¡Hola, {{firstName}}!",
-  "welcome": "Bienvenido a su portal de salud. Aquí encuentra toda su información clínica.",
   "summary": {
     "totalEncounters": "Total de consultas",
     "activeConditions": "Condiciones activas",
@@ -50,6 +49,5 @@
     "title": "No se pudo cargar",
     "description": "Ocurrió un error al obtener su información. Inténtelo de nuevo.",
     "retry": "Intentar de nuevo"
-  },
-  "navigationLabel": "Secciones del portal"
+  }
 }

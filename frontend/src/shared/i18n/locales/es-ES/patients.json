@@ -2,13 +2,6 @@
   "title": "Pacientes",
   "subtitle": "Registro e historia clínica de los pacientes",
   "newPatient": "Nuevo paciente",
-  "cards": {
-    "total": "Total registrados",
-    "standard": "Patrón de datos",
-    "integration": "Integración",
-    "fhirCompliant": "FHIR R4 Compatible",
-    "cloudIntegration": "Cloud Healthcare API"
-  },
   "loadingComponent": "Cargando componente...",
   "analyzeExamWithAi": "Analizar examen con IA",
   "searchPlaceholder": "Buscar por nombre, documento o teléfono...",
@@ -318,8 +311,6 @@
   },
   "states": {
     "loading": "Cargando...",
-    "errorTitle": "No se pudieron cargar los datos",
-    "errorDescription": "Ocurrió un error al obtener la información. Inténtalo de nuevo.",
     "retry": "Reintentar"
   },
   "header": {

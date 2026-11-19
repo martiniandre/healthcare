@@ -3,7 +3,6 @@
   "subtitle": "Monitoramento de sinais vitais organizado por alas e salas protegidas por senha de plantão",
   "alarmsMuted": "Alarmes silenciados",
   "alarmsActive": "Alarme sonoro ativo",
-  "monitoredWing": "Ala monitorada",
   "unlocked": "Desbloqueada",
   "protected": "Protegida",
   "lockButton": "Bloquear",
@@ -17,7 +16,6 @@
   "noRoomSelected": "Nenhuma sala selecionada",
   "noRoomSelectedDesc": "Selecione uma sala para ver os leitos.",
   "years": "anos",
-  "criticalBadge": "Crítico",
   "ecgLead": "ECG - DERIVAÇÃO II (DII)",
   "sensors": {
     "ecg": "Freq. cardíaca",

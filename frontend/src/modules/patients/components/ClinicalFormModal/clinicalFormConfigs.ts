@@ -4,14 +4,12 @@ import {
   getNewAllergySchema,
   getNewConditionSchema,
   getNewEncounterSchema,
-  getNewMedicationSchema,
   getNewReportSchema,
   getNewVitalSignsPanelSchema,
   vitalSignMetricDefinitions,
   type NewAllergyFormData,
   type NewConditionFormData,
   type NewEncounterFormData,
-  type NewMedicationFormData,
   type NewReportFormData,
   type NewVitalSignsPanelFormData,
 } from "../../patient_schemas"
@@ -174,32 +172,6 @@ export const allergyFormConfig: ClinicalFormConfig<NewAllergyFormData> = {
   ],
   schema: getNewAllergySchema(createModuleTranslator("patients")),
   defaultValues: { allergenCode: "", allergenDisplay: "", reaction: "" },
-}
-
-export const medicationFormConfig: ClinicalFormConfig<NewMedicationFormData> = {
-  titleKey: "modals.medication.title",
-  confirmKey: "modals.medication.confirm",
-  fields: [
-    {
-      name: "medicationDisplay",
-      labelKey: "modals.medication.name",
-      placeholderKey: "modals.medication.namePlaceholder",
-      descriptionKey: "modals.medication.nameHint",
-      kind: "text",
-      spellCheck: false,
-      maxLength: 255,
-    },
-    {
-      name: "dosageInstruction",
-      labelKey: "modals.medication.dosage",
-      placeholderKey: "modals.medication.dosagePlaceholder",
-      descriptionKey: "modals.medication.dosageHint",
-      kind: "textarea",
-      maxLength: 1000,
-    },
-  ],
-  schema: getNewMedicationSchema(createModuleTranslator("patients")),
-  defaultValues: { medicationDisplay: "", dosageInstruction: "" },
 }
 
 export const buildEncounterFormConfig = (
