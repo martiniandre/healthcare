@@ -59,8 +59,7 @@ func (handler *HTTPHandler) ListPatientStudies(httpResponseWriter http.ResponseW
 
 	studiesList, studiesErr := handler.service.ListImagingStudies(httpRequest.Context(), patientFhirID)
 	if studiesErr != nil {
-		slog.Error("failed to list imaging studies", "error", studiesErr, "patient_fhir_id", patientFhirID, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.ErrorFromAppError(httpResponseWriter, studiesErr)
+		render.ServiceError(httpRequest.Context(), httpResponseWriter, "failed to list imaging studies", studiesErr, "patient_fhir_id", patientFhirID)
 		return
 	}
 
@@ -133,8 +132,7 @@ func (handler *HTTPHandler) streamUploadedFile(httpResponseWriter http.ResponseW
 		FileName:      filePart.FileName(),
 	}, filePart)
 	if createErr != nil {
-		slog.Error("failed to upload DICOM study", "error", createErr, "patient_fhir_id", patientFhirID, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.ErrorFromAppError(httpResponseWriter, createErr)
+		render.ServiceError(httpRequest.Context(), httpResponseWriter, "failed to upload DICOM study", createErr, "patient_fhir_id", patientFhirID)
 		return
 	}
 
@@ -169,8 +167,7 @@ func (handler *HTTPHandler) GetStudy(httpResponseWriter http.ResponseWriter, htt
 
 	study, getStudyErr := handler.service.GetImagingStudy(httpRequest.Context(), studyID)
 	if getStudyErr != nil {
-		slog.Error("failed to get imaging study", "error", getStudyErr, "study_id", studyID, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.ErrorFromAppError(httpResponseWriter, getStudyErr)
+		render.ServiceError(httpRequest.Context(), httpResponseWriter, "failed to get imaging study", getStudyErr, "study_id", studyID)
 		return
 	}
 
@@ -202,8 +199,7 @@ func (handler *HTTPHandler) GetStudyDownloadURL(httpResponseWriter http.Response
 
 	downloadURL, expiresAt, downloadErr := handler.service.GetDownloadURL(httpRequest.Context(), studyID)
 	if downloadErr != nil {
-		slog.Error("failed to issue study download URL", "error", downloadErr, "study_id", studyID, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.ErrorFromAppError(httpResponseWriter, downloadErr)
+		render.ServiceError(httpRequest.Context(), httpResponseWriter, "failed to issue study download URL", downloadErr, "study_id", studyID)
 		return
 	}
 
@@ -231,8 +227,7 @@ func (handler *HTTPHandler) ListStudyInstances(httpResponseWriter http.ResponseW
 
 	downloads, listErr := handler.service.ListStudyInstanceDownloads(httpRequest.Context(), studyID)
 	if listErr != nil {
-		slog.Error("failed to list study instances", "error", listErr, "study_id", studyID, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.ErrorFromAppError(httpResponseWriter, listErr)
+		render.ServiceError(httpRequest.Context(), httpResponseWriter, "failed to list study instances", listErr, "study_id", studyID)
 		return
 	}
 

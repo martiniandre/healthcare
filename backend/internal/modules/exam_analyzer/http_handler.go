@@ -3,7 +3,6 @@ package exam_analyzer
 import (
 	"encoding/json"
 	"errors"
-	"log/slog"
 	"net/http"
 	"path/filepath"
 	"strings"
@@ -57,8 +56,7 @@ func (handler *HTTPHandler) ListAnalyses(httpResponseWriter http.ResponseWriter,
 
 	analysesList, listError := handler.repository.ListAnalyses(httpRequest.Context(), filterPatient)
 	if listError != nil {
-		slog.Error("failed to list exam analyses", "error", listError, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.Error(httpResponseWriter, http.StatusInternalServerError, "Erro ao listar análises de exames.")
+		render.ServiceErrorMessage(httpRequest.Context(), httpResponseWriter, http.StatusInternalServerError, "Erro ao listar análises de exames.", "failed to list exam analyses", listError)
 		return
 	}
 
@@ -164,8 +162,7 @@ func (handler *HTTPHandler) CreateAnalysis(httpResponseWriter http.ResponseWrite
 			render.ErrorFromAppError(httpResponseWriter, saveErr)
 			return
 		}
-		slog.Error("failed to save analysis metadata", "error", saveErr, "analysis_id", analysisID, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.Error(httpResponseWriter, http.StatusInternalServerError, "Falha ao salvar metadados da análise.")
+		render.ServiceErrorMessage(httpRequest.Context(), httpResponseWriter, http.StatusInternalServerError, "Falha ao salvar metadados da análise.", "failed to save analysis metadata", saveErr, "analysis_id", analysisID)
 		return
 	}
 
@@ -218,8 +215,7 @@ func (handler *HTTPHandler) GetAnalysis(httpResponseWriter http.ResponseWriter, 
 
 	analysisRecord, fetchErr := handler.repository.GetAnalysis(httpRequest.Context(), analysisID)
 	if fetchErr != nil {
-		slog.Error("analysis not found", "error", fetchErr, "analysis_id", analysisIDRaw, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.Error(httpResponseWriter, http.StatusNotFound, "Análise de exame não encontrada.")
+		render.ServiceErrorMessage(httpRequest.Context(), httpResponseWriter, http.StatusNotFound, "Análise de exame não encontrada.", "analysis not found", fetchErr, "analysis_id", analysisIDRaw)
 		return
 	}
 
@@ -268,8 +264,7 @@ func (handler *HTTPHandler) DeleteAnalysis(httpResponseWriter http.ResponseWrite
 	}
 
 	if deleteErr := handler.service.DeleteAnalysis(httpRequest.Context(), analysisID); deleteErr != nil {
-		slog.Error("failed to delete analysis", "error", deleteErr, "analysis_id", analysisIDRaw, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.Error(httpResponseWriter, http.StatusInternalServerError, "Falha ao remover análise de exame do banco de dados.")
+		render.ServiceErrorMessage(httpRequest.Context(), httpResponseWriter, http.StatusInternalServerError, "Falha ao remover análise de exame do banco de dados.", "failed to delete analysis", deleteErr, "analysis_id", analysisIDRaw)
 		return
 	}
 

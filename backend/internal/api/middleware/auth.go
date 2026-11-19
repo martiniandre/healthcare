@@ -71,18 +71,6 @@ func ValidateHTTPAuth(httpResponseWriter http.ResponseWriter, httpRequest *http.
 	return contextWithValues, true
 }
 
-func RequireRoles(allowedRoles ...role.Role) func(http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
-			authenticatedContext, authorizationPassed := ValidateHTTPAuth(httpResponseWriter, httpRequest, allowedRoles)
-			if !authorizationPassed {
-				return
-			}
-			next.ServeHTTP(httpResponseWriter, httpRequest.WithContext(authenticatedContext))
-		})
-	}
-}
-
 func RequirePolicy(routePattern string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {

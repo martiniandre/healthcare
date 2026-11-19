@@ -2,7 +2,6 @@ package observation
 
 import (
 	"encoding/json"
-	"log/slog"
 	"net/http"
 	"time"
 
@@ -45,8 +44,7 @@ func (handler *HTTPHandler) ListObservationsByPatient(httpResponseWriter http.Re
 
 	observationsList, observationsErr := handler.service.GetObservationsByPatient(httpRequest.Context(), patientFhirID)
 	if observationsErr != nil {
-		slog.Error("failed to list observations by patient", "error", observationsErr, "patient_fhir_id", patientFhirID, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.ErrorFromAppError(httpResponseWriter, observationsErr)
+		render.ServiceError(httpRequest.Context(), httpResponseWriter, "failed to list observations by patient", observationsErr, "patient_fhir_id", patientFhirID)
 		return
 	}
 
@@ -69,8 +67,7 @@ func (handler *HTTPHandler) ListObservationsByEncounter(httpResponseWriter http.
 
 	observationsList, observationsErr := handler.service.GetObservationsByEncounter(httpRequest.Context(), encounterFhirID)
 	if observationsErr != nil {
-		slog.Error("failed to list observations by encounter", "error", observationsErr, "encounter_fhir_id", encounterFhirID, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.ErrorFromAppError(httpResponseWriter, observationsErr)
+		render.ServiceError(httpRequest.Context(), httpResponseWriter, "failed to list observations by encounter", observationsErr, "encounter_fhir_id", encounterFhirID)
 		return
 	}
 
@@ -111,8 +108,7 @@ func (handler *HTTPHandler) CreateObservation(httpResponseWriter http.ResponseWr
 
 	createdObservation, createErr := handler.service.CreateObservation(httpRequest.Context(), input)
 	if createErr != nil {
-		slog.Error("failed to create observation", "error", createErr, "encounter_fhir_id", encounterFhirID, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.ErrorFromAppError(httpResponseWriter, createErr)
+		render.ServiceError(httpRequest.Context(), httpResponseWriter, "failed to create observation", createErr, "encounter_fhir_id", encounterFhirID)
 		return
 	}
 
@@ -167,8 +163,7 @@ func (handler *HTTPHandler) UpdateObservation(httpResponseWriter http.ResponseWr
 
 	resultObservation, updateErr := handler.service.UpdateObservation(httpRequest.Context(), observationFhirID, updatedObservation)
 	if updateErr != nil {
-		slog.Error("failed to update observation", "error", updateErr, "observation_fhir_id", observationFhirID, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.ErrorFromAppError(httpResponseWriter, updateErr)
+		render.ServiceError(httpRequest.Context(), httpResponseWriter, "failed to update observation", updateErr, "observation_fhir_id", observationFhirID)
 		return
 	}
 
@@ -199,8 +194,7 @@ func (handler *HTTPHandler) DeleteObservation(httpResponseWriter http.ResponseWr
 	observationFhirID := httpRequest.PathValue("observationFhirId")
 
 	if deleteErr := handler.service.DeleteObservation(httpRequest.Context(), observationFhirID); deleteErr != nil {
-		slog.Error("failed to delete observation", "error", deleteErr, "observation_fhir_id", observationFhirID, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.ErrorFromAppError(httpResponseWriter, deleteErr)
+		render.ServiceError(httpRequest.Context(), httpResponseWriter, "failed to delete observation", deleteErr, "observation_fhir_id", observationFhirID)
 		return
 	}
 
@@ -231,8 +225,7 @@ func (handler *HTTPHandler) CreateObservationBatch(httpResponseWriter http.Respo
 
 	createdObservations, createErr := handler.service.CreateObservationBatch(httpRequest.Context(), input)
 	if createErr != nil {
-		slog.Error("failed to create observation batch", "error", createErr, "encounter_fhir_id", encounterFhirID, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.ErrorFromAppError(httpResponseWriter, createErr)
+		render.ServiceError(httpRequest.Context(), httpResponseWriter, "failed to create observation batch", createErr, "encounter_fhir_id", encounterFhirID)
 		return
 	}
 

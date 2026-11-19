@@ -1,16 +1,5 @@
 package api
 
-type ErrorResponse struct {
-	Error string `json:"error" example:"error message"`
-}
-
-type PaginatedResponse struct {
-	Data  interface{} `json:"data"`
-	Total int         `json:"total"`
-	Page  int         `json:"page"`
-	Limit int         `json:"limit"`
-}
-
 // Auth
 type LoginRequest struct {
 	Email    string `json:"email" example:"user@hospital.com"`
@@ -23,29 +12,11 @@ type LoginResponse struct {
 	Email  string `json:"email" example:"user@hospital.com"`
 }
 
-type MeResponse struct {
-	UserID    string `json:"userId" example:"550e8400-e29b-41d4-a716-446655440000"`
-	Email     string `json:"email" example:"user@hospital.com"`
-	FullName  string `json:"fullName" example:"John Doe"`
-	Role      string `json:"role" example:"doctor"`
-	IsActive  bool   `json:"isActive" example:"true"`
-	CreatedAt string `json:"createdAt" example:"2024-01-01T00:00:00Z"`
-	UpdatedAt string `json:"updatedAt" example:"2024-01-01T00:00:00Z"`
-}
-
 type LogoutResponse struct {
 	Message string `json:"message" example:"Logged out successfully"`
 }
 
 // Patients
-type PatientResponse struct {
-	PatientID      string `json:"patient_id" example:"550e8400-e29b-41d4-a716-446655440000"`
-	FHIRResourceID string `json:"fhir_resource_id" example:"fhir-12345"`
-	FullName       string `json:"full_name" example:"John Doe"`
-	BirthDate      string `json:"birth_date" example:"1990-01-15"`
-	DocumentID     string `json:"document_id" example:"12345678900"`
-	PhoneNumber    string `json:"phone_number" example:"+5511999999999"`
-}
 
 type CreatePatientRequest struct {
 	FullName    string `json:"full_name" example:"John Doe"`
@@ -57,15 +28,6 @@ type CreatePatientRequest struct {
 type CreatePatientResponse struct {
 	PatientID      string `json:"patient_id" example:"550e8400-e29b-41d4-a716-446655440000"`
 	FHIRResourceID string `json:"fhir_resource_id" example:"fhir-12345"`
-}
-
-type PatientDetailResponse struct {
-	PatientID      string `json:"patient_id" example:"550e8400-e29b-41d4-a716-446655440000"`
-	FHIRResourceID string `json:"fhir_resource_id" example:"fhir-12345"`
-	FullName       string `json:"full_name" example:"John Doe"`
-	BirthDate      string `json:"birth_date" example:"1990-01-15"`
-	DocumentID     string `json:"document_id" example:"12345678900"`
-	PhoneNumber    string `json:"phone_number" example:"+5511999999999"`
 }
 
 // Encounters

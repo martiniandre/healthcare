@@ -4,7 +4,6 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-	"time"
 )
 
 var (
@@ -113,14 +112,6 @@ func IsValidCPF(cpf string) bool {
 	}
 	secondVerifier, _ := strconv.Atoi(string(digitsOnly[10]))
 	return secondRemainder == secondVerifier
-}
-
-func IsPastDate(dateStr string) bool {
-	parsedDate, parseErr := time.Parse("2006-01-02", dateStr)
-	if parseErr != nil {
-		return false
-	}
-	return parsedDate.Before(time.Now())
 }
 
 func IsValidObservationRange(loincCode string, value float64) bool {

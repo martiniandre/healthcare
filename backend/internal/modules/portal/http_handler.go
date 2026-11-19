@@ -1,7 +1,6 @@
 package portal
 
 import (
-	"log/slog"
 	"net/http"
 
 	"github.com/healthcare/backend/internal/api/middleware"
@@ -53,8 +52,7 @@ func (handler *HTTPHandler) GetDashboard(httpResponseWriter http.ResponseWriter,
 
 	dashboard, serviceError := handler.service.GetDashboard(httpRequest.Context(), patientFHIRID)
 	if serviceError != nil {
-		slog.Error("failed to get portal dashboard", "error", serviceError, "patient_id", patientFHIRID, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.Error(httpResponseWriter, http.StatusInternalServerError, "Erro ao carregar dashboard.")
+		render.ServiceErrorMessage(httpRequest.Context(), httpResponseWriter, http.StatusInternalServerError, "Erro ao carregar dashboard.", "failed to get portal dashboard", serviceError, "patient_id", patientFHIRID)
 		return
 	}
 
@@ -69,8 +67,7 @@ func (handler *HTTPHandler) GetEncounters(httpResponseWriter http.ResponseWriter
 
 	encounters, serviceError := handler.service.GetEncounters(httpRequest.Context(), patientFHIRID)
 	if serviceError != nil {
-		slog.Error("failed to get portal encounters", "error", serviceError, "patient_id", patientFHIRID, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.Error(httpResponseWriter, http.StatusInternalServerError, "Erro ao carregar consultas.")
+		render.ServiceErrorMessage(httpRequest.Context(), httpResponseWriter, http.StatusInternalServerError, "Erro ao carregar consultas.", "failed to get portal encounters", serviceError, "patient_id", patientFHIRID)
 		return
 	}
 
@@ -85,8 +82,7 @@ func (handler *HTTPHandler) GetObservations(httpResponseWriter http.ResponseWrit
 
 	observations, serviceError := handler.service.GetObservations(httpRequest.Context(), patientFHIRID)
 	if serviceError != nil {
-		slog.Error("failed to get portal observations", "error", serviceError, "patient_id", patientFHIRID, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.Error(httpResponseWriter, http.StatusInternalServerError, "Erro ao carregar sinais vitais.")
+		render.ServiceErrorMessage(httpRequest.Context(), httpResponseWriter, http.StatusInternalServerError, "Erro ao carregar sinais vitais.", "failed to get portal observations", serviceError, "patient_id", patientFHIRID)
 		return
 	}
 
@@ -101,8 +97,7 @@ func (handler *HTTPHandler) GetConditions(httpResponseWriter http.ResponseWriter
 
 	conditions, serviceError := handler.service.GetConditions(httpRequest.Context(), patientFHIRID)
 	if serviceError != nil {
-		slog.Error("failed to get portal conditions", "error", serviceError, "patient_id", patientFHIRID, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.Error(httpResponseWriter, http.StatusInternalServerError, "Erro ao carregar condições.")
+		render.ServiceErrorMessage(httpRequest.Context(), httpResponseWriter, http.StatusInternalServerError, "Erro ao carregar condições.", "failed to get portal conditions", serviceError, "patient_id", patientFHIRID)
 		return
 	}
 
@@ -117,8 +112,7 @@ func (handler *HTTPHandler) GetMedications(httpResponseWriter http.ResponseWrite
 
 	medications, serviceError := handler.service.GetMedications(httpRequest.Context(), patientFHIRID)
 	if serviceError != nil {
-		slog.Error("failed to get portal medications", "error", serviceError, "patient_id", patientFHIRID, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.Error(httpResponseWriter, http.StatusInternalServerError, "Erro ao carregar medicamentos.")
+		render.ServiceErrorMessage(httpRequest.Context(), httpResponseWriter, http.StatusInternalServerError, "Erro ao carregar medicamentos.", "failed to get portal medications", serviceError, "patient_id", patientFHIRID)
 		return
 	}
 
@@ -133,8 +127,7 @@ func (handler *HTTPHandler) GetReports(httpResponseWriter http.ResponseWriter, h
 
 	reports, serviceError := handler.service.GetReports(httpRequest.Context(), patientFHIRID)
 	if serviceError != nil {
-		slog.Error("failed to get portal reports", "error", serviceError, "patient_id", patientFHIRID, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.Error(httpResponseWriter, http.StatusInternalServerError, "Erro ao carregar exames.")
+		render.ServiceErrorMessage(httpRequest.Context(), httpResponseWriter, http.StatusInternalServerError, "Erro ao carregar exames.", "failed to get portal reports", serviceError, "patient_id", patientFHIRID)
 		return
 	}
 
@@ -149,8 +142,7 @@ func (handler *HTTPHandler) GetImaging(httpResponseWriter http.ResponseWriter, h
 
 	imaging, serviceError := handler.service.GetImaging(httpRequest.Context(), patientFHIRID)
 	if serviceError != nil {
-		slog.Error("failed to get portal imaging", "error", serviceError, "patient_id", patientFHIRID, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.Error(httpResponseWriter, http.StatusInternalServerError, "Erro ao carregar imagens.")
+		render.ServiceErrorMessage(httpRequest.Context(), httpResponseWriter, http.StatusInternalServerError, "Erro ao carregar imagens.", "failed to get portal imaging", serviceError, "patient_id", patientFHIRID)
 		return
 	}
 

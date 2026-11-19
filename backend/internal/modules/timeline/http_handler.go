@@ -1,7 +1,6 @@
 package timeline
 
 import (
-	"log/slog"
 	"net/http"
 	"time"
 
@@ -54,8 +53,7 @@ func (handler *HTTPHandler) GetTimeline(httpResponseWriter http.ResponseWriter, 
 
 	page, serviceError := handler.service.GetTimeline(httpRequest.Context(), input)
 	if serviceError != nil {
-		slog.Error("failed to get timeline", "error", serviceError, "patient_fhir_id", input.PatientFHIRID, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.ErrorFromAppError(httpResponseWriter, serviceError)
+		render.ServiceError(httpRequest.Context(), httpResponseWriter, "failed to get timeline", serviceError, "patient_fhir_id", input.PatientFHIRID)
 		return
 	}
 

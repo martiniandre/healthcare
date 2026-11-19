@@ -2,7 +2,6 @@ package staff
 
 import (
 	"encoding/json"
-	"log/slog"
 	"net/http"
 
 	"github.com/healthcare/backend/internal/api/middleware"
@@ -45,8 +44,7 @@ func (handler *HTTPHandler) ListEmployees(httpResponseWriter http.ResponseWriter
 
 	employeesList, employeesErr := handler.service.ListEmployees(httpRequest.Context(), search, role)
 	if employeesErr != nil {
-		slog.Error("failed to list employees", "error", employeesErr, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.ErrorFromAppError(httpResponseWriter, employeesErr)
+		render.ServiceError(httpRequest.Context(), httpResponseWriter, "failed to list employees", employeesErr)
 		return
 	}
 
@@ -95,8 +93,7 @@ func (handler *HTTPHandler) CreateEmployee(httpResponseWriter http.ResponseWrite
 
 	employee, createErr := handler.service.CreateEmployee(httpRequest.Context(), input)
 	if createErr != nil {
-		slog.Error("failed to create employee", "error", createErr, "email", payload.Email, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.ErrorFromAppError(httpResponseWriter, createErr)
+		render.ServiceError(httpRequest.Context(), httpResponseWriter, "failed to create employee", createErr, "email", payload.Email)
 		return
 	}
 
@@ -140,8 +137,7 @@ func (handler *HTTPHandler) SetEmployeeStatus(httpResponseWriter http.ResponseWr
 		IsActive:   payload.IsActive,
 	})
 	if statusErr != nil {
-		slog.Error("failed to update employee status", "error", statusErr, "employee_id", employeeID, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.ErrorFromAppError(httpResponseWriter, statusErr)
+		render.ServiceError(httpRequest.Context(), httpResponseWriter, "failed to update employee status", statusErr, "employee_id", employeeID)
 		return
 	}
 
@@ -168,8 +164,7 @@ func (handler *HTTPHandler) DeleteEmployee(httpResponseWriter http.ResponseWrite
 		IsActive:   false,
 	})
 	if deleteErr != nil {
-		slog.Error("failed to delete employee", "error", deleteErr, "employee_id", employeeID, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.ErrorFromAppError(httpResponseWriter, deleteErr)
+		render.ServiceError(httpRequest.Context(), httpResponseWriter, "failed to delete employee", deleteErr, "employee_id", employeeID)
 		return
 	}
 
@@ -189,8 +184,7 @@ func (handler *HTTPHandler) DeleteEmployee(httpResponseWriter http.ResponseWrite
 func (handler *HTTPHandler) ListDepartments(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
 	departmentsList, departmentsErr := handler.service.ListDepartments(httpRequest.Context())
 	if departmentsErr != nil {
-		slog.Error("failed to list departments", "error", departmentsErr, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.ErrorFromAppError(httpResponseWriter, departmentsErr)
+		render.ServiceError(httpRequest.Context(), httpResponseWriter, "failed to list departments", departmentsErr)
 		return
 	}
 

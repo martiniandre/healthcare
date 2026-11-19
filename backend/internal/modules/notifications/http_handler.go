@@ -90,8 +90,7 @@ func (handler *HTTPHandler) ListNotifications(httpResponseWriter http.ResponseWr
 
 	notifications, total, listError := handler.service.ListNotifications(authenticatedContext, userID, limit, offset)
 	if listError != nil {
-		slog.Error("failed to list notifications", "error", listError)
-		render.Error(httpResponseWriter, http.StatusInternalServerError, "failed to list notifications")
+		render.ServiceErrorMessage(httpRequest.Context(), httpResponseWriter, http.StatusInternalServerError, "failed to list notifications", "failed to list notifications", listError)
 		return
 	}
 
@@ -127,8 +126,7 @@ func (handler *HTTPHandler) MarkRead(httpResponseWriter http.ResponseWriter, htt
 
 	err := handler.service.MarkRead(authenticatedContext, notificationID, userID)
 	if err != nil {
-		slog.Error("failed to mark notification as read", "error", err)
-		render.Error(httpResponseWriter, http.StatusInternalServerError, "failed to mark as read")
+		render.ServiceErrorMessage(httpRequest.Context(), httpResponseWriter, http.StatusInternalServerError, "failed to mark as read", "failed to mark notification as read", err)
 		return
 	}
 
@@ -150,8 +148,7 @@ func (handler *HTTPHandler) GetUnreadCount(httpResponseWriter http.ResponseWrite
 
 	count, err := handler.service.GetUnreadCount(authenticatedContext, userID)
 	if err != nil {
-		slog.Error("failed to get unread count", "error", err)
-		render.Error(httpResponseWriter, http.StatusInternalServerError, "failed to get unread count")
+		render.ServiceErrorMessage(httpRequest.Context(), httpResponseWriter, http.StatusInternalServerError, "failed to get unread count", "failed to get unread count", err)
 		return
 	}
 
@@ -166,8 +163,7 @@ func (handler *HTTPHandler) ListNotificationEventDefinitions(httpResponseWriter 
 
 	eventDefinitions, listError := handler.service.ListNotificationEventDefinitions(authenticatedContext)
 	if listError != nil {
-		slog.Error("failed to list notification event definitions", "error", listError)
-		render.Error(httpResponseWriter, http.StatusInternalServerError, "failed to list notification event definitions")
+		render.ServiceErrorMessage(httpRequest.Context(), httpResponseWriter, http.StatusInternalServerError, "failed to list notification event definitions", "failed to list notification event definitions", listError)
 		return
 	}
 

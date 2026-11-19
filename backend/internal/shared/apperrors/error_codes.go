@@ -152,12 +152,6 @@ var (
 		Message:  "allergy intolerance not found",
 	}
 
-	ErrMedicationRequestNotFound = AppError{
-		GRPCCode: codes.NotFound,
-		HTTPCode: http.StatusNotFound,
-		Message:  "medication request not found",
-	}
-
 	ErrMedicationBlockedByAllergy = AppError{
 		GRPCCode: codes.FailedPrecondition,
 		HTTPCode: http.StatusConflict,

@@ -170,8 +170,7 @@ func (handler *HTTPHandler) HandleLogin(httpResponseWriter http.ResponseWriter, 
 
 	authenticatedUser, sessionTokens, authError := handler.service.Login(httpRequest.Context(), loginRequestPayload.Email, loginRequestPayload.Password, extractClientInfo(httpRequest))
 	if authError != nil {
-		slog.Warn("Login failed", "email_hash", hashEmailForLogging(loginRequestPayload.Email), "error", authError)
-		render.Error(httpResponseWriter, http.StatusUnauthorized, "Credenciais inválidas.")
+		render.ServiceErrorMessage(httpRequest.Context(), httpResponseWriter, http.StatusUnauthorized, "Credenciais inválidas.", "Login failed", authError, "email_hash", hashEmailForLogging(loginRequestPayload.Email))
 		return
 	}
 
@@ -216,8 +215,7 @@ func (handler *HTTPHandler) HandleRefresh(httpResponseWriter http.ResponseWriter
 			render.Error(httpResponseWriter, http.StatusUnauthorized, "Sessão expirada.")
 			return
 		}
-		slog.Error("Session refresh failed", "error", refreshError)
-		render.Error(httpResponseWriter, http.StatusInternalServerError, "Erro interno do servidor.")
+		render.ServiceErrorMessage(httpRequest.Context(), httpResponseWriter, http.StatusInternalServerError, "Erro interno do servidor.", "Session refresh failed", refreshError)
 		return
 	}
 

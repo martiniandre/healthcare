@@ -26,13 +26,5 @@ func RequestID(next http.Handler) http.Handler {
 }
 
 func GetRequestID(requestContext context.Context) string {
-	requestID, typeAssertionOk := requestContext.Value(ctxkeys.RequestIDKey).(string)
-	if typeAssertionOk {
-		return requestID
-	}
-	correlationID, correlationOk := requestContext.Value(ctxkeys.CorrelationIDKey).(string)
-	if correlationOk {
-		return correlationID
-	}
-	return ""
+	return ctxkeys.RequestID(requestContext)
 }

@@ -2,7 +2,6 @@ package condition
 
 import (
 	"encoding/json"
-	"log/slog"
 	"net/http"
 	"time"
 
@@ -43,8 +42,7 @@ func (handler *HTTPHandler) ListConditionsByPatient(httpResponseWriter http.Resp
 
 	conditionsList, conditionsErr := handler.service.GetConditionsByPatient(httpRequest.Context(), patientFhirID)
 	if conditionsErr != nil {
-		slog.Error("failed to list conditions", "error", conditionsErr, "patient_fhir_id", patientFhirID, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.ErrorFromAppError(httpResponseWriter, conditionsErr)
+		render.ServiceError(httpRequest.Context(), httpResponseWriter, "failed to list conditions", conditionsErr, "patient_fhir_id", patientFhirID)
 		return
 	}
 
@@ -95,8 +93,7 @@ func (handler *HTTPHandler) CreateCondition(httpResponseWriter http.ResponseWrit
 
 	createdCondition, createErr := handler.service.CreateCondition(httpRequest.Context(), input)
 	if createErr != nil {
-		slog.Error("failed to create condition", "error", createErr, "patient_fhir_id", patientFhirID, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.ErrorFromAppError(httpResponseWriter, createErr)
+		render.ServiceError(httpRequest.Context(), httpResponseWriter, "failed to create condition", createErr, "patient_fhir_id", patientFhirID)
 		return
 	}
 
@@ -134,8 +131,7 @@ func (handler *HTTPHandler) UpdateCondition(httpResponseWriter http.ResponseWrit
 
 	conditionResult, updateErr := handler.service.UpdateCondition(httpRequest.Context(), conditionFhirID, input)
 	if updateErr != nil {
-		slog.Error("failed to update condition", "error", updateErr, "condition_fhir_id", conditionFhirID, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.ErrorFromAppError(httpResponseWriter, updateErr)
+		render.ServiceError(httpRequest.Context(), httpResponseWriter, "failed to update condition", updateErr, "condition_fhir_id", conditionFhirID)
 		return
 	}
 
@@ -153,8 +149,7 @@ func (handler *HTTPHandler) DeleteCondition(httpResponseWriter http.ResponseWrit
 	conditionFhirID := httpRequest.PathValue("conditionFhirId")
 
 	if deleteErr := handler.service.DeleteCondition(httpRequest.Context(), conditionFhirID); deleteErr != nil {
-		slog.Error("failed to delete condition", "error", deleteErr, "condition_fhir_id", conditionFhirID, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.ErrorFromAppError(httpResponseWriter, deleteErr)
+		render.ServiceError(httpRequest.Context(), httpResponseWriter, "failed to delete condition", deleteErr, "condition_fhir_id", conditionFhirID)
 		return
 	}
 

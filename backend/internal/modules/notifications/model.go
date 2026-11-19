@@ -45,13 +45,6 @@ type Notification struct {
 	CreatedAt    time.Time            `db:"created_at"`
 }
 
-type NotificationRecipient struct {
-	NotificationID uuid.UUID  `db:"notification_id"`
-	UserID         uuid.UUID  `db:"user_id"`
-	IsRead         bool       `db:"is_read"`
-	ReadAt         *time.Time `db:"read_at"`
-}
-
 type NotificationEventDefinition struct {
 	EventName        string
 	NotificationType NotificationType

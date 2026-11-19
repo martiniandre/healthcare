@@ -2,7 +2,6 @@ package telemetry
 
 import (
 	"encoding/json"
-	"log/slog"
 	"net/http"
 
 	"github.com/healthcare/backend/internal/api/middleware"
@@ -39,8 +38,7 @@ func (handler *HTTPHandler) RegisterRoutes(mux *http.ServeMux) {
 func (handler *HTTPHandler) ListRooms(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
 	roomsList, roomsErr := handler.service.GetRooms(httpRequest.Context())
 	if roomsErr != nil {
-		slog.Error("failed to list rooms", "error", roomsErr, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.ErrorFromAppError(httpResponseWriter, roomsErr)
+		render.ServiceError(httpRequest.Context(), httpResponseWriter, "failed to list rooms", roomsErr)
 		return
 	}
 
@@ -73,8 +71,7 @@ func (handler *HTTPHandler) UnlockRoom(httpResponseWriter http.ResponseWriter, h
 		Passcode: payload.Passcode,
 	})
 	if unlockErr != nil {
-		slog.Warn("room unlock failed", "room_id", httpRequest.PathValue("roomId"), "error", unlockErr)
-		render.ErrorFromAppError(httpResponseWriter, unlockErr)
+		render.ServiceError(httpRequest.Context(), httpResponseWriter, "room unlock failed", unlockErr, "room_id", httpRequest.PathValue("roomId"))
 		return
 	}
 
@@ -102,8 +99,7 @@ func (handler *HTTPHandler) ListBedsByRoom(httpResponseWriter http.ResponseWrite
 		RoomID: httpRequest.PathValue("roomId"),
 	})
 	if bedsErr != nil {
-		slog.Error("failed to list beds", "error", bedsErr, "room_id", httpRequest.PathValue("roomId"), "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.ErrorFromAppError(httpResponseWriter, bedsErr)
+		render.ServiceError(httpRequest.Context(), httpResponseWriter, "failed to list beds", bedsErr, "room_id", httpRequest.PathValue("roomId"))
 		return
 	}
 
@@ -141,8 +137,7 @@ func (handler *HTTPHandler) UpdateBedCondition(httpResponseWriter http.ResponseW
 		Condition:   NormalizeCardiacCondition(payload.Condition),
 	})
 	if updateErr != nil {
-		slog.Error("failed to update bed condition", "error", updateErr, "bed_id", httpRequest.PathValue("bedId"), "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.ErrorFromAppError(httpResponseWriter, updateErr)
+		render.ServiceError(httpRequest.Context(), httpResponseWriter, "failed to update bed condition", updateErr, "bed_id", httpRequest.PathValue("bedId"))
 		return
 	}
 

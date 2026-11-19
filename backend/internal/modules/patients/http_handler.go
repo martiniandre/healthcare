@@ -2,7 +2,6 @@ package patients
 
 import (
 	"encoding/json"
-	"log/slog"
 	"net/http"
 	"strconv"
 
@@ -56,8 +55,7 @@ func (handler *HTTPHandler) ListPatients(httpResponseWriter http.ResponseWriter,
 
 	patientsList, totalCount, listError := handler.service.ListPatients(httpRequest.Context(), search, sortField, sortDirection, page, limit)
 	if listError != nil {
-		slog.Error("failed to list patients", "error", listError, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.ErrorFromAppError(httpResponseWriter, listError)
+		render.ServiceError(httpRequest.Context(), httpResponseWriter, "failed to list patients", listError)
 		return
 	}
 
@@ -111,8 +109,7 @@ func (handler *HTTPHandler) CreatePatient(httpResponseWriter http.ResponseWriter
 
 	patient, createPatientErr := handler.service.CreatePatient(httpRequest.Context(), input)
 	if createPatientErr != nil {
-		slog.Error("failed to create patient", "error", createPatientErr, "document_id", payload.DocumentID, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.ErrorFromAppError(httpResponseWriter, createPatientErr)
+		render.ServiceError(httpRequest.Context(), httpResponseWriter, "failed to create patient", createPatientErr, "document_id", payload.DocumentID)
 		return
 	}
 
@@ -143,8 +140,7 @@ func (handler *HTTPHandler) GetPatient(httpResponseWriter http.ResponseWriter, h
 
 	patient, getPatientErr := handler.service.GetPatient(httpRequest.Context(), patientFhirID)
 	if getPatientErr != nil {
-		slog.Error("failed to get patient", "error", getPatientErr, "patient_fhir_id", patientFhirID, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.ErrorFromAppError(httpResponseWriter, getPatientErr)
+		render.ServiceError(httpRequest.Context(), httpResponseWriter, "failed to get patient", getPatientErr, "patient_fhir_id", patientFhirID)
 		return
 	}
 

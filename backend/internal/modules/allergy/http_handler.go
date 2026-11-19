@@ -2,7 +2,6 @@ package allergy
 
 import (
 	"encoding/json"
-	"log/slog"
 	"net/http"
 	"time"
 
@@ -43,8 +42,7 @@ func (handler *HTTPHandler) ListAllergiesByPatient(httpResponseWriter http.Respo
 
 	allergiesList, allergiesErr := handler.service.GetAllergyIntolerancesByPatient(httpRequest.Context(), patientFhirID)
 	if allergiesErr != nil {
-		slog.Error("failed to list allergies", "error", allergiesErr, "patient_fhir_id", patientFhirID, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.ErrorFromAppError(httpResponseWriter, allergiesErr)
+		render.ServiceError(httpRequest.Context(), httpResponseWriter, "failed to list allergies", allergiesErr, "patient_fhir_id", patientFhirID)
 		return
 	}
 
@@ -96,8 +94,7 @@ func (handler *HTTPHandler) CreateAllergy(httpResponseWriter http.ResponseWriter
 
 	createdAllergy, createErr := handler.service.CreateAllergyIntolerance(httpRequest.Context(), input)
 	if createErr != nil {
-		slog.Error("failed to create allergy", "error", createErr, "patient_fhir_id", patientFhirID, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.ErrorFromAppError(httpResponseWriter, createErr)
+		render.ServiceError(httpRequest.Context(), httpResponseWriter, "failed to create allergy", createErr, "patient_fhir_id", patientFhirID)
 		return
 	}
 
@@ -137,8 +134,7 @@ func (handler *HTTPHandler) UpdateAllergy(httpResponseWriter http.ResponseWriter
 
 	allergyResult, updateErr := handler.service.UpdateAllergyIntolerance(httpRequest.Context(), allergyFhirID, input)
 	if updateErr != nil {
-		slog.Error("failed to update allergy", "error", updateErr, "allergy_fhir_id", allergyFhirID, "patient_fhir_id", patientFhirID, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.ErrorFromAppError(httpResponseWriter, updateErr)
+		render.ServiceError(httpRequest.Context(), httpResponseWriter, "failed to update allergy", updateErr, "allergy_fhir_id", allergyFhirID, "patient_fhir_id", patientFhirID)
 		return
 	}
 
@@ -157,8 +153,7 @@ func (handler *HTTPHandler) DeleteAllergy(httpResponseWriter http.ResponseWriter
 	allergyFhirID := httpRequest.PathValue("allergyFhirId")
 
 	if deleteErr := handler.service.DeleteAllergyIntolerance(httpRequest.Context(), allergyFhirID); deleteErr != nil {
-		slog.Error("failed to delete allergy", "error", deleteErr, "allergy_fhir_id", allergyFhirID, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.ErrorFromAppError(httpResponseWriter, deleteErr)
+		render.ServiceError(httpRequest.Context(), httpResponseWriter, "failed to delete allergy", deleteErr, "allergy_fhir_id", allergyFhirID)
 		return
 	}
 

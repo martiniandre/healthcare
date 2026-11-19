@@ -1,7 +1,6 @@
 package analytics
 
 import (
-	"log/slog"
 	"net/http"
 
 	"github.com/healthcare/backend/internal/api/middleware"
@@ -40,8 +39,7 @@ func (analyticsHTTPHandler *HTTPHandler) RegisterRoutes(httpServeMux *http.Serve
 func (analyticsHTTPHandler *HTTPHandler) GetStats(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
 	analyticsData, errorInstance := analyticsHTTPHandler.analyticsService.GetStats(httpRequest.Context())
 	if errorInstance != nil {
-		slog.Error("failed to get analytics", "error", errorInstance, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.Error(httpResponseWriter, http.StatusInternalServerError, "Erro ao obter estatísticas.")
+		render.ServiceErrorMessage(httpRequest.Context(), httpResponseWriter, http.StatusInternalServerError, "Erro ao obter estatísticas.", "failed to get analytics", errorInstance)
 		return
 	}
 
@@ -61,8 +59,7 @@ func (analyticsHTTPHandler *HTTPHandler) GetStats(httpResponseWriter http.Respon
 func (analyticsHTTPHandler *HTTPHandler) GetDashboard(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
 	dashboardData, errorInstance := analyticsHTTPHandler.analyticsService.GetDashboardData(httpRequest.Context())
 	if errorInstance != nil {
-		slog.Error("failed to get dashboard data", "error", errorInstance, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.Error(httpResponseWriter, http.StatusInternalServerError, "Erro ao obter dados do dashboard.")
+		render.ServiceErrorMessage(httpRequest.Context(), httpResponseWriter, http.StatusInternalServerError, "Erro ao obter dados do dashboard.", "failed to get dashboard data", errorInstance)
 		return
 	}
 
@@ -82,8 +79,7 @@ func (analyticsHTTPHandler *HTTPHandler) GetDashboard(httpResponseWriter http.Re
 func (analyticsHTTPHandler *HTTPHandler) GetConsultationsPerDoctor(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
 	consultationsPerDoctor, errorInstance := analyticsHTTPHandler.analyticsService.GetConsultationsPerDoctor(httpRequest.Context())
 	if errorInstance != nil {
-		slog.Error("failed to get consultations per doctor", "error", errorInstance, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.Error(httpResponseWriter, http.StatusInternalServerError, "Erro ao obter consultas por médico.")
+		render.ServiceErrorMessage(httpRequest.Context(), httpResponseWriter, http.StatusInternalServerError, "Erro ao obter consultas por médico.", "failed to get consultations per doctor", errorInstance)
 		return
 	}
 
@@ -103,8 +99,7 @@ func (analyticsHTTPHandler *HTTPHandler) GetConsultationsPerDoctor(httpResponseW
 func (analyticsHTTPHandler *HTTPHandler) GetOccupancyRate(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
 	occupancyRate, errorInstance := analyticsHTTPHandler.analyticsService.GetOccupancyRate(httpRequest.Context())
 	if errorInstance != nil {
-		slog.Error("failed to get occupancy rate", "error", errorInstance, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.Error(httpResponseWriter, http.StatusInternalServerError, "Erro ao obter taxa de ocupação.")
+		render.ServiceErrorMessage(httpRequest.Context(), httpResponseWriter, http.StatusInternalServerError, "Erro ao obter taxa de ocupação.", "failed to get occupancy rate", errorInstance)
 		return
 	}
 
@@ -124,8 +119,7 @@ func (analyticsHTTPHandler *HTTPHandler) GetOccupancyRate(httpResponseWriter htt
 func (analyticsHTTPHandler *HTTPHandler) GetAvgWaitTime(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
 	avgWaitTime, errorInstance := analyticsHTTPHandler.analyticsService.GetAvgWaitTime(httpRequest.Context())
 	if errorInstance != nil {
-		slog.Error("failed to get average wait time", "error", errorInstance, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.Error(httpResponseWriter, http.StatusInternalServerError, "Erro ao obter tempo médio de espera.")
+		render.ServiceErrorMessage(httpRequest.Context(), httpResponseWriter, http.StatusInternalServerError, "Erro ao obter tempo médio de espera.", "failed to get average wait time", errorInstance)
 		return
 	}
 
@@ -145,8 +139,7 @@ func (analyticsHTTPHandler *HTTPHandler) GetAvgWaitTime(httpResponseWriter http.
 func (analyticsHTTPHandler *HTTPHandler) GetTopDiagnoses(httpResponseWriter http.ResponseWriter, httpRequest *http.Request) {
 	topDiagnoses, errorInstance := analyticsHTTPHandler.analyticsService.GetTopDiagnoses(httpRequest.Context())
 	if errorInstance != nil {
-		slog.Error("failed to get top diagnoses", "error", errorInstance, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.Error(httpResponseWriter, http.StatusInternalServerError, "Erro ao obter principais diagnósticos.")
+		render.ServiceErrorMessage(httpRequest.Context(), httpResponseWriter, http.StatusInternalServerError, "Erro ao obter principais diagnósticos.", "failed to get top diagnoses", errorInstance)
 		return
 	}
 

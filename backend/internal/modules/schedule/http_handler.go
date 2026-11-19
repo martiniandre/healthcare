@@ -4,7 +4,6 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
-	"log/slog"
 	"net/http"
 	"time"
 
@@ -79,8 +78,7 @@ func (handler *HTTPHandler) CreateAppointment(httpResponseWriter http.ResponseWr
 		RequestHash:    computeRequestHash(payload),
 	})
 	if createErr != nil {
-		slog.Error("failed to create appointment", "error", createErr, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.ErrorFromAppError(httpResponseWriter, createErr)
+		render.ServiceError(httpRequest.Context(), httpResponseWriter, "failed to create appointment", createErr)
 		return
 	}
 
@@ -295,8 +293,7 @@ func (handler *HTTPHandler) UpdateAppointment(httpResponseWriter http.ResponseWr
 		Reason:        payload.Reason,
 	})
 	if updateErr != nil {
-		slog.Error("failed to update appointment", "error", updateErr, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.ErrorFromAppError(httpResponseWriter, updateErr)
+		render.ServiceError(httpRequest.Context(), httpResponseWriter, "failed to update appointment", updateErr)
 		return
 	}
 

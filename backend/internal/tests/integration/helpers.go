@@ -137,10 +137,6 @@ func decodeJSONResponse(t *testing.T, response *http.Response, target interface{
 	}
 }
 
-func responseStatusCode(response *http.Response) int {
-	return response.StatusCode
-}
-
 func requireStatusCode(t *testing.T, response *http.Response, expectedStatus int) {
 	t.Helper()
 	if response.StatusCode != expectedStatus {

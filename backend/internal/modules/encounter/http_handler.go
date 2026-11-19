@@ -2,7 +2,6 @@ package encounter
 
 import (
 	"encoding/json"
-	"log/slog"
 	"net/http"
 	"time"
 
@@ -44,8 +43,7 @@ func (handler *HTTPHandler) ListEncountersByPatient(httpResponseWriter http.Resp
 
 	encountersList, encountersErr := handler.service.GetEncountersByPatient(httpRequest.Context(), patientFhirID)
 	if encountersErr != nil {
-		slog.Error("failed to list encounters", "error", encountersErr, "patient_fhir_id", patientFhirID, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.ErrorFromAppError(httpResponseWriter, encountersErr)
+		render.ServiceError(httpRequest.Context(), httpResponseWriter, "failed to list encounters", encountersErr, "patient_fhir_id", patientFhirID)
 		return
 	}
 
@@ -96,8 +94,7 @@ func (handler *HTTPHandler) CreateEncounter(httpResponseWriter http.ResponseWrit
 
 	createdEncounter, createErr := handler.service.CreateEncounter(httpRequest.Context(), input)
 	if createErr != nil {
-		slog.Error("failed to create encounter", "error", createErr, "patient_fhir_id", patientFhirID, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.ErrorFromAppError(httpResponseWriter, createErr)
+		render.ServiceError(httpRequest.Context(), httpResponseWriter, "failed to create encounter", createErr, "patient_fhir_id", patientFhirID)
 		return
 	}
 
@@ -116,8 +113,7 @@ func (handler *HTTPHandler) GetEncounter(httpResponseWriter http.ResponseWriter,
 
 	encounter, encounterErr := handler.service.GetEncounter(httpRequest.Context(), encounterFhirID)
 	if encounterErr != nil {
-		slog.Error("failed to get encounter", "error", encounterErr, "encounter_fhir_id", encounterFhirID, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.ErrorFromAppError(httpResponseWriter, encounterErr)
+		render.ServiceError(httpRequest.Context(), httpResponseWriter, "failed to get encounter", encounterErr, "encounter_fhir_id", encounterFhirID)
 		return
 	}
 
@@ -155,8 +151,7 @@ func (handler *HTTPHandler) UpdateEncounter(httpResponseWriter http.ResponseWrit
 
 	result, updateErr := handler.service.UpdateEncounter(httpRequest.Context(), encounterFhirID, input)
 	if updateErr != nil {
-		slog.Error("failed to update encounter", "error", updateErr, "encounter_fhir_id", encounterFhirID, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.ErrorFromAppError(httpResponseWriter, updateErr)
+		render.ServiceError(httpRequest.Context(), httpResponseWriter, "failed to update encounter", updateErr, "encounter_fhir_id", encounterFhirID)
 		return
 	}
 
@@ -175,8 +170,7 @@ func (handler *HTTPHandler) DeleteEncounter(httpResponseWriter http.ResponseWrit
 
 	deleteErr := handler.service.DeleteEncounter(httpRequest.Context(), encounterFhirID)
 	if deleteErr != nil {
-		slog.Error("failed to delete encounter", "error", deleteErr, "encounter_fhir_id", encounterFhirID, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.ErrorFromAppError(httpResponseWriter, deleteErr)
+		render.ServiceError(httpRequest.Context(), httpResponseWriter, "failed to delete encounter", deleteErr, "encounter_fhir_id", encounterFhirID)
 		return
 	}
 

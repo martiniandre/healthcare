@@ -2,7 +2,6 @@ package diagnostic_report
 
 import (
 	"encoding/json"
-	"log/slog"
 	"net/http"
 	"time"
 
@@ -44,8 +43,7 @@ func (handler *HTTPHandler) ListReportsByEncounter(httpResponseWriter http.Respo
 
 	reportsList, reportsErr := handler.service.GetDiagnosticReportsByEncounter(httpRequest.Context(), encounterFhirID)
 	if reportsErr != nil {
-		slog.Error("failed to list reports", "error", reportsErr, "encounter_fhir_id", encounterFhirID, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.ErrorFromAppError(httpResponseWriter, reportsErr)
+		render.ServiceError(httpRequest.Context(), httpResponseWriter, "failed to list reports", reportsErr, "encounter_fhir_id", encounterFhirID)
 		return
 	}
 
@@ -97,8 +95,7 @@ func (handler *HTTPHandler) CreateReport(httpResponseWriter http.ResponseWriter,
 		Conclusion:      payload.Conclusion,
 	})
 	if createErr != nil {
-		slog.Error("failed to create diagnostic report", "error", createErr, "encounter_fhir_id", encounterFhirID, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.ErrorFromAppError(httpResponseWriter, createErr)
+		render.ServiceError(httpRequest.Context(), httpResponseWriter, "failed to create diagnostic report", createErr, "encounter_fhir_id", encounterFhirID)
 		return
 	}
 
@@ -144,8 +141,7 @@ func (handler *HTTPHandler) UpdateReport(httpResponseWriter http.ResponseWriter,
 		Status:        payload.Status,
 	})
 	if updateErr != nil {
-		slog.Error("failed to update diagnostic report", "error", updateErr, "report_fhir_id", reportFhirID, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.ErrorFromAppError(httpResponseWriter, updateErr)
+		render.ServiceError(httpRequest.Context(), httpResponseWriter, "failed to update diagnostic report", updateErr, "report_fhir_id", reportFhirID)
 		return
 	}
 
@@ -177,8 +173,7 @@ func (handler *HTTPHandler) ListReportVersions(httpResponseWriter http.ResponseW
 
 	versions, listErr := handler.service.GetDiagnosticReportVersions(httpRequest.Context(), reportFhirID)
 	if listErr != nil {
-		slog.Error("failed to list report versions", "error", listErr, "report_fhir_id", reportFhirID, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.ErrorFromAppError(httpResponseWriter, listErr)
+		render.ServiceError(httpRequest.Context(), httpResponseWriter, "failed to list report versions", listErr, "report_fhir_id", reportFhirID)
 		return
 	}
 
@@ -209,8 +204,7 @@ func (handler *HTTPHandler) GetReportVersion(httpResponseWriter http.ResponseWri
 
 	versionEntry, getErr := handler.service.GetDiagnosticReportVersion(httpRequest.Context(), reportFhirID, version)
 	if getErr != nil {
-		slog.Error("failed to get report version", "error", getErr, "report_fhir_id", reportFhirID, "version", version, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.ErrorFromAppError(httpResponseWriter, getErr)
+		render.ServiceError(httpRequest.Context(), httpResponseWriter, "failed to get report version", getErr, "report_fhir_id", reportFhirID, "version", version)
 		return
 	}
 

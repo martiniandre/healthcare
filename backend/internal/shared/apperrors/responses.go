@@ -8,19 +8,6 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-func BadRequest(message string, fieldViolations map[string]string) error {
-	if len(fieldViolations) == 0 {
-		return status.Error(codes.InvalidArgument, message)
-	}
-
-	violations := make([]string, 0, len(fieldViolations))
-	for field, description := range fieldViolations {
-		violations = append(violations, fmt.Sprintf("%s: %s", field, description))
-	}
-
-	return status.Errorf(codes.InvalidArgument, "%s — %s", message, strings.Join(violations, ", "))
-}
-
 func InvalidArgument(message string, fieldViolations map[string]string) AppError {
 	appError := ErrBadRequest
 	if message != "" {
@@ -50,10 +37,6 @@ func Unauthenticated(reason string) error {
 
 func PermissionDenied(reason string) error {
 	return status.Errorf(codes.PermissionDenied, "permission denied: %s", reason)
-}
-
-func InternalError(reason string) error {
-	return status.Errorf(codes.Internal, "internal error: %s", reason)
 }
 
 func Unavailable(reason string) error {

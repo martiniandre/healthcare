@@ -2,7 +2,6 @@ package schedule
 
 import (
 	"encoding/json"
-	"log/slog"
 	"net/http"
 	"time"
 
@@ -57,8 +56,7 @@ func (handler *UnavailabilityHTTPHandler) CreateUnavailability(httpResponseWrite
 		Reason:   payload.Reason,
 	})
 	if createErr != nil {
-		slog.Error("failed to create staff unavailability", "error", createErr, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.ErrorFromAppError(httpResponseWriter, createErr)
+		render.ServiceError(httpRequest.Context(), httpResponseWriter, "failed to create staff unavailability", createErr)
 		return
 	}
 

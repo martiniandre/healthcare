@@ -2,7 +2,6 @@ package audit_logs
 
 import (
 	"encoding/json"
-	"log/slog"
 	"net/http"
 	"strconv"
 
@@ -58,8 +57,7 @@ func (auditLogsHTTPHandler *HTTPHandler) ListAuditLogs(httpResponseWriter http.R
 
 	logs, totalCount, listError := auditLogsHTTPHandler.service.ListAuditLogs(httpRequest.Context(), limit, offset)
 	if listError != nil {
-		slog.Error("failed to list audit logs", "error", listError, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.Error(httpResponseWriter, http.StatusInternalServerError, "Erro ao listar logs de auditoria.")
+		render.ServiceErrorMessage(httpRequest.Context(), httpResponseWriter, http.StatusInternalServerError, "Erro ao listar logs de auditoria.", "failed to list audit logs", listError)
 		return
 	}
 
@@ -126,22 +124,11 @@ func (auditLogsHTTPHandler *HTTPHandler) CreateAuditLog(httpResponseWriter http.
 		)
 	}
 	if createError != nil {
-		slog.Error("failed to create audit log", "error", createError, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.Error(httpResponseWriter, http.StatusInternalServerError, "Erro ao criar log de auditoria.")
+		render.ServiceErrorMessage(httpRequest.Context(), httpResponseWriter, http.StatusInternalServerError, "Erro ao criar log de auditoria.", "failed to create audit log", createError)
 		return
 	}
 
 	render.JSON(httpResponseWriter, http.StatusCreated, auditLog)
-}
-
-type AuditLogEntryResponse struct {
-	ID            string `json:"id"`
-	CorrelationID string `json:"correlation_id"`
-	CallerUserID  string `json:"caller_user_id"`
-	CallerRole    string `json:"caller_role"`
-	Method        string `json:"method"`
-	AccessGranted bool   `json:"access_granted"`
-	CreatedAt     string `json:"created_at"`
 }
 
 type AuditLogListResponse struct {

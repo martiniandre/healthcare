@@ -3,7 +3,6 @@ package medication
 import (
 	"encoding/json"
 	"errors"
-	"log/slog"
 	"net/http"
 	"time"
 
@@ -48,8 +47,7 @@ func (handler *HTTPHandler) ListMedicationsByEncounter(httpResponseWriter http.R
 
 	medicationsList, medicationsErr := handler.service.GetMedicationRequestsByEncounter(httpRequest.Context(), encounterFhirID)
 	if medicationsErr != nil {
-		slog.Error("failed to list medications", "error", medicationsErr, "encounter_fhir_id", encounterFhirID, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.ErrorFromAppError(httpResponseWriter, medicationsErr)
+		render.ServiceError(httpRequest.Context(), httpResponseWriter, "failed to list medications", medicationsErr, "encounter_fhir_id", encounterFhirID)
 		return
 	}
 
@@ -121,8 +119,7 @@ func (handler *HTTPHandler) CreateMedication(httpResponseWriter http.ResponseWri
 			})
 			return
 		}
-		slog.Error("failed to create medication request", "error", createErr, "encounter_fhir_id", encounterFhirID, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.ErrorFromAppError(httpResponseWriter, createErr)
+		render.ServiceError(httpRequest.Context(), httpResponseWriter, "failed to create medication request", createErr, "encounter_fhir_id", encounterFhirID)
 		return
 	}
 
@@ -173,8 +170,7 @@ func (handler *HTTPHandler) CheckMedicationSafety(httpResponseWriter http.Respon
 		MedicationName: payload.MedicationName,
 	})
 	if checkErr != nil {
-		slog.Error("failed to check medication safety", "error", checkErr, "patient_fhir_id", patientFhirID, "request_id", middleware.GetRequestID(httpRequest.Context()))
-		render.ErrorFromAppError(httpResponseWriter, checkErr)
+		render.ServiceError(httpRequest.Context(), httpResponseWriter, "failed to check medication safety", checkErr, "patient_fhir_id", patientFhirID)
 		return
 	}
 
