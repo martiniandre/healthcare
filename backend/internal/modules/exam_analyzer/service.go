@@ -42,7 +42,7 @@ func NewService(repository Repository, storageClient storage.StorageClient, proj
 	ctx := context.Background()
 	googleHTTPClient, err := google.DefaultClient(ctx, "https://www.googleapis.com/auth/cloud-platform")
 	if err != nil {
-		slog.Warn("Failed to create Google credentials client for Vertex, falling back to simulator", "error", err)
+		slog.Warn("failed to create google credentials client for vertex, falling back to simulator", "error", err)
 		googleHTTPClient = &http.Client{}
 	}
 	googleHTTPClient.Timeout = vertexRequestTimeout
@@ -103,7 +103,7 @@ func (svc *service) AnalyzeExamFile(ctx context.Context, fileName string, fileBy
 		if parseErr == nil {
 			return analysisResponse, "completed", nil
 		}
-		slog.Error("Vertex AI call failed. Falling back to heuristic simulator.", "error", parseErr, "fileName", fileName)
+		slog.ErrorContext(ctx, "vertex ai call failed, falling back to heuristic simulator", "error", parseErr, "file_name", fileName)
 	}
 
 	simulatedResponse := svc.runHeuristicSimulation(fileName)

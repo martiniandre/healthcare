@@ -56,7 +56,7 @@ func AuditTrail(next http.Handler) http.Handler {
 			Action:        action,
 		})
 		if auditError != nil {
-			slog.Error("failed to persist http audit log", "error", auditError, "route", httpRequest.URL.Path)
+			slog.ErrorContext(httpRequest.Context(), "failed to persist http audit log", "error", auditError, "route", httpRequest.URL.Path)
 		}
 	})
 }

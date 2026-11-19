@@ -33,7 +33,7 @@ func NewWorker(repository Repository, service Service, storageClient storage.Sto
 }
 
 func (worker *Worker) Start(ctx context.Context) {
-	slog.Info("Exam Analyzer Background Worker initialized")
+	slog.Info("exam analyzer background worker initialized")
 
 	for {
 		select {
@@ -58,21 +58,21 @@ func (worker *Worker) Stop() {
 func (worker *Worker) processAnalysisJob(ctx context.Context, analysisID uuid.UUID) {
 	analysisRecord, err := worker.repository.GetAnalysis(ctx, analysisID)
 	if err != nil {
-		slog.Error("Failed to fetch analysis record for processing", "analysisID", analysisID, "error", err)
+		slog.Error("failed to fetch analysis record for processing", "analysis_id", analysisID, "error", err)
 		return
 	}
 
 	analysisRecord.Status = "processing"
 	analysisRecord.UpdatedAt = time.Now()
 	if updateErr := worker.repository.UpdateAnalysis(ctx, analysisRecord); updateErr != nil {
-		slog.Error("Failed to update status to processing", "analysisID", analysisID, "error", updateErr)
+		slog.Error("failed to update status to processing", "analysis_id", analysisID, "error", updateErr)
 		return
 	}
 
 	objectKey := buildExamStorageKey(analysisID, patientIDOrDefault(analysisRecord.PatientFhirID), analysisRecord.FileName)
 	objectReader, readError := worker.storageClient.Read(ctx, objectKey)
 	if readError != nil {
-		slog.Error("Failed to read exam object from storage", "analysisID", analysisID, "error", readError)
+		slog.Error("failed to read exam object from storage", "analysis_id", analysisID, "error", readError)
 		analysisRecord.Status = "failed"
 		analysisRecord.UpdatedAt = time.Now()
 		_ = worker.repository.UpdateAnalysis(ctx, analysisRecord)
@@ -82,7 +82,7 @@ func (worker *Worker) processAnalysisJob(ctx context.Context, analysisID uuid.UU
 
 	fileBytes, readAllError := io.ReadAll(objectReader)
 	if readAllError != nil {
-		slog.Error("Failed to read exam object bytes", "analysisID", analysisID, "error", readAllError)
+		slog.Error("failed to read exam object bytes", "analysis_id", analysisID, "error", readAllError)
 		analysisRecord.Status = "failed"
 		analysisRecord.UpdatedAt = time.Now()
 		_ = worker.repository.UpdateAnalysis(ctx, analysisRecord)
@@ -91,7 +91,7 @@ func (worker *Worker) processAnalysisJob(ctx context.Context, analysisID uuid.UU
 
 	preparedInput, prepareErr := prepareAIInput(analysisRecord, fileBytes)
 	if prepareErr != nil {
-		slog.Error("Failed to prepare exam content for AI analysis", "analysisID", analysisID, "error", prepareErr)
+		slog.Error("failed to prepare exam content for ai analysis", "analysis_id", analysisID, "error", prepareErr)
 		analysisRecord.Status = "failed"
 		analysisRecord.UpdatedAt = time.Now()
 		_ = worker.repository.UpdateAnalysis(ctx, analysisRecord)
@@ -111,14 +111,14 @@ func (worker *Worker) processAnalysisJob(ctx context.Context, analysisID uuid.UU
 			break
 		}
 
-		slog.Warn("Error during medical exam analysis execution, retrying...", "analysisID", analysisID, "attempt", attempt, "error", err)
+		slog.Warn("medical exam analysis attempt failed, retrying", "analysis_id", analysisID, "attempt", attempt, "error", err)
 		if attempt < maxRetries {
 			time.Sleep(time.Duration(attempt*2) * time.Second)
 		}
 	}
 
 	if err != nil {
-		slog.Error("Max retries reached. Medical exam analysis failed", "analysisID", analysisID, "error", err)
+		slog.Error("medical exam analysis failed after max retries", "analysis_id", analysisID, "error", err)
 		analysisRecord.Status = "failed"
 		analysisRecord.UpdatedAt = time.Now()
 		_ = worker.repository.UpdateAnalysis(ctx, analysisRecord)
@@ -149,7 +149,7 @@ func (worker *Worker) processAnalysisJob(ctx context.Context, analysisID uuid.UU
 		analysisRecord.ExamType = &examTypeString
 		responseBytes, marshalErr := json.Marshal(analysisResponse)
 		if marshalErr != nil {
-			slog.Error("Failed to marshal analysis response", "analysisID", analysisID, "error", marshalErr)
+			slog.Error("failed to marshal analysis response", "analysis_id", analysisID, "error", marshalErr)
 			analysisRecord.Status = "failed"
 		} else {
 			analysisRecord.AnalysisResponse = json.RawMessage(responseBytes)
@@ -158,7 +158,7 @@ func (worker *Worker) processAnalysisJob(ctx context.Context, analysisID uuid.UU
 
 	analysisRecord.UpdatedAt = time.Now()
 	if updateErr := worker.repository.UpdateAnalysis(ctx, analysisRecord); updateErr != nil {
-		slog.Error("Failed to save final analysis results to database", "analysisID", analysisID, "error", updateErr)
+		slog.Error("failed to save final analysis results to database", "analysis_id", analysisID, "error", updateErr)
 		return
 	}
 

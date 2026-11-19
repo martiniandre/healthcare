@@ -71,6 +71,6 @@ func (limiter *FallbackLimiter) recordPrimaryFailure(now time.Time, primaryError
 	limiter.mu.Unlock()
 
 	if shouldWarn {
-		slog.Warn("Shared rate limiter unavailable, using local in-memory fallback", "error", primaryError, "cooldown", primaryFailureCooldown)
+		slog.Warn("shared rate limiter unavailable, using local in-memory fallback", "error", primaryError, "cooldown", primaryFailureCooldown)
 	}
 }

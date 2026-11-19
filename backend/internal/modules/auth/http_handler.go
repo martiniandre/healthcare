@@ -210,7 +210,7 @@ func (handler *HTTPHandler) HandleRefresh(httpResponseWriter http.ResponseWriter
 	refreshedUser, sessionTokens, refreshError := handler.service.Refresh(httpRequest.Context(), refreshCookie.Value, extractClientInfo(httpRequest))
 	if refreshError != nil {
 		if isRefreshRejection(refreshError) {
-			slog.Warn("Session refresh rejected", "error", refreshError)
+			slog.WarnContext(httpRequest.Context(), "session refresh rejected", "error", refreshError)
 			handler.clearSessionCookies(httpResponseWriter)
 			render.Error(httpResponseWriter, http.StatusUnauthorized, "Sessão expirada.")
 			return
@@ -271,7 +271,7 @@ func (handler *HTTPHandler) HandleLogout(httpResponseWriter http.ResponseWriter,
 
 	if hasRefreshCookie {
 		if revokeFamilyError := handler.service.Logout(httpRequest.Context(), refreshCookie.Value); revokeFamilyError != nil {
-			slog.Error("Failed to revoke refresh token family on logout", "error", revokeFamilyError)
+			slog.ErrorContext(httpRequest.Context(), "failed to revoke refresh token family on logout", "error", revokeFamilyError)
 		}
 	}
 

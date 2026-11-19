@@ -240,13 +240,13 @@ func distinctAlertKinds(alerts []SafetyAlert) []string {
 
 func (medicationService *service) discardOverride(ctx context.Context, overrideID uuid.UUID) {
 	if discardErr := medicationService.safety.Overrides.DiscardOverride(ctx, overrideID); discardErr != nil {
-		slog.Error("failed to discard medication safety override after creation failure", "error", discardErr, "override_id", overrideID.String())
+		slog.ErrorContext(ctx, "failed to discard medication safety override after creation failure", "error", discardErr, "override_id", overrideID.String())
 	}
 }
 
 func (medicationService *service) finalizeOverride(ctx context.Context, override *SafetyOverride, medicationRequestFHIRID string, blockingAlerts []SafetyAlert) {
 	if linkErr := medicationService.safety.Overrides.LinkMedicationRequest(ctx, override.ID, medicationRequestFHIRID); linkErr != nil {
-		slog.Error("failed to link medication safety override to medication request", "error", linkErr, "override_id", override.ID.String(), "medication_request_fhir_id", medicationRequestFHIRID)
+		slog.ErrorContext(ctx, "failed to link medication safety override to medication request", "error", linkErr, "override_id", override.ID.String(), "medication_request_fhir_id", medicationRequestFHIRID)
 	}
 	relatedResourceIDs := make([]string, 0, len(blockingAlerts))
 	for _, alert := range blockingAlerts {
@@ -263,7 +263,7 @@ func (medicationService *service) finalizeOverride(ctx context.Context, override
 		RelatedResourceIDs:      relatedResourceIDs,
 	})
 	if auditErr != nil {
-		slog.Error("failed to audit medication safety override", "error", auditErr, "override_id", override.ID.String(), "medication_request_fhir_id", medicationRequestFHIRID)
+		slog.ErrorContext(ctx, "failed to audit medication safety override", "error", auditErr, "override_id", override.ID.String(), "medication_request_fhir_id", medicationRequestFHIRID)
 	}
 }
 

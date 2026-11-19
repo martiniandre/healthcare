@@ -56,7 +56,7 @@ func RateLimit(trustedNetworks []*net.IPNet, limiter ratelimit.Limiter) func(htt
 
 			allowed, retryAfter, limiterError := limiter.Allow(httpRequest.Context(), limiterKey, budget)
 			if limiterError != nil {
-				slog.Warn("Rate limiter failed, allowing request", "error", limiterError)
+				slog.WarnContext(httpRequest.Context(), "rate limiter failed, allowing request", "error", limiterError)
 			}
 			if limiterError == nil && !allowed {
 				retryAfterSeconds := int(math.Ceil(retryAfter.Seconds()))

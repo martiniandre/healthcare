@@ -210,7 +210,7 @@ func (handler *HTTPHandler) StreamNotifications(httpResponseWriter http.Response
 
 			eventData, jsonError := json.Marshal(toNotificationResponse(notification))
 			if jsonError != nil {
-				slog.Error("failed to marshal SSE event", "error", jsonError)
+				slog.ErrorContext(httpRequest.Context(), "failed to marshal sse event", "error", jsonError)
 				continue
 			}
 

@@ -173,7 +173,7 @@ func (handler *HTTPHandler) GetStudy(httpResponseWriter http.ResponseWriter, htt
 
 	downloadURL, _, downloadErr := handler.service.GetDownloadURL(httpRequest.Context(), studyID)
 	if downloadErr != nil {
-		slog.Warn("failed to generate download URL", "study_id", studyID, "error", downloadErr)
+		slog.WarnContext(httpRequest.Context(), "failed to generate download url", "study_id", studyID, "error", downloadErr)
 		downloadURL = ""
 	}
 

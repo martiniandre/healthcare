@@ -43,7 +43,7 @@ func resolveBudget(fullMethod string) ratelimit.Budget {
 func isRateLimitExceeded(ctx context.Context, limiter ratelimit.Limiter, key string, budget ratelimit.Budget) bool {
 	allowed, _, limiterError := limiter.Allow(ctx, key, budget)
 	if limiterError != nil {
-		slog.Warn("gRPC rate limiter failed, allowing request", "error", limiterError)
+		slog.WarnContext(ctx, "grpc rate limiter failed, allowing request", "error", limiterError)
 		return false
 	}
 	return !allowed

@@ -9,7 +9,7 @@ import (
 
 func Connect(ctx context.Context, dbUrl string) (*pgxpool.Pool, error) {
 	if dbUrl == "" {
-		slog.Warn("DB_URL is empty, skipping database connection")
+		slog.Warn("database url is empty, skipping database connection")
 		return nil, nil
 	}
 
@@ -27,6 +27,6 @@ func Connect(ctx context.Context, dbUrl string) (*pgxpool.Pool, error) {
 		return nil, err
 	}
 
-	slog.Info("Connected to PostgreSQL database successfully")
+	slog.Info("connected to postgresql")
 	return pool, nil
 }

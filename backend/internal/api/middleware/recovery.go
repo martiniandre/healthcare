@@ -11,7 +11,7 @@ func Recovery(next http.Handler) http.Handler {
 		defer func() {
 			recoveredValue := recover()
 			if recoveredValue != nil {
-				slog.Error("panic recovered in HTTP handler",
+				slog.ErrorContext(httpRequest.Context(), "panic recovered in http handler",
 					"panic", recoveredValue,
 					"path", httpRequest.URL.Path,
 					"method", httpRequest.Method,

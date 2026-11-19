@@ -27,14 +27,14 @@ func RunFromSource(sourcePath string, databaseURL string) error {
 
 	err = migrationInstance.Up()
 	if errors.Is(err, migrate.ErrNoChange) {
-		slog.Info("Database migrations: no changes to apply")
+		slog.Info("database migrations: no changes to apply")
 		return nil
 	}
 	if err != nil {
 		return err
 	}
 
-	slog.Info("Database migrations applied successfully")
+	slog.Info("database migrations applied")
 	return nil
 }
 

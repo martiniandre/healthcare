@@ -44,7 +44,7 @@ func UnaryAuditTrailInterceptor() grpc.UnaryServerInterceptor {
 						executionError == nil,
 					)
 					if logError != nil {
-						slog.Error("failed to persist unary audit log", "error", logError)
+						slog.Error("failed to persist unary audit log", "error", logError, "request_id", correlationID, "method", serverInfo.FullMethod)
 					}
 				} else {
 					slog.Info("audit trail",
@@ -126,7 +126,7 @@ func StreamAuditTrailInterceptor() grpc.StreamServerInterceptor {
 						executionError == nil,
 					)
 					if logError != nil {
-						slog.Error("failed to persist stream audit log", "error", logError)
+						slog.Error("failed to persist stream audit log", "error", logError, "request_id", correlationID, "method", streamInfo.FullMethod)
 					}
 				} else {
 					slog.Info("audit trail",

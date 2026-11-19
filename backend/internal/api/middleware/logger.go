@@ -37,12 +37,11 @@ func Logger(next http.Handler) http.Handler {
 
 		next.ServeHTTP(recorder, httpRequest)
 
-		slog.Info("http request",
+		slog.InfoContext(httpRequest.Context(), "http request",
 			"method", httpRequest.Method,
 			"path", httpRequest.URL.Path,
 			"status", recorder.statusCode,
 			"duration_ms", time.Since(requestStartTime).Milliseconds(),
-			"request_id", GetRequestID(httpRequest.Context()),
 		)
 	})
 }

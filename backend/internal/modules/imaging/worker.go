@@ -35,7 +35,7 @@ func NewWorker(dbRepository Repository, redisClient *redis.Client, healthcareCli
 }
 
 func (worker *Worker) Start(ctx context.Context) {
-	slog.Info("imaging background worker started successfully")
+	slog.Info("imaging background worker started")
 	for {
 		select {
 		case <-worker.stopChannel:
@@ -77,30 +77,30 @@ func (worker *Worker) Stop() {
 func (worker *Worker) processDICOM(ctx context.Context, studyIDString string) {
 	studyID, parseError := uuid.Parse(studyIDString)
 	if parseError != nil {
-		slog.Error("failed to parse study id from queue", "id", studyIDString, "error", parseError)
+		slog.Error("failed to parse study id from queue", "study_id", studyIDString, "error", parseError)
 		return
 	}
 
 	study, dbError := worker.dbRepository.GetImagingStudy(ctx, studyID)
 	if dbError != nil {
-		slog.Error("failed to fetch operational study from db", "id", studyIDString, "error", dbError)
+		slog.Error("failed to fetch operational study from db", "study_id", studyIDString, "error", dbError)
 		return
 	}
 
 	study.Status = ImagingStudyStatusProcessing
 	study.UpdatedAt = time.Now()
 	if updateError := worker.dbRepository.UpdateImagingStudy(ctx, study); updateError != nil {
-		slog.Error("failed to mark imaging study as processing", "id", studyIDString, "error", updateError)
+		slog.Error("failed to mark imaging study as processing", "study_id", studyIDString, "error", updateError)
 		return
 	}
 
 	imagingSeries, seriesError := worker.buildImagingSeries(ctx, study)
 	if seriesError != nil {
-		slog.Error("failed to load imaging study instances", "id", studyIDString, "error", seriesError)
+		slog.Error("failed to load imaging study instances", "study_id", studyIDString, "error", seriesError)
 		study.Status = ImagingStudyStatusFailed
 		study.UpdatedAt = time.Now()
 		if updateError := worker.dbRepository.UpdateImagingStudy(ctx, study); updateError != nil {
-			slog.Error("failed to persist failed imaging study status", "id", studyIDString, "error", updateError)
+			slog.Error("failed to persist failed imaging study status", "study_id", studyIDString, "error", updateError)
 		}
 		return
 	}
@@ -124,7 +124,7 @@ func (worker *Worker) processDICOM(ctx context.Context, studyIDString string) {
 	}
 
 	if registrationError != nil {
-		slog.Error("failed to register ImagingStudy FHIR resource", "id", studyIDString, "error", registrationError)
+		slog.Error("failed to register imaging study fhir resource", "study_id", studyIDString, "error", registrationError)
 		study.Status = ImagingStudyStatusFailed
 	} else {
 		study.Status = ImagingStudyStatusReady
@@ -132,10 +132,10 @@ func (worker *Worker) processDICOM(ctx context.Context, studyIDString string) {
 
 	study.UpdatedAt = time.Now()
 	if updateError := worker.dbRepository.UpdateImagingStudy(ctx, study); updateError != nil {
-		slog.Error("failed to persist processed imaging study status", "id", studyIDString, "status", study.Status, "error", updateError)
+		slog.Error("failed to persist processed imaging study status", "study_id", studyIDString, "status", study.Status, "error", updateError)
 		return
 	}
-	slog.Info("imaging study processed and registered successfully", "id", studyIDString, "status", study.Status)
+	slog.Info("imaging study processed and registered successfully", "study_id", studyIDString, "status", study.Status)
 }
 
 func (worker *Worker) registerImagingStudy(ctx context.Context, study *ImagingStudy, fhirStudy *fhir.ImagingStudyResource) error {

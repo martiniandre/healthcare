@@ -12,13 +12,14 @@ import (
 
 	"github.com/healthcare/backend/internal/shared/apperrors"
 	"github.com/healthcare/backend/internal/shared/ctxkeys"
+	"github.com/healthcare/backend/internal/shared/logger"
 )
 
 func captureLogs(testingT *testing.T) *bytes.Buffer {
 	testingT.Helper()
 	logBuffer := &bytes.Buffer{}
 	previousLogger := slog.Default()
-	slog.SetDefault(slog.New(slog.NewJSONHandler(logBuffer, &slog.HandlerOptions{Level: slog.LevelDebug})))
+	slog.SetDefault(slog.New(logger.NewContextHandler(slog.NewJSONHandler(logBuffer, &slog.HandlerOptions{Level: slog.LevelDebug}))))
 	testingT.Cleanup(func() { slog.SetDefault(previousLogger) })
 	return logBuffer
 }

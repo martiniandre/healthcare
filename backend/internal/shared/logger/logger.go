@@ -14,7 +14,7 @@ func Init(env, sentryDSN string) {
 	} else {
 		handler = slog.NewTextHandler(os.Stdout, nil)
 	}
-	logger := slog.New(handler)
+	logger := slog.New(NewContextHandler(handler))
 	slog.SetDefault(logger)
 
 	if sentryDSN != "" {
@@ -24,9 +24,9 @@ func Init(env, sentryDSN string) {
 			TracesSampleRate: 1.0,
 		})
 		if err != nil {
-			slog.Error("Failed to initialize Sentry", "error", err)
+			slog.Error("failed to initialize sentry", "error", err)
 		} else {
-			slog.Info("Sentry initialized successfully")
+			slog.Info("sentry initialized")
 		}
 	}
 }

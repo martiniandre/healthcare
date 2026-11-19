@@ -82,7 +82,7 @@ func (timelineService *service) GetTimeline(ctx context.Context, input ListInput
 			defer cancel()
 			entries, fetchError := timelineService.repository.ListEntries(fetchContext, entryType, fetchQuery)
 			if fetchError != nil {
-				slog.Error("failed to fetch timeline entries", "error", fetchError, "entry_type", entryType, "patient_fhir_id", parameters.patientFHIRID)
+				slog.ErrorContext(ctx, "failed to fetch timeline entries", "error", fetchError, "entry_type", entryType, "patient_fhir_id", parameters.patientFHIRID)
 				outcomes[typeIndex] = fetchOutcome{failed: true}
 				return
 			}
@@ -95,7 +95,7 @@ func (timelineService *service) GetTimeline(ctx context.Context, input ListInput
 		if healthcare.IsNotFound(patientError) {
 			return nil, apperrors.ErrPatientNotFound
 		}
-		slog.Error("failed to verify patient for timeline", "error", patientError, "patient_fhir_id", parameters.patientFHIRID)
+		slog.ErrorContext(ctx, "failed to verify patient for timeline", "error", patientError, "patient_fhir_id", parameters.patientFHIRID)
 		return nil, apperrors.ErrServiceUnavailable
 	}
 

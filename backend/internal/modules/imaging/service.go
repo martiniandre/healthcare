@@ -283,7 +283,7 @@ func (serviceInstance *service) enqueueStudyProcessing(ctx context.Context, stud
 func (serviceInstance *service) discardStoredObjects(ctx context.Context, keys []string) {
 	for _, key := range keys {
 		if deleteError := serviceInstance.storageClient.Delete(context.WithoutCancel(ctx), key); deleteError != nil {
-			slog.Warn("failed to discard orphaned dicom object", "error", deleteError)
+			slog.WarnContext(ctx, "failed to discard orphaned dicom object", "error", deleteError)
 		}
 	}
 }
@@ -451,7 +451,7 @@ func (serviceInstance *service) auditDownloadURLIssuance(ctx context.Context, st
 			Action:        "download_url_issued",
 		})
 		if auditError != nil {
-			slog.Error("failed to persist imaging download audit log", "error", auditError, "study_id", studyID.String())
+			slog.Error("failed to persist imaging download audit log", "error", auditError, "study_id", studyID.String(), "request_id", correlationID)
 		}
 	}()
 }

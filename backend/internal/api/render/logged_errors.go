@@ -7,7 +7,6 @@ import (
 	"net/http"
 
 	"github.com/healthcare/backend/internal/shared/apperrors"
-	"github.com/healthcare/backend/internal/shared/ctxkeys"
 )
 
 func ServiceError(requestContext context.Context, httpResponseWriter http.ResponseWriter, logMessage string, err error, attributes ...any) {
@@ -29,12 +28,9 @@ func statusFromError(err error) int {
 }
 
 func logFailure(requestContext context.Context, statusCode int, logMessage string, err error, attributes []any) {
-	logAttributes := make([]any, 0, len(attributes)+6)
+	logAttributes := make([]any, 0, len(attributes)+4)
 	logAttributes = append(logAttributes, "error", err, "status", statusCode)
 	logAttributes = append(logAttributes, attributes...)
-	if requestID := ctxkeys.RequestID(requestContext); requestID != "" {
-		logAttributes = append(logAttributes, "request_id", requestID)
-	}
 	level := slog.LevelError
 	if statusCode < http.StatusInternalServerError {
 		level = slog.LevelWarn

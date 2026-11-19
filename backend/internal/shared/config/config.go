@@ -2,7 +2,6 @@ package config
 
 import (
 	"fmt"
-	"log"
 	"log/slog"
 	"os"
 	"sort"
@@ -47,7 +46,7 @@ type jwtSecretEntry struct {
 func Load() (*Config, error) {
 	err := godotenv.Load()
 	if err != nil {
-		log.Println("No .env file found, relying on environment variables")
+		slog.Info("no .env file found, relying on environment variables")
 	}
 
 	cfg := &Config{
@@ -119,7 +118,7 @@ func (cfg *Config) validate() error {
 		if cfg.AppEnv == "production" {
 			return fmt.Errorf("%s must be at least %d characters long in production", secretEntry.variableName, minimumJWTSecretLength)
 		}
-		slog.Warn("JWT secret is shorter than the recommended minimum length", "variable", secretEntry.variableName, "minimum_length", minimumJWTSecretLength)
+		slog.Warn("jwt secret is shorter than the recommended minimum length", "variable", secretEntry.variableName, "minimum_length", minimumJWTSecretLength)
 	}
 
 	return nil

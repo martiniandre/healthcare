@@ -213,7 +213,7 @@ func RevokeToken(tokenString string) {
 		revokeContext, cancelRevoke := context.WithTimeout(context.Background(), revocationStoreTimeout)
 		defer cancelRevoke()
 		if revokeError := revocationStore.Revoke(revokeContext, tokenDigest, time.Unix(int64(exp), 0)); revokeError != nil {
-			slog.Error("Failed to persist token revocation", "error", revokeError)
+			slog.Error("failed to persist token revocation", "error", revokeError)
 		}
 	}
 }
@@ -240,7 +240,7 @@ func isTokenRevoked(tokenString string) bool {
 	defer cancelCheck()
 	revoked, storeError := revocationStore.IsRevoked(checkContext, tokenDigest)
 	if storeError != nil {
-		slog.Error("Failed to check token revocation, rejecting token", "error", storeError)
+		slog.Error("failed to check token revocation, rejecting token", "error", storeError)
 		return true
 	}
 	return revoked
