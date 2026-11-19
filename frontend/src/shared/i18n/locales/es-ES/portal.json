@@ -1,14 +1,14 @@
 {
   "emptyEncounters": "No se encontraron consultas.",
   "emptyConditions": "Ninguna condición registrada.",
-  "title": "Portal del Paciente",
+  "title": "Portal del paciente",
   "navigation": "Navegación",
   "loading": "Cargando portal...",
   "tabs": {
     "dashboard": "Resumen",
     "appointments": "Citas",
     "encounters": "Consultas",
-    "observations": "Signos Vitales",
+    "observations": "Signos vitales",
     "conditions": "Condiciones",
     "medications": "Medicamentos",
     "reports": "Informes",
@@ -17,13 +17,14 @@
   "greeting": "¡Hola, {{firstName}}!",
   "welcome": "Bienvenido a su portal de salud. Aquí encuentra toda su información clínica.",
   "summary": {
-    "totalEncounters": "Total de Consultas",
-    "activeConditions": "Condiciones Activas",
-    "activeMedications": "Medicamentos Activos",
-    "recentReports": "Informes Recientes"
+    "totalEncounters": "Total de consultas",
+    "activeConditions": "Condiciones activas",
+    "activeMedications": "Medicamentos activos",
+    "recentReports": "Informes recientes",
+    "upcomingEncounters": "Próximas consultas"
   },
-  "upcomingEncounters": "Próximas Consultas",
-  "recentVitalSigns": "Últimos Signos Vitales",
+  "upcomingEncounters": "Próximas consultas",
+  "recentVitalSigns": "Últimos signos vitales",
   "table": {
     "date": "Fecha",
     "reason": "Motivo",
@@ -43,7 +44,7 @@
     "encounter": "Consulta",
     "medication": "Medicamento",
     "exam": "Informe",
-    "imagingStudy": "Estudio de Imagen"
+    "imagingStudy": "Estudio de imagen"
   },
   "error": {
     "title": "No se pudo cargar",

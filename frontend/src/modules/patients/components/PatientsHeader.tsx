@@ -10,16 +10,13 @@ interface PatientsHeaderProps {
 
 export const PatientsHeader = ({ onNewPatient }: PatientsHeaderProps) => {
   const { t } = useTranslation("patients")
-  const { t: translateSidebar } = useTranslation("sidebar")
 
   return (
     <PageHeader
-      eyebrow={translateSidebar("topics.clinical")}
       title={t("title")}
-      description={t("subtitle")}
       actions={
         <Can I={Action.Create} a={Feature.Patient}>
-          <Button onClick={onNewPatient} size="lg">
+          <Button onClick={onNewPatient}>
             <UserPlus />
             {t("newPatient")}
           </Button>

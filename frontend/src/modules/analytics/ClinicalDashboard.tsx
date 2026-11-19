@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { Activity, RefreshCw } from "lucide-react";
+import { RefreshCw } from "lucide-react";
 import { useDashboardQuery } from "./dashboard_queries";
 import { DashboardKPICards } from "./components/DashboardKPICards";
 import { ConsultationsByDoctorChart } from "./components/charts/ConsultationsByDoctorChart";
@@ -9,7 +9,7 @@ import { TopDiagnosesTable } from "./components/TopDiagnosesTable";
 import { StatsErrorState } from "./components/StatsErrorState";
 import {
   PageContainer,
-  PageTitle,
+  PageHeader,
 } from "../../shared/components/ui/PageContainer";
 import { Card, CardContent } from "../../shared/components/ui/card";
 import { Badge } from "../../shared/components/ui/badge";
@@ -39,7 +39,6 @@ export const ClinicalDashboard = () => {
         onRetry={() => refetch()}
         titleKey="dashboard.errorTitle"
         descriptionKey="dashboard.errorDescription"
-        retryKey="dashboard.retryButton"
       />
     );
   }
@@ -51,10 +50,8 @@ export const ClinicalDashboard = () => {
 
   return (
     <PageContainer>
-      <PageTitle
-        icon={<Activity className="size-5 text-primary animate-pulse-glow" />}
+      <PageHeader
         title={t("dashboard.title")}
-        description={t("dashboard.subtitle")}
         actions={
           <div className="flex items-center gap-3">
             <Badge
@@ -75,13 +72,13 @@ export const ClinicalDashboard = () => {
                   )}
                 />
               </span>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+              <span className="text-xs font-medium text-muted-foreground">
                 {isFetching
                   ? t("dashboard.syncing")
                   : t("dashboard.lastUpdated")}
               </span>
               {isFetching ? null : (
-                <span className="text-xs font-black tabular-nums text-foreground">
+                <span className="text-xs font-semibold tabular-nums text-foreground">
                   {lastUpdatedLabel}
                 </span>
               )}
@@ -194,7 +191,7 @@ const ClinicalDashboardSkeleton = () => {
               {Array.from({ length: 3 }).map((_, indexValue) => (
                 <Skeleton
                   key={String(indexValue)}
-                  className="h-16 w-full rounded-xl"
+                  className="h-16 w-full rounded-lg"
                 />
               ))}
             </div>

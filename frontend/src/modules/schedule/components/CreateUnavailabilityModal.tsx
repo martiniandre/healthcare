@@ -12,19 +12,11 @@ import {
 } from "@/shared/components/ui/select"
 import { Alert, AlertDescription, AlertTitle } from "@/shared/components/ui/alert"
 import { Input } from "@/shared/components/ui/input"
-import { Spinner } from "@/shared/components/ui/spinner"
 import { Textarea } from "@/shared/components/ui/textarea"
 import { Field, FieldDescription, FieldError, FieldLabel, FieldLegend, FieldSet } from "@/shared/components/ui/field"
-import { Button } from "@/shared/components/ui/button"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/shared/components/ui/dialog"
+import { Dialog } from "@/shared/components/ui/dialog"
 import { DiscardChangesDialog } from "@/shared/components/ui/discard-changes-dialog"
+import { FormDialogLayout } from "@/shared/components/form/FormDialogLayout"
 import { useDiscardGuard } from "@/shared/hooks/useDiscardGuard"
 import { useLocale } from "@/shared/hooks/useLocale"
 import { formatWeekdayDate } from "@/shared/utils/dates"
@@ -42,6 +34,8 @@ import {
 } from "../schedule_time_options"
 import { FormErrorSummary, OptionalHint, RequiredIndicator, SelectionSummary } from "./ScheduleFormParts"
 import type { CreateUnavailabilityPayload } from "../types"
+import { joinDescribedBy, selectTouchTargetClassName, touchTargetClassName } from "@/shared/components/form/formAccessibility"
+import { formatLocalDateTime } from "../schedule_time_options"
 
 interface CreateUnavailabilityModalProps {
   isOpen: boolean
@@ -59,18 +53,7 @@ const unavailabilityFieldOrder = ["date", "startTime", "endTime", "reason"] as c
 
 const reasonMaxLength = 500
 const defaultBlockedDurationMinutes = 60
-const touchTargetClassName = "h-11 md:h-9"
-const selectTouchTargetClassName = "w-full data-[size=default]:h-11 md:data-[size=default]:h-9"
 const timeSlotOptions = getTimeSlotOptions()
-
-const formatLocalDateTime = (dateValue: string, timeValue: string): string => {
-  return new Date(`${dateValue}T${timeValue}`).toISOString()
-}
-
-const joinDescribedBy = (...identifiers: Array<string | false | undefined>): string | undefined => {
-  const joinedIdentifiers = identifiers.filter(Boolean).join(" ")
-  return joinedIdentifiers || undefined
-}
 
 export const CreateUnavailabilityModal = ({
   isOpen,
@@ -248,205 +231,190 @@ export const CreateUnavailabilityModal = ({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={handleDialogOpenChange}>
-        <DialogContent className="flex max-h-[calc(100dvh-2rem)] flex-col gap-0 p-0 sm:max-w-[560px]">
-          <DialogHeader className="border-b px-6 py-4 pr-12 text-left">
-            <DialogTitle className="text-left">{t("unavailability.modal.title")}</DialogTitle>
-            <DialogDescription>
-              {staffName
-                ? t("unavailability.modal.descriptionForStaff", { staff: staffName })
-                : t("unavailability.modal.description")}
-            </DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleFormSubmit} noValidate className="flex min-h-0 flex-1 flex-col text-left">
-            <div className="flex flex-1 flex-col gap-5 overflow-y-auto px-6 py-4">
-              <p className="text-xs text-muted-foreground">
-                <span aria-hidden="true" className="text-destructive">*</span> {t("form.requiredNote")}
-              </p>
+        <FormDialogLayout
+          title={t("unavailability.modal.title")}
+          description={
+            staffName
+              ? t("unavailability.modal.descriptionForStaff", { staff: staffName })
+              : t("unavailability.modal.description")
+          }
+          onSubmit={handleFormSubmit}
+          cancelLabel={t("unavailability.modal.cancel")}
+          onCancel={() => handleDialogOpenChange(false)}
+          submitLabel={t("unavailability.modal.confirm")}
+          isPending={isBusy}
+          isCancelDisabled={isBusy}
+        >
+          <p className="text-xs text-muted-foreground">
+            <span aria-hidden="true" className="text-destructive">*</span> {t("form.requiredNote")}
+          </p>
 
-              <FormErrorSummary
-                items={errorSummaryItems}
-                onSelectItem={(fieldName) => setFocus(fieldName as keyof UnavailabilityFormData)}
-              />
+          <FormErrorSummary
+            items={errorSummaryItems}
+            onSelectItem={(fieldName) => setFocus(fieldName as keyof UnavailabilityFormData)}
+          />
 
-              {submitFailure === "generic" && (
-                <Alert variant="destructive">
-                  <AlertTitle>{t("unavailability.errors.submitFailedTitle")}</AlertTitle>
-                  <AlertDescription>{t("unavailability.errors.submitFailed")}</AlertDescription>
-                </Alert>
-              )}
+          {submitFailure === "generic" && (
+            <Alert variant="destructive">
+              <AlertTitle>{t("unavailability.errors.submitFailedTitle")}</AlertTitle>
+              <AlertDescription>{t("unavailability.errors.submitFailed")}</AlertDescription>
+            </Alert>
+          )}
 
-              <FieldSet className="gap-3">
-                <FieldLegend variant="label" className="mb-0 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  {t("form.sections.when")}
-                </FieldLegend>
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <Field data-invalid={!!errors.date} className="md:col-span-2">
-                    <FieldLabel htmlFor="unavailability-date">
-                      {t("unavailability.modal.date")}
-                      <RequiredIndicator />
-                    </FieldLabel>
-                    <Input
-                      id="unavailability-date"
-                      type="date"
-                      autoFocus
-                      min={todayDateString()}
-                      className={touchTargetClassName}
-                      aria-required="true"
-                      aria-invalid={!!errors.date}
-                      aria-describedby={joinDescribedBy(!!errors.date && "unavailability-date-error")}
-                      {...register("date")}
-                    />
-                    <FieldError id="unavailability-date-error">{errors.date?.message}</FieldError>
-                  </Field>
-                  <Field data-invalid={!!errors.startTime}>
-                    <FieldLabel htmlFor="unavailability-start-time">
-                      {t("unavailability.modal.startTime")}
-                      <RequiredIndicator />
-                    </FieldLabel>
-                    <Controller
-                      control={control}
-                      name="startTime"
-                      render={({ field }) => (
-                        <Select
-                          onValueChange={(nextStartTime) => handleStartTimeChange(nextStartTime, field.onChange)}
-                          value={field.value}
-                        >
-                          <SelectTrigger
-                            id="unavailability-start-time"
-                            ref={field.ref}
-                            onBlur={field.onBlur}
-                            className={selectTouchTargetClassName}
-                            aria-required="true"
-                            aria-invalid={!!errors.startTime}
-                            aria-describedby={joinDescribedBy(!!errors.startTime && "unavailability-start-error")}
-                          >
-                            <SelectValue placeholder={t("unavailability.modal.selectStartTime")} />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {timeSlotOptions.map((timeSlot) => (
-                              <SelectItem key={timeSlot.value} value={timeSlot.value}>
-                                {timeSlot.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      )}
-                    />
-                    <FieldError id="unavailability-start-error">{errors.startTime?.message}</FieldError>
-                  </Field>
-                  <Field data-invalid={!!errors.endTime}>
-                    <FieldLabel htmlFor="unavailability-end-time">
-                      {t("unavailability.modal.endTime")}
-                      <RequiredIndicator />
-                    </FieldLabel>
-                    <Controller
-                      control={control}
-                      name="endTime"
-                      render={({ field }) => (
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <SelectTrigger
-                            id="unavailability-end-time"
-                            ref={field.ref}
-                            onBlur={field.onBlur}
-                            className={selectTouchTargetClassName}
-                            aria-required="true"
-                            aria-invalid={!!errors.endTime}
-                            aria-describedby={joinDescribedBy(
-                              "unavailability-end-hint",
-                              !!errors.endTime && "unavailability-end-error"
-                            )}
-                          >
-                            <SelectValue placeholder={t("unavailability.modal.selectEndTime")} />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {endTimeOptions.map((timeSlot) => (
-                              <SelectItem key={timeSlot.value} value={timeSlot.value}>
-                                {timeSlot.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      )}
-                    />
-                    <FieldDescription id="unavailability-end-hint" className="text-xs">
-                      {t("unavailability.modal.endTimeHint")}
-                    </FieldDescription>
-                    <FieldError id="unavailability-end-error">{errors.endTime?.message}</FieldError>
-                  </Field>
-                </div>
-
-                {isConflictVisible && (
-                  <Alert variant="destructive" ref={conflictAlertReference} data-testid="conflict-alert">
-                    <AlertTitle>{t("unavailability.errors.conflictTitle")}</AlertTitle>
-                    <AlertDescription>{t("unavailability.errors.conflict")}</AlertDescription>
-                  </Alert>
-                )}
-
-                {summary ? (
-                  <SelectionSummary id="unavailability-summary" text={summary} />
-                ) : (
-                  <p
-                    id="unavailability-summary"
-                    role="status"
-                    aria-live="polite"
-                    className="text-xs text-muted-foreground"
-                  >
-                    {t("form.summary.empty")}
-                  </p>
-                )}
-              </FieldSet>
-
-              <FieldSet className="gap-3">
-                <FieldLegend variant="label" className="mb-0 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  {t("form.sections.why")}
-                </FieldLegend>
-                <Field data-invalid={!!errors.reason}>
-                  <FieldLabel htmlFor="unavailability-reason">
-                    {t("unavailability.modal.reason")}
-                    <OptionalHint />
-                  </FieldLabel>
-                  <Textarea
-                    id="unavailability-reason"
-                    rows={3}
-                    maxLength={reasonMaxLength}
-                    placeholder={t("unavailability.modal.reasonPlaceholder")}
-                    aria-invalid={!!errors.reason}
-                    aria-describedby={joinDescribedBy(
-                      "unavailability-reason-counter",
-                      !!errors.reason && "unavailability-reason-error"
-                    )}
-                    {...register("reason")}
-                  />
-                  <div className="flex items-start justify-between gap-3">
-                    <FieldError id="unavailability-reason-error">{errors.reason?.message}</FieldError>
-                    <span
-                      id="unavailability-reason-counter"
-                      className="ml-auto text-xs text-muted-foreground"
+          <FieldSet className="gap-3">
+            <FieldLegend variant="label" className="mb-0 text-xs font-semibold text-muted-foreground">
+              {t("form.sections.when")}
+            </FieldLegend>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <Field data-invalid={!!errors.date} className="md:col-span-2">
+                <FieldLabel htmlFor="unavailability-date">
+                  {t("unavailability.modal.date")}
+                  <RequiredIndicator />
+                </FieldLabel>
+                <Input
+                  id="unavailability-date"
+                  type="date"
+                  autoFocus
+                  min={todayDateString()}
+                  className={touchTargetClassName}
+                  aria-required="true"
+                  aria-invalid={!!errors.date}
+                  aria-describedby={joinDescribedBy(!!errors.date && "unavailability-date-error")}
+                  {...register("date")}
+                />
+                <FieldError id="unavailability-date-error">{errors.date?.message}</FieldError>
+              </Field>
+              <Field data-invalid={!!errors.startTime}>
+                <FieldLabel htmlFor="unavailability-start-time">
+                  {t("unavailability.modal.startTime")}
+                  <RequiredIndicator />
+                </FieldLabel>
+                <Controller
+                  control={control}
+                  name="startTime"
+                  render={({ field }) => (
+                    <Select
+                      onValueChange={(nextStartTime) => handleStartTimeChange(nextStartTime, field.onChange)}
+                      value={field.value}
                     >
-                      {t("form.characterCount", { count: reasonValue.length, max: reasonMaxLength })}
-                    </span>
-                  </div>
-                </Field>
-              </FieldSet>
+                      <SelectTrigger
+                        id="unavailability-start-time"
+                        ref={field.ref}
+                        onBlur={field.onBlur}
+                        className={selectTouchTargetClassName}
+                        aria-required="true"
+                        aria-invalid={!!errors.startTime}
+                        aria-describedby={joinDescribedBy(!!errors.startTime && "unavailability-start-error")}
+                      >
+                        <SelectValue placeholder={t("unavailability.modal.selectStartTime")} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {timeSlotOptions.map((timeSlot) => (
+                          <SelectItem key={timeSlot.value} value={timeSlot.value}>
+                            {timeSlot.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+                <FieldError id="unavailability-start-error">{errors.startTime?.message}</FieldError>
+              </Field>
+              <Field data-invalid={!!errors.endTime}>
+                <FieldLabel htmlFor="unavailability-end-time">
+                  {t("unavailability.modal.endTime")}
+                  <RequiredIndicator />
+                </FieldLabel>
+                <Controller
+                  control={control}
+                  name="endTime"
+                  render={({ field }) => (
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <SelectTrigger
+                        id="unavailability-end-time"
+                        ref={field.ref}
+                        onBlur={field.onBlur}
+                        className={selectTouchTargetClassName}
+                        aria-required="true"
+                        aria-invalid={!!errors.endTime}
+                        aria-describedby={joinDescribedBy(
+                          "unavailability-end-hint",
+                          !!errors.endTime && "unavailability-end-error"
+                        )}
+                      >
+                        <SelectValue placeholder={t("unavailability.modal.selectEndTime")} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {endTimeOptions.map((timeSlot) => (
+                          <SelectItem key={timeSlot.value} value={timeSlot.value}>
+                            {timeSlot.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+                <FieldDescription id="unavailability-end-hint" className="text-xs">
+                  {t("unavailability.modal.endTimeHint")}
+                </FieldDescription>
+                <FieldError id="unavailability-end-error">{errors.endTime?.message}</FieldError>
+              </Field>
             </div>
 
-            <DialogFooter className="border-t bg-background px-6 py-4">
-              <Button
-                variant="outline"
-                type="button"
-                className={touchTargetClassName}
-                onClick={() => handleDialogOpenChange(false)}
-                disabled={isBusy}
+            {isConflictVisible && (
+              <Alert variant="destructive" ref={conflictAlertReference} data-testid="conflict-alert">
+                <AlertTitle>{t("unavailability.errors.conflictTitle")}</AlertTitle>
+                <AlertDescription>{t("unavailability.errors.conflict")}</AlertDescription>
+              </Alert>
+            )}
+
+            {summary ? (
+              <SelectionSummary id="unavailability-summary" text={summary} />
+            ) : (
+              <p
+                id="unavailability-summary"
+                role="status"
+                aria-live="polite"
+                className="text-xs text-muted-foreground"
               >
-                {t("unavailability.modal.cancel")}
-              </Button>
-              <Button type="submit" className={touchTargetClassName} disabled={isBusy} aria-busy={isBusy}>
-                {isBusy && <Spinner />}
-                {t("unavailability.modal.confirm")}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
+                {t("form.summary.empty")}
+              </p>
+            )}
+          </FieldSet>
+
+          <FieldSet className="gap-3">
+            <FieldLegend variant="label" className="mb-0 text-xs font-semibold text-muted-foreground">
+              {t("form.sections.why")}
+            </FieldLegend>
+            <Field data-invalid={!!errors.reason}>
+              <FieldLabel htmlFor="unavailability-reason">
+                {t("unavailability.modal.reason")}
+                <OptionalHint />
+              </FieldLabel>
+              <Textarea
+                id="unavailability-reason"
+                rows={3}
+                maxLength={reasonMaxLength}
+                placeholder={t("unavailability.modal.reasonPlaceholder")}
+                aria-invalid={!!errors.reason}
+                aria-describedby={joinDescribedBy(
+                  "unavailability-reason-counter",
+                  !!errors.reason && "unavailability-reason-error"
+                )}
+                {...register("reason")}
+              />
+              <div className="flex items-start justify-between gap-3">
+                <FieldError id="unavailability-reason-error">{errors.reason?.message}</FieldError>
+                <span
+                  id="unavailability-reason-counter"
+                  className="ml-auto text-xs text-muted-foreground"
+                >
+                  {t("form.characterCount", { count: reasonValue.length, max: reasonMaxLength })}
+                </span>
+              </div>
+            </Field>
+          </FieldSet>
+        </FormDialogLayout>
       </Dialog>
       <DiscardChangesDialog open={isConfirmationOpen} onKeepEditing={keepEditing} onDiscard={discardChanges} />
     </>

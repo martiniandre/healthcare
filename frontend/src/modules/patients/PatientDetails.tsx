@@ -12,14 +12,14 @@ import { Can } from "../../shared/auth/AbilityContext"
 import { PatientPageLayout } from "./components/PatientPageLayout"
 import { patientTabListClassName, patientTabTriggerClassName } from "./components/patientTabStyles"
 import { PatientPageSkeleton } from "./components/PatientPageSkeleton"
-import { QueryErrorAlert } from "./components/QueryErrorAlert"
+import { QueryErrorAlert } from "@/shared/components/ui/QueryErrorAlert"
 import { PageContainer } from "../../shared/components/ui/PageContainer"
 import { Card } from "../../shared/components/ui/card"
 import { Spinner } from "../../shared/components/ui/spinner"
 import { Tabs, TabsList, TabsTrigger } from "../../shared/components/ui/tabs"
 import { Badge } from "../../shared/components/ui/badge"
 import { Button } from "../../shared/components/ui/button"
-import { History, Image as ImageIcon, Activity, ShieldAlert, Sparkles, GalleryVerticalEnd } from "lucide-react"
+import { Sparkles } from "lucide-react"
 
 const PatientTab = {
   Encounters: "encounters",
@@ -117,9 +117,8 @@ export const PatientDetails = () => {
           value={PatientTab.Encounters}
           className={patientTabTriggerClassName}
         >
-          <History className="w-4 h-4 shrink-0" />
           {t("details.encounters")}
-          <Badge variant="secondary" className="rounded bg-muted px-1.5 text-[11px] tabular-nums text-muted-foreground group-data-[state=active]/trigger:bg-sage-100 group-data-[state=active]/trigger:text-sage-800">
+          <Badge variant="secondary" className="rounded bg-muted px-1.5 text-2xs tabular-nums text-muted-foreground group-data-[state=active]/trigger:bg-sage-100 group-data-[state=active]/trigger:text-sage-800">
             {encounters.length}
           </Badge>
         </TabsTrigger>
@@ -129,7 +128,6 @@ export const PatientDetails = () => {
             value={PatientTab.Timeline}
             className={patientTabTriggerClassName}
           >
-            <GalleryVerticalEnd className="w-4 h-4 shrink-0" />
             {t("details.timeline")}
           </TabsTrigger>
         )}
@@ -139,7 +137,6 @@ export const PatientDetails = () => {
             value={PatientTab.Conditions}
             className={patientTabTriggerClassName}
           >
-            <Activity className="w-4 h-4 shrink-0" />
             {t("details.conditions")}
           </TabsTrigger>
         )}
@@ -149,7 +146,6 @@ export const PatientDetails = () => {
             value={PatientTab.Allergies}
             className={patientTabTriggerClassName}
           >
-            <ShieldAlert className="w-4 h-4 shrink-0" />
             {t("details.allergies")}
           </TabsTrigger>
         )}
@@ -159,9 +155,8 @@ export const PatientDetails = () => {
             value={PatientTab.Pacs}
             className={patientTabTriggerClassName}
           >
-            <ImageIcon className="w-4 h-4 shrink-0" />
             {t("details.pacs")}
-            <Badge variant="secondary" className="rounded bg-muted px-1.5 text-[11px] tabular-nums text-muted-foreground group-data-[state=active]/trigger:bg-sage-100 group-data-[state=active]/trigger:text-sage-800">
+            <Badge variant="secondary" className="rounded bg-muted px-1.5 text-2xs tabular-nums text-muted-foreground group-data-[state=active]/trigger:bg-sage-100 group-data-[state=active]/trigger:text-sage-800">
               {studies.length}
             </Badge>
           </TabsTrigger>
@@ -187,7 +182,7 @@ export const PatientDetails = () => {
           <Can I={Action.Create} a={Feature.ExamAnalysis}>
             <Button
               onClick={() => setIsExamModalOpen(true)}
-              variant="secondary"
+              variant="outline"
               className="w-full sm:w-auto"
             >
               <Sparkles />

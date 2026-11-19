@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next"
+import { ChevronRight } from "lucide-react"
 import { Button } from "../../../shared/components/ui/button"
 import { StatusBadge, type ClinicalStatus } from "../../../shared/components/ui/status-badge"
 import { cn } from "../../../shared/utils/cn"
@@ -17,9 +18,10 @@ const priorityConfig: Record<NotificationPriority, { bg: string; status: Clinica
 interface NotificationItemProps {
   notification: NotificationItemType
   onMarkRead: (id: string) => void
+  hasTarget?: boolean
 }
 
-export function NotificationItem({ notification, onMarkRead }: NotificationItemProps) {
+export function NotificationItem({ notification, onMarkRead, hasTarget = false }: NotificationItemProps) {
   const { t } = useTranslation("notifications")
   const priority: NotificationPriority = notification.priority in priorityConfig ? notification.priority : "low"
   const config = priorityConfig[priority]
@@ -49,14 +51,22 @@ export function NotificationItem({ notification, onMarkRead }: NotificationItemP
           >
             {title}
           </p>
-          <StatusBadge status={config.status} className="shrink-0 text-[10px]">
+          <StatusBadge status={config.status} className="shrink-0 text-2xs">
             {t(`priority.${priority}`)}
           </StatusBadge>
         </div>
         <p className="line-clamp-2 break-words text-xs font-normal text-muted-foreground">
           {notificationBody(notification)}
         </p>
-        <p className="text-[10px] font-normal tabular-nums text-muted-foreground">{timeAgo}</p>
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-2xs font-normal tabular-nums text-muted-foreground">{timeAgo}</p>
+          {hasTarget && (
+            <span className="flex items-center gap-0.5 text-2xs font-medium text-primary">
+              {t("openItem")}
+              <ChevronRight className="size-3" aria-hidden="true" />
+            </span>
+          )}
+        </div>
       </div>
     </Button>
   )

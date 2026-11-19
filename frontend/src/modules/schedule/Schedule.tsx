@@ -32,7 +32,8 @@ import {
 import { appointmentsToCalendarEvents, staffColorForIndex } from "./schedule_calendar_helpers"
 import type { CalendarEventShape } from "./schedule_calendar_helpers"
 import { toast } from "../../shared/store/toast_store"
-import type { Appointment, CreateAppointmentPayload, UpdateAppointmentPayload, StaffUnavailability, CreateUnavailabilityPayload } from "./types"
+import { appointmentForDialog, useScheduleDialogs } from "./hooks/useScheduleDialogs"
+import type { Appointment, CreateAppointmentPayload, UpdateAppointmentPayload, CreateUnavailabilityPayload } from "./types"
 
 const todayDate = (): string => {
   const localDate = new Date()
@@ -57,7 +58,6 @@ const toLocalTimeString = (dateValue: Date): string => {
 
 export const Schedule = () => {
   const { t } = useTranslation("schedule")
-  const { t: translateSidebar } = useTranslation("sidebar")
   const { t: translateStaff } = useTranslation("staff")
   const {
     data: staffMembers = [],
@@ -68,14 +68,24 @@ export const Schedule = () => {
 
   const [selectedStaffIds, setSelectedStaffIds] = useState<string[] | null>(null)
   const [visibleRange, setVisibleRange] = useState({ startDate: todayDate(), endDate: todayDate() })
-  const [viewMode, setViewMode] = useState<ScheduleViewMode>("week")
-  const [createDefaults, setCreateDefaults] = useState<{ date: string; startTime: string } | null>(null)
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
-  const [appointmentToView, setAppointmentToView] = useState<Appointment | null>(null)
-  const [appointmentToEdit, setAppointmentToEdit] = useState<Appointment | null>(null)
-  const [appointmentToCancel, setAppointmentToCancel] = useState<Appointment | null>(null)
-  const [isCreateUnavailabilityOpen, setIsCreateUnavailabilityOpen] = useState(false)
-  const [unavailabilityToDelete, setUnavailabilityToDelete] = useState<StaffUnavailability | null>(null)
+  const [viewMode, setViewMode] = useState<ScheduleViewMode>(() =>
+    typeof window !== "undefined" && window.matchMedia?.("(max-width: 767px)").matches ? "day" : "week"
+  )
+  const {
+    activeDialog,
+    createDefaults,
+    closeDialog,
+    openCreate,
+    openView,
+    openEdit,
+    openCancel,
+    openCreateUnavailability,
+    openDeleteUnavailability,
+  } = useScheduleDialogs()
+  const appointmentToView = appointmentForDialog(activeDialog, "view")
+  const appointmentToEdit = appointmentForDialog(activeDialog, "edit")
+  const appointmentToCancel = appointmentForDialog(activeDialog, "cancel")
+  const unavailabilityToDelete = activeDialog.kind === "deleteUnavailability" ? activeDialog.unavailability : null
 
   const staffMemberOptions = useMemo(
     () => staffMembers.filter((staffMember) => staffMember.id),
@@ -163,7 +173,7 @@ export const Schedule = () => {
     cancelAppointmentMutation.mutate(appointmentId, {
       onSuccess: () => {
         toast.success(t("toasts.cancelSuccess"))
-        setAppointmentToCancel(null)
+        closeDialog()
       },
       onError: () => {
         toast.error(t("toasts.cancelError"))
@@ -174,13 +184,11 @@ export const Schedule = () => {
   const handleCalendarSlotClick = (clickedStart: Date) => {
     const dateString = toLocalDateString(clickedStart)
     const timeString = toLocalTimeString(clickedStart)
-    setCreateDefaults({ date: dateString, startTime: timeString })
-    setIsCreateModalOpen(true)
+    openCreate({ date: dateString, startTime: timeString })
   }
 
   const handleNewAppointmentButton = () => {
-    setCreateDefaults(null)
-    setIsCreateModalOpen(true)
+    openCreate()
   }
 
   const handleRescheduleAppointment = (appointment: Appointment, newStart: Date, newEnd: Date) => {
@@ -227,17 +235,15 @@ export const Schedule = () => {
   }
 
   const handleEventClick = (appointment: Appointment) => {
-    setAppointmentToView(appointment)
+    openView(appointment)
   }
 
   const handleEditFromDetails = (appointment: Appointment) => {
-    setAppointmentToView(null)
-    setAppointmentToEdit(appointment)
+    openEdit(appointment)
   }
 
   const handleCancelFromDetails = (appointment: Appointment) => {
-    setAppointmentToView(null)
-    setAppointmentToCancel(appointment)
+    openCancel(appointment)
   }
 
   const handleCreateUnavailability = async (payload: CreateUnavailabilityPayload) => {
@@ -254,7 +260,7 @@ export const Schedule = () => {
     deleteUnavailabilityMutation.mutate(unavailabilityId, {
       onSuccess: () => {
         toast.success(t("unavailability.toasts.deleteSuccess"))
-        setUnavailabilityToDelete(null)
+        closeDialog()
       },
       onError: () => {
         toast.error(t("unavailability.toasts.deleteError"))
@@ -267,21 +273,18 @@ export const Schedule = () => {
   return (
     <PageContainer>
       <PageHeader
-        eyebrow={translateSidebar("topics.clinical")}
         title={t("title")}
-        description={t("subtitle")}
         actions={
           <>
             <Button
               variant="outline"
-              size="lg"
-              onClick={() => setIsCreateUnavailabilityOpen(true)}
+              onClick={openCreateUnavailability}
               disabled={!focusedStaffId}
             >
               <CalendarOff />
               {t("unavailability.createButton")}
             </Button>
-            <Button size="lg" onClick={handleNewAppointmentButton} disabled={!focusedStaffId}>
+            <Button onClick={handleNewAppointmentButton} disabled={!focusedStaffId}>
               <CalendarPlus />
               {t("newAppointment")}
             </Button>
@@ -368,7 +371,9 @@ export const Schedule = () => {
                       unavailability={unavailability}
                       onDelete={(id) => {
                         const found = upcomingUnavailabilityWindows.find((entry) => entry.id === id)
-                        setUnavailabilityToDelete(found ?? null)
+                        if (found) {
+                          openDeleteUnavailability(found)
+                        }
                       }}
                     />
                   ))}
@@ -380,8 +385,8 @@ export const Schedule = () => {
       </div>
 
       <AppointmentModal
-        isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
+        isOpen={activeDialog.kind === "create"}
+        onClose={closeDialog}
         onSubmit={(payload) => handleCreateAppointment(payload as CreateAppointmentPayload)}
         isPending={createAppointmentMutation.isPending}
         defaultStaffId={focusedStaffId}
@@ -392,14 +397,14 @@ export const Schedule = () => {
       <AppointmentDetailsModal
         isOpen={appointmentToView !== null}
         appointment={appointmentToView}
-        onClose={() => setAppointmentToView(null)}
+        onClose={closeDialog}
         onEdit={handleEditFromDetails}
         onCancel={handleCancelFromDetails}
       />
 
       <AppointmentModal
         isOpen={appointmentToEdit !== null}
-        onClose={() => setAppointmentToEdit(null)}
+        onClose={closeDialog}
         onSubmit={handleUpdateAppointment}
         isPending={updateAppointmentMutation.isPending}
         appointment={appointmentToEdit}
@@ -408,14 +413,14 @@ export const Schedule = () => {
       <CancelAppointmentModal
         isOpen={appointmentToCancel !== null}
         appointment={appointmentToCancel}
-        onClose={() => setAppointmentToCancel(null)}
+        onClose={closeDialog}
         onConfirm={handleConfirmCancel}
         isPending={cancelAppointmentMutation.isPending}
       />
 
       <CreateUnavailabilityModal
-        isOpen={isCreateUnavailabilityOpen}
-        onClose={() => setIsCreateUnavailabilityOpen(false)}
+        isOpen={activeDialog.kind === "createUnavailability"}
+        onClose={closeDialog}
         onSubmit={handleCreateUnavailability}
         isPending={createUnavailabilityMutation.isPending}
         staffId={focusedStaffId}
@@ -425,7 +430,7 @@ export const Schedule = () => {
 
       <DeleteUnavailabilityModal
         isOpen={unavailabilityToDelete !== null}
-        onClose={() => setUnavailabilityToDelete(null)}
+        onClose={closeDialog}
         onConfirm={() => {
           if (unavailabilityToDelete) {
             handleDeleteUnavailability(unavailabilityToDelete.id)

@@ -11,10 +11,10 @@ test.describe("Diagnostic Report Versioning Module", () => {
     const reportTitle = page.locator("text=Eletrocardiograma de Repouso")
     await expect(reportTitle).toBeVisible()
 
-    await page.getByRole("button", { name: "Histórico de Versões" }).first().click()
+    await page.getByRole("button", { name: "Histórico de versões" }).first().click()
 
     const versionsModalTitle = page.locator(
-      "text=Histórico de Versões do Laudo — Eletrocardiograma de Repouso"
+      "text=Histórico de Versões do Laudo: Eletrocardiograma de Repouso"
     )
     await expect(versionsModalTitle).toBeVisible()
 
@@ -42,7 +42,7 @@ test.describe("Diagnostic Report Versioning Module", () => {
     const reportTitle = page.locator("text=Eletrocardiograma de Repouso")
     await expect(reportTitle).toBeVisible()
 
-    await page.getByRole("button", { name: "Histórico de Versões" }).first().click()
+    await page.getByRole("button", { name: "Histórico de versões" }).first().click()
 
     const emptyStateMessage = page.locator("text=Nenhuma versão registrada para este laudo.")
     await expect(emptyStateMessage).toBeVisible()

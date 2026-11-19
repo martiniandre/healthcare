@@ -1,7 +1,7 @@
 {
-  "title": "Gestão de Equipes Hospitalares",
+  "title": "Gestão de equipes hospitalares",
   "subtitle": "Administração de profissionais de saúde, plantonistas ativos e credenciais operacionais",
-  "addStaff": "Cadastrar Profissional",
+  "addStaff": "Cadastrar profissional",
   "searchPlaceholder": "Buscar por nome, e-mail ou especialidade...",
   "filterAll": "Todos",
   "loading": "Carregando corpo clínico...",
@@ -9,13 +9,13 @@
   "emptyState": "Nenhum profissional encontrado com os filtros atuais.",
   "table": {
     "professional": "Profissional",
-    "role": "Função / Categoria",
+    "role": "Função / categoria",
     "license": "Registro (CRM/COREN)",
     "department": "Departamento",
     "contact": "Contato",
     "status": "Escala",
     "onDuty": "Plantonista",
-    "offDuty": "Fora de Escala",
+    "offDuty": "Fora de escala",
     "actions": "Ações",
     "active": "Ativo",
     "inactive": "Inativo",
@@ -23,25 +23,25 @@
     "disable": "Desativar acesso",
     "delete": "Excluir profissional",
     "roles": {
-      "doctor": "médico",
-      "nurse": "enfermeiro",
-      "receptionist": "recepção",
-      "admin": "administração"
+      "doctor": "Médico",
+      "nurse": "Enfermeiro",
+      "receptionist": "Recepção",
+      "admin": "Administração"
     }
   },
   "modal": {
-    "title": "Cadastrar Novo Profissional",
-    "name": "Nome Completo",
+    "title": "Cadastrar novo profissional",
+    "name": "Nome completo",
     "namePlaceholder": "Ex: Dr. André Silva de Araujo",
     "category": "Categoria",
-    "license": "Registro Profissional",
+    "license": "Registro profissional",
     "licensePlaceholder": "Ex: CRM-SP 12345",
-    "email": "E-mail Corporativo",
+    "email": "E-mail corporativo",
     "emailPlaceholder": "Ex: nome@hospital.com",
     "department": "Departamento",
     "departmentPlaceholder": "Selecione o departamento",
     "cancel": "Cancelar",
-    "confirm": "Salvar Cadastro",
+    "confirm": "Salvar cadastro",
     "requiredLabel": "(obrigatório)",
     "saving": "Salvando...",
     "nameHint": "Como consta no registro profissional.",
@@ -105,5 +105,13 @@
     "retry": "Tentar novamente"
   },
   "searchLabel": "Buscar profissionais",
-  "filterByRole": "Filtrar por categoria"
+  "filterByRole": "Filtrar por categoria",
+  "confirmDeactivate": {
+    "title": "Desativar acesso?",
+    "description": "{{name}} perderá o acesso ao sistema até ser reativado. Os registros clínicos feitos por este profissional são mantidos.",
+    "confirm": "Desativar acesso",
+    "back": "Voltar",
+    "enableShort": "Ativar",
+    "disableShort": "Desativar"
+  }
 }

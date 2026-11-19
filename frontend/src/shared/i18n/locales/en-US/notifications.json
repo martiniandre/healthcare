@@ -8,27 +8,27 @@
   "relativeNow": "just now",
   "event": {
     "telemetryAlert": {
-      "title": "Clinical Alert - Bed {{bedNumber}}",
+      "title": "Clinical alert - bed {{bedNumber}}",
       "body": "{{patientName}}: {{condition}} (HR: {{bpm}} bpm, SpO₂: {{spo2}}%)"
     },
     "examComplete": {
-      "title": "Exam Analysis Completed",
+      "title": "Exam analysis completed",
       "body": "The analysis of the {{examType}} exam has been completed."
     },
     "encounterCreated": {
-      "title": "New Encounter Created",
+      "title": "New encounter created",
       "body": "A new encounter was recorded in the medical record."
     },
     "patientCreated": {
-      "title": "New Patient Registered",
+      "title": "New patient registered",
       "body": "The patient {{patientName}} was successfully registered."
     },
     "reportReady": {
-      "title": "Report Available",
+      "title": "Report available",
       "body": "A new report is available in version {{version}}."
     },
     "loginSucceeded": {
-      "title": "Login Completed",
+      "title": "Login completed",
       "body": "Signed in successfully."
     }
   },
@@ -39,5 +39,8 @@
     "medium": "Medium",
     "low": "Low"
   },
-  "unreadCount": "{{formattedCount}} unread"
+  "unreadCount": "{{formattedCount}} unread",
+  "markAllRead": "Mark all as read",
+  "markAllReadError": "Could not mark all as read.",
+  "openItem": "Open"
 }

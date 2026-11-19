@@ -7,14 +7,14 @@ test.describe("Patient Registration Validation", () => {
   })
 
   test("should display validation errors for invalid inputs", async ({ page }) => {
-    await page.getByRole("button", { name: "Novo Paciente" }).click()
+    await page.getByRole("button", { name: "Novo paciente" }).click()
 
-    await page.getByPlaceholder("Nome Completo do Paciente").fill("Jo")
+    await page.getByPlaceholder("Nome completo do paciente").fill("Jo")
     await page.getByPlaceholder("DD/MM/AAAA").fill("01/01/2050")
-    await page.getByPlaceholder("123.456.789-00").fill("111.111.111-11")
-    await page.getByPlaceholder("(11) 98765-4321").fill("99999")
+    await page.getByPlaceholder("000.000.000-00").fill("111.111.111-11")
+    await page.getByPlaceholder("(00) 00000-0000").fill("99999")
 
-    await page.getByRole("button", { name: "Confirmar Cadastro" }).click()
+    await page.getByRole("button", { name: "Confirmar cadastro" }).click()
 
     const nameError = page.locator("text=Informe o nome completo (mínimo de 3 caracteres)")
     const birthDateError = page.locator("text=Informe uma data de nascimento válida que já tenha passado")
@@ -28,14 +28,14 @@ test.describe("Patient Registration Validation", () => {
   })
 
   test("should show a validation error when a field exceeds the maximum length", async ({ page }) => {
-    await page.getByRole("button", { name: "Novo Paciente" }).click()
+    await page.getByRole("button", { name: "Novo paciente" }).click()
 
-    await page.getByPlaceholder("Nome Completo do Paciente").fill("A".repeat(256))
+    await page.getByPlaceholder("Nome completo do paciente").fill("A".repeat(256))
     await page.getByPlaceholder("DD/MM/AAAA").fill("01/01/1990")
-    await page.getByPlaceholder("123.456.789-00").fill("529.982.247-25")
-    await page.getByPlaceholder("(11) 98765-4321").fill("(11) 98765-4321")
+    await page.getByPlaceholder("000.000.000-00").fill("529.982.247-25")
+    await page.getByPlaceholder("(00) 00000-0000").fill("(11) 98765-4321")
 
-    await page.getByRole("button", { name: "Confirmar Cadastro" }).click()
+    await page.getByRole("button", { name: "Confirmar cadastro" }).click()
 
     await expect(page.locator("text=Texto longo demais: reduza para caber no limite de caracteres")).toBeVisible()
   })

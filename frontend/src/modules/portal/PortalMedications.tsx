@@ -43,7 +43,7 @@ export const PortalMedications = () => {
             <CardContent className="px-4 sm:px-5">
               <div className="mb-2 flex flex-wrap items-start justify-between gap-2">
                 <div className="min-w-0 flex-1">
-                  <p className="break-words text-sm font-bold text-foreground">
+                  <p className="break-words text-sm font-semibold text-foreground">
                     {medication.medication_name || t("fallback.medication")}
                   </p>
                   <p className="mt-0.5 text-xs text-muted-foreground">

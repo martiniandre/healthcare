@@ -1,9 +1,11 @@
-import { Image as ImageIcon } from "lucide-react"
+import { Copy, Image as ImageIcon } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { Badge } from "../../../shared/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "../../../shared/components/ui/card"
 import { Button } from "../../../shared/components/ui/button"
 import { ClinicalQuerySection } from "./ClinicalQuerySection"
+import { Tooltip, TooltipContent, TooltipTrigger } from "../../../shared/components/ui/tooltip"
+import { toast } from "../../../shared/store/toast_store"
 import { formatDateTime } from "../../../shared/utils/dates"
 import type { ImagingStudy } from "../../imaging/types"
 import {
@@ -29,7 +31,6 @@ export const PACSStudies = ({ studies, onOpen, isLoading = false, isError = fals
   return (
     <ClinicalQuerySection
       title={t("details.pacsCard.title")}
-      icon={<ImageIcon className="w-4 h-4 text-secondary" />}
       isLoading={isLoading}
       isError={isError}
       onRetry={() => onRetry?.()}
@@ -39,28 +40,27 @@ export const PACSStudies = ({ studies, onOpen, isLoading = false, isError = fals
     >
       <Card className="min-h-[450px] gap-0">
         <CardHeader className="border-b border-border">
-          <CardTitle className="flex items-center gap-2 font-extrabold">
-            <ImageIcon className="w-4 h-4 text-secondary" />
+          <CardTitle className="text-base font-semibold">
             {t("details.pacsCard.title")}
           </CardTitle>
         </CardHeader>
-        <CardContent className="overflow-x-auto w-full">
+        <CardContent className="w-full overflow-x-auto px-0">
             <Table>
               <TableHeader>
-                <TableRow className="bg-muted/50">
-                  <TableHead className="py-3.5 px-4 text-xs font-black text-muted-foreground uppercase tracking-wider">
+                <TableRow className="hover:bg-transparent">
+                  <TableHead className="pl-6">
                     {t("details.pacsCard.display")}
                   </TableHead>
-                  <TableHead className="py-3.5 px-4 text-xs font-black text-muted-foreground uppercase tracking-wider">
+                  <TableHead>
                     {t("details.pacsCard.modality")}
                   </TableHead>
-                  <TableHead className="py-3.5 px-4 text-xs font-black text-muted-foreground uppercase tracking-wider">
+                  <TableHead>
                     {t("details.pacsCard.uid")}
                   </TableHead>
-                  <TableHead className="py-3.5 px-4 text-xs font-black text-muted-foreground uppercase tracking-wider">
+                  <TableHead>
                     {t("details.pacsCard.date")}
                   </TableHead>
-                  <TableHead className="py-3.5 px-4 text-right text-xs font-black text-muted-foreground uppercase tracking-wider pr-6">
+                  <TableHead className="pr-6 text-right">
                     {t("details.pacsCard.action")}
                   </TableHead>
                 </TableRow>
@@ -68,35 +68,55 @@ export const PACSStudies = ({ studies, onOpen, isLoading = false, isError = fals
               <TableBody>
                 {studies.map((study) => (
                   <TableRow key={study.id}>
-                    <TableCell className="py-4 px-4">
+                    <TableCell className="pl-6">
                       <div className="flex items-center gap-3">
-                        <div className="bg-secondary/10 p-2 rounded-lg border border-secondary/20 text-secondary">
+                        <div className="rounded-md border border-border bg-muted p-2 text-muted-foreground">
                           <ImageIcon className="w-4 h-4" />
                         </div>
-                        <span className="text-sm font-bold text-foreground block">
+                        <span className="block text-sm font-semibold text-foreground">
                           {study.title}
                         </span>
                       </div>
                     </TableCell>
-                    <TableCell className="py-4 px-4">
-                      <Badge variant="secondary" className="uppercase">
+                    <TableCell>
+                      <Badge variant="outline" className="font-mono uppercase">
                         {study.modality}
                       </Badge>
                     </TableCell>
-                    <TableCell className="py-4 px-4">
-                      <span className="text-xs font-mono text-muted-foreground max-w-[150px] block truncate">
-                        {study.study_instance_uid}
-                      </span>
+                    <TableCell>
+                      <div className="flex items-center gap-1">
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span tabIndex={0} className="block max-w-[180px] truncate rounded-sm font-mono text-xs text-muted-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                              {study.study_instance_uid}
+                            </span>
+                          </TooltipTrigger>
+                          <TooltipContent className="font-mono">{study.study_instance_uid}</TooltipContent>
+                        </Tooltip>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon-xs"
+                          aria-label={t("details.pacsCard.copyUid")}
+                          onClick={() => {
+                            void navigator.clipboard
+                              ?.writeText(study.study_instance_uid)
+                              .then(() => toast.success(t("details.pacsCard.uidCopied")))
+                          }}
+                        >
+                          <Copy />
+                        </Button>
+                      </div>
                     </TableCell>
-                    <TableCell className="py-4 px-4">
-                      <span className="text-xs text-muted-foreground font-semibold">
+                    <TableCell>
+                      <span className="text-sm tabular-nums text-muted-foreground">
                         {formatDateTime(study.created_at)}
                       </span>
                     </TableCell>
-                    <TableCell className="py-4 px-4 text-right pr-6">
+                    <TableCell className="pr-6 text-right">
                       <Button
                         variant="outline"
-                        size="xs"
+                        size="sm"
                         onClick={() => onOpen(study.id)}
                       >
                         {t("details.pacsCard.action")}

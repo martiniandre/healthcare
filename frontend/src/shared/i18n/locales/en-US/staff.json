@@ -1,7 +1,7 @@
 {
-  "title": "Hospital Staff Management",
+  "title": "Hospital staff management",
   "subtitle": "Administration of clinical professionals, active on-duty staff, and operational access",
-  "addStaff": "Register Professional",
+  "addStaff": "Register professional",
   "searchPlaceholder": "Search by name, email or specialty...",
   "filterAll": "All",
   "loading": "Loading clinical staff...",
@@ -9,13 +9,13 @@
   "emptyState": "No professional matches the current filters.",
   "table": {
     "professional": "Professional",
-    "role": "Role / Category",
+    "role": "Role / category",
     "license": "License (CRM/COREN)",
     "department": "Department",
     "contact": "Contact",
-    "status": "Duty Status",
-    "onDuty": "On Duty",
-    "offDuty": "Off Duty",
+    "status": "Duty status",
+    "onDuty": "On duty",
+    "offDuty": "Off duty",
     "actions": "Actions",
     "active": "Active",
     "inactive": "Inactive",
@@ -23,25 +23,25 @@
     "disable": "Disable access",
     "delete": "Delete professional",
     "roles": {
-      "doctor": "doctor",
-      "nurse": "nurse",
-      "receptionist": "reception",
-      "admin": "administration"
+      "doctor": "Doctor",
+      "nurse": "Nurse",
+      "receptionist": "Reception",
+      "admin": "Administration"
     }
   },
   "modal": {
-    "title": "Register New Professional",
-    "name": "Full Name",
+    "title": "Register new professional",
+    "name": "Full name",
     "namePlaceholder": "Ex: Dr. John Smith",
     "category": "Category",
-    "license": "Professional License",
+    "license": "Professional license",
     "licensePlaceholder": "Ex: CRM-SP 12345",
     "email": "Corporate E-mail",
     "emailPlaceholder": "Ex: name@hospital.com",
     "department": "Department",
     "departmentPlaceholder": "Select the department",
     "cancel": "Cancel",
-    "confirm": "Save Registration",
+    "confirm": "Save registration",
     "requiredLabel": "(required)",
     "saving": "Saving...",
     "nameHint": "As shown on the professional registration.",
@@ -105,5 +105,13 @@
     "retry": "Try again"
   },
   "searchLabel": "Search professionals",
-  "filterByRole": "Filter by category"
+  "filterByRole": "Filter by category",
+  "confirmDeactivate": {
+    "title": "Disable access?",
+    "description": "{{name}} will lose access to the system until reactivated. Clinical records made by this professional are kept.",
+    "confirm": "Disable access",
+    "back": "Go back",
+    "enableShort": "Enable",
+    "disableShort": "Disable"
+  }
 }

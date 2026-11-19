@@ -47,7 +47,7 @@ export const AppointmentDetailsModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-[440px]">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="text-left flex items-center gap-2">
             <CalendarClock className="size-4 text-primary" />
@@ -66,7 +66,7 @@ export const AppointmentDetailsModal = ({
             <span className="text-xs font-semibold text-muted-foreground">{t("modals.details.staff")}</span>
             <span className="text-foreground">
               {assignedStaffMember
-                ? `${assignedStaffMember.fullName} — ${assignedStaffMember.role}`
+                ? `${assignedStaffMember.fullName}, ${assignedStaffMember.role}`
                 : "-"}
             </span>
           </div>

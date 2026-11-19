@@ -22,6 +22,7 @@ export const ReportDetailsModal = ({
   report,
 }: ReportDetailsModalProps) => {
   const { t } = useTranslation("patients")
+  const { t: translateStatus } = useTranslation("clinicalStatus")
 
   if (!isOpen || !report) {
     return null
@@ -29,21 +30,21 @@ export const ReportDetailsModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-[560px]">
+      <DialogContent className="sm:max-w-xl">
         <DialogHeader>
           <DialogTitle className="text-left flex items-center gap-2">
-            <FileText className="w-4 h-4 text-blue-500" />
-            {t("modals.reportDetails.title")} — {report.report_display}
+            <FileText className="w-4 h-4 text-primary" />
+            {t("modals.reportDetails.title")}: {report.report_display}
           </DialogTitle>
         </DialogHeader>
         <div className="flex flex-col gap-3 mt-4 max-h-[60vh] overflow-y-auto">
           <div className="flex items-center justify-between gap-2 flex-wrap">
-            <Badge variant="success" className="uppercase">
+            <Badge variant="success">
               <CheckCircle />
-              {report.status}
+              {translateStatus(`diagnosticReport.${report.status}`, { defaultValue: report.status })}
             </Badge>
             {report.version && (
-              <Badge variant="info" className="uppercase">
+              <Badge variant="info">
                 <FileText />
                 v{report.version}
               </Badge>
@@ -53,19 +54,19 @@ export const ReportDetailsModal = ({
             </span>
           </div>
           <div>
-            <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">
+            <p className="text-xs font-medium text-muted-foreground mb-1">
               {t("modals.reportDetails.examLabel")}
             </p>
-            <p className="text-sm font-bold text-gray-800 bg-muted border border-border p-3 rounded-lg">
+            <p className="text-sm font-semibold text-foreground bg-muted border border-border p-3 rounded-lg">
               {report.report_display}
             </p>
           </div>
           <div>
-            <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">
+            <p className="text-xs font-medium text-muted-foreground mb-1">
               {t("modals.reportDetails.conclusionLabel")}
             </p>
             {report.conclusion ? (
-              <p className="text-sm text-gray-700 leading-relaxed bg-muted border border-border p-3 rounded-lg whitespace-pre-line">
+              <p className="text-sm text-muted-foreground leading-relaxed bg-muted border border-border p-3 rounded-lg whitespace-pre-line">
                 {report.conclusion}
               </p>
             ) : (

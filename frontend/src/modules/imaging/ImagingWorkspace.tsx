@@ -81,7 +81,7 @@ export const ImagingWorkspace = ({ studyId, onBack }: ImagingWorkspaceProps) => 
             {t("backToRecord")}
           </Button>
           <div className="text-left">
-            <h2 className="text-xl font-display font-bold text-foreground leading-none">
+            <h2 className="text-xl font-display font-semibold text-foreground leading-none">
               {t("titleConsole")}
             </h2>
             <span className="text-xs text-muted-foreground mt-1.5 block">

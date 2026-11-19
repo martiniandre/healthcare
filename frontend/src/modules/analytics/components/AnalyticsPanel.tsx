@@ -23,7 +23,7 @@ export const AnalyticsPanel = ({
     <Card className={cn("gap-0 overflow-hidden py-0", className)}>
       <CardHeader className="flex flex-row items-start justify-between gap-4 border-b border-border px-5 py-4 [.border-b]:pb-4">
         <div className="min-w-0">
-          <CardTitle className="text-sm font-extrabold tracking-tight">{title}</CardTitle>
+          <CardTitle className="text-sm font-semibold tracking-tight">{title}</CardTitle>
           {subtitle ? <CardDescription className="mt-1 text-xs">{subtitle}</CardDescription> : null}
         </div>
         {trailing ? <div className="shrink-0 pt-0.5">{trailing}</div> : null}
@@ -47,7 +47,7 @@ export const PanelMetric = ({
   className,
 }: PanelMetricProps) => {
   const toneTextClassName =
-    tone === "primary" ? "text-primary" : tone === "secondary" ? "text-secondary" : "text-foreground"
+    tone === "primary" ? "text-primary" : tone === "secondary" ? "text-clay-800 dark:text-secondary" : "text-foreground"
 
   return (
     <div
@@ -56,10 +56,10 @@ export const PanelMetric = ({
         className
       )}
     >
-      <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+      <span className="text-xs font-medium text-muted-foreground">
         {label}
       </span>
-      <span className={cn("text-xs font-black tabular-nums", toneTextClassName)}>{value}</span>
+      <span className={cn("text-xs font-semibold tabular-nums", toneTextClassName)}>{value}</span>
     </div>
   )
 }

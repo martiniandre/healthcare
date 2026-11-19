@@ -13,10 +13,10 @@ import { createModuleTranslator } from "../../../shared/i18n/i18n"
 import { localizedDateToIso } from "../../../shared/utils/dates"
 import { useCreatePatientMutation } from "../queries"
 import { toast } from "../../../shared/store/toast_store"
-import { FormDialogLayout } from "./form/FormDialogLayout"
-import { FormField } from "./form/FormField"
-import { FormSubmitError } from "./form/FormSubmitError"
-import { useSubmissionLock } from "./form/useSubmissionLock"
+import { FormDialogLayout } from "@/shared/components/form/FormDialogLayout"
+import { FormField } from "@/shared/components/form/FormField"
+import { FormSubmitError } from "@/shared/components/form/FormSubmitError"
+import { useSubmissionLock } from "@/shared/components/form/useSubmissionLock"
 
 interface PatientModalProps {
   isOpen: boolean
@@ -92,7 +92,7 @@ export const PatientModal = ({ isOpen, onOpenChange }: PatientModalProps) => {
         <FormDialogLayout
           title={t("modal.title")}
           description={t("modal.description")}
-          widthClassName="sm:max-w-[560px]"
+          widthClassName="sm:max-w-xl"
           onSubmit={handleSubmit(onSubmit)}
           cancelLabel={t("modal.cancel")}
           onCancel={requestClose}

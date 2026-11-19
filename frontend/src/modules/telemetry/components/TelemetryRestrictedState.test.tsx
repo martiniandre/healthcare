@@ -23,7 +23,7 @@ describe("TelemetryRestrictedState", () => {
   it("should use a numeric keypad friendly passcode field without autofill", () => {
     renderState()
 
-    const passcodeInput = screen.getByLabelText(/Duty Passcode/)
+    const passcodeInput = screen.getByLabelText(/Duty passcode/)
     expect(passcodeInput).toHaveAttribute("inputmode", "numeric")
     expect(passcodeInput).toHaveAttribute("autocomplete", "off")
     expect(passcodeInput).toBeRequired()
@@ -32,17 +32,17 @@ describe("TelemetryRestrictedState", () => {
   it("should block an empty submit with an inline message", () => {
     const { handleUnlockRoom } = renderState()
 
-    fireEvent.click(screen.getByRole("button", { name: "Release Monitoring" }))
+    fireEvent.click(screen.getByRole("button", { name: "Release monitoring" }))
 
     expect(handleUnlockRoom).not.toHaveBeenCalled()
     expect(screen.getByRole("alert")).toHaveTextContent("Enter the shift passcode to unlock the room.")
-    expect(screen.getByLabelText(/Duty Passcode/)).toHaveAttribute("aria-invalid", "true")
+    expect(screen.getByLabelText(/Duty passcode/)).toHaveAttribute("aria-invalid", "true")
   })
 
   it("should submit when a passcode is typed", () => {
     const { handleUnlockRoom } = renderState({ passcodeInput: "1234" })
 
-    fireEvent.click(screen.getByRole("button", { name: "Release Monitoring" }))
+    fireEvent.click(screen.getByRole("button", { name: "Release monitoring" }))
 
     expect(handleUnlockRoom).toHaveBeenCalledTimes(1)
   })
@@ -54,13 +54,13 @@ describe("TelemetryRestrictedState", () => {
     fireEvent.click(toggleButton)
 
     expect(toggleButton).toHaveAttribute("aria-pressed", "true")
-    expect(screen.getByLabelText(/Duty Passcode/)).toHaveAttribute("type", "text")
+    expect(screen.getByLabelText(/Duty passcode/)).toHaveAttribute("type", "text")
   })
 
   it("should link the server error to the field and refocus it", () => {
     renderState({ passcodeInput: "0000", passcodeError: "Incorrect passcode" })
 
-    const passcodeInput = screen.getByLabelText(/Duty Passcode/)
+    const passcodeInput = screen.getByLabelText(/Duty passcode/)
     expect(passcodeInput).toHaveAttribute("aria-describedby", expect.stringContaining("telemetry-passcode-error"))
     expect(passcodeInput).toHaveFocus()
   })

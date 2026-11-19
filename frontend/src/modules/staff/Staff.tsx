@@ -17,6 +17,7 @@ import { StaffFilters } from "./components/StaffFilters"
 import { StaffTable } from "./components/StaffTable"
 import { StaffModal } from "./components/StaffModal"
 import { DeleteStaffModal } from "./components/DeleteStaffModal"
+import { ConfirmActionDialog } from "../../shared/components/ui/confirm-action-dialog"
 
 export const Staff = () => {
   const { t } = useTranslation("staff")
@@ -24,6 +25,7 @@ export const Staff = () => {
   const [searchQuery, setSearchQuery] = useState<string>("")
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false)
   const [memberToDelete, setMemberToDelete] = useState<StaffMember | null>(null)
+  const [memberToDeactivate, setMemberToDeactivate] = useState<StaffMember | null>(null)
   const [pendingEmployeeId, setPendingEmployeeId] = useState<string | null>(null)
 
   const debouncedSearchQuery = useDebounce(searchQuery, 500)
@@ -36,12 +38,21 @@ export const Staff = () => {
   const canManageStatus = ability.can(Action.Update, Feature.Staff)
   const canDelete = ability.can(Action.Delete, Feature.Staff)
 
-  const handleToggleStatus = async (member: StaffMember) => {
+  const handleToggleStatus = (member: StaffMember) => {
+    if (member.isActive) {
+      setMemberToDeactivate(member)
+      return
+    }
+    void applyStatusChange(member)
+  }
+
+  const applyStatusChange = async (member: StaffMember) => {
     const nextIsActive = !member.isActive
     setPendingEmployeeId(member.id)
     try {
       await setEmployeeStatusMutation.mutateAsync({ employeeId: member.id, isActive: nextIsActive })
       toast.success(t(nextIsActive ? "toast.activateSuccess" : "toast.deactivateSuccess"))
+      setMemberToDeactivate(null)
     } catch {
       toast.error(t(nextIsActive ? "toast.activateError" : "toast.deactivateError"))
     } finally {
@@ -99,6 +110,18 @@ export const Staff = () => {
         onClose={() => setMemberToDelete(null)}
         onConfirm={handleConfirmDelete}
         isPending={deleteEmployeeMutation.isPending}
+      />
+
+      <ConfirmActionDialog
+        isOpen={memberToDeactivate !== null}
+        title={t("confirmDeactivate.title")}
+        description={t("confirmDeactivate.description", { name: memberToDeactivate?.fullName ?? "" })}
+        confirmLabel={t("confirmDeactivate.confirm")}
+        cancelLabel={t("confirmDeactivate.back")}
+        isDestructive
+        isPending={setEmployeeStatusMutation.isPending}
+        onConfirm={() => memberToDeactivate && void applyStatusChange(memberToDeactivate)}
+        onClose={() => setMemberToDeactivate(null)}
       />
     </PageContainer>
   )

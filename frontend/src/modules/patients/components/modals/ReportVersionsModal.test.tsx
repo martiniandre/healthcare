@@ -40,7 +40,7 @@ describe("ReportVersionsModal", () => {
       <ReportVersionsModal isOpen onClose={vi.fn()} reportFhirId="report-1" reportDisplay="Hemograma Completo" />
     )
     expect(
-      screen.getByText("modals.reportVersions.title — Hemograma Completo")
+      screen.getByText("modals.reportVersions.title: Hemograma Completo")
     ).toBeDefined()
     expect(screen.getByText("modals.reportVersions.empty")).toBeDefined()
   })

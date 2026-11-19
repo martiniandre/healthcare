@@ -23,15 +23,15 @@ export const AppointmentCard = ({ appointment, onCancel }: AppointmentCardProps)
     <Card className={`py-4 gap-2 ${appointment.status === "cancelled" ? "opacity-60" : ""}`}>
       <CardContent className="flex flex-col gap-2 px-4">
         <div className="flex items-center justify-between gap-2">
-          <span className="font-mono text-xs font-bold tabular-nums text-foreground">
-            {formatTime(appointment.starts_at)} — {formatTime(appointment.ends_at)}
+          <span className="font-mono text-xs font-semibold tabular-nums text-foreground">
+            {formatTime(appointment.starts_at)}–{formatTime(appointment.ends_at)}
           </span>
           <StatusBadge status={resolveAppointmentClinicalStatus(appointment.status)}>
             {t(`status.${appointment.status}`)}
           </StatusBadge>
         </div>
         <div className="flex flex-col gap-0.5">
-          <span className="text-sm font-bold text-foreground">
+          <span className="text-sm font-semibold text-foreground">
             {patient?.full_name ?? t("cards.unknownPatient")}
           </span>
           <span className="text-xs text-muted-foreground truncate">

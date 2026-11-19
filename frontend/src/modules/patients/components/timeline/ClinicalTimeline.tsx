@@ -10,7 +10,7 @@ import { Skeleton } from "../../../../shared/components/ui/skeleton"
 import { Spinner } from "../../../../shared/components/ui/spinner"
 import { useLocale } from "../../../../shared/hooks/useLocale"
 import { useTimelineQuery } from "../../queries"
-import { QueryErrorAlert } from "../QueryErrorAlert"
+import { QueryErrorAlert } from "@/shared/components/ui/QueryErrorAlert"
 import { TimelineFilters } from "./TimelineFilters"
 import { TimelineList } from "./TimelineList"
 import { parseTimelineFilters, serializeTimelineFilters, type TimelineFilterState } from "./timelineModel"
@@ -25,7 +25,7 @@ const TimelineSkeleton = () => {
   return (
     <div role="status" aria-busy="true" aria-label={t("timeline.loadingList")} className="flex flex-col gap-2">
       {[0, 1, 2, 3].map((placeholderIndex) => (
-        <Skeleton key={placeholderIndex} className="h-24 w-full rounded-xl" />
+        <Skeleton key={placeholderIndex} className="h-24 w-full rounded-lg" />
       ))}
     </div>
   )
@@ -96,10 +96,7 @@ export default function ClinicalTimeline({ patientId }: ClinicalTimelineProps) {
 
   return (
     <Card className="gap-4 p-4 md:p-6">
-      <div className="flex items-center gap-2">
-        <History className="size-4 text-primary" aria-hidden="true" />
-        <h2 className="text-sm font-extrabold uppercase tracking-wider text-foreground">{t("timeline.title")}</h2>
-      </div>
+      <h2 className="text-base font-semibold text-foreground">{t("timeline.title")}</h2>
 
       <TimelineFilters filters={filters} onChange={updateFilters} />
 

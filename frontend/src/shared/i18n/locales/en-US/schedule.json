@@ -1,7 +1,7 @@
 {
   "title": "Schedule",
   "subtitle": "Manage appointment booking and time slots",
-  "newAppointment": "New Appointment",
+  "newAppointment": "New appointment",
   "selectStaff": "Professional",
   "selectStaffPlaceholder": "Select a professional",
   "selectDate": "Date",
@@ -35,7 +35,7 @@
   },
   "modals": {
     "create": {
-      "title": "New Appointment",
+      "title": "New appointment",
       "patient": "Patient",
       "patientSearchPlaceholder": "Search patient by name...",
       "selectPatient": "Select the patient",
@@ -58,19 +58,19 @@
       "endTimeHintNoStart": "Pick the start first; the end is filled in for you."
     },
     "cancel": {
-      "title": "Cancel Appointment",
+      "title": "Cancel appointment",
       "description": "Are you sure you want to cancel this appointment?",
       "back": "Back",
-      "confirm": "Confirm Cancellation",
+      "confirm": "Confirm cancellation",
       "hint": "The appointment is kept in the record and marked as cancelled."
     },
     "edit": {
-      "title": "Edit Appointment",
-      "confirm": "Save Changes",
+      "title": "Edit appointment",
+      "confirm": "Save changes",
       "description": "Change the details and save. The summary shows the new booking."
     },
     "details": {
-      "title": "Appointment Details",
+      "title": "Appointment details",
       "patient": "Patient",
       "staff": "Professional",
       "date": "Date",
@@ -126,10 +126,10 @@
   "unavailability": {
     "badge": "Unavailable",
     "delete": "Remove period",
-    "createButton": "Block Period",
+    "createButton": "Block period",
     "blockedPeriodsTitle": "Blocked periods",
     "modal": {
-      "title": "Block Unavailability Period",
+      "title": "Block unavailability period",
       "date": "Date",
       "startTime": "Start",
       "endTime": "End",
@@ -144,10 +144,10 @@
       "endTimeHint": "Filled in as 1 hour after the start; you can change it."
     },
     "deleteModal": {
-      "title": "Remove Unavailability Period",
+      "title": "Remove unavailability period",
       "description": "Are you sure you want to remove this unavailability period?",
       "back": "Back",
-      "confirm": "Confirm Removal"
+      "confirm": "Confirm removal"
     },
     "toasts": {
       "createSuccess": "Unavailability period blocked successfully!",
@@ -156,7 +156,7 @@
       "deleteError": "Failed to remove unavailability period."
     },
     "summary": {
-      "forStaff": "{{when}} — {{staff}} unavailable"
+      "forStaff": "{{when}}: {{staff}} unavailable"
     },
     "errors": {
       "conflictTitle": "This period overlaps another",

@@ -114,3 +114,7 @@ export const getDurationInMinutes = (startTimeValue: string, endTimeValue: strin
   }
   return toTotalMinutes(endTimeValue) - toTotalMinutes(startTimeValue)
 }
+
+export const formatLocalDateTime = (dateValue: string, timeValue: string): string => {
+  return new Date(`${dateValue}T${timeValue}`).toISOString()
+}

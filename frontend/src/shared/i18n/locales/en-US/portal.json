@@ -1,14 +1,14 @@
 {
   "emptyEncounters": "No encounters found.",
   "emptyConditions": "No conditions registered.",
-  "title": "Patient Portal",
+  "title": "Patient portal",
   "navigation": "Navigation",
   "loading": "Loading portal...",
   "tabs": {
     "dashboard": "Overview",
     "appointments": "Appointments",
     "encounters": "Encounters",
-    "observations": "Vital Signs",
+    "observations": "Vital signs",
     "conditions": "Conditions",
     "medications": "Medications",
     "reports": "Reports",
@@ -17,13 +17,14 @@
   "greeting": "Hello, {{firstName}}!",
   "welcome": "Welcome to your health portal. Here you find all of your clinical information.",
   "summary": {
-    "totalEncounters": "Total Encounters",
-    "activeConditions": "Active Conditions",
-    "activeMedications": "Active Medications",
-    "recentReports": "Recent Reports"
+    "totalEncounters": "Total encounters",
+    "activeConditions": "Active conditions",
+    "activeMedications": "Active medications",
+    "recentReports": "Recent reports",
+    "upcomingEncounters": "Upcoming encounters"
   },
-  "upcomingEncounters": "Upcoming Encounters",
-  "recentVitalSigns": "Latest Vital Signs",
+  "upcomingEncounters": "Upcoming encounters",
+  "recentVitalSigns": "Latest vital signs",
   "table": {
     "date": "Date",
     "reason": "Reason",
@@ -43,7 +44,7 @@
     "encounter": "Encounter",
     "medication": "Medication",
     "exam": "Report",
-    "imagingStudy": "Imaging Study"
+    "imagingStudy": "Imaging study"
   },
   "error": {
     "title": "Unable to load",

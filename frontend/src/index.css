@@ -1,5 +1,4 @@
 @import "@fontsource-variable/inter";
-@import "@fontsource-variable/fraunces/soft.css";
 @import "tailwindcss";
 
 @custom-variant dark (&:where(.dark, .dark *));
@@ -80,7 +79,10 @@
   --shadow-lg: 0 4px 8px rgba(68, 55, 35, 0.05), 0 24px 48px -20px rgba(68, 55, 35, 0.22);
 
   --font-sans: "Inter Variable", system-ui, sans-serif;
-  --font-display: "Fraunces Variable", Georgia, serif;
+  --font-display: "Inter Variable", system-ui, sans-serif;
+
+  --text-2xs: 0.6875rem;
+  --text-2xs--line-height: 1rem;
 
   --animate-pulse-glow: pulseGlow 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   --animate-fade-in: fadeIn 0.25s ease-out;
@@ -125,8 +127,7 @@
   }
 
   .font-display {
-    font-variation-settings: "SOFT" 0, "WONK" 0;
-    letter-spacing: -0.01em;
+    letter-spacing: -0.015em;
   }
 }
 
@@ -234,9 +235,8 @@
 }
 .schedule-calendar-container .fc-toolbar-title {
   font-family: var(--font-display);
-  font-variation-settings: "SOFT" 0;
   font-weight: 600;
-  font-size: 1.15rem;
+  font-size: 1.05rem;
   letter-spacing: -0.01em;
   color: var(--sc-ink);
 }
@@ -319,12 +319,16 @@
 }
 .schedule-calendar-container .fc-col-header-cell-cushion {
   font-family: var(--font-sans);
-  font-size: 0.64rem;
+  font-size: 0.72rem;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
   color: var(--sc-muted);
   padding: 0;
+}
+.schedule-calendar-container .fc-col-header-cell-cushion {
+  display: inline-block;
+}
+.schedule-calendar-container .fc-col-header-cell-cushion::first-letter {
+  text-transform: uppercase;
 }
 
 /* Day cells */
@@ -357,7 +361,7 @@
 .schedule-calendar-container .fc-day-today .fc-daygrid-day-number {
   background: var(--sc-teal);
   color: #fff;
-  font-weight: 700;
+  font-weight: 600;
   box-shadow: 0 5px 12px -5px rgba(74, 110, 82, 0.65);
 }
 .schedule-calendar-container .fc-day-other {
@@ -404,7 +408,7 @@
 /* Time axis — hour labels follow the editorial pattern used by the header row */
 .schedule-calendar-container .fc-timegrid-slot-label-cushion {
   font-family: var(--font-sans);
-  font-size: 0.68rem;
+  font-size: 0.72rem;
   font-weight: 600;
   letter-spacing: 0.01em;
   line-height: 1.2;
@@ -421,7 +425,7 @@
   --fc-border-color: var(--color-border);
   --fc-today-bg-color: rgba(155, 195, 161, 0.08);
   --sc-ink: #e8e2d6;
-  --sc-muted: #8a8273;
+  --sc-muted: #a8a091;
   --sc-primary: #9bc3a1;
   --sc-teal: #9bc3a1;
 }

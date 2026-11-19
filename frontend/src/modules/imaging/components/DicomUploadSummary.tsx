@@ -71,13 +71,13 @@ export const DicomUploadSummary = ({ result }: DicomUploadSummaryProperties) => 
       data-testid="dicom-upload-summary"
       className="rounded-lg border border-border bg-muted/40 p-3"
     >
-      <h4 className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+      <h4 className="text-xs font-medium text-muted-foreground">
         {t("upload.summary.title")}
       </h4>
       <dl className="mt-2 grid grid-cols-1 gap-x-4 gap-y-2 sm:grid-cols-2">
         {entries.map((entry) => (
           <div key={entry.key} className="min-w-0">
-            <dt className="text-[11px] font-medium text-muted-foreground">{entry.label}</dt>
+            <dt className="text-2xs font-medium text-muted-foreground">{entry.label}</dt>
             <dd className="flex items-center gap-1 text-xs font-semibold text-foreground">
               <span className="min-w-0 truncate font-mono tabular-nums" title={entry.title}>
                 {entry.value}

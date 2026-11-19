@@ -7,12 +7,11 @@ import { useAbility } from "../../shared/auth/useAbility"
 import { PatientPageLayout } from "./components/PatientPageLayout"
 import { patientTabListClassName, patientTabTriggerClassName } from "./components/patientTabStyles"
 import { PatientPageSkeleton } from "./components/PatientPageSkeleton"
-import { QueryErrorAlert } from "./components/QueryErrorAlert"
+import { QueryErrorAlert } from "@/shared/components/ui/QueryErrorAlert"
 import { PageContainer } from "../../shared/components/ui/PageContainer"
 import { Card } from "../../shared/components/ui/card"
 import { Spinner } from "../../shared/components/ui/spinner"
 import { Tabs, TabsList, TabsTrigger } from "../../shared/components/ui/tabs"
-import { Heart, FileText, Pill } from "lucide-react"
 
 const EncounterTab = {
   Vitals: "vitals",
@@ -90,7 +89,6 @@ export function EncounterDetail() {
             value={EncounterTab.Vitals}
             className={patientTabTriggerClassName}
           >
-            <Heart className="w-4 h-4 shrink-0" />
             {t("details.vitals")}
           </TabsTrigger>
         )}
@@ -100,7 +98,6 @@ export function EncounterDetail() {
             value={EncounterTab.Reports}
             className={patientTabTriggerClassName}
           >
-            <FileText className="w-4 h-4 shrink-0" />
             {t("details.reports")}
           </TabsTrigger>
         )}
@@ -110,7 +107,6 @@ export function EncounterDetail() {
             value={EncounterTab.Medications}
             className={patientTabTriggerClassName}
           >
-            <Pill className="w-4 h-4 shrink-0" />
             {t("details.medications")}
           </TabsTrigger>
         )}

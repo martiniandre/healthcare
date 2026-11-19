@@ -1,14 +1,13 @@
 import type { ReactNode } from "react"
 import type { LucideIcon } from "lucide-react"
 import { useTranslation } from "react-i18next"
-import { Card, CardAction, CardContent, CardHeader, CardTitle } from "../../../shared/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "../../../shared/components/ui/card"
 import { EmptyState } from "../../../shared/components/ui/EmptyState"
 import { Skeleton } from "../../../shared/components/ui/skeleton"
-import { QueryErrorAlert } from "./QueryErrorAlert"
+import { QueryErrorAlert } from "@/shared/components/ui/QueryErrorAlert"
 
 interface ClinicalQuerySectionProps {
   title: string
-  icon: ReactNode
   isLoading: boolean
   isError: boolean
   onRetry: () => void
@@ -23,7 +22,6 @@ const skeletonRows = ["first", "second", "third", "fourth"]
 
 export const ClinicalQuerySection = ({
   title,
-  icon,
   isLoading,
   isError,
   onRetry,
@@ -41,12 +39,11 @@ export const ClinicalQuerySection = ({
 
   return (
     <Card className="min-h-[450px] gap-5">
-      <CardHeader className="border-b">
-        <CardTitle className="flex items-center gap-2 text-base font-extrabold">
-          {icon}
-          {title}
+      <CardHeader className="flex flex-col gap-3 border-b sm:flex-row sm:items-center sm:justify-between">
+        <CardTitle className="flex min-w-0 items-center gap-2 text-base font-semibold [&>svg]:size-4 [&>svg]:shrink-0 [&>svg]:text-muted-foreground">
+          <span className="min-w-0">{title}</span>
         </CardTitle>
-        {!isLoading && addButton ? <CardAction>{addButton}</CardAction> : null}
+        {!isLoading && addButton ? <div className="flex flex-wrap items-center gap-2 sm:shrink-0">{addButton}</div> : null}
       </CardHeader>
       <CardContent className="flex flex-1 flex-col gap-3">
         {isLoading ? (

@@ -23,8 +23,8 @@ const buildHttpError = (status: number) => {
 
 const fillAndSubmit = (password = "wrong-password") => {
   fireEvent.change(screen.getByLabelText(/Professional E-mail/), { target: { value: "nurse@hospital.com" } })
-  fireEvent.change(screen.getByLabelText(/Access Password/), { target: { value: password } })
-  fireEvent.click(screen.getByRole("button", { name: "Enter Console" }))
+  fireEvent.change(screen.getByLabelText(/Access password/), { target: { value: password } })
+  fireEvent.click(screen.getByRole("button", { name: "Enter console" }))
 }
 
 describe("LoginForm", () => {
@@ -40,7 +40,7 @@ describe("LoginForm", () => {
     expect(emailInput).toHaveAttribute("autocomplete", "username")
     expect(emailInput).toHaveAttribute("autocapitalize", "none")
     expect(emailInput).toHaveAttribute("spellcheck", "false")
-    expect(screen.getByLabelText(/Access Password/)).toHaveAttribute("autocomplete", "current-password")
+    expect(screen.getByLabelText(/Access password/)).toHaveAttribute("autocomplete", "current-password")
   })
 
   it("should toggle password visibility with aria-pressed", () => {
@@ -51,7 +51,7 @@ describe("LoginForm", () => {
     fireEvent.click(toggleButton)
 
     expect(toggleButton).toHaveAttribute("aria-pressed", "true")
-    expect(screen.getByLabelText(/Access Password/)).toHaveAttribute("type", "text")
+    expect(screen.getByLabelText(/Access password/)).toHaveAttribute("type", "text")
   })
 
   it("should show validation errors only after the field is touched", async () => {
@@ -72,8 +72,8 @@ describe("LoginForm", () => {
     const alert = await screen.findByRole("alert")
     expect(alert).toHaveTextContent("Invalid credentials. Check your e-mail and password and try again.")
     expect(screen.getByLabelText(/Professional E-mail/)).toHaveValue("nurse@hospital.com")
-    expect(screen.getByLabelText(/Access Password/)).toHaveValue("")
-    await waitFor(() => expect(screen.getByLabelText(/Access Password/)).toHaveFocus())
+    expect(screen.getByLabelText(/Access password/)).toHaveValue("")
+    await waitFor(() => expect(screen.getByLabelText(/Access password/)).toHaveFocus())
   })
 
   it("should show the connection error when the server cannot be reached", async () => {
@@ -87,7 +87,7 @@ describe("LoginForm", () => {
 
   it("should warn when Caps Lock is on while typing the password", () => {
     render(<LoginForm />)
-    const passwordInput = screen.getByLabelText(/Access Password/)
+    const passwordInput = screen.getByLabelText(/Access password/)
 
     fireEvent.keyDown(passwordInput, { key: "A", modifierCapsLock: true })
 

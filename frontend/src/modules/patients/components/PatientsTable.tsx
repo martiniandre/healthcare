@@ -34,7 +34,7 @@ interface PatientsTableProps {
 const AVATAR_TONES = [
   "bg-sage-100 text-sage-800 dark:bg-primary/15 dark:text-primary",
   "bg-clay-100 text-clay-800 dark:bg-secondary/15 dark:text-secondary",
-  "bg-sand-200 text-gray-700 dark:bg-muted dark:text-foreground",
+  "bg-sand-200 text-muted-foreground dark:bg-muted dark:text-foreground",
 ]
 
 const buildInitials = (fullName: string): string => {

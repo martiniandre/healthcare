@@ -40,7 +40,6 @@ export default function VitalSigns({ patientId, encounterId }: VitalSignsProps) 
     <>
       <ClinicalQueryTable
         title={t("details.vitalsCard.title")}
-        icon={<Heart className="w-4 h-4 text-red-500 animate-pulse-glow" />}
         columns={columns}
         data={observations}
         isLoading={isLoading}

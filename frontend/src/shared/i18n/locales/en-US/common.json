@@ -1,5 +1,5 @@
 {
-  "appTitle": "HealthCare Portal",
+  "appTitle": "HealthCare portal",
   "close": "Close",
   "tableDensity": {
     "compact": "Compact rows",
@@ -35,5 +35,11 @@
     "success": "Success",
     "error": "Error",
     "info": "Notice"
+  },
+  "skipToContent": "Skip to content",
+  "queryError": {
+    "title": "Could not load the data",
+    "description": "An error occurred while fetching the information. Please try again.",
+    "retry": "Try again"
   }
 }

@@ -31,6 +31,7 @@ test.describe("Staff Status Management", () => {
     await expect(doctorRow.getByText("Ativo")).toBeVisible()
 
     await doctorRow.getByRole("button", { name: "Desativar acesso" }).click()
+    await page.getByRole("dialog").getByRole("button", { name: "Desativar acesso" }).click()
     await expect(page.getByText("Acesso do profissional desativado.")).toBeVisible()
     await expect(firstEmployeeRow(page, "Dr. André Silva de Araujo").getByText("Inativo")).toBeVisible()
 

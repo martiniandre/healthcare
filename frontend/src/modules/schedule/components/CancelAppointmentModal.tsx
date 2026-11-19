@@ -36,7 +36,7 @@ export const CancelAppointmentModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && !isPending && onClose()}>
-      <DialogContent className="sm:max-w-[420px]">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="text-left flex items-center gap-2">
             <CalendarX2 className="size-4 text-destructive" />

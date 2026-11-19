@@ -38,7 +38,7 @@ export const DicomViewport = ({
   return (
     <Card className="lg:col-span-3 py-4">
       <CardContent className="flex flex-col items-center gap-6 px-4">
-      <div className="relative border border-border rounded-2xl overflow-hidden bg-slate-950 w-full flex justify-center">
+      <div className="relative border border-border rounded-lg overflow-hidden bg-slate-950 w-full flex justify-center">
         <canvas
           ref={canvasReference}
           width={640}

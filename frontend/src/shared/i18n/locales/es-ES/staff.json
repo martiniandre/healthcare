@@ -1,7 +1,7 @@
 {
-  "title": "Gestión de Equipos Hospitalarios",
+  "title": "Gestión de equipos hospitalarios",
   "subtitle": "Administración de profesionales de la salud, personal activo de guardia y acceso operativo",
-  "addStaff": "Registrar Profesional",
+  "addStaff": "Registrar profesional",
   "searchPlaceholder": "Buscar por nombre, correo electrónico o especialidad...",
   "filterAll": "Todos",
   "loading": "Cargando personal clínico...",
@@ -9,13 +9,13 @@
   "emptyState": "Ningún profesional coincide con los filtros actuales.",
   "table": {
     "professional": "Profesional",
-    "role": "Función / Categoría",
+    "role": "Función / categoría",
     "license": "Registro (CRM/COREN)",
     "department": "Departamento",
     "contact": "Contacto",
-    "status": "Estado de Guardia",
-    "onDuty": "De Guardia",
-    "offDuty": "Fuera de Guardia",
+    "status": "Estado de guardia",
+    "onDuty": "De guardia",
+    "offDuty": "Fuera de guardia",
     "actions": "Acciones",
     "active": "Activo",
     "inactive": "Inactivo",
@@ -23,25 +23,25 @@
     "disable": "Desactivar acceso",
     "delete": "Eliminar profesional",
     "roles": {
-      "doctor": "médico",
-      "nurse": "enfermero",
-      "receptionist": "recepción",
-      "admin": "administración"
+      "doctor": "Médico",
+      "nurse": "Enfermero",
+      "receptionist": "Recepción",
+      "admin": "Administración"
     }
   },
   "modal": {
-    "title": "Registrar Nuevo Profesional",
-    "name": "Nombre Completo",
+    "title": "Registrar nuevo profesional",
+    "name": "Nombre completo",
     "namePlaceholder": "Ej: Dr. Juan Gómez",
     "category": "Categoría",
-    "license": "Registro Profesional",
+    "license": "Registro profesional",
     "licensePlaceholder": "Ej: CRM-SP 12345",
-    "email": "Correo Electrónico Corporativo",
+    "email": "Correo electrónico corporativo",
     "emailPlaceholder": "Ej: nombre@hospital.com",
     "department": "Departamento",
     "departmentPlaceholder": "Selecciona el departamento",
     "cancel": "Cancelar",
-    "confirm": "Guardar Registro",
+    "confirm": "Guardar registro",
     "requiredLabel": "(obligatorio)",
     "saving": "Guardando...",
     "nameHint": "Tal como consta en el registro profesional.",
@@ -105,5 +105,13 @@
     "retry": "Reintentar"
   },
   "searchLabel": "Buscar profesionales",
-  "filterByRole": "Filtrar por categoría"
+  "filterByRole": "Filtrar por categoría",
+  "confirmDeactivate": {
+    "title": "¿Desactivar acceso?",
+    "description": "{{name}} perderá el acceso al sistema hasta ser reactivado. Los registros clínicos de este profesional se conservan.",
+    "confirm": "Desactivar acceso",
+    "back": "Volver",
+    "enableShort": "Activar",
+    "disableShort": "Desactivar"
+  }
 }

@@ -164,7 +164,7 @@ export const LoginForm = () => {
           <Button
             type="submit"
             disabled={isPending}
-            className="mt-2 h-11 w-full font-bold uppercase tracking-wide md:h-9"
+            className="mt-2 h-11 w-full font-semibold md:h-10"
           >
             {isPending && <Spinner />}
             {isPending ? t("loadingText") : t("submitText")}

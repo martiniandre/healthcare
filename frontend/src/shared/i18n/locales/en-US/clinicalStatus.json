@@ -3,11 +3,11 @@
     "planned": "Planned",
     "arrived": "Arrived",
     "triaged": "Triaged",
-    "in-progress": "In Progress",
-    "onleave": "On Leave",
+    "in-progress": "In progress",
+    "onleave": "On leave",
     "finished": "Finished",
     "cancelled": "Cancelled",
-    "entered-in-error": "Entered In Error",
+    "entered-in-error": "Entered in error",
     "unknown": "Unknown"
   },
   "condition": {
@@ -20,10 +20,10 @@
   },
   "medicationRequest": {
     "active": "Active",
-    "on-hold": "On Hold",
+    "on-hold": "On hold",
     "cancelled": "Cancelled",
     "completed": "Completed",
-    "entered-in-error": "Entered In Error",
+    "entered-in-error": "Entered in error",
     "stopped": "Stopped",
     "draft": "Draft",
     "unknown": "Unknown"
@@ -37,14 +37,14 @@
     "corrected": "Corrected",
     "appended": "Appended",
     "cancelled": "Cancelled",
-    "entered-in-error": "Entered In Error",
+    "entered-in-error": "Entered in error",
     "unknown": "Unknown"
   },
   "imagingStudy": {
     "registered": "Registered",
     "available": "Available",
     "cancelled": "Cancelled",
-    "entered-in-error": "Entered In Error",
+    "entered-in-error": "Entered in error",
     "unknown": "Unknown",
     "RECEIVING": "Receiving",
     "PROCESSING": "Processing",
@@ -58,21 +58,21 @@
     "resolved": "Resolved"
   },
   "dicomModality": {
-    "CT": "CT (Computed Tomography)",
-    "MR": "MR (Magnetic Resonance)",
+    "CT": "CT (computed tomography)",
+    "MR": "MR (magnetic resonance)",
     "US": "US (Ultrasonography)",
-    "DX": "DX (Digital Radiography)",
-    "CR": "CR (Computed Radiography)",
-    "XA": "XA (X-Ray Angiography)",
+    "DX": "DX (digital radiography)",
+    "CR": "CR (computed radiography)",
+    "XA": "XA (X-ray angiography)",
     "PT": "PT (Fluoroscopy)",
     "MG": "MG (Mammography)",
-    "SR": "SR (Structured Report)"
+    "SR": "SR (structured report)"
   },
   "cardiacCondition": {
     "normal": "Normal",
     "bradycardia": "Bradycardia",
     "tachycardia": "Tachycardia",
-    "cardiac-arrest": "Cardiac Arrest"
+    "cardiac-arrest": "Cardiac arrest"
   },
   "notInformed": "N/A"
 }

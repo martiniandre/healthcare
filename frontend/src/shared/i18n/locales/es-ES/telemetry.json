@@ -1,21 +1,21 @@
 {
-  "title": "Central de Monitoreo y Telemetría",
+  "title": "Central de monitoreo y telemetría",
   "subtitle": "Monitoreo de signos vitales organizado por alas y salas protegidas por contraseña de guardia",
-  "alarmsMuted": "Alarmas Silenciadas",
-  "alarmsActive": "Alarma Sonora Activa",
-  "monitoredWing": "Ala Monitoreada",
+  "alarmsMuted": "Alarmas silenciadas",
+  "alarmsActive": "Alarma sonora activa",
+  "monitoredWing": "Ala monitoreada",
   "unlocked": "Desbloqueada",
   "protected": "Protegida",
   "lockButton": "Bloquear",
-  "restrictedRoom": "Sala de Acceso Restringido",
+  "restrictedRoom": "Sala de acceso restringido",
   "restrictedRoomDesc": "Esta ala contiene datos clínicos protegidos (HIPAA/LGPD). Ingrese la contraseña de guardia de {{roomName}} para liberar la telemetría.",
-  "passcodeLabel": "Contraseña de Guardia",
+  "passcodeLabel": "Contraseña de guardia",
   "passcodePlaceholder": "Ingrese código de sala...",
-  "unlockButton": "Liberar Monitoreo",
-  "clinicalCouncil": "Consejo Técnico de Enfermería y Medicina Intensiva",
+  "unlockButton": "Liberar monitoreo",
+  "clinicalCouncil": "Consejo técnico de enfermería y medicina intensiva",
   "noBeds": "Ninguna cama activa en esta sala de monitoreo.",
   "noRoomSelected": "Ninguna sala seleccionada",
-  "noRoomSelectedDesc": "Seleccione una de las salas de arriba para conectar y monitorear las camas en tiempo real.",
+  "noRoomSelectedDesc": "Seleccione una sala para ver las camas.",
   "years": "años",
   "criticalBadge": "Crítico",
   "ecgLead": "ECG - DERIVACIÓN II (DII)",
@@ -25,15 +25,15 @@
     "temp": "Temperatura"
   },
   "simulation": {
-    "title": "Inyectar Simulación Clínica:",
-    "normal": "Simular Ritmo Normal",
-    "bradycardia": "Simular Bradicardia",
-    "tachycardia": "Simular Taquicardia",
-    "cardiacArrest": "Simular Paro Cardíaco"
+    "title": "Inyectar simulación clínica:",
+    "normal": "Simular ritmo normal",
+    "bradycardia": "Simular bradicardia",
+    "tachycardia": "Simular taquicardia",
+    "cardiacArrest": "Simular paro cardíaco"
   },
-  "noBedSelected": "Ninguna Cama Seleccionada",
+  "noBedSelected": "Ninguna cama seleccionada",
   "noBedSelectedDesc": "Seleccione una cama en la lista lateral para monitorear los signos vitales en tiempo real e inyectar simulaciones clínicas.",
-  "availableBeds": "Camas Disponibles ({{count}})",
+  "availableBeds": "Camas disponibles ({{count}})",
   "toast": {
     "simulateSuccess": "¡Simulación clínica propagada con éxito!",
     "simulateError": "Error al propagar simulación clínica.",
@@ -57,5 +57,6 @@
   "passcodeRequired": "Ingrese la clave de turno para liberar la sala.",
   "passcodeHint": "Pida el código al responsable del turno.",
   "togglePasscode": "Mostrar",
-  "unlocking": "Verificando..."
+  "unlocking": "Verificando...",
+  "protectedHint": "Las salas protegidas piden la contraseña del turno. El desbloqueo vale solo para esta sesión."
 }

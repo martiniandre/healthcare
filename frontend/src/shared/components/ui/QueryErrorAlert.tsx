@@ -1,7 +1,7 @@
 import { AlertCircle, RotateCw } from "lucide-react"
 import { useTranslation } from "react-i18next"
-import { Alert, AlertDescription, AlertTitle } from "../../../shared/components/ui/alert"
-import { Button } from "../../../shared/components/ui/button"
+import { Alert, AlertDescription, AlertTitle } from "@/shared/components/ui/alert"
+import { Button } from "@/shared/components/ui/button"
 
 interface QueryErrorAlertProps {
   onRetry: () => void
@@ -12,17 +12,17 @@ interface QueryErrorAlertProps {
 }
 
 export const QueryErrorAlert = ({ onRetry, title, description, isRetrying, className }: QueryErrorAlertProps) => {
-  const { t } = useTranslation("patients")
+  const { t } = useTranslation("common")
 
   return (
     <Alert variant="destructive" className={className}>
       <AlertCircle />
-      <AlertTitle>{title ?? t("states.errorTitle")}</AlertTitle>
+      <AlertTitle>{title ?? t("queryError.title")}</AlertTitle>
       <AlertDescription>
-        <p>{description ?? t("states.errorDescription")}</p>
+        <p>{description ?? t("queryError.description")}</p>
         <Button type="button" variant="outline" size="sm" onClick={onRetry} disabled={isRetrying} className="mt-2">
           <RotateCw />
-          {t("states.retry")}
+          {t("queryError.retry")}
         </Button>
       </AlertDescription>
     </Alert>

@@ -75,7 +75,7 @@ export const WaitTimeByDepartmentChart = ({
 
     return (
       <g transform={`translate(${x}, ${y})`}>
-        <text textAnchor="end" dy={4} className="fill-gray-900 text-[11px] font-bold">
+        <text textAnchor="end" dy={4} className="fill-foreground text-2xs font-semibold">
           {datum?.department}
         </text>
       </g>
@@ -90,7 +90,7 @@ export const WaitTimeByDepartmentChart = ({
       formatter={(labelValue: RenderableText) =>
         `${Math.round(Number(labelValue))} ${minutesUnit}`
       }
-      className="fill-gray-900 text-[11px] font-black tabular-nums"
+      className="fill-foreground text-2xs font-semibold tabular-nums"
     />
   )
 
@@ -157,7 +157,7 @@ export const WaitTimeByDepartmentChart = ({
                   tickLine={false}
                 />
                 <Tooltip
-                  cursor={{ className: "fill-gray-100" }}
+                  cursor={{ className: "fill-muted" }}
                   content={({ active, payload }) => {
                     if (!active || !payload || payload.length === 0) return null
                     const datum = payload[0].payload as WaitTimeChartDatum

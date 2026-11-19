@@ -23,7 +23,7 @@ test.describe("Real-time Telemetry Dashboard Module", () => {
     await redRoomCard.click()
 
     const passwordInput = page.getByPlaceholder("Digite o código da sala...")
-    const confirmButton = page.getByRole("button", { name: "Liberar Monitoramento" })
+    const confirmButton = page.getByRole("button", { name: "Liberar monitoramento" })
 
     await passwordInput.fill("1111")
     await confirmButton.click()
@@ -41,11 +41,11 @@ test.describe("Real-time Telemetry Dashboard Module", () => {
   })
 
   test("should toggle telemetry audible alarms status", async ({ page }) => {
-    const alarmsButton = page.getByRole("button", { name: "Alarmes Silenciados" })
+    const alarmsButton = page.getByRole("button", { name: "Alarmes silenciados" })
     await expect(alarmsButton).toBeVisible()
 
     await alarmsButton.click()
-    const activeAlarmsButton = page.getByRole("button", { name: "Alarme Sonoro Ativo" })
+    const activeAlarmsButton = page.getByRole("button", { name: "Alarme sonoro ativo" })
     await expect(activeAlarmsButton).toBeVisible()
   })
 })
@@ -68,7 +68,7 @@ test.describe("Clinical Statistics and Analytics Module", () => {
   })
 
   test("should load weekly consultations volume chart data", async ({ page }) => {
-    const weeklyChartHeading = page.locator("text=Volume de Atendimentos")
+    const weeklyChartHeading = page.locator("text=Volume de atendimentos")
     await expect(weeklyChartHeading).toBeVisible()
 
     const chartDaySeg = page.getByText("Seg", { exact: true })
@@ -111,7 +111,7 @@ test.describe("Hospital Staff Management Module", () => {
   })
 
   test("should successfully register a new hospital practitioner", async ({ page }) => {
-    await page.getByRole("button", { name: "Cadastrar Profissional" }).click()
+    await page.getByRole("button", { name: "Cadastrar profissional" }).click()
 
     await page.getByPlaceholder("Ex: Dr. André Silva de Araujo").fill("Dra. Paula Albuquerque")
     await page.locator("#staff-role").click()
@@ -121,7 +121,7 @@ test.describe("Hospital Staff Management Module", () => {
     await page.locator("#staff-department").click()
     await page.getByRole("option", { name: "Neurologia" }).click()
 
-    await page.getByRole("button", { name: "Salvar Cadastro" }).click()
+    await page.getByRole("button", { name: "Salvar cadastro" }).click()
 
     const newPractitionerName = page.locator("text=Dra. Paula Albuquerque")
     await expect(newPractitionerName).toBeVisible()

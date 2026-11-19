@@ -58,12 +58,12 @@ test.describe("Internal features - authenticated admin", () => {
     await page.getByRole("button", { name: /agenda|schedule/i }).first().click()
     await expect(page).toHaveURL(/\/schedule$/)
     await expect(page.getByText("Agenda", { exact: true }).first()).toBeVisible()
-    await expect(page.getByRole("button", { name: "Novo Agendamento" })).toBeVisible()
+    await expect(page.getByRole("button", { name: "Novo agendamento" })).toBeVisible()
   })
 
   test("should book and cancel an appointment from the agenda", async ({ page }) => {
     await page.goto("/schedule")
-    await page.getByRole("button", { name: "Novo Agendamento" }).click()
+    await page.getByRole("button", { name: "Novo agendamento" }).click()
 
     const modalDialog = page.getByRole("dialog")
     const appointmentDate = new Date()
@@ -79,8 +79,8 @@ test.describe("Internal features - authenticated admin", () => {
     await page.getByRole("option", { name: "09:00", exact: true }).click()
     await page.getByRole("button", { name: "Agendar" }).click()
 
-    // Amanhã cai na semana seguinte quando é segunda-feira (a semana exibida começa na segunda).
-    if (appointmentDate.getDay() === 1) {
+    const tomorrowStartsNextDisplayedWeek = appointmentDate.getDay() === 1
+    if (tomorrowStartsNextDisplayedWeek) {
       await page.locator(".fc-next-button").click()
     }
 
@@ -88,10 +88,10 @@ test.describe("Internal features - authenticated admin", () => {
     await expect(appointmentEvent).toBeVisible()
 
     await appointmentEvent.click()
-    await expect(page.getByRole("heading", { name: "Detalhes do Agendamento" })).toBeVisible()
+    await expect(page.getByRole("heading", { name: "Detalhes do agendamento" })).toBeVisible()
     await page.getByRole("button", { name: "Cancelar" }).click()
-    await expect(page.getByRole("heading", { name: "Cancelar Agendamento" })).toBeVisible()
-    await page.getByRole("button", { name: "Confirmar Cancelamento" }).click()
+    await expect(page.getByRole("heading", { name: "Cancelar agendamento" })).toBeVisible()
+    await page.getByRole("button", { name: "Confirmar cancelamento" }).click()
 
     await expect(page.locator("text=Agendamento cancelado com sucesso!")).toBeVisible()
   })

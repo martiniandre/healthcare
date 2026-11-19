@@ -28,7 +28,7 @@ describe("StaffModal", () => {
   it("should mark required fields and group them in fieldsets", () => {
     render(<StaffModal isOpen onClose={vi.fn()} />)
 
-    expect(screen.getByLabelText(/Full Name/)).toBeRequired()
+    expect(screen.getByLabelText(/Full name/)).toBeRequired()
     expect(screen.getAllByRole("group", { name: /Identification|Category and department|Professional registration/ })).toHaveLength(3)
     expect(screen.getByLabelText(/Corporate E-mail/)).toHaveAttribute("autocomplete", "off")
   })
@@ -36,11 +36,11 @@ describe("StaffModal", () => {
   it("should show an error summary and field errors after an invalid submit", async () => {
     render(<StaffModal isOpen onClose={vi.fn()} />)
 
-    fireEvent.click(screen.getByRole("button", { name: "Save Registration" }))
+    fireEvent.click(screen.getByRole("button", { name: "Save registration" }))
 
     expect(await screen.findByText("Fix 4 fields to continue")).toBeInTheDocument()
-    expect(screen.getByLabelText(/Full Name/)).toHaveAttribute("aria-invalid", "true")
-    expect(screen.getByLabelText(/Full Name/)).toHaveAttribute(
+    expect(screen.getByLabelText(/Full name/)).toHaveAttribute("aria-invalid", "true")
+    expect(screen.getByLabelText(/Full name/)).toHaveAttribute(
       "aria-describedby",
       expect.stringContaining("staff-full-name-error"),
     )
@@ -52,12 +52,12 @@ describe("StaffModal", () => {
     const onClose = vi.fn()
     render(<StaffModal isOpen onClose={onClose} />)
 
-    fireEvent.change(screen.getByLabelText(/Full Name/), { target: { value: "Dra. Marina Alves" } })
+    fireEvent.change(screen.getByLabelText(/Full name/), { target: { value: "Dra. Marina Alves" } })
     fireEvent.change(screen.getByLabelText(/Corporate E-mail/), { target: { value: "marina@clinica.com" } })
-    fireEvent.change(screen.getByLabelText(/Professional License/), { target: { value: "CRM-SP 12345" } })
+    fireEvent.change(screen.getByLabelText(/Professional license/), { target: { value: "CRM-SP 12345" } })
     fireEvent.click(screen.getByRole("combobox", { name: /Department/ }))
     fireEvent.click(await screen.findByRole("option", { name: "ICU" }))
-    fireEvent.click(screen.getByRole("button", { name: "Save Registration" }))
+    fireEvent.click(screen.getByRole("button", { name: "Save registration" }))
 
     await waitFor(() =>
       expect(mutateAsync).toHaveBeenCalledWith({
@@ -92,7 +92,7 @@ describe("StaffModal", () => {
     const onClose = vi.fn()
     render(<StaffModal isOpen onClose={onClose} />)
 
-    fireEvent.change(screen.getByLabelText(/Full Name/), { target: { value: "Dra. Marina" } })
+    fireEvent.change(screen.getByLabelText(/Full name/), { target: { value: "Dra. Marina" } })
     fireEvent.click(screen.getByRole("button", { name: "Cancel" }))
 
     expect(onClose).not.toHaveBeenCalled()

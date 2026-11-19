@@ -8,7 +8,7 @@ test.describe("Audit Logs Management Module", () => {
   })
 
   test("should display audit logs page title and table with rows", async ({ page }) => {
-    await expect(page.locator("text=Registros de Auditoria")).toBeVisible()
+    await expect(page.locator("text=Registros de auditoria")).toBeVisible()
     const logsTable = page.getByRole("table")
     await expect(logsTable.getByText("admin@hospital.com")).toBeVisible()
     await expect(logsTable.getByText("medico@clinica.com")).toBeVisible()
@@ -23,7 +23,7 @@ test.describe("Audit Logs Management Module", () => {
   })
 
   test("should filter audit logs by status dropdown", async ({ page }) => {
-    await page.getByRole("combobox", { name: "Todos os Status" }).click()
+    await page.getByRole("combobox", { name: "Todos os status" }).click()
     await page.getByRole("option", { name: "Falha", exact: true }).click()
     await expect(page.getByRole("table").getByText("usuario.invalido@test.com")).toBeVisible()
   })

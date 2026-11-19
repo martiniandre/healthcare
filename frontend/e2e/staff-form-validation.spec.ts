@@ -6,13 +6,13 @@ test.describe("Staff Registration Validation", () => {
     await loginAsDoctor(page)
     await page.goto("/staff")
 
-    await page.getByRole("button", { name: "Cadastrar Profissional" }).click()
+    await page.getByRole("button", { name: "Cadastrar profissional" }).click()
 
     await page.getByPlaceholder("Ex: Dr. André Silva de Araujo").fill("Dr")
     await page.getByPlaceholder("Ex: nome@hospital.com").fill("emailinvalido")
     await page.getByPlaceholder("Ex: CRM-SP 12345").fill("CRM-INVALID")
 
-    await page.getByRole("button", { name: "Salvar Cadastro" }).click()
+    await page.getByRole("button", { name: "Salvar cadastro" }).click()
 
     await expect(page.locator("text=Informe o nome completo, com no mínimo 3 caracteres").first()).toBeVisible()
     await expect(page.locator("text=Informe um e-mail válido, como nome@hospital.com").first()).toBeVisible()
@@ -24,7 +24,7 @@ test.describe("Staff Registration Validation", () => {
     await loginAsAdmin(page)
     await page.goto("/staff")
 
-    await page.getByRole("button", { name: "Cadastrar Profissional" }).click()
+    await page.getByRole("button", { name: "Cadastrar profissional" }).click()
 
     await page.getByPlaceholder("Ex: Dr. André Silva de Araujo").fill("Dra. Roberta Santos")
     await page.locator("#staff-role").click()
@@ -34,7 +34,7 @@ test.describe("Staff Registration Validation", () => {
     await page.locator("#staff-department").click()
     await page.getByRole("option", { name: "Dermatologia" }).click()
 
-    await page.getByRole("button", { name: "Salvar Cadastro" }).click()
+    await page.getByRole("button", { name: "Salvar cadastro" }).click()
 
     await expect(page.getByText("Dra. Roberta Santos")).toBeVisible()
     await expect(page.getByText("Dermatologia")).toBeVisible()
@@ -44,7 +44,7 @@ test.describe("Staff Registration Validation", () => {
     await loginAsDoctor(page)
     await page.goto("/staff")
 
-    await page.getByRole("button", { name: "Cadastrar Profissional" }).click()
+    await page.getByRole("button", { name: "Cadastrar profissional" }).click()
     await page.locator("#staff-department").click()
 
     await expect(page.getByRole("option", { name: "Clínica Geral" })).toBeVisible()

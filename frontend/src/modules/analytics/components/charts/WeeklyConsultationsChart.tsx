@@ -56,7 +56,6 @@ export const WeeklyConsultationsChart = ({
   return (
     <AnalyticsPanel
       title={t("consultations.title")}
-      subtitle={t("consultations.subtitle")}
       trailing={
         days.length > 0 ? (
           <div className="flex flex-wrap items-center justify-end gap-1.5">

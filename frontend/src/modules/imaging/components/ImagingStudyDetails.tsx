@@ -12,8 +12,8 @@ interface ImagingStudyDetailsProperties {
   study: ImagingStudy
 }
 
-const DETAIL_LABEL_CLASS = "block text-[10px] font-bold uppercase tracking-wider text-muted-foreground"
-const DETAIL_BOX_CLASS = "rounded-xl border border-border bg-muted p-3.5"
+const DETAIL_LABEL_CLASS = "block text-xs font-medium text-muted-foreground"
+const DETAIL_BOX_CLASS = "rounded-lg border border-border bg-muted p-3.5"
 
 export const ImagingStudyDetails = ({ study }: ImagingStudyDetailsProperties) => {
   const { t } = useTranslation("imaging")
@@ -40,7 +40,7 @@ export const ImagingStudyDetails = ({ study }: ImagingStudyDetailsProperties) =>
   return (
     <Card className="lg:col-span-1 text-left">
       <CardHeader className="border-b">
-        <CardTitle className="flex items-center gap-2 text-base font-extrabold">
+        <CardTitle className="flex items-center gap-2 text-base font-semibold">
           <Eye className="size-4 text-primary" aria-hidden="true" />
           {t("details.title")}
         </CardTitle>
@@ -49,12 +49,12 @@ export const ImagingStudyDetails = ({ study }: ImagingStudyDetailsProperties) =>
       <CardContent className="flex flex-col gap-4">
         <div className={DETAIL_BOX_CLASS}>
           <span className={DETAIL_LABEL_CLASS}>{t("details.id")}</span>
-          <span className="mt-1 block text-xs font-bold text-foreground">{study.id}</span>
+          <span className="mt-1 block text-xs font-semibold text-foreground">{study.id}</span>
         </div>
 
         <div className={DETAIL_BOX_CLASS}>
           <span className={DETAIL_LABEL_CLASS}>{t("details.modality")}</span>
-          <span className="mt-1 block text-xs font-bold uppercase text-foreground">{study.modality}</span>
+          <span className="mt-1 block text-xs font-semibold text-foreground">{study.modality}</span>
         </div>
 
         {metadataEntries.map((entry) => (
@@ -63,8 +63,8 @@ export const ImagingStudyDetails = ({ study }: ImagingStudyDetailsProperties) =>
             <span
               className={
                 entry.isIdentifier
-                  ? "mt-1 block break-all font-mono text-[11px] font-bold text-foreground"
-                  : "mt-1 block text-xs font-bold tabular-nums text-foreground"
+                  ? "mt-1 block break-all font-mono text-2xs font-semibold text-foreground"
+                  : "mt-1 block text-xs font-semibold tabular-nums text-foreground"
               }
             >
               {entry.value}
@@ -81,7 +81,7 @@ export const ImagingStudyDetails = ({ study }: ImagingStudyDetailsProperties) =>
 
         <div className={DETAIL_BOX_CLASS}>
           <span className={DETAIL_LABEL_CLASS}>{t("details.seriesSlices")}</span>
-          <span className="mt-1 block text-xs font-bold text-foreground">{t("details.activeSlice")}</span>
+          <span className="mt-1 block text-xs font-semibold text-foreground">{t("details.activeSlice")}</span>
         </div>
 
         <div className={DETAIL_BOX_CLASS}>

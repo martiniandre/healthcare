@@ -2,6 +2,7 @@ import { useTranslation } from "react-i18next"
 import { Search, Filter, XCircle } from "lucide-react"
 import { Button } from "../../../shared/components/ui/button"
 import { Input } from "../../../shared/components/ui/input"
+import { Label } from "../../../shared/components/ui/label"
 import {
   Select,
   SelectContent,
@@ -84,24 +85,38 @@ export const AuditLogsFilters = ({
           </SelectContent>
         </Select>
 
-        <Input
-          type="date"
-          value={startDate}
-          onChange={(event) => onStartDateChange(event.target.value)}
-          className="text-xs"
-        />
+        <div className="relative">
+          <Label htmlFor="audit-start-date" className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-foreground">
+            {t("startDate")}
+          </Label>
+          <Input
+            id="audit-start-date"
+            type="date"
+            value={startDate}
+            max={endDate || undefined}
+            onChange={(event) => onStartDateChange(event.target.value)}
+            className="pl-12 text-xs"
+          />
+        </div>
 
-        <Input
-          type="date"
-          value={endDate}
-          onChange={(event) => onEndDateChange(event.target.value)}
-          className="text-xs"
-        />
+        <div className="relative">
+          <Label htmlFor="audit-end-date" className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-foreground">
+            {t("endDate")}
+          </Label>
+          <Input
+            id="audit-end-date"
+            type="date"
+            value={endDate}
+            min={startDate || undefined}
+            onChange={(event) => onEndDateChange(event.target.value)}
+            className="pl-12 text-xs"
+          />
+        </div>
       </div>
 
       {hasActiveFilters && (
         <div className="flex justify-end">
-          <Button type="button" variant="link" size="sm" onClick={onResetFilters} className="text-xs font-bold">
+          <Button type="button" variant="link" size="sm" onClick={onResetFilters} className="text-xs font-semibold">
             <Filter aria-hidden="true" />
             {t("clearFilters")}
           </Button>

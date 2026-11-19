@@ -58,21 +58,21 @@
     "resolved": "Resuelta"
   },
   "dicomModality": {
-    "CT": "TC (Tomografía Computarizada)",
-    "MR": "RM (Resonancia Magnética)",
+    "CT": "TC (tomografía computarizada)",
+    "MR": "RM (resonancia magnética)",
     "US": "US (Ecografía)",
-    "DX": "DX (Radiología Digital)",
-    "CR": "CR (Radiología Computarizada)",
-    "XA": "XA (Angiografía por Rayos X)",
+    "DX": "DX (radiología digital)",
+    "CR": "CR (radiología computarizada)",
+    "XA": "XA (angiografía por rayos X)",
     "PT": "PT (Fluoroscopia)",
     "MG": "MG (Mamografía)",
-    "SR": "SR (Informe Estructurado)"
+    "SR": "SR (informe estructurado)"
   },
   "cardiacCondition": {
     "normal": "Normal",
     "bradycardia": "Bradicardia",
     "tachycardia": "Taquicardia",
-    "cardiac-arrest": "Parada Cardíaca"
+    "cardiac-arrest": "Parada cardíaca"
   },
   "notInformed": "N/D"
 }

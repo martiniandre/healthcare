@@ -182,7 +182,6 @@ export const StatsEpidemiologyTable = ({ pathologies }: StatsEpidemiologyTablePr
   return (
     <AnalyticsPanel
       title={t("epidemiology.title")}
-      subtitle={t("epidemiology.subtitle")}
       trailing={
         <div className="flex flex-wrap items-center justify-end gap-2">
           {pathologies.length > 0 ? (
@@ -252,23 +251,23 @@ export const StatsEpidemiologyTable = ({ pathologies }: StatsEpidemiologyTablePr
 
                 return (
                   <TableRow key={pathology.code}>
-                    <TableCell className="pl-5 font-mono text-xs font-bold text-primary">
+                    <TableCell className="pl-5 font-mono text-xs font-semibold text-primary">
                       {pathology.code}
                     </TableCell>
                     <TableCell className="text-sm text-foreground">{pathology.description}</TableCell>
                     <TableCell>
-                      <Badge variant="outline" className="rounded-md bg-muted text-[11px] font-semibold text-muted-foreground">
+                      <Badge variant="outline" className="rounded-md bg-muted text-2xs font-semibold text-muted-foreground">
                         {pathology.category}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-right text-sm font-black tabular-nums text-foreground">
+                    <TableCell className="text-right text-sm font-semibold tabular-nums text-foreground">
                       {formatDecimal(pathology.activeCases, locale)}
                     </TableCell>
                     <TableCell>
-                      <StatusBadge status={toneClinicalStatus[pathology.trendSeverity]} className="text-xs font-bold">
+                      <StatusBadge status={toneClinicalStatus[pathology.trendSeverity]} className="text-xs font-semibold">
                         {resolveTrendLabel(pathology.trend)}
                         <TrendIcon aria-hidden="true" />
-                        <span className="sr-only"> — {severityLabel}</span>
+                        <span className="sr-only">, {severityLabel}</span>
                       </StatusBadge>
                     </TableCell>
                     <TableCell className="pr-5">
@@ -282,7 +281,7 @@ export const StatsEpidemiologyTable = ({ pathologies }: StatsEpidemiologyTablePr
                             }}
                           />
                         </div>
-                        <span className="min-w-9 text-right text-[11px] font-bold tabular-nums text-muted-foreground">
+                        <span className="min-w-9 text-right text-2xs font-semibold tabular-nums text-muted-foreground">
                           {formatPercentage(pathology.proportion, locale)}
                         </span>
                       </div>

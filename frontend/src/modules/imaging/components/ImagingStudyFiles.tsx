@@ -72,7 +72,7 @@ const StudyFilesList = ({ studyId }: ImagingStudyFilesProperties) => {
 
   return (
     <div className="flex flex-col gap-2">
-      <p className="text-xs font-bold text-foreground">{t("details.files.count", { count: instances.length })}</p>
+      <p className="text-xs font-semibold text-foreground">{t("details.files.count", { count: instances.length })}</p>
       <ul className="flex flex-col gap-2">
         {instances.map((instance) => {
           const displayName = instance.fileName || shortenDicomUid(instance.sopInstanceUid)
@@ -81,7 +81,7 @@ const StudyFilesList = ({ studyId }: ImagingStudyFilesProperties) => {
               key={instance.id}
               className="flex items-center justify-between gap-2 rounded-lg border border-border bg-card p-2"
             >
-              <span className="min-w-0 truncate font-mono text-[11px] text-foreground" title={instance.sopInstanceUid}>
+              <span className="min-w-0 truncate font-mono text-2xs text-foreground" title={instance.sopInstanceUid}>
                 {displayName}
               </span>
               <Button asChild variant="outline" size="sm" className="shrink-0 max-sm:min-h-11">

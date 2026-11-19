@@ -1,5 +1,5 @@
 {
-  "offlineStatus": "Sin Conexión",
+  "offlineStatus": "Sin conexión",
   "openMenu": "Abrir menú de navegación",
   "notificationTooltip": "Notificaciones",
   "defaultUserEmail": "usuario@hospital.com",
@@ -12,8 +12,11 @@
     "RoleDefault": "Profesional"
   },
   "errorBoundary": {
-    "title": "Error Inesperado en la Interfaz",
+    "title": "Error inesperado en la interfaz",
     "description": "Un problema de renderizado impidió la carga de este componente. Nuestro equipo técnico ha sido notificado silenciosamente en los registros.",
-    "retry": "Intentar de Nuevo"
-  }
+    "retry": "Intentar de nuevo"
+  },
+  "breadcrumbLabel": "Usted está en",
+  "patientRecord": "Historia clínica",
+  "encounter": "Consulta"
 }

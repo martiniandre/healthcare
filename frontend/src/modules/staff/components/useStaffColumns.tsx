@@ -42,10 +42,10 @@ export const useStaffColumns = ({
                   <Users className="w-4 h-4 text-primary" />
                 </div>
                 <div className="flex flex-col min-w-0">
-                  <span className={`font-extrabold truncate ${member.isActive ? "text-foreground" : "text-muted-foreground line-through"}`}>
+                  <span className={`font-semibold truncate ${member.isActive ? "text-foreground" : "text-muted-foreground line-through"}`}>
                     {member.fullName}
                   </span>
-                  <span className="text-[10px] text-muted-foreground truncate mt-0.5">{member.email}</span>
+                  <span className="text-2xs text-muted-foreground truncate mt-0.5">{member.email}</span>
                 </div>
               </div>
             )
@@ -57,7 +57,7 @@ export const useStaffColumns = ({
           cell: (info) => {
             const role = info.getValue()
             return (
-              <Badge variant={STAFF_ROLE_BADGE_VARIANTS[role] ?? "secondary"} className="lowercase tracking-wide">
+              <Badge variant={STAFF_ROLE_BADGE_VARIANTS[role] ?? "secondary"}>
                 {t(STAFF_ROLE_LABEL_KEYS[role] ?? "table.roles.doctor")}
               </Badge>
             )
@@ -104,12 +104,13 @@ export const useStaffColumns = ({
                     <Button
                       type="button"
                       variant="outline"
-                      size="icon-sm"
+                      size="sm"
                       onClick={() => onToggleStatus(member)}
                       disabled={!canManageStatus || isRowPending}
                       aria-label={toggleLabel}
                     >
                       {member.isActive ? <PowerOff /> : <Power />}
+                      <span>{member.isActive ? t("confirmDeactivate.disableShort") : t("confirmDeactivate.enableShort")}</span>
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>{toggleLabel}</TooltipContent>

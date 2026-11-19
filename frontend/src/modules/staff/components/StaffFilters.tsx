@@ -52,7 +52,7 @@ export const StaffFilters = ({
             variant={filterRole === roleOption ? "default" : "outline"}
             aria-pressed={filterRole === roleOption}
             onClick={() => onFilterChange(roleOption)}
-            className="h-11 text-xs font-bold md:h-8"
+            className="h-11 text-xs font-semibold md:h-8"
           >
             {getRoleLabel(roleOption)}
           </Button>

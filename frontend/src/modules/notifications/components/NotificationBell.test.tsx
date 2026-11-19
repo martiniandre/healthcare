@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
 import { render, screen, fireEvent } from "@testing-library/react"
 import { NotificationBell } from "./NotificationBell"
+import { MemoryRouter } from "react-router-dom"
 import { TooltipProvider } from "../../../shared/components/ui/tooltip"
 
 const refetchList = vi.fn()
@@ -11,14 +12,16 @@ const queryState = vi.hoisted(() => ({
 vi.mock("../queries", () => ({
   useUnreadCountQuery: () => ({ data: { count: 1200 }, isLoading: false }),
   useNotificationsQuery: () => ({ ...queryState.list, refetch: refetchList }),
-  useMarkReadMutation: () => ({ mutate: vi.fn() }),
+  useMarkReadMutation: () => ({ mutate: vi.fn(), mutateAsync: vi.fn() }),
 }))
 
 const renderBell = () =>
   render(
-    <TooltipProvider>
-      <NotificationBell />
-    </TooltipProvider>,
+    <MemoryRouter>
+      <TooltipProvider>
+        <NotificationBell />
+      </TooltipProvider>
+    </MemoryRouter>,
   )
 
 describe("NotificationBell", () => {

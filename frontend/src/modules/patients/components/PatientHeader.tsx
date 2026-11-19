@@ -69,6 +69,7 @@ export const PatientHeader = ({ patient, onBack, actions }: PatientHeaderProps) 
         items={allergyNames}
         itemStatus="critical"
         emptyLabel={t("header.noKnownAllergies")}
+        errorLabel={t("header.allergiesUnverified")}
         isLoading={allergiesQuery.isLoading}
         isError={allergiesQuery.isError}
         onRetry={() => void allergiesQuery.refetch()}
@@ -88,6 +89,7 @@ export const PatientHeader = ({ patient, onBack, actions }: PatientHeaderProps) 
         items={conditionNames}
         itemStatus="critical"
         emptyLabel={t("header.noActiveConditions")}
+        errorLabel={t("header.conditionsUnverified")}
         isLoading={conditionsQuery.isLoading}
         isError={conditionsQuery.isError}
         onRetry={() => void conditionsQuery.refetch()}
@@ -119,27 +121,26 @@ export const PatientHeader = ({ patient, onBack, actions }: PatientHeaderProps) 
 
         <span
           aria-hidden="true"
-          className="hidden size-12 shrink-0 items-center justify-center rounded-full bg-sage-100 font-display text-lg font-semibold text-sage-800 sm:flex dark:bg-primary/15 dark:text-primary"
+          className="hidden size-12 shrink-0 items-center justify-center rounded-full bg-sage-100 text-base font-semibold text-sage-800 sm:flex dark:bg-primary/15 dark:text-primary"
         >
           {buildPatientInitials(patient.full_name)}
         </span>
 
         <div className="min-w-0 flex-1">
-          <h2 className="break-words font-display text-xl font-semibold leading-tight text-foreground sm:text-2xl">
+          <h1 className="break-words font-display text-xl font-semibold leading-tight text-foreground">
             {patient.full_name}
-          </h2>
-          <p className="mt-1 hidden flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground md:flex">
+          </h1>
+          <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
             {ageLabel && <span className="font-semibold tabular-nums text-foreground">{ageLabel}</span>}
-            <span aria-hidden="true" className="size-1 rounded-full bg-border" />
-            <span className="tabular-nums">
+            <span aria-hidden="true" className="hidden size-1 rounded-full bg-border md:inline-block" />
+            <span className="hidden tabular-nums md:inline">
               {t("details.cpf")}: {patient.document_id}
             </span>
-            <span aria-hidden="true" className="size-1 rounded-full bg-border" />
-            <span className="font-mono text-xs">
+            <span aria-hidden="true" className="hidden size-1 rounded-full bg-border md:inline-block" />
+            <span className="hidden font-mono text-xs md:inline">
               {t("details.fhirId")}: {patient.fhir_resource_id}
             </span>
           </p>
-          {ageLabel && <p className="mt-0.5 text-sm font-semibold tabular-nums text-foreground md:hidden">{ageLabel}</p>}
         </div>
 
         <div className="md:hidden">
@@ -158,7 +159,7 @@ export const PatientHeader = ({ patient, onBack, actions }: PatientHeaderProps) 
               <span className="text-xs tabular-nums text-muted-foreground">
                 {t("details.cpf")}: {patient.document_id}
               </span>
-              <span className="font-mono text-[10px] text-muted-foreground">
+              <span className="font-mono text-2xs text-muted-foreground">
                 {t("details.fhirId")}: {patient.fhir_resource_id}
               </span>
               {renderAllergyGroup(true)}

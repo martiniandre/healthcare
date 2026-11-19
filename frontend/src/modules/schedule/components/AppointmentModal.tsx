@@ -12,19 +12,11 @@ import {
   SelectContent,
   SelectItem,
 } from "@/shared/components/ui/select"
-import { Spinner } from "@/shared/components/ui/spinner"
 import { Textarea } from "@/shared/components/ui/textarea"
 import { Field, FieldDescription, FieldError, FieldLabel, FieldLegend, FieldSet } from "@/shared/components/ui/field"
-import { Button } from "@/shared/components/ui/button"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/shared/components/ui/dialog"
+import { Dialog } from "@/shared/components/ui/dialog"
 import { DiscardChangesDialog } from "@/shared/components/ui/discard-changes-dialog"
+import { FormDialogLayout } from "@/shared/components/form/FormDialogLayout"
 import { useDiscardGuard } from "@/shared/hooks/useDiscardGuard"
 import { useLocale } from "@/shared/hooks/useLocale"
 import { formatWeekdayDate } from "@/shared/utils/dates"
@@ -46,6 +38,8 @@ import { usePatientsQuery, usePatientQuery } from "../../patients/queries"
 import { useIdempotencyKey } from "../hooks/useIdempotencyKey"
 import { FormErrorSummary, OptionalHint, RequiredIndicator, SelectionSummary } from "./ScheduleFormParts"
 import type { Appointment, CreateAppointmentPayload, UpdateAppointmentPayload } from "../types"
+import { joinDescribedBy, selectTouchTargetClassName, touchTargetClassName } from "@/shared/components/form/formAccessibility"
+import { formatLocalDateTime } from "../schedule_time_options"
 
 interface AppointmentModalProps {
   isOpen: boolean
@@ -63,12 +57,6 @@ type SubmitFailure = "conflict" | "generic" | null
 const appointmentFieldOrder = ["patientFhirId", "staffId", "date", "startTime", "endTime", "reason"] as const
 
 const reasonMaxLength = 500
-const touchTargetClassName = "h-11 md:h-9"
-const selectTouchTargetClassName = "w-full data-[size=default]:h-11 md:data-[size=default]:h-9"
-
-const formatLocalDateTime = (dateValue: string, timeValue: string): string => {
-  return new Date(`${dateValue}T${timeValue}`).toISOString()
-}
 
 const getLocalDateValue = (isoDateTime: string): string => {
   const dateObject = new Date(isoDateTime)
@@ -83,11 +71,6 @@ const getLocalTimeValue = (isoDateTime: string): string => {
   const hour = String(dateObject.getHours()).padStart(2, "0")
   const minute = String(dateObject.getMinutes()).padStart(2, "0")
   return `${hour}:${minute}`
-}
-
-const joinDescribedBy = (...identifiers: Array<string | false | undefined>): string | undefined => {
-  const joinedIdentifiers = identifiers.filter(Boolean).join(" ")
-  return joinedIdentifiers || undefined
 }
 
 export const AppointmentModal = ({
@@ -337,309 +320,291 @@ export const AppointmentModal = ({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={handleDialogOpenChange}>
-        <DialogContent className="flex max-h-[calc(100dvh-2rem)] flex-col gap-0 p-0 sm:max-w-[640px]">
-          <DialogHeader className="border-b px-6 py-4 pr-12 text-left">
-            <DialogTitle className="text-left">
-              {isEditMode ? t("modals.edit.title") : t("modals.create.title")}
-            </DialogTitle>
-            <DialogDescription>
-              {isEditMode ? t("modals.edit.description") : t("modals.create.description")}
-            </DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleFormSubmit} noValidate className="flex min-h-0 flex-1 flex-col text-left">
-            <div className="flex flex-1 flex-col gap-5 overflow-y-auto px-6 py-4">
-              <p className="text-xs text-muted-foreground">
-                <span aria-hidden="true" className="text-destructive">*</span> {t("form.requiredNote")}
-              </p>
+        <FormDialogLayout
+          title={isEditMode ? t("modals.edit.title") : t("modals.create.title")}
+          description={isEditMode ? t("modals.edit.description") : t("modals.create.description")}
+          widthClassName="sm:max-w-2xl"
+          onSubmit={handleFormSubmit}
+          cancelLabel={t("modals.create.cancel")}
+          onCancel={() => handleDialogOpenChange(false)}
+          submitLabel={isEditMode ? t("modals.edit.confirm") : t("modals.create.confirm")}
+          isPending={isBusy}
+          isCancelDisabled={isBusy}
+        >
+          <p className="text-xs text-muted-foreground">
+            <span aria-hidden="true" className="text-destructive">*</span> {t("form.requiredNote")}
+          </p>
 
-              <FormErrorSummary
-                items={errorSummaryItems}
-                onSelectItem={(fieldName) => setFocus(fieldName as keyof NewAppointmentFormData)}
-              />
+          <FormErrorSummary
+            items={errorSummaryItems}
+            onSelectItem={(fieldName) => setFocus(fieldName as keyof NewAppointmentFormData)}
+          />
 
-              {submitFailure === "generic" && (
-                <Alert variant="destructive">
-                  <AlertTitle>{t("errors.submitFailedTitle")}</AlertTitle>
-                  <AlertDescription>{t("errors.submitFailed")}</AlertDescription>
-                </Alert>
-              )}
+          {submitFailure === "generic" && (
+            <Alert variant="destructive">
+              <AlertTitle>{t("errors.submitFailedTitle")}</AlertTitle>
+              <AlertDescription>{t("errors.submitFailed")}</AlertDescription>
+            </Alert>
+          )}
 
-              <FieldSet className="gap-3">
-                <FieldLegend variant="label" className="mb-0 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  {t("form.sections.who")}
-                </FieldLegend>
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <Field data-invalid={!!errors.patientFhirId}>
-                    <FieldLabel htmlFor="appointment-patient-search">
-                      {t("modals.create.patient")}
-                      <RequiredIndicator />
-                    </FieldLabel>
-                    <Input
-                      id="appointment-patient-search"
-                      type="search"
-                      autoFocus
-                      autoComplete="off"
-                      value={patientSearch}
-                      onChange={(inputEvent) => setPatientSearch(inputEvent.target.value)}
-                      placeholder={t("modals.create.patientSearchPlaceholder")}
-                      aria-describedby="appointment-patient-hint"
-                      className={touchTargetClassName}
-                    />
-                    <Controller
-                      control={control}
-                      name="patientFhirId"
-                      render={({ field }) => (
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <SelectTrigger
-                            id="appointment-patient"
-                            ref={field.ref}
-                            onBlur={field.onBlur}
-                            className={selectTouchTargetClassName}
-                            aria-label={t("modals.create.selectPatient")}
-                            aria-required="true"
-                            aria-invalid={!!errors.patientFhirId}
-                            aria-describedby={joinDescribedBy(
-                              "appointment-patient-hint",
-                              !!errors.patientFhirId && "appointment-patient-error"
-                            )}
-                          >
-                            <SelectValue placeholder={t("modals.create.selectPatient")} />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {filteredPatients.map((patient) => (
-                              <SelectItem key={patient.fhir_resource_id} value={patient.fhir_resource_id}>
-                                {patient.full_name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      )}
-                    />
-                    <FieldDescription id="appointment-patient-hint" aria-live="polite" className="text-xs">
-                      {hasNoPatientMatch ? t("modals.create.patientNoMatch") : t("modals.create.patientHint")}
-                    </FieldDescription>
-                    <FieldError id="appointment-patient-error">{errors.patientFhirId?.message}</FieldError>
-                  </Field>
+          <FieldSet className="gap-3">
+            <FieldLegend variant="label" className="mb-0 text-xs font-semibold text-muted-foreground">
+              {t("form.sections.who")}
+            </FieldLegend>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <Field data-invalid={!!errors.patientFhirId}>
+                <FieldLabel htmlFor="appointment-patient-search">
+                  {t("modals.create.patient")}
+                  <RequiredIndicator />
+                </FieldLabel>
+                <Input
+                  id="appointment-patient-search"
+                  type="search"
+                  autoFocus
+                  autoComplete="off"
+                  value={patientSearch}
+                  onChange={(inputEvent) => setPatientSearch(inputEvent.target.value)}
+                  placeholder={t("modals.create.patientSearchPlaceholder")}
+                  aria-describedby="appointment-patient-hint"
+                  className={touchTargetClassName}
+                />
+                <Controller
+                  control={control}
+                  name="patientFhirId"
+                  render={({ field }) => (
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <SelectTrigger
+                        id="appointment-patient"
+                        ref={field.ref}
+                        onBlur={field.onBlur}
+                        className={selectTouchTargetClassName}
+                        aria-label={t("modals.create.selectPatient")}
+                        aria-required="true"
+                        aria-invalid={!!errors.patientFhirId}
+                        aria-describedby={joinDescribedBy(
+                          "appointment-patient-hint",
+                          !!errors.patientFhirId && "appointment-patient-error"
+                        )}
+                      >
+                        <SelectValue placeholder={t("modals.create.selectPatient")} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {filteredPatients.map((patient) => (
+                          <SelectItem key={patient.fhir_resource_id} value={patient.fhir_resource_id}>
+                            {patient.full_name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+                <FieldDescription id="appointment-patient-hint" aria-live="polite" className="text-xs">
+                  {hasNoPatientMatch ? t("modals.create.patientNoMatch") : t("modals.create.patientHint")}
+                </FieldDescription>
+                <FieldError id="appointment-patient-error">{errors.patientFhirId?.message}</FieldError>
+              </Field>
 
-                  <Field data-invalid={!!errors.staffId}>
-                    <FieldLabel htmlFor="appointment-staff">
-                      {t("modals.create.staff")}
-                      <RequiredIndicator />
-                    </FieldLabel>
-                    <Controller
-                      control={control}
-                      name="staffId"
-                      render={({ field }) => (
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <SelectTrigger
-                            id="appointment-staff"
-                            ref={field.ref}
-                            onBlur={field.onBlur}
-                            className={selectTouchTargetClassName}
-                            aria-required="true"
-                            aria-invalid={!!errors.staffId}
-                            aria-describedby={joinDescribedBy(!!errors.staffId && "appointment-staff-error")}
-                          >
-                            <SelectValue placeholder={t("modals.create.selectStaff")} />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {staffMembers.filter((staffMember) => staffMember.id).map((staffMember) => (
-                              <SelectItem key={staffMember.id} value={staffMember.id}>
-                                {staffMember.fullName} — {staffMember.role}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      )}
-                    />
-                    <FieldError id="appointment-staff-error">{errors.staffId?.message}</FieldError>
-                  </Field>
-                </div>
-              </FieldSet>
+              <Field data-invalid={!!errors.staffId}>
+                <FieldLabel htmlFor="appointment-staff">
+                  {t("modals.create.staff")}
+                  <RequiredIndicator />
+                </FieldLabel>
+                <Controller
+                  control={control}
+                  name="staffId"
+                  render={({ field }) => (
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <SelectTrigger
+                        id="appointment-staff"
+                        ref={field.ref}
+                        onBlur={field.onBlur}
+                        className={selectTouchTargetClassName}
+                        aria-required="true"
+                        aria-invalid={!!errors.staffId}
+                        aria-describedby={joinDescribedBy(!!errors.staffId && "appointment-staff-error")}
+                      >
+                        <SelectValue placeholder={t("modals.create.selectStaff")} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {staffMembers.filter((staffMember) => staffMember.id).map((staffMember) => (
+                          <SelectItem key={staffMember.id} value={staffMember.id}>
+                            {staffMember.fullName}, {staffMember.role}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+                <FieldError id="appointment-staff-error">{errors.staffId?.message}</FieldError>
+              </Field>
+            </div>
+          </FieldSet>
 
-              <FieldSet className="gap-3">
-                <FieldLegend variant="label" className="mb-0 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  {t("form.sections.when")}
-                </FieldLegend>
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <Field data-invalid={!!errors.date} className="md:col-span-2">
-                    <FieldLabel htmlFor="appointment-date">
-                      {t("modals.create.date")}
-                      <RequiredIndicator />
-                    </FieldLabel>
-                    <Input
-                      id="appointment-date"
-                      type="date"
-                      min={todayDateString()}
-                      className={touchTargetClassName}
-                      aria-required="true"
-                      aria-invalid={!!errors.date}
-                      aria-describedby={joinDescribedBy(!!errors.date && "appointment-date-error")}
-                      {...register("date", {
-                        onChange: () => {
-                          if (getValues("startTime")) {
-                            void trigger("startTime")
-                          }
-                        },
-                      })}
-                    />
-                    <FieldError id="appointment-date-error">{errors.date?.message}</FieldError>
-                  </Field>
-                  <Field data-invalid={!!errors.startTime}>
-                    <FieldLabel htmlFor="appointment-start-time">
-                      {t("modals.create.startTime")}
-                      <RequiredIndicator />
-                    </FieldLabel>
-                    <Controller
-                      control={control}
-                      name="startTime"
-                      render={({ field }) => (
-                        <Select
-                          onValueChange={(nextStartTime) => handleStartTimeChange(nextStartTime, field.onChange)}
-                          value={field.value}
-                        >
-                          <SelectTrigger
-                            id="appointment-start-time"
-                            ref={field.ref}
-                            onBlur={field.onBlur}
-                            className={selectTouchTargetClassName}
-                            aria-required="true"
-                            aria-invalid={!!errors.startTime}
-                            aria-describedby={joinDescribedBy(
-                              "appointment-start-hint",
-                              !!errors.startTime && "appointment-start-error"
-                            )}
-                          >
-                            <SelectValue placeholder={t("modals.create.selectStartTime")} />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {availableStartTimeOptions.map((timeSlot) => (
-                              <SelectItem key={timeSlot.value} value={timeSlot.value}>
-                                {timeSlot.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      )}
-                    />
-                    <FieldDescription id="appointment-start-hint" className="text-xs">
-                      {t("modals.create.startTimeHint")}
-                    </FieldDescription>
-                    <FieldError id="appointment-start-error">{errors.startTime?.message}</FieldError>
-                  </Field>
-                  <Field data-invalid={!!errors.endTime}>
-                    <FieldLabel htmlFor="appointment-end-time">
-                      {t("modals.create.endTime")}
-                      <RequiredIndicator />
-                    </FieldLabel>
-                    <Controller
-                      control={control}
-                      name="endTime"
-                      render={({ field }) => (
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <SelectTrigger
-                            id="appointment-end-time"
-                            ref={field.ref}
-                            onBlur={field.onBlur}
-                            className={selectTouchTargetClassName}
-                            aria-required="true"
-                            aria-invalid={!!errors.endTime}
-                            aria-describedby={joinDescribedBy(
-                              "appointment-end-hint",
-                              !!errors.endTime && "appointment-end-error"
-                            )}
-                          >
-                            <SelectValue placeholder={t("modals.create.selectEndTime")} />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {endTimeOptions.map((timeSlot) => (
-                              <SelectItem key={timeSlot.value} value={timeSlot.value}>
-                                {timeSlot.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      )}
-                    />
-                    <FieldDescription id="appointment-end-hint" className="text-xs">
-                      {selectedStartTime ? t("modals.create.endTimeHint") : t("modals.create.endTimeHintNoStart")}
-                    </FieldDescription>
-                    <FieldError id="appointment-end-error">{errors.endTime?.message}</FieldError>
-                  </Field>
-                </div>
-
-                {isConflictVisible && (
-                  <Alert variant="destructive" ref={conflictAlertReference} data-testid="conflict-alert">
-                    <AlertTitle>{t("errors.conflictTitle")}</AlertTitle>
-                    <AlertDescription>{t("errors.conflict")}</AlertDescription>
-                  </Alert>
-                )}
-
-                {summary ? (
-                  <SelectionSummary id="appointment-summary" text={summary.text} detail={summary.detail} />
-                ) : (
-                  <p
-                    id="appointment-summary"
-                    role="status"
-                    aria-live="polite"
-                    className="text-xs text-muted-foreground"
-                  >
-                    {t("form.summary.empty")}
-                  </p>
-                )}
-              </FieldSet>
-
-              <FieldSet className="gap-3">
-                <FieldLegend variant="label" className="mb-0 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  {t("form.sections.why")}
-                </FieldLegend>
-                <Field data-invalid={!!errors.reason}>
-                  <FieldLabel htmlFor="appointment-reason">
-                    {t("modals.create.reason")}
-                    <OptionalHint />
-                  </FieldLabel>
-                  <Textarea
-                    id="appointment-reason"
-                    rows={3}
-                    maxLength={reasonMaxLength}
-                    placeholder={t("modals.create.reasonPlaceholder")}
-                    aria-invalid={!!errors.reason}
-                    aria-describedby={joinDescribedBy(
-                      "appointment-reason-counter",
-                      !!errors.reason && "appointment-reason-error"
-                    )}
-                    {...register("reason")}
-                  />
-                  <div className="flex items-start justify-between gap-3">
-                    <FieldError id="appointment-reason-error">{errors.reason?.message}</FieldError>
-                    <span
-                      id="appointment-reason-counter"
-                      className="ml-auto text-xs text-muted-foreground"
+          <FieldSet className="gap-3">
+            <FieldLegend variant="label" className="mb-0 text-xs font-semibold text-muted-foreground">
+              {t("form.sections.when")}
+            </FieldLegend>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <Field data-invalid={!!errors.date} className="md:col-span-2">
+                <FieldLabel htmlFor="appointment-date">
+                  {t("modals.create.date")}
+                  <RequiredIndicator />
+                </FieldLabel>
+                <Input
+                  id="appointment-date"
+                  type="date"
+                  min={todayDateString()}
+                  className={touchTargetClassName}
+                  aria-required="true"
+                  aria-invalid={!!errors.date}
+                  aria-describedby={joinDescribedBy(!!errors.date && "appointment-date-error")}
+                  {...register("date", {
+                    onChange: () => {
+                      if (getValues("startTime")) {
+                        void trigger("startTime")
+                      }
+                    },
+                  })}
+                />
+                <FieldError id="appointment-date-error">{errors.date?.message}</FieldError>
+              </Field>
+              <Field data-invalid={!!errors.startTime}>
+                <FieldLabel htmlFor="appointment-start-time">
+                  {t("modals.create.startTime")}
+                  <RequiredIndicator />
+                </FieldLabel>
+                <Controller
+                  control={control}
+                  name="startTime"
+                  render={({ field }) => (
+                    <Select
+                      onValueChange={(nextStartTime) => handleStartTimeChange(nextStartTime, field.onChange)}
+                      value={field.value}
                     >
-                      {t("form.characterCount", { count: reasonValue.length, max: reasonMaxLength })}
-                    </span>
-                  </div>
-                </Field>
-              </FieldSet>
+                      <SelectTrigger
+                        id="appointment-start-time"
+                        ref={field.ref}
+                        onBlur={field.onBlur}
+                        className={selectTouchTargetClassName}
+                        aria-required="true"
+                        aria-invalid={!!errors.startTime}
+                        aria-describedby={joinDescribedBy(
+                          "appointment-start-hint",
+                          !!errors.startTime && "appointment-start-error"
+                        )}
+                      >
+                        <SelectValue placeholder={t("modals.create.selectStartTime")} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availableStartTimeOptions.map((timeSlot) => (
+                          <SelectItem key={timeSlot.value} value={timeSlot.value}>
+                            {timeSlot.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+                <FieldDescription id="appointment-start-hint" className="text-xs">
+                  {t("modals.create.startTimeHint")}
+                </FieldDescription>
+                <FieldError id="appointment-start-error">{errors.startTime?.message}</FieldError>
+              </Field>
+              <Field data-invalid={!!errors.endTime}>
+                <FieldLabel htmlFor="appointment-end-time">
+                  {t("modals.create.endTime")}
+                  <RequiredIndicator />
+                </FieldLabel>
+                <Controller
+                  control={control}
+                  name="endTime"
+                  render={({ field }) => (
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <SelectTrigger
+                        id="appointment-end-time"
+                        ref={field.ref}
+                        onBlur={field.onBlur}
+                        className={selectTouchTargetClassName}
+                        aria-required="true"
+                        aria-invalid={!!errors.endTime}
+                        aria-describedby={joinDescribedBy(
+                          "appointment-end-hint",
+                          !!errors.endTime && "appointment-end-error"
+                        )}
+                      >
+                        <SelectValue placeholder={t("modals.create.selectEndTime")} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {endTimeOptions.map((timeSlot) => (
+                          <SelectItem key={timeSlot.value} value={timeSlot.value}>
+                            {timeSlot.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+                <FieldDescription id="appointment-end-hint" className="text-xs">
+                  {selectedStartTime ? t("modals.create.endTimeHint") : t("modals.create.endTimeHintNoStart")}
+                </FieldDescription>
+                <FieldError id="appointment-end-error">{errors.endTime?.message}</FieldError>
+              </Field>
             </div>
 
-            <DialogFooter className="border-t bg-background px-6 py-4">
-              <Button
-                variant="outline"
-                type="button"
-                className={touchTargetClassName}
-                onClick={() => handleDialogOpenChange(false)}
-                disabled={isBusy}
+            {isConflictVisible && (
+              <Alert variant="destructive" ref={conflictAlertReference} data-testid="conflict-alert">
+                <AlertTitle>{t("errors.conflictTitle")}</AlertTitle>
+                <AlertDescription>{t("errors.conflict")}</AlertDescription>
+              </Alert>
+            )}
+
+            {summary ? (
+              <SelectionSummary id="appointment-summary" text={summary.text} detail={summary.detail} />
+            ) : (
+              <p
+                id="appointment-summary"
+                role="status"
+                aria-live="polite"
+                className="text-xs text-muted-foreground"
               >
-                {t("modals.create.cancel")}
-              </Button>
-              <Button type="submit" className={touchTargetClassName} disabled={isBusy} aria-busy={isBusy}>
-                {isBusy && <Spinner />}
-                {isEditMode ? t("modals.edit.confirm") : t("modals.create.confirm")}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
+                {t("form.summary.empty")}
+              </p>
+            )}
+          </FieldSet>
+
+          <FieldSet className="gap-3">
+            <FieldLegend variant="label" className="mb-0 text-xs font-semibold text-muted-foreground">
+              {t("form.sections.why")}
+            </FieldLegend>
+            <Field data-invalid={!!errors.reason}>
+              <FieldLabel htmlFor="appointment-reason">
+                {t("modals.create.reason")}
+                <OptionalHint />
+              </FieldLabel>
+              <Textarea
+                id="appointment-reason"
+                rows={3}
+                maxLength={reasonMaxLength}
+                placeholder={t("modals.create.reasonPlaceholder")}
+                aria-invalid={!!errors.reason}
+                aria-describedby={joinDescribedBy(
+                  "appointment-reason-counter",
+                  !!errors.reason && "appointment-reason-error"
+                )}
+                {...register("reason")}
+              />
+              <div className="flex items-start justify-between gap-3">
+                <FieldError id="appointment-reason-error">{errors.reason?.message}</FieldError>
+                <span
+                  id="appointment-reason-counter"
+                  className="ml-auto text-xs text-muted-foreground"
+                >
+                  {t("form.characterCount", { count: reasonValue.length, max: reasonMaxLength })}
+                </span>
+              </div>
+            </Field>
+          </FieldSet>
+        </FormDialogLayout>
       </Dialog>
       <DiscardChangesDialog open={isConfirmationOpen} onKeepEditing={keepEditing} onDiscard={discardChanges} />
     </>

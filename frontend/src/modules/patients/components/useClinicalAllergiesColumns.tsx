@@ -11,6 +11,7 @@ const columnHelper = createColumnHelper<AllergyIntolerance>()
 
 export const useClinicalAllergiesColumns = (): ColumnDef<AllergyIntolerance>[] => {
   const { t } = useTranslation("patients")
+  const { t: translateStatus } = useTranslation("clinicalStatus")
 
   return useMemo(
     () => [
@@ -26,7 +27,7 @@ export const useClinicalAllergiesColumns = (): ColumnDef<AllergyIntolerance>[] =
       columnHelper.accessor("allergen_display", {
         id: "allergen_display",
         header: t("details.allergiesCard.allergen"),
-        cell: (info) => <span className="text-sm font-bold text-gray-800 block">{info.getValue()}</span>,
+        cell: (info) => <span className="text-sm font-semibold text-foreground block">{info.getValue()}</span>,
       }),
       columnHelper.accessor("reaction", {
         id: "reaction",
@@ -37,8 +38,8 @@ export const useClinicalAllergiesColumns = (): ColumnDef<AllergyIntolerance>[] =
         id: "clinical_status",
         header: t("details.allergiesCard.status"),
         cell: (info) => (
-          <StatusBadge status={resolveClinicalStatus("allergy", info.getValue())} className="uppercase">
-            {info.getValue()}
+          <StatusBadge status={resolveClinicalStatus("allergy", info.getValue())}>
+            {translateStatus(`allergy.${info.getValue()}`, { defaultValue: info.getValue() })}
           </StatusBadge>
         ),
       }),
@@ -46,12 +47,12 @@ export const useClinicalAllergiesColumns = (): ColumnDef<AllergyIntolerance>[] =
         id: "created_at",
         header: t("details.allergiesCard.date"),
         cell: (info) => (
-          <span className="text-xs text-gray-500 font-semibold block">
+          <span className="text-xs text-muted-foreground font-semibold block">
             {formatDateTime(info.getValue())}
           </span>
         ),
       }),
     ] as ColumnDef<AllergyIntolerance>[],
-    [t]
+    [t, translateStatus]
   )
 }

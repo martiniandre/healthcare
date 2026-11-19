@@ -8,21 +8,21 @@ test.describe("Analytics Statistics Module", () => {
   })
 
   test("should render the metric strip with values from the stats response", async ({ page }) => {
-    await expect(page.getByText("Pacientes Ativos")).toBeVisible()
+    await expect(page.getByText("Pacientes ativos")).toBeVisible()
     await expect(page.getByText("340", { exact: true })).toBeVisible()
 
     await expect(page.getByText("Conformidade FHIR")).toBeVisible()
     await expect(page.getByText(/^99[.,]4/).first()).toBeVisible()
 
-    await expect(page.getByText("T. Médio Consulta")).toBeVisible()
+    await expect(page.getByText("T. médio consulta")).toBeVisible()
     await expect(page.getByText(/^14[.,]5/).first()).toBeVisible()
 
-    await expect(page.getByText("Atendimentos Semanal")).toBeVisible()
+    await expect(page.getByText("Atendimentos semanal")).toBeVisible()
     await expect(page.getByText("79", { exact: true })).toBeVisible()
   })
 
   test("should display exam modality distribution with counts and percentages", async ({ page }) => {
-    await expect(page.getByText("Distribuição de Exames (PACS)")).toBeVisible()
+    await expect(page.getByText("Exames de imagem por modalidade", { exact: true })).toBeVisible()
     await expect(page.getByText("CT (Tomografia)", { exact: true })).toBeVisible()
     await expect(page.getByText("MR (Ressonância)", { exact: true })).toBeVisible()
     await expect(page.getByText("CR (Raio-X)", { exact: true })).toBeVisible()
@@ -32,7 +32,7 @@ test.describe("Analytics Statistics Module", () => {
   })
 
   test("should display weekly consultations volume with localized day labels", async ({ page }) => {
-    await expect(page.getByText("Volume de Atendimentos")).toBeVisible()
+    await expect(page.getByText("Volume de atendimentos")).toBeVisible()
     await expect(page.getByText("Seg", { exact: true })).toBeVisible()
     await expect(page.getByText("Ter", { exact: true })).toBeVisible()
     await expect(page.getByText("Qua", { exact: true })).toBeVisible()
@@ -47,7 +47,7 @@ test.describe("Analytics Statistics Module", () => {
   })
 
   test("should load epidemiology table with pathology classifications", async ({ page }) => {
-    await expect(page.getByText("Epidemiologia e Diagnósticos (FHIR Core)")).toBeVisible()
+    await expect(page.getByText("Epidemiologia e diagnósticos", { exact: true })).toBeVisible()
     await expect(page.getByText("Asma não especificada")).toBeVisible()
     await expect(page.getByText("Hipertensão essencial primária")).toBeVisible()
     await expect(page.getByText("Diabetes mellitus tipo 2")).toBeVisible()
@@ -61,13 +61,13 @@ test.describe("Analytics Statistics Module", () => {
     page,
   }) => {
     const asthmaRow = page.getByRole("row", { name: /J45\.9/ })
-    await expect(asthmaRow.getByText("+5% — Em acompanhamento", { exact: true })).toBeVisible()
+    await expect(asthmaRow.getByText("+5%, Em acompanhamento", { exact: true })).toBeVisible()
 
     const stableRow = page.getByRole("row", { name: /I10/ })
-    await expect(stableRow.getByText("Estável — Dentro do esperado", { exact: true })).toBeVisible()
+    await expect(stableRow.getByText("Estável, Dentro do esperado", { exact: true })).toBeVisible()
 
     const fallingRow = page.getByRole("row", { name: /E11\.9/ })
-    await expect(fallingRow.getByText("-3% — Em queda", { exact: true })).toBeVisible()
+    await expect(fallingRow.getByText("-3%, Em queda", { exact: true })).toBeVisible()
   })
 
   test("should render a proportion bar scaled to the largest case count", async ({ page }) => {

@@ -8,7 +8,7 @@ test.describe("Exam Analyzer Module", () => {
   })
 
   test("should render the localized page title and the analysis history", async ({ page }) => {
-    const title = page.locator("h2", { hasText: "Análise de Exames" })
+    const title = page.locator("h1", { hasText: "Análise de exames" })
     await expect(title).toBeVisible()
 
     const historyItem = page.locator("text=rx_torax.png")
@@ -16,7 +16,7 @@ test.describe("Exam Analyzer Module", () => {
   })
 
   test("should list the missing requirements when submitted empty", async ({ page }) => {
-    await page.getByRole("button", { name: "Enviar para Análise" }).click()
+    await page.getByRole("button", { name: "Enviar para análise" }).click()
 
     await expect(page.getByText("Escolha o arquivo do exame (passo 1).")).toBeVisible()
     await expect(page.getByText("Confirme o consentimento do paciente (passo 2).")).toBeVisible()
@@ -29,7 +29,7 @@ test.describe("Exam Analyzer Module", () => {
       buffer: Buffer.from("mock_content"),
     })
 
-    await page.getByRole("button", { name: "Enviar para Análise" }).click()
+    await page.getByRole("button", { name: "Enviar para análise" }).click()
     await expect(page.getByText("Confirme o consentimento do paciente (passo 2).")).toBeVisible()
 
     await page.locator("#exam-consent").check()
@@ -41,12 +41,12 @@ test.describe("Exam Analyzer Module", () => {
   }) => {
     await page.getByRole("button", { name: "Ver análise de rx_torax.png" }).click()
 
-    const suggestedConduct = page.getByText("Conduta Sugerida", { exact: true })
+    const suggestedConduct = page.getByText("Conduta sugerida", { exact: true })
     await expect(suggestedConduct).toBeVisible()
-    await expect(page.getByText("Urgência Médica", { exact: true })).toBeVisible()
+    await expect(page.getByText("Urgência médica", { exact: true })).toBeVisible()
     await expect(page.getByText("Agendar consulta com pneumologista ou clínico geral.")).toBeVisible()
 
-    await expect(page.getByText("Qualidade da Imagem", { exact: true })).toBeVisible()
+    await expect(page.getByText("Qualidade da imagem", { exact: true })).toBeVisible()
     await expect(page.getByText("Aprovada para leitura", { exact: true })).toBeVisible()
   })
 
@@ -73,7 +73,7 @@ test.describe("Exam Analyzer Module", () => {
     await page.getByRole("button", { name: "Ver análise de rx_torax.png" }).click()
 
     await expect(
-      page.getByText("Observações sobre a Qualidade da Imagem", { exact: true })
+      page.getByText("Observações sobre a qualidade da imagem", { exact: true })
     ).toBeVisible()
     await expect(
       page.getByText("Inspiração adequada. Sem artefatos de movimento.")
@@ -110,8 +110,8 @@ test.describe("Exam Analyzer Module", () => {
       buffer: Buffer.from("mock_content"),
     })
     await page.locator("#exam-consent").check()
-    await page.getByRole("button", { name: "Enviar para Análise" }).click()
-    const processingStatus = page.getByText("Processando Análise Clínica...")
+    await page.getByRole("button", { name: "Enviar para análise" }).click()
+    const processingStatus = page.getByText("Processando análise clínica...")
     await expect(processingStatus).toBeVisible()
 
     const newExamHistoryBlock = page.locator("div.group").filter({ hasText: "mock_uploaded_exam.jpg" }).first()

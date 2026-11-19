@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react"
 import { useQueryClient } from "@tanstack/react-query"
 import { useTranslation } from "react-i18next"
-import { AlertCircle, Sparkles } from "lucide-react"
+import { AlertCircle } from "lucide-react"
 import { FileUploader, type UploadOutcome } from "./components/FileUploader"
 import { AnalysisCard } from "./components/AnalysisCard"
 import { AnalysisHistory } from "./components/AnalysisHistory"
@@ -13,10 +13,9 @@ import {
   examAnalyzerKeys,
 } from "./queries"
 import { toast } from "../../shared/store/toast_store"
-import { Badge } from "@/shared/components/ui/badge"
 import { Alert, AlertDescription } from "@/shared/components/ui/alert"
 import { Button } from "@/shared/components/ui/button"
-import { PageContainer } from "../../shared/components/ui/PageContainer"
+import { PageContainer, PageHeader } from "../../shared/components/ui/PageContainer"
 import { extractApiErrorDetails } from "@/shared/utils/api_error"
 import type { ExamAnalysis } from "./types"
 
@@ -155,24 +154,9 @@ export const ExamAnalyzer = ({ patientFhirId }: ExamAnalyzerProps = {}) => {
 
   return (
     <PageContainer className="gap-5">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
-        <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-2">
-            <h2 className="font-display text-xl font-bold leading-none tracking-tight text-foreground">
-              {t("title")}
-            </h2>
-            <Badge variant="info" className="gap-1.5 text-[11px] font-bold uppercase tracking-wider">
-              <Sparkles aria-hidden="true" />
-              {t("badge")}
-            </Badge>
-          </div>
-          <p className="mt-1.5 block max-w-2xl text-xs leading-relaxed text-muted-foreground">
-            {t("subtitle")}
-          </p>
-        </div>
-      </div>
+      <PageHeader title={t("title")} description={t("subtitle")} />
 
-      <div className="flex flex-col items-stretch gap-5 md:flex-row">
+      <div className="flex flex-col items-stretch gap-5 lg:flex-row">
         <AnalysisHistory
           history={analysesHistory}
           isLoading={isHistoryLoading}

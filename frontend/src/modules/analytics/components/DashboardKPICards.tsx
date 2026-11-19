@@ -53,7 +53,7 @@ export const DashboardKPICards = ({
         tone: "primary",
         meta: {
           text: consultationsTrend,
-          tone: "text-gray-700",
+          tone: "text-muted-foreground",
           icon: consultationsTrend.trim().startsWith("-") ? ArrowDownRight : ArrowUpRight,
         },
       },

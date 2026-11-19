@@ -18,10 +18,10 @@ export const SeverityLegend = ({ bands, className }: SeverityLegendProps) => {
     <ul className={cn("flex flex-wrap items-center gap-x-4 gap-y-1.5", className)}>
       {bands.map((band) => (
         <li key={band.severity} className="flex items-center gap-1.5">
-          <StatusBadge status={toneClinicalStatus[band.severity]} className="text-[11px] font-bold">
+          <StatusBadge status={toneClinicalStatus[band.severity]} className="text-2xs font-semibold">
             {band.label}
           </StatusBadge>
-          <span className="text-[11px] tabular-nums text-muted-foreground">{band.range}</span>
+          <span className="text-2xs tabular-nums text-muted-foreground">{band.range}</span>
         </li>
       ))}
     </ul>

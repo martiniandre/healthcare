@@ -8,27 +8,27 @@
   "relativeNow": "ahora",
   "event": {
     "telemetryAlert": {
-      "title": "Alerta Clínico - Cama {{bedNumber}}",
+      "title": "Alerta clínico - cama {{bedNumber}}",
       "body": "{{patientName}}: {{condition}} (FC: {{bpm}} lpm, SpO₂: {{spo2}}%)"
     },
     "examComplete": {
-      "title": "Análisis de Examen Completado",
+      "title": "Análisis de examen completado",
       "body": "El análisis del examen {{examType}} se ha completado."
     },
     "encounterCreated": {
-      "title": "Nueva Consulta Creada",
+      "title": "Nueva consulta creada",
       "body": "Se ha registrado una nueva consulta en el historial clínico."
     },
     "patientCreated": {
-      "title": "Nuevo Paciente Registrado",
+      "title": "Nuevo paciente registrado",
       "body": "El paciente {{patientName}} se ha registrado con éxito."
     },
     "reportReady": {
-      "title": "Informe Disponible",
+      "title": "Informe disponible",
       "body": "Hay un nuevo informe disponible en la versión {{version}}."
     },
     "loginSucceeded": {
-      "title": "Inicio de Sesión Realizado",
+      "title": "Inicio de sesión realizado",
       "body": "Inicio de sesión realizado con éxito."
     }
   },
@@ -39,5 +39,8 @@
     "medium": "Media",
     "low": "Baja"
   },
-  "unreadCount": "{{formattedCount}} no leídas"
+  "unreadCount": "{{formattedCount}} no leídas",
+  "markAllRead": "Marcar todas como leídas",
+  "markAllReadError": "No se pudieron marcar todas como leídas.",
+  "openItem": "Abrir"
 }

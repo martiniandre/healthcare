@@ -27,7 +27,7 @@ export const TimelineEntry = ({ item, onOpenEncounter }: TimelineEntryProps) => 
   return (
     <Card className="gap-2 p-4" data-testid="timeline-entry" data-entry-type={item.type}>
       <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-        <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-primary">
+        <span className="inline-flex items-center gap-1.5 text-xs font-medium text-primary">
           <TypeIcon className="size-4" aria-hidden="true" />
           {t(`timeline.types.${item.type}`)}
         </span>
@@ -37,13 +37,13 @@ export const TimelineEntry = ({ item, onOpenEncounter }: TimelineEntryProps) => 
         {item.status && (
           <StatusBadge
             status={statusKind ? resolveClinicalStatus(statusKind, item.status) : "neutral"}
-            className="ml-auto uppercase tracking-wider"
+            className="ml-auto"
           >
             {translateStatus(`${statusNamespaceByType[item.type]}.${item.status}`, { defaultValue: item.status })}
           </StatusBadge>
         )}
       </div>
-      <h4 className="text-sm font-bold text-foreground">{item.title}</h4>
+      <h4 className="text-sm font-semibold text-foreground">{item.title}</h4>
       {item.summary && <p className="text-sm text-muted-foreground">{item.summary}</p>}
       {showClinicalDate && item.clinicalDate && (
         <p className="text-xs tabular-nums text-muted-foreground">

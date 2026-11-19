@@ -1,6 +1,6 @@
 import { CircleAlert } from "lucide-react"
 import { useTranslation } from "react-i18next"
-import { Alert, AlertDescription, AlertTitle } from "../../../../shared/components/ui/alert"
+import { Alert, AlertDescription, AlertTitle } from "@/shared/components/ui/alert"
 
 export interface FormErrorSummaryItem {
   fieldId: string

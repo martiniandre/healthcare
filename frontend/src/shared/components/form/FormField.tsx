@@ -1,7 +1,7 @@
 import type { ReactNode } from "react"
 import { useTranslation } from "react-i18next"
-import { Field, FieldDescription, FieldError, FieldLabel } from "../../../../shared/components/ui/field"
-import { cn } from "../../../../shared/utils/cn"
+import { Field, FieldDescription, FieldError, FieldLabel } from "@/shared/components/ui/field"
+import { cn } from "@/shared/utils/cn"
 import { RequiredMark } from "./RequiredMark"
 
 export interface FormFieldControlProperties {

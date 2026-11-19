@@ -72,11 +72,11 @@ describe("AppSidebar", () => {
   it("should render navigation grouped by clinical topics for staff roles", () => {
     renderSidebar()
 
-    expect(screen.getByRole("heading", { name: "topics.clinical" })).toBeInTheDocument()
-    expect(screen.getByRole("heading", { name: "topics.diagnostics" })).toBeInTheDocument()
-    expect(screen.getByRole("heading", { name: "topics.operations" })).toBeInTheDocument()
-    expect(screen.queryByRole("heading", { name: "topics.system" })).not.toBeInTheDocument()
-    expect(screen.queryByRole("heading", { name: "topics.patient" })).not.toBeInTheDocument()
+    expect(screen.getByRole("region", { name: "topics.clinical" })).toBeInTheDocument()
+    expect(screen.getByRole("region", { name: "topics.diagnostics" })).toBeInTheDocument()
+    expect(screen.getByRole("region", { name: "topics.operations" })).toBeInTheDocument()
+    expect(screen.queryByRole("region", { name: "topics.system" })).not.toBeInTheDocument()
+    expect(screen.queryByRole("region", { name: "topics.patient" })).not.toBeInTheDocument()
 
     expect(screen.getByRole("button", { name: "patients" })).toBeInTheDocument()
     expect(screen.getByRole("button", { name: "dashboard" })).toBeInTheDocument()
@@ -88,7 +88,7 @@ describe("AppSidebar", () => {
     expect(screen.getByRole("button", { name: "appearance" })).toBeInTheDocument()
     expect(screen.getByRole("button", { name: "English" })).toBeInTheDocument()
 
-    expect(screen.queryByRole("button", { name: "portal" })).not.toBeInTheDocument()
+    expect(screen.queryByRole("button", { name: "portal:tabs.dashboard" })).not.toBeInTheDocument()
     expect(screen.queryByRole("button", { name: "auditLogs" })).not.toBeInTheDocument()
     expect(screen.queryByRole("button", { name: "settings" })).not.toBeInTheDocument()
   })
@@ -105,12 +105,12 @@ describe("AppSidebar", () => {
   it("should render only the patient access topic for patient roles", () => {
     renderSidebar("PATIENT")
 
-    expect(screen.getByRole("heading", { name: "topics.patient" })).toBeInTheDocument()
-    expect(screen.getByRole("button", { name: "portal" })).toBeInTheDocument()
+    expect(screen.getByRole("region", { name: "topics.patient" })).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "portal:tabs.dashboard" })).toBeInTheDocument()
 
-    expect(screen.queryByRole("heading", { name: "topics.clinical" })).not.toBeInTheDocument()
-    expect(screen.queryByRole("heading", { name: "topics.diagnostics" })).not.toBeInTheDocument()
-    expect(screen.queryByRole("heading", { name: "topics.operations" })).not.toBeInTheDocument()
+    expect(screen.queryByRole("region", { name: "topics.clinical" })).not.toBeInTheDocument()
+    expect(screen.queryByRole("region", { name: "topics.diagnostics" })).not.toBeInTheDocument()
+    expect(screen.queryByRole("region", { name: "topics.operations" })).not.toBeInTheDocument()
     expect(screen.queryByRole("button", { name: "patients" })).not.toBeInTheDocument()
     expect(screen.queryByRole("button", { name: "settings" })).not.toBeInTheDocument()
   })

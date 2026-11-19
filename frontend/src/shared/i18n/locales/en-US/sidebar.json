@@ -1,23 +1,26 @@
 {
   "title": "HealthCare",
-  "subtitle": "Clinical Console v1.0",
+  "subtitle": "Clinical console v1.0",
   "topics": {
-    "clinical": "Clinical Care",
+    "clinical": "Clinical care",
     "diagnostics": "Diagnostics",
     "operations": "Operations",
-    "patient": "My Health"
+    "patient": "My health"
   },
   "appearance": "Appearance",
   "patients": "Patients",
-  "dashboard": "Clinical Dashboard",
-  "portal": "My Portal",
+  "dashboard": "Shift dashboard",
+  "portal": "My portal",
   "telemetry": "ICU Telemetry",
   "pacsViewer": "PACS Viewer",
-  "examAnalyzer": "Exam Analysis",
-  "analytics": "Analytics",
-  "staffManagement": "Staff Management",
+  "examAnalyzer": "Exam analysis",
+  "analytics": "Clinical indicators",
+  "staffManagement": "Staff management",
   "schedule": "Schedule",
-  "auditLogs": "Audit Logs",
+  "auditLogs": "Audit logs",
   "logout": "Logout",
-  "closeMenu": "Close menu"
+  "closeMenu": "Close menu",
+  "collapseMenu": "Collapse menu",
+  "expandMenu": "Expand menu",
+  "preferences": "Preferences"
 }

@@ -16,11 +16,9 @@ export const EmptyState = ({
   className = "",
 }: EmptyStateProps) => {
   return (
-    <div className={`flex flex-col items-center justify-center p-8 text-center bg-muted/50 rounded-xl border border-dashed ${className}`}>
-      <div className="bg-muted p-4 rounded-full mb-4">
-        <Icon className="w-8 h-8 text-gray-400" />
-      </div>
-      <h3 className="text-sm font-bold text-foreground">{title}</h3>
+    <div className={`flex flex-col items-center justify-center rounded-lg border border-dashed bg-muted/40 p-8 text-center ${className}`}>
+      <Icon aria-hidden="true" className="mb-3 size-6 text-muted-foreground" />
+      <h3 className="text-sm font-semibold text-foreground">{title}</h3>
       {description && (
         <p className="text-xs text-muted-foreground mt-1 max-w-sm">{description}</p>
       )}

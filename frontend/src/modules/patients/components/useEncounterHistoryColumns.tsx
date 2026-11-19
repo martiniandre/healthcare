@@ -31,7 +31,7 @@ export const useEncounterHistoryColumns = ({
       columnHelper.accessor("reason_display", {
         id: "reason_display",
         header: t("details.encountersCard.reason"),
-        cell: (info) => <span className="text-sm font-bold text-gray-800 block">{info.getValue()}</span>,
+        cell: (info) => <span className="text-sm font-semibold text-foreground block">{info.getValue()}</span>,
       }),
       columnHelper.accessor("status", {
         id: "status",
@@ -46,7 +46,7 @@ export const useEncounterHistoryColumns = ({
         id: "created_at",
         header: t("details.encountersCard.date"),
         cell: (info) => (
-          <span className="text-xs text-gray-400 font-semibold">
+          <span className="text-sm tabular-nums text-muted-foreground">
             {formatDateTime(info.getValue())}
           </span>
         ),
@@ -57,7 +57,7 @@ export const useEncounterHistoryColumns = ({
         cell: (info) => {
           const encounter = info.row.original
           return (
-            <div className="flex justify-end gap-1.5 pr-6">
+            <div className="flex justify-end gap-1.5">
               {encounter.status === "in-progress" && (
                 <>
                   <Button

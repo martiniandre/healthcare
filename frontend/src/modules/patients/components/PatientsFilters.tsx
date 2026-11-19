@@ -20,7 +20,7 @@ export const PatientsFilters = ({ searchTerm, onSearchChange, resultsCount }: Pa
         placeholder={t("searchPlaceholder")}
         value={searchTerm}
         onChange={(event) => onSearchChange(event.target.value)}
-        className="h-11 bg-card pl-10 pr-12 sm:pr-36"
+        className="h-10 border-transparent bg-muted pl-10 pr-12 shadow-none focus-visible:bg-card sm:pr-36 dark:bg-muted"
       />
       <div className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-1">
         {searchTerm && (
