@@ -222,7 +222,7 @@ export const FileUploader = ({ onUpload, onCancel, isPending, uploadProgress }: 
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base font-bold">{t("uploader.title")}</CardTitle>
+        <CardTitle className="text-base font-semibold">{t("uploader.title")}</CardTitle>
         <CardDescription className="text-xs leading-relaxed">{t("uploader.subtitle")}</CardDescription>
       </CardHeader>
 
@@ -263,7 +263,7 @@ export const FileUploader = ({ onUpload, onCancel, isPending, uploadProgress }: 
           )}
 
           <section aria-labelledby="exam-step-file" className="flex flex-col gap-3">
-            <h3 id="exam-step-file" className="text-sm font-bold text-foreground">
+            <h3 id="exam-step-file" className="text-sm font-semibold text-foreground">
               {t("uploader.stepFile")}
             </h3>
 
@@ -272,14 +272,12 @@ export const FileUploader = ({ onUpload, onCancel, isPending, uploadProgress }: 
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
               className={cn(
-                "flex min-h-40 flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed p-6 text-center transition-all duration-300 sm:p-8",
-                isDragActive ? "scale-[1.01] border-primary bg-primary/5" : "border-border bg-muted/30",
+                "flex min-h-40 flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed p-6 text-center transition-colors duration-300 sm:p-8",
+                isDragActive ? "border-primary bg-primary/5" : "border-border bg-muted/30",
                 fileError && "border-destructive/60"
               )}
             >
-              <div className="flex size-12 items-center justify-center rounded-full bg-primary/10">
-                <UploadCloud aria-hidden="true" className="size-6 text-primary" />
-              </div>
+              <UploadCloud aria-hidden="true" className="size-6 text-muted-foreground" />
 
               <p className="text-sm font-semibold text-foreground">
                 {isDragActive ? t("uploader.dropActive") : t("uploader.dropTitle")}
@@ -309,7 +307,7 @@ export const FileUploader = ({ onUpload, onCancel, isPending, uploadProgress }: 
                 {selectedFile ? t("uploader.replaceFile") : t("uploader.chooseFile")}
               </Button>
 
-              <p id={FILE_HINT_ID} className="text-[11px] leading-relaxed text-muted-foreground">
+              <p id={FILE_HINT_ID} className="text-2xs leading-relaxed text-muted-foreground">
                 {t("uploader.fileGuidelines", { maxSize: EXAM_MAX_FILE_MEGABYTES })}
               </p>
             </div>
@@ -326,11 +324,11 @@ export const FileUploader = ({ onUpload, onCancel, isPending, uploadProgress }: 
                 <div className="flex min-w-0 items-center gap-3">
                   <FileText aria-hidden="true" className="size-5 shrink-0 text-primary" />
                   <div className="min-w-0">
-                    <span className="block text-[11px] font-medium text-muted-foreground">
+                    <span className="block text-2xs font-medium text-muted-foreground">
                       {t("uploader.selectedFile")}
                     </span>
                     <span className="block truncate text-xs font-semibold text-foreground">{selectedFile.name}</span>
-                    <span className="mt-0.5 block text-[11px] tabular-nums text-muted-foreground">
+                    <span className="mt-0.5 block text-2xs tabular-nums text-muted-foreground">
                       {formatFileSize(selectedFile.size)}
                     </span>
                   </div>
@@ -351,7 +349,7 @@ export const FileUploader = ({ onUpload, onCancel, isPending, uploadProgress }: 
           </section>
 
           <section aria-labelledby="exam-step-options" className="flex flex-col gap-3">
-            <h3 id="exam-step-options" className="text-sm font-bold text-foreground">
+            <h3 id="exam-step-options" className="text-sm font-semibold text-foreground">
               {t("uploader.stepOptions")}
             </h3>
 
@@ -369,11 +367,11 @@ export const FileUploader = ({ onUpload, onCancel, isPending, uploadProgress }: 
                 <FieldContent className="text-left">
                   <FieldTitle className="flex flex-wrap items-center gap-2 text-xs font-semibold">
                     {t("uploader.consentTitle")}
-                    <Badge variant="destructive" className="text-[10px] uppercase">
+                    <Badge variant="destructive" className="text-2xs">
                       {t("uploader.required")}
                     </Badge>
                   </FieldTitle>
-                  <FieldDescription id="exam-consent-description" className="text-[11px] leading-relaxed">
+                  <FieldDescription id="exam-consent-description" className="text-2xs leading-relaxed">
                     {t("uploader.consentDesc")} {t("uploader.consentIfUnchecked")}
                   </FieldDescription>
                 </FieldContent>
@@ -392,14 +390,14 @@ export const FileUploader = ({ onUpload, onCancel, isPending, uploadProgress }: 
                 <FieldContent className="text-left">
                   <FieldTitle className="flex flex-wrap items-center gap-2 text-xs font-semibold">
                     {t("uploader.anonymizeTitle")}
-                    <Badge variant="secondary" className="text-[10px] uppercase">
+                    <Badge variant="secondary" className="text-2xs">
                       {t("uploader.optional")}
                     </Badge>
                   </FieldTitle>
-                  <FieldDescription id="exam-anonymize-description" className="text-[11px] leading-relaxed">
+                  <FieldDescription id="exam-anonymize-description" className="text-2xs leading-relaxed">
                     {t("uploader.anonymizeDesc")}
                   </FieldDescription>
-                  <p className="text-[11px] font-semibold leading-relaxed text-foreground">
+                  <p className="text-2xs font-semibold leading-relaxed text-foreground">
                     {t("uploader.anonymizeLimitation")}
                   </p>
                 </FieldContent>
@@ -410,10 +408,10 @@ export const FileUploader = ({ onUpload, onCancel, isPending, uploadProgress }: 
               <div className="flex animate-fade-in flex-col gap-3">
                 <Alert variant="warning">
                   <ShieldAlert aria-hidden="true" />
-                  <AlertTitle className="line-clamp-none text-xs font-bold">
+                  <AlertTitle className="line-clamp-none text-xs font-semibold">
                     {t("uploader.externalProcessingTitle")}
                   </AlertTitle>
-                  <AlertDescription className="text-[11px] leading-relaxed text-warning">
+                  <AlertDescription className="text-2xs leading-relaxed text-warning">
                     {t("uploader.externalProcessingWarning")}
                   </AlertDescription>
                 </Alert>
@@ -431,7 +429,7 @@ export const FileUploader = ({ onUpload, onCancel, isPending, uploadProgress }: 
                     <FieldContent className="text-left">
                       <FieldTitle className="flex flex-wrap items-center gap-2 text-xs font-semibold">
                         {t("uploader.acknowledgementTitle")}
-                        <Badge variant="destructive" className="text-[10px] uppercase">
+                        <Badge variant="destructive" className="text-2xs">
                           {t("uploader.required")}
                         </Badge>
                       </FieldTitle>
@@ -446,13 +444,13 @@ export const FileUploader = ({ onUpload, onCancel, isPending, uploadProgress }: 
             aria-labelledby="exam-step-submit"
             className="flex flex-col gap-3 max-sm:sticky max-sm:bottom-0 max-sm:-mx-6 max-sm:border-t max-sm:border-border max-sm:bg-card max-sm:px-6 max-sm:py-3"
           >
-            <h3 id="exam-step-submit" className="text-sm font-bold text-foreground">
+            <h3 id="exam-step-submit" className="text-sm font-semibold text-foreground">
               {t("uploader.stepSubmit")}
             </h3>
 
             {isUploading && (
               <div className="flex animate-fade-in flex-col gap-1.5">
-                <div className="flex items-center justify-between text-[11px] font-semibold text-muted-foreground">
+                <div className="flex items-center justify-between text-2xs font-semibold text-muted-foreground">
                   <span>{t("uploader.uploading")}</span>
                   <span className="tabular-nums">{uploadProgress ?? 0}%</span>
                 </div>
@@ -492,7 +490,7 @@ export const FileUploader = ({ onUpload, onCancel, isPending, uploadProgress }: 
                 type="submit"
                 disabled={isUploading}
                 aria-describedby={missingRequirements.length > 0 ? REASONS_ID : undefined}
-                className="w-full font-bold max-sm:min-h-11 sm:flex-1"
+                className="w-full font-semibold max-sm:min-h-11 sm:flex-1"
               >
                 {isUploading && <Spinner />}
                 {submitLabel}

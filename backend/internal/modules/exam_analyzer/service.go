@@ -11,12 +11,15 @@ import (
 	"net/http"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/healthcare/backend/internal/shared/filecontent"
 	"github.com/healthcare/backend/internal/shared/storage"
 	"golang.org/x/oauth2/google"
 )
+
+const vertexRequestTimeout = 2 * time.Minute
 
 type Service interface {
 	CreateAnalysis(ctx context.Context, analysis *ExamAnalysis, fileContent io.Reader) error
@@ -40,8 +43,9 @@ func NewService(repository Repository, storageClient storage.StorageClient, proj
 	googleHTTPClient, err := google.DefaultClient(ctx, "https://www.googleapis.com/auth/cloud-platform")
 	if err != nil {
 		slog.Warn("Failed to create Google credentials client for Vertex, falling back to simulator", "error", err)
-		googleHTTPClient = http.DefaultClient
+		googleHTTPClient = &http.Client{}
 	}
+	googleHTTPClient.Timeout = vertexRequestTimeout
 
 	return &service{
 		repository:    repository,

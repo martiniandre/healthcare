@@ -41,7 +41,7 @@ export class ErrorBoundary extends Component<Props, State> {
               <div className="mb-2 rounded-full bg-destructive/10 p-3">
                 <AlertTriangle className="h-8 w-8 text-destructive" />
               </div>
-              <h2 className="text-lg font-bold text-foreground">
+              <h2 className="text-lg font-semibold text-foreground">
                 {i18next.t("header:errorBoundary.title")}
               </h2>
               <p className="max-w-sm text-sm text-muted-foreground">

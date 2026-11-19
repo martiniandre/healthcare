@@ -164,8 +164,8 @@ func (analyticsRepository *repository) GetConsultationsPerDoctor(contextParamete
 	defer employeeRows.Close()
 
 	type doctorInfo struct {
-		Name     string
-		CRM      string
+		Name string
+		CRM  string
 	}
 	doctorsByID := make(map[string]doctorInfo)
 	for employeeRows.Next() {

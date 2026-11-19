@@ -1,12 +1,12 @@
 import type { PortalDashboard } from "./types"
 import { StatusBadge } from "../../shared/components/ui/status-badge"
 import { Card, CardContent, CardHeader, CardTitle } from "../../shared/components/ui/card"
-import { History, Activity, Pill, FileText } from "lucide-react"
 import { formatDate } from "../../shared/utils/dates"
 import { useTranslation } from "react-i18next"
+import { Link } from "react-router-dom"
 import { useLocale } from "../../shared/hooks/useLocale"
 import { useClinicalStatusLabels } from "../../shared/hooks/useClinicalStatusLabels"
-import { findVitalSignDisplay } from "../patients/components/vitalSignDisplay"
+import { findVitalSignDisplay } from "@/shared/clinical/vitalSignDisplay"
 import { PortalVitalValue } from "./components/PortalVitalValue"
 import { useNumberFormat } from "./hooks/useNumberFormat"
 
@@ -21,60 +21,52 @@ export const PortalDashboardOverview = ({ dashboard }: PortalDashboardOverviewPr
   const { encounterStatus } = useClinicalStatusLabels()
   const summaryCards = [
     {
-      icon: <History className="w-5 h-5 text-blue-600" />,
-      label: t("portal:summary.totalEncounters"),
-      value: dashboard.upcoming_encounters.length + dashboard.recent_reports.length,
-      bgColor: "bg-blue-50",
+      label: t("portal:summary.upcomingEncounters"),
+      value: dashboard.upcoming_encounters.length,
+      target: "/portal?tab=appointments",
     },
     {
-      icon: <Activity className="w-5 h-5 text-amber-600" />,
       label: t("portal:summary.activeConditions"),
       value: dashboard.active_conditions.length,
-      bgColor: "bg-amber-50",
+      target: "/portal?tab=conditions",
     },
     {
-      icon: <Pill className="w-5 h-5 text-green-600" />,
       label: t("portal:summary.activeMedications"),
       value: dashboard.active_medications.length,
-      bgColor: "bg-green-50",
+      target: "/portal?tab=medications",
     },
     {
-      icon: <FileText className="w-5 h-5 text-purple-600" />,
       label: t("portal:summary.recentReports"),
       value: dashboard.recent_reports.length,
-      bgColor: "bg-purple-50",
+      target: "/portal?tab=reports",
     },
   ]
 
   return (
     <div className="flex flex-col gap-4 md:gap-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg font-bold">
-            {t("portal:greeting", { firstName: dashboard.patient_info.full_name.split(" ")[0] })}
-          </CardTitle>
-          <p className="text-sm text-muted-foreground">{t("portal:welcome")}</p>
-        </CardHeader>
-      </Card>
-
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
         {summaryCards.map((card) => (
-          <Card key={card.label} className={`${card.bgColor} border-0 py-5`}>
-            <CardContent className="flex items-center gap-3 px-4 md:px-5">
-              {card.icon}
+          <Link
+            key={card.label}
+            to={card.target}
+            className="rounded-lg outline-none transition-shadow hover:shadow-md focus-visible:ring-[3px] focus-visible:ring-ring/50"
+          >
+          <Card className="h-full py-5">
+            <CardContent className="flex items-start justify-between gap-3 px-4 md:px-5">
               <div className="min-w-0">
-                <p className="text-2xl font-bold tabular-nums text-foreground">{formatNumber(card.value)}</p>
-                <p className="text-xs text-muted-foreground font-medium break-words">{card.label}</p>
+                <p className="break-words text-xs font-medium text-muted-foreground">{card.label}</p>
+                <p className="mt-2 text-2xl font-semibold tabular-nums text-foreground">{formatNumber(card.value)}</p>
               </div>
             </CardContent>
           </Card>
+          </Link>
         ))}
       </div>
 
       {dashboard.upcoming_encounters.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm font-bold">{t("portal:upcomingEncounters")}</CardTitle>
+            <CardTitle className="text-sm font-semibold">{t("portal:upcomingEncounters")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {dashboard.upcoming_encounters.slice(0, 5).map((encounter) => (
@@ -100,7 +92,7 @@ export const PortalDashboardOverview = ({ dashboard }: PortalDashboardOverviewPr
       {dashboard.recent_observations.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm font-bold">{t("portal:recentVitalSigns")}</CardTitle>
+            <CardTitle className="text-sm font-semibold">{t("portal:recentVitalSigns")}</CardTitle>
           </CardHeader>
           <CardContent className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
             {dashboard.recent_observations.slice(0, 8).map((observation) => {
@@ -114,7 +106,7 @@ export const PortalDashboardOverview = ({ dashboard }: PortalDashboardOverviewPr
                     notPerformed={observation.not_performed}
                     valueQuantity={observation.value_quantity}
                     valueUnit={observation.value_unit}
-                    valueClassName="text-lg font-bold text-foreground"
+                    valueClassName="text-lg font-semibold text-foreground"
                   />
                 </div>
               )

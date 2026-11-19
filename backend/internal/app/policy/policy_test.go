@@ -139,8 +139,8 @@ func TestHTTPRoutePermissions(testingInstance *testing.T) {
 		"GET /api/v1/notifications/unread-count":           "ADMIN,DOCTOR,NURSE,PATIENT,RECEPTION",
 		"GET /api/v1/notifications/stream":                 "ADMIN,DOCTOR,NURSE,PATIENT,RECEPTION",
 
-		"GET /api/v1/encounters/{encounterFhirId}/medications":  "ADMIN,DOCTOR,NURSE",
-		"POST /api/v1/encounters/{encounterFhirId}/medications": "ADMIN,DOCTOR",
+		"GET /api/v1/encounters/{encounterFhirId}/medications":    "ADMIN,DOCTOR,NURSE",
+		"POST /api/v1/encounters/{encounterFhirId}/medications":   "ADMIN,DOCTOR",
 		"POST /api/v1/patients/{patientFhirId}/medications/check": "ADMIN,DOCTOR",
 
 		"GET /api/v1/patients/{patientFhirId}/studies":  "ADMIN,DOCTOR,NURSE",
@@ -181,7 +181,7 @@ func TestHTTPRoutePermissions(testingInstance *testing.T) {
 
 		"GET /api/v1/patients/{patientFhirId}/timeline": "ADMIN,DOCTOR,NURSE",
 
-		"GET /api/v1/analytics":                                  "ADMIN,DOCTOR,NURSE",
+		"GET /api/v1/analytics":                                    "ADMIN,DOCTOR,NURSE",
 		"GET /api/v1/analytics/dashboard":                          "ADMIN,DOCTOR,NURSE",
 		"GET /api/v1/analytics/dashboard/consultations-per-doctor": "ADMIN,DOCTOR,NURSE",
 		"GET /api/v1/analytics/dashboard/occupancy-rate":           "ADMIN,DOCTOR,NURSE",

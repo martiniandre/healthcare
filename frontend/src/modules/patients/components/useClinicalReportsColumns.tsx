@@ -22,6 +22,7 @@ export const useClinicalReportsColumns = ({
   onOpenVersions,
 }: ClinicalReportsColumnsDependencies): ColumnDef<DiagnosticReport>[] => {
   const { t } = useTranslation("patients")
+  const { t: translateStatus } = useTranslation("clinicalStatus")
 
   return useMemo(
     () => [
@@ -30,10 +31,10 @@ export const useClinicalReportsColumns = ({
         header: t("details.reportsCard.display"),
         cell: (info) => (
           <div className="flex items-center gap-3">
-            <div className="bg-emerald-50 border border-emerald-100 p-2 rounded-lg text-emerald-600">
+            <div className="bg-success/10 border border-success/20 p-2 rounded-lg text-success">
               <FileCheck className="w-4 h-4" />
             </div>
-            <span className="text-sm font-bold text-gray-800 block">{info.getValue()}</span>
+            <span className="text-sm font-semibold text-foreground block">{info.getValue()}</span>
           </div>
         ),
       }),
@@ -63,8 +64,8 @@ export const useClinicalReportsColumns = ({
         id: "status",
         header: t("details.reportsCard.status"),
         cell: (info) => (
-          <StatusBadge status={resolveClinicalStatus("report", info.getValue())} className="uppercase">
-            {info.getValue()}
+          <StatusBadge status={resolveClinicalStatus("report", info.getValue())}>
+            {translateStatus(`diagnosticReport.${info.getValue()}`, { defaultValue: info.getValue() })}
           </StatusBadge>
         ),
       }),
@@ -88,7 +89,7 @@ export const useClinicalReportsColumns = ({
             )
           }
           return (
-            <Badge variant="info" className="uppercase">
+            <Badge variant="info">
               <FileCheck />
               v{versionValue}
             </Badge>
@@ -115,6 +116,6 @@ export const useClinicalReportsColumns = ({
         ),
       }),
     ] as ColumnDef<DiagnosticReport>[],
-    [t, onOpenDetails, onOpenVersions]
+    [t, translateStatus, onOpenDetails, onOpenVersions]
   )
 }

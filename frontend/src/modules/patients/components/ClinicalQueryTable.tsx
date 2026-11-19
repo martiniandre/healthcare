@@ -1,4 +1,4 @@
-import type { ReactElement, ReactNode } from "react"
+import type { ReactNode } from "react"
 import type { ColumnDef } from "@tanstack/react-table"
 import type { LucideIcon } from "lucide-react"
 import { ClinicalTable } from "../../../shared/components/clinical/ClinicalTable"
@@ -6,7 +6,6 @@ import { ClinicalQuerySection } from "./ClinicalQuerySection"
 
 interface ClinicalQueryTableProps<T> {
   title: string
-  icon: ReactNode
   columns: ColumnDef<T>[]
   data: T[]
   isLoading: boolean
@@ -19,7 +18,6 @@ interface ClinicalQueryTableProps<T> {
 
 export function ClinicalQueryTable<T>({
   title,
-  icon,
   columns,
   data,
   isLoading,
@@ -32,7 +30,6 @@ export function ClinicalQueryTable<T>({
   return (
     <ClinicalQuerySection
       title={title}
-      icon={icon}
       isLoading={isLoading}
       isError={isError}
       onRetry={onRetry}
@@ -43,7 +40,6 @@ export function ClinicalQueryTable<T>({
     >
       <ClinicalTable
         title={title}
-        icon={icon as ReactElement}
         columns={columns}
         data={data}
         isEmpty={false}

@@ -24,20 +24,21 @@ export const useEncounterHistoryColumns = ({
   isActionPending,
 }: EncounterHistoryColumnsDependencies): ColumnDef<Encounter>[] => {
   const { t } = useTranslation("patients")
+  const { t: translateStatus } = useTranslation("clinicalStatus")
 
   return useMemo(
     () => [
       columnHelper.accessor("reason_display", {
         id: "reason_display",
         header: t("details.encountersCard.reason"),
-        cell: (info) => <span className="text-sm font-bold text-gray-800 block">{info.getValue()}</span>,
+        cell: (info) => <span className="text-sm font-semibold text-foreground block">{info.getValue()}</span>,
       }),
       columnHelper.accessor("status", {
         id: "status",
         header: t("details.encountersCard.status"),
         cell: (info) => (
-          <StatusBadge status={resolveClinicalStatus("encounter", info.getValue())} className="uppercase tracking-wider">
-            {info.getValue()}
+          <StatusBadge status={resolveClinicalStatus("encounter", info.getValue())}>
+            {translateStatus(`encounter.${info.getValue()}`, { defaultValue: info.getValue() })}
           </StatusBadge>
         ),
       }),
@@ -45,7 +46,7 @@ export const useEncounterHistoryColumns = ({
         id: "created_at",
         header: t("details.encountersCard.date"),
         cell: (info) => (
-          <span className="text-xs text-gray-400 font-semibold">
+          <span className="text-sm tabular-nums text-muted-foreground">
             {formatDateTime(info.getValue())}
           </span>
         ),
@@ -56,7 +57,7 @@ export const useEncounterHistoryColumns = ({
         cell: (info) => {
           const encounter = info.row.original
           return (
-            <div className="flex justify-end gap-1.5 pr-6">
+            <div className="flex justify-end gap-1.5">
               {encounter.status === "in-progress" && (
                 <>
                   <Button
@@ -92,6 +93,6 @@ export const useEncounterHistoryColumns = ({
         },
       }),
     ] as ColumnDef<Encounter>[],
-    [t, isActionPending, onFinishEncounter, onCancelEncounter, onOpenEncounter]
+    [t, translateStatus, isActionPending, onFinishEncounter, onCancelEncounter, onOpenEncounter]
   )
 }

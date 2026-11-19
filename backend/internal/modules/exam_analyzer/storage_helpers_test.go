@@ -9,9 +9,9 @@ import (
 
 func TestExamFileExtension(t *testing.T) {
 	testCases := []struct {
-		name      string
-		fileName  string
-		expected  string
+		name     string
+		fileName string
+		expected string
 	}{
 		{name: "png extension", fileName: "chest_xray.png", expected: ".png"},
 		{name: "uppercase pdf extension", fileName: "result.PDF", expected: ".pdf"},

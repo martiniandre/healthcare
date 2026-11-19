@@ -35,7 +35,7 @@ export const TelemetryBedList = ({ beds, selectedBedId, setSelectedBedId, histor
     <div className="flex flex-col gap-4 lg:col-span-1 text-left">
       <Card className="gap-4 py-4">
         <CardHeader className="border-b px-4">
-          <CardTitle className="flex items-center gap-2 text-base font-extrabold">
+          <CardTitle className="flex items-center gap-2 text-base font-semibold">
             <Bell className="size-4 text-primary" aria-hidden="true" />
             {t("availableBeds", { count: beds.length })}
           </CardTitle>
@@ -54,27 +54,27 @@ export const TelemetryBedList = ({ beds, selectedBedId, setSelectedBedId, histor
                 aria-pressed={isSelected}
                 onClick={() => setSelectedBedId(bedItem.id)}
                 className={cn(
-                  "h-auto w-full flex-col items-stretch justify-start gap-0 whitespace-normal rounded-xl p-3.5 text-left font-normal",
+                  "h-auto w-full flex-col items-stretch justify-start gap-0 whitespace-normal rounded-lg p-3.5 text-left font-normal",
                   isSelected && "border-primary bg-primary/5",
                   !isSelected && bedItem.status === BedStatus.Danger && "border-destructive/30 bg-destructive/5"
                 )}
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                  <span className="text-xs font-medium text-muted-foreground">
                     {bedItem.bedNumber}
                   </span>
                   <StatusBadge
                     status={clinicalStatus}
-                    className={cn("text-[10px] font-black uppercase", isCritical && "animate-pulse-glow motion-reduce:animate-none")}
+                    className={cn("text-xs font-medium", isCritical && "animate-pulse-glow motion-reduce:animate-none")}
                   >
                     {t(`status.${clinicalStatus}`)}
                   </StatusBadge>
                 </div>
 
-                <h4 className="mt-1 text-sm font-bold text-foreground">
+                <h4 className="mt-1 text-sm font-semibold text-foreground">
                   {bedItem.patientName}
                 </h4>
-                <span className="text-[11px] text-muted-foreground">{cardiacConditionLabel(bedItem.condition)}</span>
+                <span className="text-2xs text-muted-foreground">{cardiacConditionLabel(bedItem.condition)}</span>
 
                 <div className="mt-3 flex items-center justify-between text-xs">
                   <span className="text-muted-foreground">{t("sensors.ecg")}: <strong className="tabular-nums text-foreground">{bedItem.bpm > 0 ? `${bedItem.bpm} BPM` : "---"}</strong></span>

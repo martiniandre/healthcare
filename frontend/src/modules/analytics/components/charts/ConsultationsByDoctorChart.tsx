@@ -55,10 +55,10 @@ export const ConsultationsByDoctorChart = ({
 
     return (
       <g transform={`translate(${x}, ${y})`}>
-        <text textAnchor="end" dy={-2} className="fill-gray-900 text-[11px] font-bold">
+        <text textAnchor="end" dy={-2} className="fill-foreground text-2xs font-semibold">
           {datum?.doctorName}
         </text>
-        <text textAnchor="end" dy={12} className="fill-gray-500 text-[10px] font-semibold">
+        <text textAnchor="end" dy={12} className="fill-muted-foreground text-2xs font-semibold">
           {datum?.specialty}
         </text>
       </g>
@@ -111,7 +111,7 @@ export const ConsultationsByDoctorChart = ({
                 tickLine={false}
               />
               <Tooltip
-                cursor={{ className: "fill-gray-100" }}
+                cursor={{ className: "fill-muted" }}
                 content={({ active, payload }) => {
                   if (!active || !payload || payload.length === 0) return null
                   const datum = payload[0].payload as DoctorChartDatum
@@ -137,7 +137,7 @@ export const ConsultationsByDoctorChart = ({
                   dataKey="count"
                   position="right"
                   offset={10}
-                  className="fill-gray-900 text-[11px] font-black tabular-nums"
+                  className="fill-foreground text-2xs font-semibold tabular-nums"
                 />
               </Bar>
             </BarChart>

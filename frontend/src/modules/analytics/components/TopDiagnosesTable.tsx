@@ -84,14 +84,14 @@ export const TopDiagnosesTable = ({ topDiagnoses }: TopDiagnosesTableProps) => {
             <TableBody>
               {rankedDiagnoses.map((diagnosis) => (
                 <TableRow key={diagnosis.icd10_code}>
-                  <TableCell className="pl-5 text-xs font-black tabular-nums text-muted-foreground">
+                  <TableCell className="pl-5 text-xs font-semibold tabular-nums text-muted-foreground">
                     {formatDecimal(diagnosis.rank, locale).padStart(2, "0")}
                   </TableCell>
-                  <TableCell className="font-mono text-xs font-bold text-primary">
+                  <TableCell className="font-mono text-xs font-semibold text-primary">
                     {diagnosis.icd10_code}
                   </TableCell>
                   <TableCell className="text-sm text-foreground">{diagnosis.description}</TableCell>
-                  <TableCell className="text-right text-sm font-black tabular-nums text-foreground">
+                  <TableCell className="text-right text-sm font-semibold tabular-nums text-foreground">
                     {formatDecimal(diagnosis.count, locale)}
                   </TableCell>
                   <TableCell className="pr-5">
@@ -105,7 +105,7 @@ export const TopDiagnosesTable = ({ topDiagnoses }: TopDiagnosesTableProps) => {
                           }}
                         />
                       </div>
-                      <span className="min-w-9 text-right text-[11px] font-bold tabular-nums text-muted-foreground">
+                      <span className="min-w-9 text-right text-2xs font-semibold tabular-nums text-muted-foreground">
                         {formatPercentage(diagnosis.proportion, locale)}
                       </span>
                     </div>

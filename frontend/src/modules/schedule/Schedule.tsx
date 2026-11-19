@@ -8,6 +8,9 @@ import { Spinner } from "@/shared/components/ui/spinner"
 import { Skeleton } from "@/shared/components/ui/skeleton"
 import { Alert, AlertDescription, AlertTitle } from "@/shared/components/ui/alert"
 import { EmptyState } from "@/shared/components/ui/EmptyState"
+import { PageContainer, PageHeader } from "@/shared/components/ui/PageContainer"
+import { STAFF_ROLE_LABEL_KEYS } from "../staff/staff_roles"
+import type { StaffRole } from "@/shared/types"
 import { AppointmentModal } from "./components/AppointmentModal"
 import { CancelAppointmentModal } from "./components/CancelAppointmentModal"
 import { AppointmentDetailsModal } from "./components/AppointmentDetailsModal"
@@ -29,7 +32,8 @@ import {
 import { appointmentsToCalendarEvents, staffColorForIndex } from "./schedule_calendar_helpers"
 import type { CalendarEventShape } from "./schedule_calendar_helpers"
 import { toast } from "../../shared/store/toast_store"
-import type { Appointment, CreateAppointmentPayload, UpdateAppointmentPayload, StaffUnavailability, CreateUnavailabilityPayload } from "./types"
+import { appointmentForDialog, useScheduleDialogs } from "./hooks/useScheduleDialogs"
+import type { Appointment, CreateAppointmentPayload, UpdateAppointmentPayload, CreateUnavailabilityPayload } from "./types"
 
 const todayDate = (): string => {
   const localDate = new Date()
@@ -54,6 +58,7 @@ const toLocalTimeString = (dateValue: Date): string => {
 
 export const Schedule = () => {
   const { t } = useTranslation("schedule")
+  const { t: translateStaff } = useTranslation("staff")
   const {
     data: staffMembers = [],
     isLoading: isStaffLoading,
@@ -63,14 +68,24 @@ export const Schedule = () => {
 
   const [selectedStaffIds, setSelectedStaffIds] = useState<string[] | null>(null)
   const [visibleRange, setVisibleRange] = useState({ startDate: todayDate(), endDate: todayDate() })
-  const [viewMode, setViewMode] = useState<ScheduleViewMode>("week")
-  const [createDefaults, setCreateDefaults] = useState<{ date: string; startTime: string } | null>(null)
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
-  const [appointmentToView, setAppointmentToView] = useState<Appointment | null>(null)
-  const [appointmentToEdit, setAppointmentToEdit] = useState<Appointment | null>(null)
-  const [appointmentToCancel, setAppointmentToCancel] = useState<Appointment | null>(null)
-  const [isCreateUnavailabilityOpen, setIsCreateUnavailabilityOpen] = useState(false)
-  const [unavailabilityToDelete, setUnavailabilityToDelete] = useState<StaffUnavailability | null>(null)
+  const [viewMode, setViewMode] = useState<ScheduleViewMode>(() =>
+    typeof window !== "undefined" && window.matchMedia?.("(max-width: 767px)").matches ? "day" : "week"
+  )
+  const {
+    activeDialog,
+    createDefaults,
+    closeDialog,
+    openCreate,
+    openView,
+    openEdit,
+    openCancel,
+    openCreateUnavailability,
+    openDeleteUnavailability,
+  } = useScheduleDialogs()
+  const appointmentToView = appointmentForDialog(activeDialog, "view")
+  const appointmentToEdit = appointmentForDialog(activeDialog, "edit")
+  const appointmentToCancel = appointmentForDialog(activeDialog, "cancel")
+  const unavailabilityToDelete = activeDialog.kind === "deleteUnavailability" ? activeDialog.unavailability : null
 
   const staffMemberOptions = useMemo(
     () => staffMembers.filter((staffMember) => staffMember.id),
@@ -158,7 +173,7 @@ export const Schedule = () => {
     cancelAppointmentMutation.mutate(appointmentId, {
       onSuccess: () => {
         toast.success(t("toasts.cancelSuccess"))
-        setAppointmentToCancel(null)
+        closeDialog()
       },
       onError: () => {
         toast.error(t("toasts.cancelError"))
@@ -169,13 +184,11 @@ export const Schedule = () => {
   const handleCalendarSlotClick = (clickedStart: Date) => {
     const dateString = toLocalDateString(clickedStart)
     const timeString = toLocalTimeString(clickedStart)
-    setCreateDefaults({ date: dateString, startTime: timeString })
-    setIsCreateModalOpen(true)
+    openCreate({ date: dateString, startTime: timeString })
   }
 
   const handleNewAppointmentButton = () => {
-    setCreateDefaults(null)
-    setIsCreateModalOpen(true)
+    openCreate()
   }
 
   const handleRescheduleAppointment = (appointment: Appointment, newStart: Date, newEnd: Date) => {
@@ -222,17 +235,15 @@ export const Schedule = () => {
   }
 
   const handleEventClick = (appointment: Appointment) => {
-    setAppointmentToView(appointment)
+    openView(appointment)
   }
 
   const handleEditFromDetails = (appointment: Appointment) => {
-    setAppointmentToView(null)
-    setAppointmentToEdit(appointment)
+    openEdit(appointment)
   }
 
   const handleCancelFromDetails = (appointment: Appointment) => {
-    setAppointmentToView(null)
-    setAppointmentToCancel(appointment)
+    openCancel(appointment)
   }
 
   const handleCreateUnavailability = async (payload: CreateUnavailabilityPayload) => {
@@ -249,7 +260,7 @@ export const Schedule = () => {
     deleteUnavailabilityMutation.mutate(unavailabilityId, {
       onSuccess: () => {
         toast.success(t("unavailability.toasts.deleteSuccess"))
-        setUnavailabilityToDelete(null)
+        closeDialog()
       },
       onError: () => {
         toast.error(t("unavailability.toasts.deleteError"))
@@ -260,34 +271,34 @@ export const Schedule = () => {
   const upcomingUnavailabilityWindows = unavailabilityWindows
 
   return (
-    <div className="flex-1 p-4 sm:p-6 md:p-8 flex flex-col gap-4 md:gap-6 max-w-7xl mx-auto w-full">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-bold text-foreground">{t("title")}</h1>
-          <p className="text-sm text-muted-foreground">{t("subtitle")}</p>
-        </div>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            onClick={() => setIsCreateUnavailabilityOpen(true)}
-            disabled={!focusedStaffId}
-          >
-            <CalendarOff />
-            {t("unavailability.createButton")}
-          </Button>
-          <Button onClick={handleNewAppointmentButton} disabled={!focusedStaffId}>
-            <CalendarPlus />
-            {t("newAppointment")}
-          </Button>
-        </div>
-      </div>
+    <PageContainer>
+      <PageHeader
+        title={t("title")}
+        actions={
+          <>
+            <Button
+              variant="outline"
+              onClick={openCreateUnavailability}
+              disabled={!focusedStaffId}
+            >
+              <CalendarOff />
+              {t("unavailability.createButton")}
+            </Button>
+            <Button onClick={handleNewAppointmentButton} disabled={!focusedStaffId}>
+              <CalendarPlus />
+              {t("newAppointment")}
+            </Button>
+          </>
+        }
+      />
 
-      <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-4 items-start">
+      <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-[272px_1fr]">
         <StaffOverlaySidebar
+          viewControl={<ScheduleViewToggle value={viewMode} onChange={setViewMode} />}
           staffMembers={staffMemberOptions.map((staffMember) => ({
             id: staffMember.id,
             fullName: staffMember.fullName,
-            role: staffMember.role,
+            role: translateStaff(STAFF_ROLE_LABEL_KEYS[staffMember.role as StaffRole] ?? staffMember.role, { defaultValue: staffMember.role }),
           }))}
           selectedStaffIds={effectiveSelectedStaffIds}
           onToggleStaff={handleToggleStaff}
@@ -296,10 +307,7 @@ export const Schedule = () => {
           onRetry={() => refetchStaff()}
         />
 
-        <div className="flex flex-col gap-4 min-w-0">
-          <div className="flex justify-end">
-            <ScheduleViewToggle value={viewMode} onChange={setViewMode} />
-          </div>
+        <div className="flex min-w-0 flex-col gap-5">
           {rangeQueriesFailed && (
             <Alert variant="destructive">
               <TriangleAlert aria-hidden="true" />
@@ -328,7 +336,7 @@ export const Schedule = () => {
               onEventClick={handleEventClick}
             />
             {rangeQueriesLoading && effectiveSelectedStaffIds.length > 0 && (
-              <div className="absolute inset-0 z-10 flex items-center justify-center rounded-2xl bg-background/40 backdrop-blur-sm">
+              <div className="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-background/40 backdrop-blur-sm">
                 <Spinner className="size-7 text-primary" />
               </div>
             )}
@@ -336,11 +344,11 @@ export const Schedule = () => {
 
           {focusedStaffId && (
             <div className="flex flex-col gap-3">
-              <h2 className="text-sm font-bold text-foreground">{t("unavailability.blockedPeriodsTitle")}</h2>
+              <h2 className="font-display text-xl font-semibold text-foreground">{t("unavailability.blockedPeriodsTitle")}</h2>
               {isUnavailabilityLoading ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4" role="status" aria-label={t("loading.unavailability")}>
                   {Array.from({ length: 3 }).map((_, skeletonIndex) => (
-                    <Skeleton key={skeletonIndex} className="h-28 w-full rounded-xl" />
+                    <Skeleton key={skeletonIndex} className="h-28 w-full rounded-lg" />
                   ))}
                 </div>
               ) : isUnavailabilityError ? (
@@ -363,7 +371,9 @@ export const Schedule = () => {
                       unavailability={unavailability}
                       onDelete={(id) => {
                         const found = upcomingUnavailabilityWindows.find((entry) => entry.id === id)
-                        setUnavailabilityToDelete(found ?? null)
+                        if (found) {
+                          openDeleteUnavailability(found)
+                        }
                       }}
                     />
                   ))}
@@ -375,8 +385,8 @@ export const Schedule = () => {
       </div>
 
       <AppointmentModal
-        isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
+        isOpen={activeDialog.kind === "create"}
+        onClose={closeDialog}
         onSubmit={(payload) => handleCreateAppointment(payload as CreateAppointmentPayload)}
         isPending={createAppointmentMutation.isPending}
         defaultStaffId={focusedStaffId}
@@ -387,14 +397,14 @@ export const Schedule = () => {
       <AppointmentDetailsModal
         isOpen={appointmentToView !== null}
         appointment={appointmentToView}
-        onClose={() => setAppointmentToView(null)}
+        onClose={closeDialog}
         onEdit={handleEditFromDetails}
         onCancel={handleCancelFromDetails}
       />
 
       <AppointmentModal
         isOpen={appointmentToEdit !== null}
-        onClose={() => setAppointmentToEdit(null)}
+        onClose={closeDialog}
         onSubmit={handleUpdateAppointment}
         isPending={updateAppointmentMutation.isPending}
         appointment={appointmentToEdit}
@@ -403,14 +413,14 @@ export const Schedule = () => {
       <CancelAppointmentModal
         isOpen={appointmentToCancel !== null}
         appointment={appointmentToCancel}
-        onClose={() => setAppointmentToCancel(null)}
+        onClose={closeDialog}
         onConfirm={handleConfirmCancel}
         isPending={cancelAppointmentMutation.isPending}
       />
 
       <CreateUnavailabilityModal
-        isOpen={isCreateUnavailabilityOpen}
-        onClose={() => setIsCreateUnavailabilityOpen(false)}
+        isOpen={activeDialog.kind === "createUnavailability"}
+        onClose={closeDialog}
         onSubmit={handleCreateUnavailability}
         isPending={createUnavailabilityMutation.isPending}
         staffId={focusedStaffId}
@@ -420,7 +430,7 @@ export const Schedule = () => {
 
       <DeleteUnavailabilityModal
         isOpen={unavailabilityToDelete !== null}
-        onClose={() => setUnavailabilityToDelete(null)}
+        onClose={closeDialog}
         onConfirm={() => {
           if (unavailabilityToDelete) {
             handleDeleteUnavailability(unavailabilityToDelete.id)
@@ -428,6 +438,6 @@ export const Schedule = () => {
         }}
         isPending={deleteUnavailabilityMutation.isPending}
       />
-    </div>
+    </PageContainer>
   )
 }

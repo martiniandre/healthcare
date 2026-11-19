@@ -17,7 +17,7 @@ export interface MetricStripItem {
   unit?: string;
   icon: LucideIcon;
   tone: MetricTone;
-  meta: MetricStripMeta;
+  meta?: MetricStripMeta;
 }
 
 interface MetricStripProps {
@@ -45,9 +45,8 @@ interface MetricStripCardProps {
 }
 
 const MetricStripCard = ({ item }: MetricStripCardProps) => {
-  const { label, value, unit, icon: Icon, tone, meta } = item;
+  const { label, value, unit, tone, meta } = item;
   const toneClassName = toneClassNames[tone];
-  const MetaIcon = meta.icon;
 
   return (
     <Card className="relative gap-0 overflow-hidden py-4">
@@ -57,53 +56,39 @@ const MetricStripCard = ({ item }: MetricStripCardProps) => {
       />
 
       <CardContent className="flex flex-col gap-3 px-4">
-        <div className="flex items-start justify-between gap-2">
-          <span className="text-[11px] font-bold uppercase leading-tight tracking-wider text-muted-foreground">
-            {label}
-          </span>
-          <span
-            className={cn(
-              "grid size-8 shrink-0 place-items-center rounded-lg",
-              toneClassName.surface,
-            )}
-          >
-            <Icon
-              className={cn("size-4", toneClassName.text)}
-              aria-hidden="true"
-            />
-          </span>
-        </div>
+        <span className="text-xs font-medium leading-tight text-muted-foreground">
+          {label}
+        </span>
 
         <div className="flex items-baseline gap-1.5">
-          <span className="text-3xl font-black leading-none tracking-tight tabular-nums text-foreground">
+          <span className="text-3xl font-semibold leading-none tracking-tight tabular-nums text-foreground">
             {value}
           </span>
           {unit ? (
-            <span className="text-xs font-bold text-muted-foreground">
+            <span className="text-xs font-medium text-muted-foreground">
               {unit}
             </span>
           ) : null}
         </div>
 
+        {meta ? (
         <div className="mt-auto flex min-h-5 items-center">
           {meta.status ? (
-            <StatusBadge status={meta.status} className="max-w-full text-[11px] font-bold">
+            <StatusBadge status={meta.status} className="max-w-full text-2xs font-semibold">
               <span className="truncate">{meta.text}</span>
             </StatusBadge>
           ) : (
           <span
             className={cn(
-              "flex items-center gap-1 text-[11px] font-bold",
+              "flex items-center gap-1 text-2xs font-semibold",
               meta.tone,
             )}
           >
-            {MetaIcon ? (
-              <MetaIcon className="size-3 shrink-0" aria-hidden="true" />
-            ) : null}
             <span className="truncate">{meta.text}</span>
           </span>
           )}
         </div>
+        ) : null}
       </CardContent>
     </Card>
   );

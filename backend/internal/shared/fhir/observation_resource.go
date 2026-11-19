@@ -101,4 +101,3 @@ func buildVitalSignsObservationHeader(patientFHIRID, encounterFHIRID, loincCode,
 	}
 	return observationResource
 }
-

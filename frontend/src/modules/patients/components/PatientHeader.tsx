@@ -1,3 +1,4 @@
+import type { ReactNode } from "react"
 import { ArrowLeft } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { Button } from "../../../shared/components/ui/button"
@@ -23,9 +24,17 @@ interface PatientRepresentation {
 interface PatientHeaderProps {
   patient: PatientRepresentation
   onBack: () => void
+  actions?: ReactNode
 }
 
-export const PatientHeader = ({ patient, onBack }: PatientHeaderProps) => {
+const buildPatientInitials = (fullName: string): string => {
+  const nameParts = fullName.trim().split(/\s+/).filter(Boolean)
+  if (nameParts.length === 0) return "?"
+  const lastInitial = nameParts.length > 1 ? nameParts[nameParts.length - 1].charAt(0) : ""
+  return `${nameParts[0].charAt(0)}${lastInitial}`.toUpperCase()
+}
+
+export const PatientHeader = ({ patient, onBack, actions }: PatientHeaderProps) => {
   const { t } = useTranslation("patients")
   const ability = useAbility()
   const canReadAllergies = ability.can(Action.Read, Feature.Allergy)
@@ -60,6 +69,7 @@ export const PatientHeader = ({ patient, onBack }: PatientHeaderProps) => {
         items={allergyNames}
         itemStatus="critical"
         emptyLabel={t("header.noKnownAllergies")}
+        errorLabel={t("header.allergiesUnverified")}
         isLoading={allergiesQuery.isLoading}
         isError={allergiesQuery.isError}
         onRetry={() => void allergiesQuery.refetch()}
@@ -79,6 +89,7 @@ export const PatientHeader = ({ patient, onBack }: PatientHeaderProps) => {
         items={conditionNames}
         itemStatus="critical"
         emptyLabel={t("header.noActiveConditions")}
+        errorLabel={t("header.conditionsUnverified")}
         isLoading={conditionsQuery.isLoading}
         isError={conditionsQuery.isError}
         onRetry={() => void conditionsQuery.refetch()}
@@ -101,24 +112,32 @@ export const PatientHeader = ({ patient, onBack }: PatientHeaderProps) => {
   return (
     <header
       data-testid="patient-sticky-header"
-      className="sticky top-16 z-30 flex flex-col gap-2 rounded-lg border border-border bg-card px-3 py-2 text-left shadow-sm sm:px-4"
+      className="sticky top-14 z-30 overflow-hidden rounded-lg border border-border bg-card text-left shadow-xs"
     >
-      <div className="flex items-center gap-3">
-        <Button variant="outline" size="sm" onClick={onBack} aria-label={t("details.back")} className="shrink-0">
+      <div className="flex flex-wrap items-center gap-3 p-4 sm:gap-4 sm:p-5">
+        <Button variant="outline" size="icon" onClick={onBack} aria-label={t("details.back")} className="shrink-0">
           <ArrowLeft />
-          <span className="hidden sm:inline">{t("details.back")}</span>
         </Button>
 
+        <span
+          aria-hidden="true"
+          className="hidden size-12 shrink-0 items-center justify-center rounded-full bg-sage-100 text-base font-semibold text-sage-800 sm:flex dark:bg-primary/15 dark:text-primary"
+        >
+          {buildPatientInitials(patient.full_name)}
+        </span>
+
         <div className="min-w-0 flex-1">
-          <h2 className="truncate text-base font-display font-bold leading-tight text-foreground sm:text-lg">
+          <h1 className="break-words font-display text-xl font-semibold leading-tight text-foreground">
             {patient.full_name}
-          </h2>
-          <p className="hidden flex-wrap items-center gap-x-2 text-xs text-muted-foreground md:flex">
+          </h1>
+          <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
             {ageLabel && <span className="font-semibold tabular-nums text-foreground">{ageLabel}</span>}
-            <span className="tabular-nums">
+            <span aria-hidden="true" className="hidden size-1 rounded-full bg-border md:inline-block" />
+            <span className="hidden tabular-nums md:inline">
               {t("details.cpf")}: {patient.document_id}
             </span>
-            <span className="font-mono text-[10px]">
+            <span aria-hidden="true" className="hidden size-1 rounded-full bg-border md:inline-block" />
+            <span className="hidden font-mono text-xs md:inline">
               {t("details.fhirId")}: {patient.fhir_resource_id}
             </span>
           </p>
@@ -140,7 +159,7 @@ export const PatientHeader = ({ patient, onBack }: PatientHeaderProps) => {
               <span className="text-xs tabular-nums text-muted-foreground">
                 {t("details.cpf")}: {patient.document_id}
               </span>
-              <span className="font-mono text-[10px] text-muted-foreground">
+              <span className="font-mono text-2xs text-muted-foreground">
                 {t("details.fhirId")}: {patient.fhir_resource_id}
               </span>
               {renderAllergyGroup(true)}
@@ -148,9 +167,11 @@ export const PatientHeader = ({ patient, onBack }: PatientHeaderProps) => {
             </PopoverContent>
           </Popover>
         </div>
+
+        {actions && <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">{actions}</div>}
       </div>
 
-      <div className="hidden flex-wrap items-center gap-x-6 gap-y-1.5 md:flex">
+      <div className="hidden flex-wrap items-center gap-x-8 gap-y-2 border-t border-border bg-muted/40 px-5 py-2.5 md:flex">
         {renderAllergyGroup(false)}
         {renderConditionGroup(false)}
       </div>

@@ -5,6 +5,18 @@ type TableDensity = "comfortable" | "compact"
 
 const THEME_STORAGE_KEY = "healthcare.theme"
 const DENSITY_STORAGE_KEY = "healthcare.tableDensity"
+const SIDEBAR_COLLAPSED_STORAGE_KEY = "healthcare.sidebarCollapsed"
+
+const readStoredSidebarCollapsed = (): boolean => {
+  if (typeof window === "undefined") {
+    return false
+  }
+  try {
+    return window.localStorage.getItem(SIDEBAR_COLLAPSED_STORAGE_KEY) === "true"
+  } catch {
+    return false
+  }
+}
 
 const readStoredDensity = (): TableDensity => {
   if (typeof window === "undefined") {
@@ -40,6 +52,8 @@ const applyThemeToDocument = (theme: ThemeMode) => {
 
 interface LayoutState {
   isMobileSidebarOpen: boolean
+  isSidebarCollapsed: boolean
+  toggleSidebarCollapsed: () => void
   theme: ThemeMode
   tableDensity: TableDensity
   toggleTableDensity: () => void
@@ -55,6 +69,17 @@ applyThemeToDocument(initialTheme)
 
 export const useLayoutStore = create<LayoutState>((set) => ({
   isMobileSidebarOpen: false,
+  isSidebarCollapsed: readStoredSidebarCollapsed(),
+  toggleSidebarCollapsed: () =>
+    set((state) => {
+      const nextCollapsed = !state.isSidebarCollapsed
+      try {
+        window.localStorage.setItem(SIDEBAR_COLLAPSED_STORAGE_KEY, String(nextCollapsed))
+      } catch {
+        return { isSidebarCollapsed: nextCollapsed }
+      }
+      return { isSidebarCollapsed: nextCollapsed }
+    }),
   theme: initialTheme,
   tableDensity: readStoredDensity(),
   toggleTableDensity: () =>

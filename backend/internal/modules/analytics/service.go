@@ -226,18 +226,18 @@ func (analyticsService *service) GetDashboardData(contextParameter context.Conte
 	}
 
 	dashboardData := &DashboardData{
-		ConsultationsToday:      totalConsultations,
-		ConsultationsTrend:      "+8%",
-		OccupancyRate:           occupancyRate.Rate,
-		OccupancyTotalBeds:      occupancyRate.TotalBeds,
-		OccupancyOccupiedBeds:   occupancyRate.OccupiedBeds,
-		AvgWaitTimeMinutes:      averageWaitTime,
-		ActivePatients:          0,
-		ExamsToday:              0,
-		NewDiagnosesToday:       len(topDiagnoses),
-		ConsultationsPerDoctor:  consultationsPerDoctor,
-		WaitTimeByDepartment:    avgWaitTime.ByDepartment,
-		TopDiagnoses:            topDiagnoses,
+		ConsultationsToday:     totalConsultations,
+		ConsultationsTrend:     "+8%",
+		OccupancyRate:          occupancyRate.Rate,
+		OccupancyTotalBeds:     occupancyRate.TotalBeds,
+		OccupancyOccupiedBeds:  occupancyRate.OccupiedBeds,
+		AvgWaitTimeMinutes:     averageWaitTime,
+		ActivePatients:         0,
+		ExamsToday:             0,
+		NewDiagnosesToday:      len(topDiagnoses),
+		ConsultationsPerDoctor: consultationsPerDoctor,
+		WaitTimeByDepartment:   avgWaitTime.ByDepartment,
+		TopDiagnoses:           topDiagnoses,
 	}
 
 	return dashboardData, nil

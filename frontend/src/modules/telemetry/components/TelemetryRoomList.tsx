@@ -39,15 +39,15 @@ export const TelemetryRoomList = ({
             key={roomItem.id}
             onClick={() => handleSelectRoom(roomItem.id)}
             className={cn(
-              "relative cursor-pointer gap-0 py-4 text-left transition-all duration-200",
+              "relative cursor-pointer gap-0 py-4 text-left transition-colors duration-200",
               isSelected ? "border-primary bg-primary/5" : "hover:border-ring/50"
             )}
           >
             <CardContent className="px-4">
-              <div className="flex items-center justify-between">
-                <span className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                  {t("monitoredWing")}
-                </span>
+              <div className="flex items-start justify-between gap-2">
+                <h4 className="block text-sm font-semibold text-foreground">
+                  {roomItem.name}
+                </h4>
                 {isUnlocked ? (
                   <Badge variant="success">
                     <Unlock />
@@ -60,11 +60,7 @@ export const TelemetryRoomList = ({
                   </Badge>
                 )}
               </div>
-
-              <h4 className="mt-2 block text-sm font-extrabold text-foreground">
-                {roomItem.name}
-              </h4>
-              <span className="mt-1 block text-[11px] leading-normal text-muted-foreground">
+              <span className="mt-1 block text-xs leading-normal text-muted-foreground">
                 {roomItem.description}
               </span>
 
@@ -76,7 +72,7 @@ export const TelemetryRoomList = ({
                     event.stopPropagation()
                     handleLockRoom(roomItem.id)
                   }}
-                  className="absolute bottom-3 right-3 font-bold text-destructive hover:text-destructive"
+                  className="absolute bottom-3 right-3 font-semibold text-destructive hover:text-destructive"
                 >
                   {t("lockButton")}
                 </Button>

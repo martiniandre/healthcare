@@ -61,14 +61,14 @@ export const AnalysisHistory = ({
   const filteredHistory = history.filter(matchesSearchTerm)
 
   return (
-    <Card className="h-fit w-full shrink-0 gap-4 py-4 md:sticky md:top-6 md:max-h-[calc(100vh-120px)] md:w-[320px]">
+    <Card className="h-fit w-full shrink-0 gap-4 py-4 lg:sticky lg:top-20 lg:max-h-[calc(100vh-120px)] lg:w-[320px]">
       <CardHeader className="px-4">
-        <CardTitle className="flex items-center gap-2 text-sm font-bold">
+        <CardTitle className="flex items-center gap-2 text-sm font-semibold">
           <Database className="size-4 text-primary" aria-hidden="true" />
           {t("history.title")}
         </CardTitle>
         <CardAction>
-          <Badge variant="outline" className="text-[11px] font-bold text-muted-foreground">
+          <Badge variant="outline" className="text-2xs font-semibold text-muted-foreground">
             {t("history.exams", { count: filteredHistory.length })}
           </Badge>
         </CardAction>
@@ -90,7 +90,7 @@ export const AnalysisHistory = ({
           />
         </div>
 
-        <div className="flex max-h-[300px] flex-1 flex-col gap-2 overflow-y-auto pr-1 md:max-h-none">
+        <div className="flex max-h-[300px] flex-1 flex-col gap-2 overflow-y-auto pr-1 lg:max-h-none">
           {isLoading ? (
             <div className="flex flex-col gap-2" role="status" aria-label={t("history.loading")}>
               <Skeleton className="h-16 rounded-lg" />
@@ -131,7 +131,7 @@ export const AnalysisHistory = ({
                 <div
                   key={item.id}
                   className={cn(
-                    "group flex items-start gap-1 rounded-lg border p-1 transition-all duration-200",
+                    "group flex items-start gap-1 rounded-lg border p-1 transition-colors duration-200",
                     isCurrentlySelected
                       ? "border-primary/30 bg-primary/5 shadow-sm"
                       : "border-border bg-card hover:bg-muted/60"
@@ -154,18 +154,18 @@ export const AnalysisHistory = ({
                       {fileName}
                     </span>
 
-                    <span className="mt-1 block text-[11px] font-medium text-muted-foreground">
+                    <span className="mt-1 block text-2xs font-medium text-muted-foreground">
                       {secondaryLabel}
                     </span>
 
-                    <span className="mt-1.5 flex items-center gap-2.5 text-[11px] text-muted-foreground">
+                    <span className="mt-1.5 flex items-center gap-2.5 text-2xs text-muted-foreground">
                       <span className="flex items-center gap-1">
                         <Calendar className="size-3 shrink-0" aria-hidden="true" />
                         {item.created_at ? formatDateTime(item.created_at) : "—"}
                       </span>
                       <StatusBadge
                         status={HISTORY_TONE_TO_STATUS[statusReading.tone]}
-                        className="text-[10px] font-bold uppercase tracking-wider"
+                        className="text-xs font-medium"
                       >
                         {t(statusReading.translationKey)}
                       </StatusBadge>

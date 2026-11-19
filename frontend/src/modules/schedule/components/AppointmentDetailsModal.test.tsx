@@ -57,7 +57,7 @@ describe("AppointmentDetailsModal", () => {
 
     expect(screen.getByText("modals.details.title")).toBeDefined()
     expect(screen.getByText("Guilherme de Souza Araujo")).toBeDefined()
-    expect(screen.getByText("Dr. André Silva — DOCTOR")).toBeDefined()
+    expect(screen.getByText("Dr. André Silva, DOCTOR")).toBeDefined()
     expect(screen.getByText("Consulta de rotina")).toBeDefined()
     expect(screen.getByText("status.scheduled")).toBeDefined()
     expect(screen.getByRole("button", { name: "modals.details.edit" })).toBeDefined()

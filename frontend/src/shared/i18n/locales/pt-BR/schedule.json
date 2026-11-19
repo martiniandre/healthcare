@@ -1,7 +1,7 @@
 {
   "title": "Agenda",
   "subtitle": "Gestão de agendamentos de consultas e horários",
-  "newAppointment": "Novo Agendamento",
+  "newAppointment": "Novo agendamento",
   "selectStaff": "Profissional",
   "selectStaffPlaceholder": "Selecione um profissional",
   "selectDate": "Data",
@@ -35,7 +35,7 @@
   },
   "modals": {
     "create": {
-      "title": "Novo Agendamento",
+      "title": "Novo agendamento",
       "patient": "Paciente",
       "patientSearchPlaceholder": "Buscar paciente pelo nome...",
       "selectPatient": "Selecione o paciente",
@@ -58,19 +58,19 @@
       "endTimeHintNoStart": "Escolha o início primeiro; o término é preenchido para você."
     },
     "cancel": {
-      "title": "Cancelar Agendamento",
+      "title": "Cancelar agendamento",
       "description": "Tem certeza que deseja cancelar este agendamento?",
       "back": "Voltar",
-      "confirm": "Confirmar Cancelamento",
+      "confirm": "Confirmar cancelamento",
       "hint": "A consulta continua no histórico e fica marcada como cancelada."
     },
     "edit": {
-      "title": "Editar Agendamento",
-      "confirm": "Salvar Alterações",
+      "title": "Editar agendamento",
+      "confirm": "Salvar alterações",
       "description": "Altere os dados e salve. O resumo mostra o novo agendamento."
     },
     "details": {
-      "title": "Detalhes do Agendamento",
+      "title": "Detalhes do agendamento",
       "patient": "Paciente",
       "staff": "Profissional",
       "date": "Data",
@@ -126,10 +126,10 @@
   "unavailability": {
     "badge": "Indisponível",
     "delete": "Remover período",
-    "createButton": "Bloquear Período",
+    "createButton": "Bloquear período",
     "blockedPeriodsTitle": "Períodos bloqueados",
     "modal": {
-      "title": "Bloquear Período de Indisponibilidade",
+      "title": "Bloquear período de indisponibilidade",
       "date": "Data",
       "startTime": "Início",
       "endTime": "Fim",
@@ -144,10 +144,10 @@
       "endTimeHint": "Preenchido com 1 hora após o início; você pode alterar."
     },
     "deleteModal": {
-      "title": "Remover Período de Indisponibilidade",
+      "title": "Remover período de indisponibilidade",
       "description": "Tem certeza que deseja remover este período de indisponibilidade?",
       "back": "Voltar",
-      "confirm": "Confirmar Remoção"
+      "confirm": "Confirmar remoção"
     },
     "toasts": {
       "createSuccess": "Período de indisponibilidade bloqueado com sucesso!",
@@ -156,7 +156,7 @@
       "deleteError": "Falha ao remover período de indisponibilidade."
     },
     "summary": {
-      "forStaff": "{{when}} — {{staff}} indisponível"
+      "forStaff": "{{when}}: {{staff}} indisponível"
     },
     "errors": {
       "conflictTitle": "Este período conflita com outro",

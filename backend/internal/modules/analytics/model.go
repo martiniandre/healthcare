@@ -30,18 +30,18 @@ type PathologyCase struct {
 }
 
 type DashboardData struct {
-	ConsultationsToday      int                  `json:"consultations_today"`
-	ConsultationsTrend      string               `json:"consultations_trend"`
-	OccupancyRate           float64              `json:"occupancy_rate"`
-	OccupancyTotalBeds      int                  `json:"occupancy_total_beds"`
-	OccupancyOccupiedBeds   int                  `json:"occupancy_occupied_beds"`
-	AvgWaitTimeMinutes      float64              `json:"avg_wait_time_minutes"`
-	ActivePatients          int                  `json:"active_patients"`
-	ExamsToday              int                  `json:"exams_today"`
-	NewDiagnosesToday       int                  `json:"new_diagnoses_today"`
-	ConsultationsPerDoctor  []DoctorConsultation `json:"consultations_per_doctor"`
-	WaitTimeByDepartment    []DepartmentWaitTime `json:"wait_time_by_department"`
-	TopDiagnoses            []DiagnosisCount     `json:"top_diagnoses"`
+	ConsultationsToday     int                  `json:"consultations_today"`
+	ConsultationsTrend     string               `json:"consultations_trend"`
+	OccupancyRate          float64              `json:"occupancy_rate"`
+	OccupancyTotalBeds     int                  `json:"occupancy_total_beds"`
+	OccupancyOccupiedBeds  int                  `json:"occupancy_occupied_beds"`
+	AvgWaitTimeMinutes     float64              `json:"avg_wait_time_minutes"`
+	ActivePatients         int                  `json:"active_patients"`
+	ExamsToday             int                  `json:"exams_today"`
+	NewDiagnosesToday      int                  `json:"new_diagnoses_today"`
+	ConsultationsPerDoctor []DoctorConsultation `json:"consultations_per_doctor"`
+	WaitTimeByDepartment   []DepartmentWaitTime `json:"wait_time_by_department"`
+	TopDiagnoses           []DiagnosisCount     `json:"top_diagnoses"`
 }
 
 type DoctorConsultation struct {

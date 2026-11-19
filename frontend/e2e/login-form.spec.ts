@@ -8,7 +8,7 @@ test.describe("Login Form Interactions", () => {
 
   test("should toggle password visibility with the eye button", async ({ page }) => {
     await page.goto("/login")
-    const passwordInput = page.getByPlaceholder("••••••••")
+    const passwordInput = page.getByPlaceholder("Digite sua senha")
     await passwordInput.fill("senha123")
 
     await expect(passwordInput).toHaveAttribute("type", "password")
@@ -28,7 +28,7 @@ test.describe("Login Form Interactions", () => {
 
   test("should show i18n validation errors on empty submit instead of native browser validation", async ({ page }) => {
     await page.goto("/login")
-    await page.getByRole("button", { name: "Entrar no Console" }).click()
+    await page.getByRole("button", { name: "Entrar no console" }).click()
 
     await expect(page.getByText("O e-mail é obrigatório")).toBeVisible()
     await expect(page.getByText("A senha é obrigatória")).toBeVisible()
@@ -80,8 +80,8 @@ test.describe("Login Form Loading State", () => {
 
     await page.goto("/login")
     await page.getByPlaceholder("nome.sobrenome@hospital.com").fill("medico@clinica.com")
-    await page.getByPlaceholder("••••••••").fill("senha123")
-    await page.getByRole("button", { name: "Entrar no Console" }).click()
+    await page.getByPlaceholder("Digite sua senha").fill("senha123")
+    await page.getByRole("button", { name: "Entrar no console" }).click()
 
     const loadingSubmitButton = page.getByRole("button", { name: "Autenticando via gRPC..." })
     await expect(loadingSubmitButton).toBeVisible()

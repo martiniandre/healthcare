@@ -8,7 +8,7 @@ test.describe("Medications / Prescriptions Module", () => {
   })
 
   test("should render the empty medications list initially", async ({ page }) => {
-    const title = page.getByText("Prescrições (MedicationRequest - FHIR)", { exact: true })
+    const title = page.locator('[data-slot="card-title"]', { hasText: "Prescrições" })
     await expect(title).toBeVisible()
 
     const emptyMessage = page.locator("text=Nenhuma medicação prescrita para este atendimento")
@@ -24,7 +24,7 @@ test.describe("Medications / Prescriptions Module", () => {
       })
     })
 
-    await page.getByRole("button", { name: "Nova Prescrição" }).click()
+    await page.getByRole("button", { name: "Nova prescrição" }).click()
 
     await page.getByPlaceholder("Ex: Amoxicilina 500mg, Losartana Potássica 50mg").fill("Dipirona 500mg")
     await page.getByPlaceholder("Ex: Tomar 1 comprimido via oral de 8 em 8 horas por 7 dias").fill("Tomar 1 comprimido de 6 em 6 horas se houver dor.")

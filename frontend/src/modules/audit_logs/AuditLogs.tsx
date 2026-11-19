@@ -1,10 +1,10 @@
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
-import { History, RefreshCw } from "lucide-react"
+import { RefreshCw } from "lucide-react"
 import { Card, CardContent } from "../../shared/components/ui/card"
 import { Button } from "../../shared/components/ui/button"
 import { Spinner } from "../../shared/components/ui/spinner"
-import { PageContainer } from "../../shared/components/ui/PageContainer"
+import { PageContainer, PageHeader } from "../../shared/components/ui/PageContainer"
 import { useAuditLogsQuery } from "./queries"
 import { AuditLogsFilters } from "./components/AuditLogsFilters"
 import { AuditLogsTable } from "./components/AuditLogsTable"
@@ -30,21 +30,15 @@ export const AuditLogs = () => {
 
   return (
     <PageContainer className="select-none relative">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <div className="bg-primary/8 p-2 rounded-xl border border-primary/10">
-              <History className="w-5 h-5 text-primary" />
-            </div>
-            <h1 className="text-xl md:text-2xl font-display font-bold text-foreground tracking-tight">{t("title")}</h1>
-          </div>
-          <p className="text-xs text-muted-foreground font-medium mt-1">{t("subtitle")}</p>
-        </div>
-        <Button variant="outline" onClick={() => refetch()} disabled={isFetching}>
-          {isFetching ? <Spinner /> : <RefreshCw aria-hidden="true" />}
-          {t("refresh")}
-        </Button>
-      </div>
+      <PageHeader
+        title={t("title")}
+        actions={
+          <Button variant="outline" onClick={() => refetch()} disabled={isFetching}>
+            {isFetching ? <Spinner /> : <RefreshCw aria-hidden="true" />}
+            {t("refresh")}
+          </Button>
+        }
+      />
 
       <Card className="py-4">
         <CardContent className="flex flex-col gap-4 px-4">

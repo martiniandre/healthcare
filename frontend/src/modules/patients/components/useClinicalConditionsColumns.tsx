@@ -11,6 +11,7 @@ const columnHelper = createColumnHelper<Condition>()
 
 export const useClinicalConditionsColumns = (): ColumnDef<Condition>[] => {
   const { t } = useTranslation("patients")
+  const { t: translateStatus } = useTranslation("clinicalStatus")
 
   return useMemo(
     () => [
@@ -26,14 +27,14 @@ export const useClinicalConditionsColumns = (): ColumnDef<Condition>[] => {
       columnHelper.accessor("code_display", {
         id: "code_display",
         header: t("details.conditionsCard.display"),
-        cell: (info) => <span className="text-sm font-bold text-gray-800 block">{info.getValue()}</span>,
+        cell: (info) => <span className="text-sm font-semibold text-foreground block">{info.getValue()}</span>,
       }),
       columnHelper.accessor("clinical_status", {
         id: "clinical_status",
         header: t("details.conditionsCard.status"),
         cell: (info) => (
-          <StatusBadge status={resolveClinicalStatus("condition", info.getValue())} className="uppercase">
-            {info.getValue()}
+          <StatusBadge status={resolveClinicalStatus("condition", info.getValue())}>
+            {translateStatus(`condition.${info.getValue()}`, { defaultValue: info.getValue() })}
           </StatusBadge>
         ),
       }),
@@ -41,12 +42,12 @@ export const useClinicalConditionsColumns = (): ColumnDef<Condition>[] => {
         id: "created_at",
         header: t("details.conditionsCard.date"),
         cell: (info) => (
-          <span className="text-xs text-gray-500 font-semibold block">
+          <span className="text-xs text-muted-foreground font-semibold block">
             {formatDateTime(info.getValue())}
           </span>
         ),
       }),
     ] as ColumnDef<Condition>[],
-    [t]
+    [t, translateStatus]
   )
 }

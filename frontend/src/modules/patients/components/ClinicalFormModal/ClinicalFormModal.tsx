@@ -27,11 +27,11 @@ import {
 import { Textarea } from "../../../../shared/components/ui/textarea"
 import { useDiscardGuard } from "../../../../shared/hooks/useDiscardGuard"
 import { cn } from "../../../../shared/utils/cn"
-import { FormDialogLayout } from "../form/FormDialogLayout"
-import { FormErrorSummary, type FormErrorSummaryItem } from "../form/FormErrorSummary"
-import { FormField, type FormFieldControlProperties } from "../form/FormField"
-import { FormSubmitError } from "../form/FormSubmitError"
-import { useSubmissionLock } from "../form/useSubmissionLock"
+import { FormDialogLayout } from "@/shared/components/form/FormDialogLayout"
+import { FormErrorSummary, type FormErrorSummaryItem } from "@/shared/components/form/FormErrorSummary"
+import { FormField, type FormFieldControlProperties } from "@/shared/components/form/FormField"
+import { FormSubmitError } from "@/shared/components/form/FormSubmitError"
+import { useSubmissionLock } from "@/shared/components/form/useSubmissionLock"
 
 const ERROR_SUMMARY_MIN_FIELDS = 5
 

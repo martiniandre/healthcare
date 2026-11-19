@@ -48,7 +48,7 @@ export function PermissionsGate({ children }: PermissionsGateProps) {
       aria-label={t("permissions.loadingMessage")}
       className="min-h-screen bg-background flex"
     >
-      <Skeleton className="hidden md:block w-[240px] shrink-0 h-screen rounded-none" />
+      <Skeleton className="hidden h-screen w-[68px] shrink-0 rounded-none md:block" />
       <div className="flex-1 flex flex-col gap-4 p-6">
         <Skeleton className="h-10 w-64" />
         <Skeleton className="h-40 w-full" />

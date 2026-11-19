@@ -1,6 +1,6 @@
 {
-  "title": "Estadísticas Clínicas & Analytics",
-  "subtitle": "Visión epidemiológica agregada de historias clínicas FHIR y laudos radiológicos PACS",
+  "title": "Indicadores clínicos",
+  "subtitle": "Visión general de casos, exámenes y consultas",
   "days": {
     "mon": "Lun",
     "tue": "Mar",
@@ -11,12 +11,12 @@
     "sun": "Dom"
   },
   "metrics": {
-    "activePatients": "Pacientes Activos",
+    "activePatients": "Pacientes activos",
     "registeredBase": "Base total de pacientes",
     "fhirCompliance": "Conformidad FHIR",
     "averageAcrossVisits": "Media por atención",
-    "avgConsultationTime": "T. Medio Consulta",
-    "weeklyConsultations": "Consultas Semanal",
+    "avgConsultationTime": "T. medio consulta",
+    "weeklyConsultations": "Consultas semanal",
     "lastSevenDays": "Suma de los últimos 7 días",
     "peakOnDay": "Pico en {{day}}",
     "compliance": {
@@ -28,15 +28,15 @@
     }
   },
   "exams": {
-    "title": "Distribución de Exámenes (PACS)",
-    "subtitle": "Modalidad de los estudios DICOM integrados",
+    "title": "Exámenes de imagen por modalidad",
+    "subtitle": "Exámenes de imagen por modalidad",
     "totalLabel": "Total",
     "studiesLabel": "Estudios",
     "studiesUnit": "{{count}} estudios",
     "examesUnit": "exámenes"
   },
   "consultations": {
-    "title": "Volumen de Consultas",
+    "title": "Volumen de consultas",
     "subtitle": "Evolución diaria de consultas médicas y triaje",
     "consultationsLabel": "Consultas",
     "minLabel": "Menor",
@@ -45,8 +45,8 @@
     "peakUnit": "{{count}} · {{day}}"
   },
   "epidemiology": {
-    "title": "Epidemiología y Diagnósticos (FHIR Core)",
-    "subtitle": "Casos clínicos activos mapeados en la base de datos FHIR",
+    "title": "Epidemiología y diagnósticos",
+    "subtitle": "Casos clínicos activos por diagnóstico",
     "exportButton": "Exportar CSV",
     "activeCasesTotalLabel": "Casos",
     "activeCasesUnit": "{{count, number}} activos",
@@ -60,9 +60,9 @@
     },
     "table": {
       "code": "Código CIE",
-      "description": "Descripción de la Patología",
-      "category": "Categoría FHIR",
-      "activeCases": "Casos Activos",
+      "description": "Descripción de la patología",
+      "category": "Categoría",
+      "activeCases": "Casos activos",
       "trend": "Tendencia",
       "stable": "Estable",
       "proportion": "Proporción"
@@ -89,10 +89,10 @@
     "epidemiologyDesc": "No hay datos epidemiológicos para mostrar."
   },
   "errorTitle": "Error al cargar datos",
-  "errorDescription": "No se pudo conectar al servicio de análisis FHIR.",
+  "errorDescription": "No se pudieron cargar los indicadores. Inténtelo de nuevo.",
   "retryButton": "Intentar de nuevo",
   "dashboard": {
-    "title": "Dashboard Clínico",
+    "title": "Panel del turno",
     "subtitle": "Indicadores en tiempo real para el seguimiento clínico",
     "errorTitle": "Error al cargar el dashboard",
     "errorDescription": "No fue posible cargar los datos del dashboard clínico. Intente nuevamente más tarde.",
@@ -110,8 +110,8 @@
       "last30Days": "Últimos 30 días"
     },
     "doctorConsultations": {
-      "title": "Consultas por Médico",
-      "subtitle": "Distribución de consultas en los últimos 30 días",
+      "title": "Consultas por médico",
+      "subtitle": "Últimos 30 días",
       "peakLabel": "Pico",
       "peakUnit": "{{count}} consultas",
       "consultationsUnit": "consultas",
@@ -119,7 +119,7 @@
       "noDataDescription": "No hay datos de consultas por médico disponibles para el período."
     },
     "occupancy": {
-      "title": "Tasa de Ocupación",
+      "title": "Tasa de ocupación",
       "subtitle": "Camas ocupadas vs disponibles",
       "label": "Ocupación",
       "occupied": "Ocupadas",
@@ -139,8 +139,8 @@
       }
     },
     "topDiagnoses": {
-      "title": "Principales Diagnósticos",
-      "subtitle": "Códigos CIE-10 más frecuentes en los últimos 30 días",
+      "title": "Principales diagnósticos",
+      "subtitle": "Últimos 30 días",
       "rank": "#",
       "code": "Código",
       "description": "Descripción",
@@ -152,8 +152,8 @@
       "noDataDescription": "No se registraron diagnósticos en el período."
     },
     "waitTime": {
-      "title": "Tiempo de Espera por Departamento",
-      "subtitle": "Promedio en minutos en los últimos 30 días",
+      "title": "Tiempo de espera por departamento",
+      "subtitle": "Minutos, últimos 30 días",
       "peakLabel": "Más lento",
       "peakUnit": "{{minutes}} min",
       "severity": {

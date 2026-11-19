@@ -25,7 +25,6 @@ export const ExamModalityDonutChart = ({ examModalities }: ExamModalityDonutChar
   return (
     <AnalyticsPanel
       title={t("exams.title")}
-      subtitle={t("exams.subtitle")}
       trailing={
         hasRenderableData ? (
           <PanelMetric
@@ -83,13 +82,13 @@ export const ExamModalityDonutChart = ({ examModalities }: ExamModalityDonutChar
             </ResponsiveContainer>
 
             <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+              <span className="text-xs font-medium text-muted-foreground">
                 {t("exams.totalLabel")}
               </span>
-              <span className="text-3xl font-black leading-none tracking-tight tabular-nums text-gray-900">
+              <span className="text-3xl font-semibold leading-none tracking-tight tabular-nums text-foreground">
                 {totalStudiesCount}
               </span>
-              <span className="mt-1 text-[10px] font-semibold text-muted-foreground">
+              <span className="mt-1 text-2xs font-semibold text-muted-foreground">
                 {t("exams.studiesLabel")}
               </span>
             </div>
@@ -109,7 +108,7 @@ export const ExamModalityDonutChart = ({ examModalities }: ExamModalityDonutChar
                   className={cn(
                     "flex cursor-default items-center justify-between rounded-lg border px-2.5 py-2 transition-colors duration-200",
                     isSelected
-                      ? "border-border bg-gray-50"
+                      ? "border-border bg-muted"
                       : "border-transparent bg-transparent"
                   )}
                 >
@@ -119,15 +118,15 @@ export const ExamModalityDonutChart = ({ examModalities }: ExamModalityDonutChar
                       style={{ backgroundColor: modality.color }}
                       aria-hidden="true"
                     />
-                    <span className="truncate text-xs font-bold text-gray-700">
+                    <span className="truncate text-xs font-semibold text-muted-foreground">
                       {modality.modality}
                     </span>
                   </span>
                   <span className="flex shrink-0 items-baseline gap-2">
-                    <span className="text-xs font-black tabular-nums text-gray-900">
+                    <span className="text-xs font-semibold tabular-nums text-foreground">
                       {modality.count}
                     </span>
-                    <span className="w-9 text-right text-[10px] font-bold tabular-nums text-muted-foreground">
+                    <span className="w-9 text-right text-2xs font-semibold tabular-nums text-muted-foreground">
                       {modality.percentage}%
                     </span>
                   </span>

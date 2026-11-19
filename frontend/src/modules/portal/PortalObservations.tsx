@@ -6,7 +6,7 @@ import { PortalVitalValue } from "./components/PortalVitalValue"
 import { Card, CardContent } from "../../shared/components/ui/card"
 import { formatDateTime } from "../../shared/utils/dates"
 import { useLocale } from "../../shared/hooks/useLocale"
-import { findVitalSignDisplay } from "../patients/components/vitalSignDisplay"
+import { findVitalSignDisplay } from "@/shared/clinical/vitalSignDisplay"
 
 export const PortalObservations = () => {
   const { t } = useTranslation(["portal", "patients"])
@@ -36,7 +36,7 @@ export const PortalObservations = () => {
                   notPerformed={observation.not_performed}
                   valueQuantity={observation.value_quantity}
                   valueUnit={observation.value_unit}
-                  valueClassName="text-2xl font-bold text-foreground"
+                  valueClassName="text-2xl font-semibold text-foreground"
                 />
                 <p className="mt-2 text-xs tabular-nums text-muted-foreground">
                   {formatDateTime(observation.observed_at, locale)}

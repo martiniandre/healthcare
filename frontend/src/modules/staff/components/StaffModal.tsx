@@ -2,17 +2,11 @@ import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useForm, useWatch, Controller } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { CircleAlert, UserPlus } from "lucide-react"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/shared/components/ui/dialog"
+import { CircleAlert } from "lucide-react"
+import { Dialog } from "@/shared/components/ui/dialog"
 import { Alert, AlertDescription, AlertTitle } from "@/shared/components/ui/alert"
 import { DiscardChangesDialog } from "@/shared/components/ui/discard-changes-dialog"
+import { FormDialogLayout } from "@/shared/components/form/FormDialogLayout"
 import {
   Field,
   FieldDescription,
@@ -21,9 +15,7 @@ import {
   FieldLegend,
   FieldSet,
 } from "@/shared/components/ui/field"
-import { Spinner } from "@/shared/components/ui/spinner"
 import { Input } from "@/shared/components/ui/input"
-import { Button } from "@/shared/components/ui/button"
 import {
   Select,
   SelectContent,
@@ -48,7 +40,7 @@ const labelClasses = "text-xs font-semibold"
 const touchTargetClasses = "h-11 md:h-9"
 const selectTouchTargetClasses = "w-full data-[size=default]:h-11 md:data-[size=default]:h-9"
 const hintClasses = "text-xs"
-const legendClasses = "mb-0 text-sm font-bold"
+const legendClasses = "mb-0 text-sm font-semibold"
 
 const ROLE_HINT_KEYS: Record<StaffRole, string> = {
   [StaffRole.Doctor]: "modal.roleHints.doctor",
@@ -190,242 +182,219 @@ export const StaffModal = ({ isOpen, onClose }: StaffModalProps) => {
   return (
     <>
       <Dialog open={isOpen} onOpenChange={(open) => !open && handleAttemptClose()}>
-        <DialogContent className="flex max-h-[90dvh] flex-col gap-0 p-0 sm:max-w-[640px]">
-          <DialogHeader className="border-b border-border px-6 pb-3 pt-6">
-            <DialogTitle className="flex items-center gap-2">
-              <UserPlus className="size-5 text-primary" />
-              {t("modal.title")}
-            </DialogTitle>
-            <DialogDescription>{t("requiredHint")}</DialogDescription>
-          </DialogHeader>
+        <FormDialogLayout
+          title={t("modal.title")}
+          description={t("requiredHint")}
+          widthClassName="sm:max-w-2xl"
+          onSubmit={handleSubmit(handleRegisterStaff, () => setIsSubmitAttempted(true))}
+          cancelLabel={t("modal.cancel")}
+          onCancel={handleAttemptClose}
+          submitLabel={isPending ? t("modal.saving") : t("modal.confirm")}
+          isPending={isPending}
+          isCancelDisabled={isPending}
+        >
+          {hasSummary && (
+            <Alert variant="destructive">
+              <CircleAlert />
+              <AlertTitle>{t("modal.errorSummary.title", { count: errorEntries.length })}</AlertTitle>
+              <AlertDescription>
+                <ul className="flex flex-col gap-1">
+                  {errorEntries.map((fieldName) => (
+                    <li key={fieldName}>
+                      <button
+                        type="button"
+                        onClick={() => setFocus(fieldName)}
+                        className="min-h-11 text-left text-sm underline underline-offset-2 md:min-h-0"
+                      >
+                        {t(FIELD_LABEL_KEYS[fieldName])}: {translateFieldError(errors[fieldName]?.message)}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </AlertDescription>
+            </Alert>
+          )}
 
-          <form
-            onSubmit={handleSubmit(handleRegisterStaff, () => setIsSubmitAttempted(true))}
-            className="flex min-h-0 flex-1 flex-col"
-            noValidate
-            aria-busy={isPending}
-          >
-            <div className="flex flex-1 flex-col gap-6 overflow-y-auto px-6 py-4">
-              {hasSummary && (
-                <Alert variant="destructive">
-                  <CircleAlert />
-                  <AlertTitle>{t("modal.errorSummary.title", { count: errorEntries.length })}</AlertTitle>
-                  <AlertDescription>
-                    <ul className="flex flex-col gap-1">
-                      {errorEntries.map((fieldName) => (
-                        <li key={fieldName}>
-                          <button
-                            type="button"
-                            onClick={() => setFocus(fieldName)}
-                            className="min-h-11 text-left text-sm underline underline-offset-2 md:min-h-0"
-                          >
-                            {t(FIELD_LABEL_KEYS[fieldName])}: {translateFieldError(errors[fieldName]?.message)}
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
-                  </AlertDescription>
-                </Alert>
-              )}
+          <FieldSet className="gap-4">
+            <FieldLegend variant="label" className={legendClasses}>
+              {t("modal.sections.identity")}
+            </FieldLegend>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <Field data-invalid={!!errors.fullName} className="md:col-span-2">
+                <FieldLabel htmlFor={FIELD_IDS.fullName} className={labelClasses}>
+                  {t("modal.name")} <RequiredMark />
+                </FieldLabel>
+                <Input
+                  id={FIELD_IDS.fullName}
+                  type="text"
+                  autoFocus
+                  autoComplete="off"
+                  autoCapitalize="words"
+                  maxLength={255}
+                  placeholder={t("modal.namePlaceholder")}
+                  aria-required="true"
+                  aria-invalid={!!errors.fullName}
+                  aria-describedby={describedBy(FIELD_IDS.fullName, !!errors.fullName)}
+                  className={touchTargetClasses}
+                  {...register("fullName")}
+                />
+                <FieldDescription id={`${FIELD_IDS.fullName}-hint`} className={hintClasses}>
+                  {t("modal.nameHint")}
+                </FieldDescription>
+                <FieldError id={`${FIELD_IDS.fullName}-error`}>
+                  {translateFieldError(errors.fullName?.message)}
+                </FieldError>
+              </Field>
 
-              <FieldSet className="gap-4">
-                <FieldLegend variant="label" className={legendClasses}>
-                  {t("modal.sections.identity")}
-                </FieldLegend>
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <Field data-invalid={!!errors.fullName} className="md:col-span-2">
-                    <FieldLabel htmlFor={FIELD_IDS.fullName} className={labelClasses}>
-                      {t("modal.name")} <RequiredMark />
-                    </FieldLabel>
-                    <Input
-                      id={FIELD_IDS.fullName}
-                      type="text"
-                      autoFocus
-                      autoComplete="off"
-                      autoCapitalize="words"
-                      maxLength={255}
-                      placeholder={t("modal.namePlaceholder")}
-                      aria-required="true"
-                      aria-invalid={!!errors.fullName}
-                      aria-describedby={describedBy(FIELD_IDS.fullName, !!errors.fullName)}
-                      className={touchTargetClasses}
-                      {...register("fullName")}
-                    />
-                    <FieldDescription id={`${FIELD_IDS.fullName}-hint`} className={hintClasses}>
-                      {t("modal.nameHint")}
-                    </FieldDescription>
-                    <FieldError id={`${FIELD_IDS.fullName}-error`}>
-                      {translateFieldError(errors.fullName?.message)}
-                    </FieldError>
-                  </Field>
-
-                  <Field data-invalid={!!errors.email} className="md:col-span-2">
-                    <FieldLabel htmlFor={FIELD_IDS.email} className={labelClasses}>
-                      {t("modal.email")} <RequiredMark />
-                    </FieldLabel>
-                    <Input
-                      id={FIELD_IDS.email}
-                      type="email"
-                      inputMode="email"
-                      autoComplete="off"
-                      autoCapitalize="none"
-                      spellCheck={false}
-                      maxLength={255}
-                      placeholder={t("modal.emailPlaceholder")}
-                      aria-required="true"
-                      aria-invalid={!!errors.email}
-                      aria-describedby={describedBy(FIELD_IDS.email, !!errors.email)}
-                      className={touchTargetClasses}
-                      {...register("email")}
-                    />
-                    <FieldDescription id={`${FIELD_IDS.email}-hint`} className={hintClasses}>
-                      {t("modal.emailHint")}
-                    </FieldDescription>
-                    <FieldError id={`${FIELD_IDS.email}-error`}>
-                      {translateFieldError(errors.email?.message)}
-                    </FieldError>
-                  </Field>
-                </div>
-              </FieldSet>
-
-              <FieldSet className="gap-4">
-                <FieldLegend variant="label" className={legendClasses}>
-                  {t("modal.sections.assignment")}
-                </FieldLegend>
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <Field data-invalid={!!errors.role}>
-                    <FieldLabel htmlFor={FIELD_IDS.role} className={labelClasses}>
-                      {t("modal.category")} <RequiredMark />
-                    </FieldLabel>
-                    <Controller
-                      control={control}
-                      name="role"
-                      render={({ field }) => (
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <SelectTrigger
-                            id={FIELD_IDS.role}
-                            ref={field.ref}
-                            onBlur={field.onBlur}
-                            className={selectTouchTargetClasses}
-                            aria-required="true"
-                            aria-invalid={!!errors.role}
-                            aria-describedby={describedBy(FIELD_IDS.role, !!errors.role)}
-                          >
-                            <SelectValue placeholder={t("modal.category")} />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {Object.values(StaffRole).map((roleOption) => (
-                              <SelectItem key={roleOption} value={roleOption}>
-                                {t(STAFF_ROLE_LABEL_KEYS[roleOption])}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      )}
-                    />
-                    <FieldDescription id={`${FIELD_IDS.role}-hint`} className={hintClasses}>
-                      {t(ROLE_HINT_KEYS[selectedRole])}
-                    </FieldDescription>
-                    <FieldError id={`${FIELD_IDS.role}-error`}>
-                      {translateFieldError(errors.role?.message)}
-                    </FieldError>
-                  </Field>
-
-                  <Field data-invalid={!!errors.departmentId}>
-                    <FieldLabel htmlFor={FIELD_IDS.departmentId} className={labelClasses}>
-                      {t("modal.department")} <RequiredMark />
-                    </FieldLabel>
-                    <Controller
-                      control={control}
-                      name="departmentId"
-                      render={({ field }) => (
-                        <Select
-                          onValueChange={field.onChange}
-                          value={field.value}
-                          disabled={isLoadingDepartments}
-                        >
-                          <SelectTrigger
-                            id={FIELD_IDS.departmentId}
-                            ref={field.ref}
-                            onBlur={field.onBlur}
-                            className={selectTouchTargetClasses}
-                            aria-required="true"
-                            aria-invalid={!!errors.departmentId}
-                            aria-describedby={describedBy(FIELD_IDS.departmentId, !!errors.departmentId)}
-                          >
-                            <SelectValue placeholder={t(departmentPlaceholderKey)} />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {departments.map((department) => (
-                              <SelectItem key={department.id} value={department.id}>
-                                {department.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      )}
-                    />
-                    <FieldDescription id={`${FIELD_IDS.departmentId}-hint`} className={hintClasses}>
-                      {t("modal.departmentHint")}
-                    </FieldDescription>
-                    <FieldError id={`${FIELD_IDS.departmentId}-error`}>
-                      {translateFieldError(errors.departmentId?.message)}
-                    </FieldError>
-                  </Field>
-                </div>
-              </FieldSet>
-
-              <FieldSet className="gap-4">
-                <FieldLegend variant="label" className={legendClasses}>
-                  {t("modal.sections.registration")}
-                </FieldLegend>
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <Field data-invalid={!!errors.license}>
-                    <FieldLabel htmlFor={FIELD_IDS.license} className={labelClasses}>
-                      {t("modal.license")} <RequiredMark />
-                    </FieldLabel>
-                    <Input
-                      id={FIELD_IDS.license}
-                      type="text"
-                      autoComplete="off"
-                      autoCapitalize="characters"
-                      spellCheck={false}
-                      maxLength={50}
-                      placeholder={t("modal.licensePlaceholder")}
-                      aria-required="true"
-                      aria-invalid={!!errors.license}
-                      aria-describedby={describedBy(FIELD_IDS.license, !!errors.license)}
-                      className={touchTargetClasses}
-                      {...register("license")}
-                    />
-                    <FieldDescription id={`${FIELD_IDS.license}-hint`} className={hintClasses}>
-                      {t(LICENSE_HINT_KEYS[selectedRole])}
-                    </FieldDescription>
-                    <FieldError id={`${FIELD_IDS.license}-error`}>
-                      {translateFieldError(errors.license?.message)}
-                    </FieldError>
-                  </Field>
-                </div>
-              </FieldSet>
+              <Field data-invalid={!!errors.email} className="md:col-span-2">
+                <FieldLabel htmlFor={FIELD_IDS.email} className={labelClasses}>
+                  {t("modal.email")} <RequiredMark />
+                </FieldLabel>
+                <Input
+                  id={FIELD_IDS.email}
+                  type="email"
+                  inputMode="email"
+                  autoComplete="off"
+                  autoCapitalize="none"
+                  spellCheck={false}
+                  maxLength={255}
+                  placeholder={t("modal.emailPlaceholder")}
+                  aria-required="true"
+                  aria-invalid={!!errors.email}
+                  aria-describedby={describedBy(FIELD_IDS.email, !!errors.email)}
+                  className={touchTargetClasses}
+                  {...register("email")}
+                />
+                <FieldDescription id={`${FIELD_IDS.email}-hint`} className={hintClasses}>
+                  {t("modal.emailHint")}
+                </FieldDescription>
+                <FieldError id={`${FIELD_IDS.email}-error`}>
+                  {translateFieldError(errors.email?.message)}
+                </FieldError>
+              </Field>
             </div>
+          </FieldSet>
 
-            <DialogFooter className="border-t border-border bg-background px-6 py-4">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleAttemptClose}
-                disabled={isPending}
-                className="h-11 text-xs font-bold md:h-9"
-              >
-                {t("modal.cancel")}
-              </Button>
-              <Button type="submit" disabled={isPending} className="h-11 text-xs font-bold md:h-9">
-                {isPending && <Spinner />}
-                {isPending ? t("modal.saving") : t("modal.confirm")}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
+          <FieldSet className="gap-4">
+            <FieldLegend variant="label" className={legendClasses}>
+              {t("modal.sections.assignment")}
+            </FieldLegend>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <Field data-invalid={!!errors.role}>
+                <FieldLabel htmlFor={FIELD_IDS.role} className={labelClasses}>
+                  {t("modal.category")} <RequiredMark />
+                </FieldLabel>
+                <Controller
+                  control={control}
+                  name="role"
+                  render={({ field }) => (
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <SelectTrigger
+                        id={FIELD_IDS.role}
+                        ref={field.ref}
+                        onBlur={field.onBlur}
+                        className={selectTouchTargetClasses}
+                        aria-required="true"
+                        aria-invalid={!!errors.role}
+                        aria-describedby={describedBy(FIELD_IDS.role, !!errors.role)}
+                      >
+                        <SelectValue placeholder={t("modal.category")} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.values(StaffRole).map((roleOption) => (
+                          <SelectItem key={roleOption} value={roleOption}>
+                            {t(STAFF_ROLE_LABEL_KEYS[roleOption])}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+                <FieldDescription id={`${FIELD_IDS.role}-hint`} className={hintClasses}>
+                  {t(ROLE_HINT_KEYS[selectedRole])}
+                </FieldDescription>
+                <FieldError id={`${FIELD_IDS.role}-error`}>
+                  {translateFieldError(errors.role?.message)}
+                </FieldError>
+              </Field>
+
+              <Field data-invalid={!!errors.departmentId}>
+                <FieldLabel htmlFor={FIELD_IDS.departmentId} className={labelClasses}>
+                  {t("modal.department")} <RequiredMark />
+                </FieldLabel>
+                <Controller
+                  control={control}
+                  name="departmentId"
+                  render={({ field }) => (
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value}
+                      disabled={isLoadingDepartments}
+                    >
+                      <SelectTrigger
+                        id={FIELD_IDS.departmentId}
+                        ref={field.ref}
+                        onBlur={field.onBlur}
+                        className={selectTouchTargetClasses}
+                        aria-required="true"
+                        aria-invalid={!!errors.departmentId}
+                        aria-describedby={describedBy(FIELD_IDS.departmentId, !!errors.departmentId)}
+                      >
+                        <SelectValue placeholder={t(departmentPlaceholderKey)} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {departments.map((department) => (
+                          <SelectItem key={department.id} value={department.id}>
+                            {department.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+                <FieldDescription id={`${FIELD_IDS.departmentId}-hint`} className={hintClasses}>
+                  {t("modal.departmentHint")}
+                </FieldDescription>
+                <FieldError id={`${FIELD_IDS.departmentId}-error`}>
+                  {translateFieldError(errors.departmentId?.message)}
+                </FieldError>
+              </Field>
+            </div>
+          </FieldSet>
+
+          <FieldSet className="gap-4">
+            <FieldLegend variant="label" className={legendClasses}>
+              {t("modal.sections.registration")}
+            </FieldLegend>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <Field data-invalid={!!errors.license}>
+                <FieldLabel htmlFor={FIELD_IDS.license} className={labelClasses}>
+                  {t("modal.license")} <RequiredMark />
+                </FieldLabel>
+                <Input
+                  id={FIELD_IDS.license}
+                  type="text"
+                  autoComplete="off"
+                  autoCapitalize="characters"
+                  spellCheck={false}
+                  maxLength={50}
+                  placeholder={t("modal.licensePlaceholder")}
+                  aria-required="true"
+                  aria-invalid={!!errors.license}
+                  aria-describedby={describedBy(FIELD_IDS.license, !!errors.license)}
+                  className={touchTargetClasses}
+                  {...register("license")}
+                />
+                <FieldDescription id={`${FIELD_IDS.license}-hint`} className={hintClasses}>
+                  {t(LICENSE_HINT_KEYS[selectedRole])}
+                </FieldDescription>
+                <FieldError id={`${FIELD_IDS.license}-error`}>
+                  {translateFieldError(errors.license?.message)}
+                </FieldError>
+              </Field>
+            </div>
+          </FieldSet>
+        </FormDialogLayout>
       </Dialog>
 
       <DiscardChangesDialog

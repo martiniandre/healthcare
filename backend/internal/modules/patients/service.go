@@ -15,7 +15,7 @@ type Service interface {
 	CreatePatient(ctx context.Context, input CreatePatientInput) (*Patient, error)
 	GetPatient(ctx context.Context, fhirResourceID string) (*Patient, error)
 	GetPatientByDocument(ctx context.Context, documentID string) (*Patient, error)
-ListPatients(ctx context.Context, search string, sortField string, sortDirection string, page int, limit int) ([]*Patient, int, error)
+	ListPatients(ctx context.Context, search string, sortField string, sortDirection string, page int, limit int) ([]*Patient, int, error)
 }
 
 type service struct {

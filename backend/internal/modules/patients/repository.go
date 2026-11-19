@@ -20,7 +20,7 @@ type Repository interface {
 	CreatePatient(ctx context.Context, patient *Patient) (*Patient, error)
 	GetPatientByID(ctx context.Context, fhirResourceID string) (*Patient, error)
 	GetPatientByDocumentID(ctx context.Context, documentID string) (*Patient, error)
-ListPatients(ctx context.Context, search string, sortField string, sortDirection string, page int, limit int) ([]*Patient, int, error)
+	ListPatients(ctx context.Context, search string, sortField string, sortDirection string, page int, limit int) ([]*Patient, int, error)
 }
 
 type repository struct {
@@ -99,22 +99,22 @@ func (patientRepository *repository) GetPatientByDocumentID(ctx context.Context,
 
 func (patientRepository *repository) ListPatients(ctx context.Context, search string, sortField string, sortDirection string, page int, limit int) ([]*Patient, int, error) {
 	queryValues := url.Values{}
-	
+
 	if limit <= 0 {
 		limit = 100
 	}
 	queryValues.Add("_count", fmt.Sprintf("%d", limit))
 	queryValues.Add("_total", "accurate")
-	
+
 	if page > 1 {
 		offset := (page - 1) * limit
 		queryValues.Add("_offset", fmt.Sprintf("%d", offset))
 	}
-	
+
 	if search != "" {
 		queryValues.Add("name:contains", search)
 	}
-	
+
 	if sortField != "" {
 		fhirField := ""
 		switch sortField {

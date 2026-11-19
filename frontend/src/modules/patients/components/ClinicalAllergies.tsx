@@ -39,7 +39,6 @@ export default function ClinicalAllergies({ patientId }: ClinicalAllergiesProps)
     <>
       <ClinicalQueryTable
         title={t("details.allergiesCard.title")}
-        icon={<ShieldAlert className="w-4 h-4 text-amber-500 animate-pulse" />}
         columns={columns}
         data={allergies}
         isLoading={isLoading}

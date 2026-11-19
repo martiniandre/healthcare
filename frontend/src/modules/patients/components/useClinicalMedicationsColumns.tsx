@@ -10,27 +10,28 @@ const columnHelper = createColumnHelper<MedicationRequest>()
 
 export const useClinicalMedicationsColumns = (): ColumnDef<MedicationRequest>[] => {
   const { t } = useTranslation("patients")
+  const { t: translateStatus } = useTranslation("clinicalStatus")
 
   return useMemo(
     () => [
       columnHelper.accessor("medication_name", {
         id: "medication_name",
         header: t("details.medicationsCard.display"),
-        cell: (info) => <span className="text-sm font-extrabold text-gray-900 block">{info.getValue()}</span>,
+        cell: (info) => <span className="text-sm font-semibold text-foreground block">{info.getValue()}</span>,
       }),
       columnHelper.accessor("dosage_instructions", {
         id: "dosage_instructions",
         header: t("details.medicationsCard.dosage"),
         cell: (info) => (
-          <span className="text-sm font-bold text-gray-800 block whitespace-pre-line">{info.getValue()}</span>
+          <span className="text-sm font-semibold text-foreground block whitespace-pre-line">{info.getValue()}</span>
         ),
       }),
       columnHelper.accessor("status", {
         id: "status",
         header: t("details.medicationsCard.status"),
         cell: (info) => (
-          <StatusBadge status={resolveClinicalStatus("medication", info.getValue())} className="uppercase">
-            {info.getValue()}
+          <StatusBadge status={resolveClinicalStatus("medication", info.getValue())}>
+            {translateStatus(`medicationRequest.${info.getValue()}`, { defaultValue: info.getValue() })}
           </StatusBadge>
         ),
       }),
@@ -38,12 +39,12 @@ export const useClinicalMedicationsColumns = (): ColumnDef<MedicationRequest>[] 
         id: "created_at",
         header: t("details.medicationsCard.date"),
         cell: (info) => (
-          <span className="text-xs text-gray-500 font-semibold block">
+          <span className="text-xs text-muted-foreground font-semibold block">
             {formatDateTime(info.getValue())}
           </span>
         ),
       }),
     ] as ColumnDef<MedicationRequest>[],
-    [t]
+    [t, translateStatus]
   )
 }

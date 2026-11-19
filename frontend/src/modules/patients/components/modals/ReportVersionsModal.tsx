@@ -8,7 +8,7 @@ import {
 } from "../../../../shared/components/ui/dialog"
 import { Badge } from "../../../../shared/components/ui/badge"
 import { Spinner } from "../../../../shared/components/ui/spinner"
-import { QueryErrorAlert } from "../QueryErrorAlert"
+import { QueryErrorAlert } from "@/shared/components/ui/QueryErrorAlert"
 import { useDiagnosticReportVersionsQuery } from "../../queries"
 import { formatDateTime } from "../../../../shared/utils/dates"
 
@@ -36,11 +36,11 @@ export const ReportVersionsModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-[560px]">
+      <DialogContent className="sm:max-w-xl">
         <DialogHeader>
           <DialogTitle className="text-left flex items-center gap-2">
-            <History className="w-4 h-4 text-blue-500" />
-            {t("modals.reportVersions.title")} — {reportDisplay}
+            <History className="w-4 h-4 text-primary" />
+            {t("modals.reportVersions.title")}: {reportDisplay}
           </DialogTitle>
         </DialogHeader>
         <div className="flex flex-col gap-3 mt-4 max-h-[60vh] overflow-y-auto">
@@ -58,10 +58,10 @@ export const ReportVersionsModal = ({
             versions.map((versionEntry) => (
               <div
                 key={versionEntry.version}
-                className="bg-muted border border-border rounded-xl p-4"
+                className="bg-muted border border-border rounded-lg p-4"
               >
                 <div className="flex items-center justify-between mb-2">
-                  <Badge variant="info" className="uppercase">
+                  <Badge variant="info">
                     <FileText />
                     {t("modals.reportVersions.versionLabel")} {versionEntry.version}
                   </Badge>
@@ -70,12 +70,12 @@ export const ReportVersionsModal = ({
                   </span>
                 </div>
                 {versionEntry.snapshot?.report_display && (
-                  <p className="text-sm font-bold text-gray-800">
+                  <p className="text-sm font-semibold text-foreground">
                     {versionEntry.snapshot.report_display}
                   </p>
                 )}
                 {versionEntry.snapshot?.conclusion && (
-                  <p className="text-xs text-gray-600 leading-relaxed bg-card border border-border p-3 rounded-lg mt-2">
+                  <p className="text-xs text-muted-foreground leading-relaxed bg-card border border-border p-3 rounded-lg mt-2">
                     {versionEntry.snapshot.conclusion}
                   </p>
                 )}

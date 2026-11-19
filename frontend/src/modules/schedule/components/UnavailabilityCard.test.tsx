@@ -25,7 +25,7 @@ describe("UnavailabilityCard", () => {
 
   it("should render the time range as separate time fragments", () => {
     render(<UnavailabilityCard unavailability={mockUnavailability} onDelete={vi.fn()} />)
-    const timeSpan = screen.getByText(/—/)
+    const timeSpan = screen.getByText(/–/)
     expect(timeSpan).toBeInTheDocument()
   })
 

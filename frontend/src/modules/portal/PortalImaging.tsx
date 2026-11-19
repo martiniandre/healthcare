@@ -37,7 +37,7 @@ export const PortalImaging = () => {
                   {study.created_at ? formatDate(study.created_at, locale) : ""}
                 </span>
               </div>
-              <p className="mb-2 break-words text-sm font-bold text-foreground">
+              <p className="mb-2 break-words text-sm font-semibold text-foreground">
                 {study.title || t("fallback.imagingStudy")}
               </p>
               <StatusBadge status="info">{imagingStudyStatus(study.status)}</StatusBadge>

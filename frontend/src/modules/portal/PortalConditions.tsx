@@ -45,7 +45,7 @@ export const PortalConditions = () => {
           <Card key={condition.fhir_resource_id} className="py-4 sm:py-5">
             <CardContent className="flex flex-wrap items-start justify-between gap-2 px-4 sm:px-5">
               <div className="min-w-0 flex-1">
-                <p className="break-words text-sm font-bold text-foreground">{condition.code_display}</p>
+                <p className="break-words text-sm font-semibold text-foreground">{condition.code_display}</p>
                 <p className="mt-0.5 text-xs text-muted-foreground">
                   {condition.icd10_code && <span className="font-mono">{condition.icd10_code} | </span>}
                   {t("table.onset")}{" "}

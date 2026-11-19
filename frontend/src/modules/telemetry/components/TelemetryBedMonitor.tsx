@@ -30,8 +30,8 @@ interface TelemetryBedMonitorProps {
   updateSelectedBedCondition: (condition: CardiacCondition) => void
 }
 
-const SENSOR_LABEL_CLASS = "block text-[10px] font-bold uppercase tracking-wider text-muted-foreground"
-const SENSOR_BOX_CLASS = "flex items-center justify-between rounded-xl border border-border bg-muted p-4"
+const SENSOR_LABEL_CLASS = "block text-xs font-medium text-muted-foreground"
+const SENSOR_BOX_CLASS = "flex items-center justify-between rounded-lg border border-border bg-muted p-4"
 
 export const TelemetryBedMonitor = ({
   activeBed,
@@ -48,7 +48,7 @@ export const TelemetryBedMonitor = ({
           <Activity className="size-8" aria-hidden="true" />
         </div>
         <div className="max-w-md flex flex-col gap-1">
-          <h3 className="text-base font-extrabold text-foreground">
+          <h3 className="text-base font-semibold text-foreground">
             {t("noBedSelected")}
           </h3>
           <p className="text-xs leading-normal text-muted-foreground">
@@ -70,8 +70,8 @@ export const TelemetryBedMonitor = ({
     <Card className="gap-4 py-4">
       <CardHeader className="flex flex-wrap items-center justify-between gap-2 border-b px-4">
         <div className="text-left">
-          <span className="text-xs font-bold uppercase tracking-wider text-primary">{activeRoomName}</span>
-          <h3 className="text-base font-bold text-foreground">{activeBed.bedNumber} • {activeBed.patientName}</h3>
+          <span className="text-xs font-semibold text-primary">{activeRoomName}</span>
+          <h3 className="text-base font-semibold text-foreground">{activeBed.bedNumber} • {activeBed.patientName}</h3>
         </div>
         <div className="flex items-center gap-2">
           <Badge variant="secondary">
@@ -87,14 +87,14 @@ export const TelemetryBedMonitor = ({
       </CardHeader>
 
       <CardContent className="flex flex-col gap-4 px-4">
-        <div className="relative overflow-hidden rounded-xl border border-border bg-slate-950 p-1">
+        <div className="relative overflow-hidden rounded-lg border border-border bg-slate-950 p-1">
           <canvas
             ref={canvasRef}
             width={700}
             height={260}
             className="block w-full max-w-full rounded-lg"
           />
-          <div className="absolute top-4 left-4 rounded border border-emerald-500/20 bg-black/60 px-3 py-1.5 font-mono text-[10px] text-emerald-400 backdrop-blur-md">
+          <div className="absolute top-4 left-4 rounded border border-success/20 bg-black/60 px-3 py-1.5 font-mono text-2xs text-success backdrop-blur-md">
             {t("ecgLead")}
           </div>
         </div>
@@ -103,7 +103,7 @@ export const TelemetryBedMonitor = ({
           <div className={SENSOR_BOX_CLASS}>
             <div className="text-left">
               <span className={SENSOR_LABEL_CLASS}>{t("sensors.ecg")}</span>
-              <span className="mt-1 block text-2xl font-black tabular-nums text-foreground">
+              <span className="mt-1 block text-2xl font-semibold tabular-nums text-foreground">
                 {activeBed.bpm > 0 ? `${activeBed.bpm} ` : "--- "}
                 <span className="text-xs font-normal text-muted-foreground">BPM</span>
               </span>
@@ -114,7 +114,7 @@ export const TelemetryBedMonitor = ({
           <div className={SENSOR_BOX_CLASS}>
             <div className="text-left">
               <span className={SENSOR_LABEL_CLASS}>{t("sensors.spo2")}</span>
-              <span className="mt-1 block text-2xl font-black tabular-nums text-foreground">
+              <span className="mt-1 block text-2xl font-semibold tabular-nums text-foreground">
                 {activeBed.spo2 > 0 ? `${activeBed.spo2}%` : "---%"}
               </span>
             </div>
@@ -124,7 +124,7 @@ export const TelemetryBedMonitor = ({
           <div className={SENSOR_BOX_CLASS}>
             <div className="text-left">
               <span className={SENSOR_LABEL_CLASS}>{t("sensors.temp")}</span>
-              <span className="mt-1 block text-2xl font-black tabular-nums text-foreground">
+              <span className="mt-1 block text-2xl font-semibold tabular-nums text-foreground">
                 {activeBed.temperature.toFixed(1)}°C
               </span>
             </div>
@@ -135,7 +135,7 @@ export const TelemetryBedMonitor = ({
 
       <Can I={Action.Update} a={Feature.TelemetryBed}>
         <CardFooter className="flex-col items-start gap-2 border-t px-4 pt-4 text-left">
-          <span className="block text-xs font-bold text-muted-foreground">{t("simulation.title")}</span>
+          <span className="block text-xs font-semibold text-muted-foreground">{t("simulation.title")}</span>
           <div className="flex flex-wrap gap-2">
             {conditionOptions.map(({ condition, labelKey }) => {
               const isActive = activeBed.condition === condition
@@ -149,7 +149,7 @@ export const TelemetryBedMonitor = ({
                   aria-pressed={isActive}
                   onClick={() => updateSelectedBedCondition(condition)}
                   className={cn(
-                    "text-[11px] font-bold",
+                    "text-2xs font-semibold",
                     isArrest && !isActive && "text-destructive hover:text-destructive"
                   )}
                 >

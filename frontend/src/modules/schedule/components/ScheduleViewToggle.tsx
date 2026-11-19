@@ -14,7 +14,7 @@ export const ScheduleViewToggle = ({ value, onChange }: ScheduleViewToggleProps)
 
   return (
     <Select value={value} onValueChange={(mode) => onChange(mode as ScheduleViewMode)}>
-      <SelectTrigger aria-label={t("calendar.viewLabel")} className="w-40 font-medium">
+      <SelectTrigger aria-label={t("calendar.viewLabel")} className="w-full font-medium">
         <SelectValue />
       </SelectTrigger>
       <SelectContent>

@@ -36,7 +36,7 @@ export const toneClassNames: Record<MetricTone, {
   },
   neutral: {
     text: "text-muted-foreground",
-    surface: "bg-gray-100",
+    surface: "bg-muted",
     bar: "bg-muted-foreground",
   },
 }

@@ -31,7 +31,7 @@ export const DeleteUnavailabilityModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && !isPending && onClose()}>
-      <DialogContent className="sm:max-w-[420px]">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{t("unavailability.deleteModal.title")}</DialogTitle>
           <DialogDescription>{t("unavailability.deleteModal.description")}</DialogDescription>

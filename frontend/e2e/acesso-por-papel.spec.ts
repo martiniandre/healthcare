@@ -6,7 +6,7 @@ test.describe("Controle de acesso por papel", () => {
     await loginAsDoctor(page)
 
     await expect(page.getByRole("button", { name: "Pacientes" })).toBeVisible()
-    await expect(page.getByRole("button", { name: "Logs de Auditoria" })).toHaveCount(0)
+    await expect(page.getByRole("button", { name: "Logs de auditoria" })).toHaveCount(0)
   })
 
   test("médico é redirecionado ao acessar /audit-logs diretamente", async ({ page }) => {

@@ -24,7 +24,7 @@ export const DeleteStaffModal = ({ member, onClose, onConfirm, isPending }: Dele
 
   return (
     <Dialog open={Boolean(member)} onOpenChange={(isOpen) => !isOpen && !isPending && onClose()}>
-      <DialogContent className="sm:max-w-[420px]">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <UserMinus className="size-5 text-destructive" />
@@ -33,7 +33,7 @@ export const DeleteStaffModal = ({ member, onClose, onConfirm, isPending }: Dele
           <DialogDescription>
             {t("deleteModal.description")}
             {member && (
-              <span className="block mt-2 font-bold text-foreground">{member.fullName}</span>
+              <span className="block mt-2 font-semibold text-foreground">{member.fullName}</span>
             )}
           </DialogDescription>
         </DialogHeader>

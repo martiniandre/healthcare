@@ -1,5 +1,5 @@
 {
-  "offlineStatus": "Sem Conexão",
+  "offlineStatus": "Sem conexão",
   "openMenu": "Abrir menu de navegação",
   "notificationTooltip": "Notificações",
   "defaultUserEmail": "usuario@hospital.com",
@@ -12,8 +12,11 @@
     "RoleDefault": "Profissional"
   },
   "errorBoundary": {
-    "title": "Erro Inesperado na Interface",
+    "title": "Erro inesperado na interface",
     "description": "Um problema de renderização impediu o carregamento deste componente. Nossa equipe técnica foi notificada silenciosamente nos logs.",
-    "retry": "Tentar Novamente"
-  }
+    "retry": "Tentar novamente"
+  },
+  "breadcrumbLabel": "Você está em",
+  "patientRecord": "Prontuário",
+  "encounter": "Consulta"
 }

@@ -1,23 +1,26 @@
 {
   "title": "HealthCare",
-  "subtitle": "Consola Clínica v1.0",
+  "subtitle": "Consola clínica v1.0",
   "topics": {
-    "clinical": "Atención Clínica",
+    "clinical": "Atención clínica",
     "diagnostics": "Diagnóstico",
     "operations": "Operaciones",
-    "patient": "Mi Salud"
+    "patient": "Mi salud"
   },
   "appearance": "Apariencia",
   "patients": "Pacientes",
-  "dashboard": "Dashboard Clínico",
-  "portal": "Mi Portal",
+  "dashboard": "Panel del turno",
+  "portal": "Mi portal",
   "telemetry": "Telemetría UCI",
   "pacsViewer": "Visor PACS",
-  "examAnalyzer": "Análisis de Exámenes",
-  "analytics": "Analytics",
-  "staffManagement": "Gestión de Personal",
+  "examAnalyzer": "Análisis de exámenes",
+  "analytics": "Indicadores clínicos",
+  "staffManagement": "Gestión de personal",
   "schedule": "Agenda",
-  "auditLogs": "Registros de Auditoría",
+  "auditLogs": "Registros de auditoría",
   "logout": "Salir",
-  "closeMenu": "Cerrar menú"
+  "closeMenu": "Cerrar menú",
+  "collapseMenu": "Contraer menú",
+  "expandMenu": "Expandir menú",
+  "preferences": "Preferencias"
 }

@@ -251,9 +251,9 @@ func TestCreateObservationBatch_ValueOutOfClinicalRange_RejectsWholeBatchAndSkip
 	})
 
 	createdObservations, createError := observationService.CreateObservationBatch(context.Background(), observation.CreateObservationBatchInput{
-		EncounterFHIRID:   "encounter-123",
-		PatientFHIRID:     "patient-456",
-		BodyTemperature:   &bodyTemperatureValue,
+		EncounterFHIRID: "encounter-123",
+		PatientFHIRID:   "patient-456",
+		BodyTemperature: &bodyTemperatureValue,
 	})
 
 	assert.Error(testingInstance, createError)

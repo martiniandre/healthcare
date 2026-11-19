@@ -1,6 +1,5 @@
 import type { ReactNode } from "react"
 import { PatientHeader } from "./PatientHeader"
-import { Card } from "../../../shared/components/ui/card"
 import { PageContainer } from "../../../shared/components/ui/PageContainer"
 
 interface PatientPageLayoutProps {
@@ -28,19 +27,14 @@ export function PatientPageLayout({
   children,
 }: PatientPageLayoutProps) {
   return (
-    <PageContainer>
-      <PatientHeader patient={patient} onBack={onBack} />
-      {headerActions && <div className="flex justify-end">{headerActions}</div>}
+    <PageContainer className="gap-5 md:gap-6">
+      <PatientHeader patient={patient} onBack={onBack} actions={headerActions} />
 
-      <div className="flex flex-col md:flex-row gap-6 items-start mt-2">
-        <Card className="w-full md:w-64 shrink-0 gap-4 p-4">
-          {sidebarTop}
-        </Card>
+      <nav className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">{sidebarTop}</nav>
 
-        <div className="flex-1 flex flex-col gap-6 min-w-0 w-full">
-          {encounterBanner}
-          {children}
-        </div>
+      <div className="flex min-w-0 flex-col gap-6">
+        {encounterBanner}
+        {children}
       </div>
     </PageContainer>
   )

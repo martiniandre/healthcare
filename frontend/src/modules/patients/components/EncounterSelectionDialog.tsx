@@ -26,6 +26,7 @@ export function EncounterSelectionDialog({
 }: EncounterSelectionDialogProps) {
   const navigate = useNavigate()
   const { t } = useTranslation("patients")
+  const { t: translateStatus } = useTranslation("clinicalStatus")
 
   const handleSelect = (encounterFhirId: string) => {
     onClose()
@@ -38,7 +39,7 @@ export function EncounterSelectionDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-[520px] max-h-[70vh] flex flex-col">
+      <DialogContent className="sm:max-w-xl max-h-[70vh] flex flex-col">
         <DialogHeader>
           <DialogTitle className="text-left">
             {t("details.selectEncounterTitle")}
@@ -59,14 +60,14 @@ export function EncounterSelectionDialog({
                 className="h-auto w-full justify-between gap-3 px-4 py-3 text-left font-normal"
               >
                 <div className="flex flex-col gap-0.5 min-w-0">
-                  <span className="text-sm font-bold truncate">
+                  <span className="text-sm font-semibold truncate">
                     {encounter.reason_display}
                   </span>
                   <div className="flex items-center gap-2">
-                    <Badge variant="secondary" className="uppercase tracking-wider">
-                      {encounter.status}
+                    <Badge variant="secondary">
+                      {translateStatus(`encounter.${encounter.status}`, { defaultValue: encounter.status })}
                     </Badge>
-                    <span className="text-[11px] text-muted-foreground font-semibold">
+                    <span className="text-2xs text-muted-foreground font-semibold">
                       {formatDateTime(encounter.created_at)}
                     </span>
                   </div>

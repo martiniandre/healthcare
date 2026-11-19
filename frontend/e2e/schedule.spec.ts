@@ -71,14 +71,14 @@ test.describe("Appointment Scheduling Module", () => {
   test("should display the calendar agenda with staff filters", async ({ page }) => {
     await page.goto("/schedule")
     await expect(page.getByRole("heading", { name: "Agenda", exact: true })).toBeVisible()
-    await expect(page.getByRole("button", { name: "Novo Agendamento" })).toBeVisible()
+    await expect(page.getByRole("button", { name: "Novo agendamento" })).toBeVisible()
     await expect(page.getByText("Profissionais")).toBeVisible()
     await expect(page.locator(".fc-timegrid-body")).toBeVisible()
   })
 
   test("should book an appointment and show it as a chip on the week calendar", async ({ page }) => {
     await page.goto("/schedule")
-    await page.getByRole("button", { name: "Novo Agendamento" }).click()
+    await page.getByRole("button", { name: "Novo agendamento" }).click()
 
     await fillAppointmentForm(page)
     await page.getByRole("button", { name: "Agendar" }).click()
@@ -88,13 +88,13 @@ test.describe("Appointment Scheduling Module", () => {
 
   test("should show conflict message when booking an overlapping slot", async ({ page }) => {
     await page.goto("/schedule")
-    await page.getByRole("button", { name: "Novo Agendamento" }).click()
+    await page.getByRole("button", { name: "Novo agendamento" }).click()
 
     await fillAppointmentForm(page)
     await page.getByRole("button", { name: "Agendar" }).click()
     await expect(page.locator(".fc-event").first()).toBeVisible()
 
-    await page.getByRole("button", { name: "Novo Agendamento" }).click()
+    await page.getByRole("button", { name: "Novo agendamento" }).click()
     await fillAppointmentForm(page)
     await page.getByRole("button", { name: "Agendar" }).click()
 
@@ -103,7 +103,7 @@ test.describe("Appointment Scheduling Module", () => {
 
   test("should show a validation error when the appointment date is in the past", async ({ page }) => {
     await page.goto("/schedule")
-    await page.getByRole("button", { name: "Novo Agendamento" }).click()
+    await page.getByRole("button", { name: "Novo agendamento" }).click()
 
     await fillAppointmentForm(page)
     await page.getByRole("dialog").locator('input[type="date"]').fill("2020-01-01")
@@ -116,7 +116,7 @@ test.describe("Appointment Scheduling Module", () => {
 
   test("should block past dates in the appointment date picker", async ({ page }) => {
     await page.goto("/schedule")
-    await page.getByRole("button", { name: "Novo Agendamento" }).click()
+    await page.getByRole("button", { name: "Novo agendamento" }).click()
 
     const now = new Date()
     const expectedMin = `${String(now.getFullYear()).padStart(4, "0")}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`
@@ -127,7 +127,7 @@ test.describe("Appointment Scheduling Module", () => {
 
   test("should cap the appointment reason at 500 characters", async ({ page }) => {
     await page.goto("/schedule")
-    await page.getByRole("button", { name: "Novo Agendamento" }).click()
+    await page.getByRole("button", { name: "Novo agendamento" }).click()
 
     const reasonField = page.getByPlaceholder("Ex.: Retorno, resultado de exames de sangue")
     await reasonField.fill("a".repeat(501))
@@ -136,7 +136,7 @@ test.describe("Appointment Scheduling Module", () => {
 
   test("should display a dialog overlay when the appointment modal opens", async ({ page }) => {
     await page.goto("/schedule")
-    await page.getByRole("button", { name: "Novo Agendamento" }).click()
+    await page.getByRole("button", { name: "Novo agendamento" }).click()
 
     const backdrop = page.locator('[data-slot="dialog-overlay"][data-state="open"]')
     await expect(backdrop).toBeVisible()
@@ -159,21 +159,21 @@ test.describe("Appointment Scheduling Module", () => {
 
   test("should open appointment details when clicking an existing event", async ({ page }) => {
     await page.goto("/schedule")
-    await page.getByRole("button", { name: "Novo Agendamento" }).click()
+    await page.getByRole("button", { name: "Novo agendamento" }).click()
     await fillAppointmentForm(page)
     await page.getByRole("button", { name: "Agendar" }).click()
     await expect(page.locator(".fc-event").filter({ hasText: "Guilherme de Souza Araujo" }).first()).toBeVisible()
 
     await page.locator(".fc-event").filter({ hasText: "Guilherme de Souza Araujo" }).first().click()
 
-    await expect(page.getByRole("heading", { name: "Detalhes do Agendamento" })).toBeVisible()
+    await expect(page.getByRole("heading", { name: "Detalhes do agendamento" })).toBeVisible()
     await expect(page.getByRole("button", { name: "Editar" })).toBeVisible()
     await expect(page.getByRole("button", { name: "Cancelar" })).toBeVisible()
   })
 
   test("should edit an appointment from the details dialog", async ({ page }) => {
     await page.goto("/schedule")
-    await page.getByRole("button", { name: "Novo Agendamento" }).click()
+    await page.getByRole("button", { name: "Novo agendamento" }).click()
     await fillAppointmentForm(page)
     await page.getByRole("button", { name: "Agendar" }).click()
     await expect(page.locator(".fc-event").filter({ hasText: "Guilherme de Souza Araujo" }).first()).toBeVisible()
@@ -181,7 +181,7 @@ test.describe("Appointment Scheduling Module", () => {
     await page.locator(".fc-event").filter({ hasText: "Guilherme de Souza Araujo" }).first().click()
     await page.getByRole("button", { name: "Editar" }).click()
 
-    await expect(page.getByRole("heading", { name: "Editar Agendamento" })).toBeVisible()
+    await expect(page.getByRole("heading", { name: "Editar agendamento" })).toBeVisible()
     const prefilledAppointmentDate = await page.getByRole("dialog").locator('input[type="date"]').inputValue()
     const startTimeTrigger = page.getByRole("dialog").getByRole("combobox").filter({ hasText: /^\d{2}:\d{2}$/ }).first()
     const prefilledStartTime = (await startTimeTrigger.innerText()).trim()
@@ -191,14 +191,14 @@ test.describe("Appointment Scheduling Module", () => {
     }
     await startTimeTrigger.click()
     await page.getByRole("option", { name: alternateSlot.startTime, exact: true }).click()
-    await page.getByRole("button", { name: "Salvar Alterações" }).click()
+    await page.getByRole("button", { name: "Salvar alterações" }).click()
 
     await expect(page.locator("text=Agendamento atualizado com sucesso!")).toBeVisible()
   })
 
   test("should cancel an appointment from the details dialog", async ({ page }) => {
     await page.goto("/schedule")
-    await page.getByRole("button", { name: "Novo Agendamento" }).click()
+    await page.getByRole("button", { name: "Novo agendamento" }).click()
     await fillAppointmentForm(page)
     await page.getByRole("button", { name: "Agendar" }).click()
     await expect(page.locator(".fc-event").filter({ hasText: "Guilherme de Souza Araujo" }).first()).toBeVisible()
@@ -206,8 +206,8 @@ test.describe("Appointment Scheduling Module", () => {
     await page.locator(".fc-event").filter({ hasText: "Guilherme de Souza Araujo" }).first().click()
     await page.getByRole("button", { name: "Cancelar" }).click()
 
-    await expect(page.getByRole("heading", { name: "Cancelar Agendamento" })).toBeVisible()
-    await page.getByRole("button", { name: "Confirmar Cancelamento" }).click()
+    await expect(page.getByRole("heading", { name: "Cancelar agendamento" })).toBeVisible()
+    await page.getByRole("button", { name: "Confirmar cancelamento" }).click()
 
     await expect(page.locator("text=Agendamento cancelado com sucesso!")).toBeVisible()
     await expect(page.locator(".fc-event").filter({ hasText: "Guilherme de Souza Araujo" })).toHaveCount(0)

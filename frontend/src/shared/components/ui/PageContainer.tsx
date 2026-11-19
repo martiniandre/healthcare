@@ -10,7 +10,7 @@ export const PageContainer = ({ className, children }: PageContainerProps) => {
   return (
     <div
       className={cn(
-        "flex-1 p-4 sm:p-6 md:p-8 flex flex-col gap-4 md:gap-6 max-w-7xl mx-auto w-full animate-fade-in",
+        "flex-1 px-4 pb-10 pt-5 sm:px-6 md:px-8 md:pt-6 flex flex-col gap-5 md:gap-7 max-w-7xl mx-auto w-full animate-fade-in",
         className
       )}
     >
@@ -19,26 +19,29 @@ export const PageContainer = ({ className, children }: PageContainerProps) => {
   )
 }
 
-interface PageTitleProps {
-  icon?: ReactNode
+interface PageHeaderProps {
+  eyebrow?: string
   title: string
   description?: string
   actions?: ReactNode
+  className?: string
 }
 
-export const PageTitle = ({ icon, title, description, actions }: PageTitleProps) => {
+export const PageHeader = ({ eyebrow, title, description, actions, className }: PageHeaderProps) => {
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-      <div>
-        <h2 className="text-xl font-display font-bold text-gray-900 tracking-tight leading-none flex items-center gap-2">
-          {icon}
-          {title}
-        </h2>
-        {description && (
-          <span className="text-xs text-muted mt-1.5 block">{description}</span>
-        )}
+    <header className={cn("flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between", className)}>
+      <div className="flex min-w-0 items-start gap-4">
+        <div className="min-w-0">
+          {eyebrow && (
+            <p className="mb-1 text-xs font-medium text-muted-foreground">{eyebrow}</p>
+          )}
+          <h1 className="font-display text-2xl font-semibold leading-tight text-foreground">
+            {title}
+          </h1>
+          {description && <p className="mt-1 max-w-2xl text-sm text-muted-foreground">{description}</p>}
+        </div>
       </div>
-      {actions && <div className="flex items-center gap-2 self-start sm:self-auto">{actions}</div>}
-    </div>
+      {actions && <div className="flex flex-wrap items-center gap-2 sm:shrink-0">{actions}</div>}
+    </header>
   )
 }

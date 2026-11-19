@@ -2,11 +2,10 @@ import { useState } from "react"
 import { useDebounce } from "../../shared/hooks/useDebounce"
 import { useSearchParams } from "react-router-dom"
 import { PatientsHeader } from "./components/PatientsHeader"
-import { PatientsMetricsGrid } from "./components/PatientsMetricsGrid"
 import { PatientsFilters } from "./components/PatientsFilters"
 import { PatientsLoadingState } from "./components/PatientsLoadingState"
 import { PatientsEmptyState } from "./components/PatientsEmptyState"
-import { QueryErrorAlert } from "./components/QueryErrorAlert"
+import { QueryErrorAlert } from "@/shared/components/ui/QueryErrorAlert"
 import { PatientsTable, type SortField, type SortDirection } from "./components/PatientsTable"
 import { PatientModal } from "./components/PatientModal"
 import { usePatientsQuery } from "./queries"
@@ -66,10 +65,8 @@ export const Patients = () => {
   }
 
   return (
-    <PageContainer className="gap-4 md:gap-5">
+    <PageContainer>
       <PatientsHeader onNewPatient={() => setIsModalOpen(true)} />
-      
-      <PatientsMetricsGrid totalPatients={totalPatientsCount} />
 
       <PatientsFilters
         searchTerm={searchTerm}

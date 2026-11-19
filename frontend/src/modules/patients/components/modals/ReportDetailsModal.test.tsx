@@ -38,10 +38,10 @@ describe("ReportDetailsModal", () => {
 
   it("should render full report details", () => {
     render(<ReportDetailsModal isOpen onClose={vi.fn()} report={baseReport} />)
-    expect(screen.getByText("modals.reportDetails.title — Hemograma Completo")).toBeDefined()
+    expect(screen.getByText("modals.reportDetails.title: Hemograma Completo")).toBeDefined()
     expect(screen.getByText("Hemograma Completo")).toBeDefined()
     expect(screen.getByText("Resultados dentro dos limites esperados.")).toBeDefined()
-    expect(screen.getByText("final")).toBeDefined()
+    expect(screen.getByText(/final/)).toBeDefined()
     expect(screen.getByText("v2")).toBeDefined()
   })
 

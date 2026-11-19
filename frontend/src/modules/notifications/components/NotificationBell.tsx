@@ -1,4 +1,6 @@
+import { useState } from "react"
 import { useTranslation } from "react-i18next"
+import { useNavigate } from "react-router-dom"
 import { AlertCircle, Bell, BellOff } from "lucide-react"
 import { useUnreadCountQuery, useNotificationsQuery, useMarkReadMutation } from "../queries"
 import { NotificationItem } from "./NotificationItem"
@@ -12,6 +14,10 @@ import { EmptyState } from "../../../shared/components/ui/EmptyState"
 import { Skeleton } from "../../../shared/components/ui/skeleton"
 import { Spinner } from "../../../shared/components/ui/spinner"
 import { Tooltip, TooltipContent, TooltipTrigger } from "../../../shared/components/ui/tooltip"
+import { useCapabilities } from "../../../shared/auth/capabilities_context"
+import { isCapabilityGranted, routeRequiredCapability } from "../../../shared/auth/route_access"
+import { resolveNotificationTarget, sortNotificationsByUrgency } from "../notification_routing"
+import type { NotificationItem as NotificationItemType } from "../types"
 
 export function NotificationBell() {
   const { t } = useTranslation("notifications")
@@ -21,21 +27,45 @@ export function NotificationBell() {
   const { data: unreadData, isLoading: isUnreadLoading } = useUnreadCountQuery()
   const { data: notificationsData, isLoading: isListLoading, isError: hasListError, refetch: refetchList } = useNotificationsQuery(20, 0)
   const markReadMutation = useMarkReadMutation()
+  const navigate = useNavigate()
+  const { capabilities } = useCapabilities()
+  const isStaffUser = isCapabilityGranted(capabilities, routeRequiredCapability.patients)
+  const [isPanelOpen, setIsPanelOpen] = useState(false)
+  const [isMarkingAll, setIsMarkingAll] = useState(false)
 
   const unreadCount = unreadData?.count ?? 0
 
-  const handleMarkRead = (notificationId: string) => {
-    markReadMutation.mutate(notificationId, {
-      onError: () => {
-        toast.error(t("markReadError"))
-      },
-    })
+  const notifications = sortNotificationsByUrgency(notificationsData?.notifications ?? [])
+  const unreadNotifications = notifications.filter((notification) => !notification.is_read)
+
+  const handleSelectNotification = (notification: NotificationItemType) => {
+    if (!notification.is_read) {
+      markReadMutation.mutate(notification.id, {
+        onError: () => {
+          toast.error(t("markReadError"))
+        },
+      })
+    }
+    const target = resolveNotificationTarget(notification, isStaffUser)
+    if (target) {
+      setIsPanelOpen(false)
+      navigate(target)
+    }
   }
 
-  const notifications = notificationsData?.notifications ?? []
+  const handleMarkAllRead = async () => {
+    setIsMarkingAll(true)
+    try {
+      await Promise.all(unreadNotifications.map((notification) => markReadMutation.mutateAsync(notification.id)))
+    } catch {
+      toast.error(t("markAllReadError"))
+    } finally {
+      setIsMarkingAll(false)
+    }
+  }
 
   return (
-    <Popover>
+    <Popover open={isPanelOpen} onOpenChange={setIsPanelOpen}>
       <Tooltip>
         <TooltipTrigger asChild>
           <PopoverTrigger asChild>
@@ -55,7 +85,7 @@ export function NotificationBell() {
               {!isUnreadLoading && unreadCount > 0 && (
                 <Badge
                   variant="destructive"
-                  className="absolute -top-0.5 -right-0.5 size-4 justify-center p-0 text-[9px] font-bold"
+                  className="absolute -top-0.5 -right-0.5 size-4 justify-center p-0 text-2xs font-semibold"
                 >
                   {unreadCount > 9 ? `${formatCount(9)}+` : formatCount(unreadCount)}
                 </Badge>
@@ -68,11 +98,27 @@ export function NotificationBell() {
 
       <PopoverContent align="end" className="flex max-h-96 w-[min(20rem,calc(100vw-2rem))] flex-col gap-0 p-0">
         <div className="px-4 py-2.5 border-b border-border flex items-center justify-between shrink-0">
-          <h3 className="truncate text-sm font-semibold text-foreground">{t("title")}</h3>
-          {unreadCount > 0 && (
-            <span className="ml-2 shrink-0 text-[10px] font-medium tabular-nums text-muted-foreground">
-              {t("unreadCount", { formattedCount: formatCount(unreadCount) })}
-            </span>
+          <div className="flex min-w-0 flex-col">
+            <h3 className="truncate text-sm font-semibold text-foreground">{t("title")}</h3>
+            {unreadCount > 0 && (
+              <span className="text-2xs font-medium tabular-nums text-muted-foreground">
+                {t("unreadCount", { formattedCount: formatCount(unreadCount) })}
+              </span>
+            )}
+          </div>
+          {unreadNotifications.length > 0 && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => void handleMarkAllRead()}
+              disabled={isMarkingAll}
+              aria-busy={isMarkingAll}
+              className="ml-2 shrink-0 text-xs text-primary hover:text-primary"
+            >
+              {isMarkingAll && <Spinner />}
+              {t("markAllRead")}
+            </Button>
           )}
         </div>
 
@@ -107,7 +153,8 @@ export function NotificationBell() {
               <NotificationItem
                 key={notification.id}
                 notification={notification}
-                onMarkRead={handleMarkRead}
+                hasTarget={resolveNotificationTarget(notification, isStaffUser) !== null}
+                onMarkRead={() => handleSelectNotification(notification)}
               />
             ))
           )}

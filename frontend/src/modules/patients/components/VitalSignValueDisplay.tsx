@@ -16,7 +16,7 @@ export const VitalSignValueDisplay = ({ notPerformed, valueQuantity, valueUnit, 
     return <StatusBadge status="neutral">{t("header.notPerformed")}</StatusBadge>
   }
   return (
-    <span className={cn("tabular-nums", valueClassName ?? "text-sm font-extrabold text-gray-800")}>
+    <span className={cn("tabular-nums", valueClassName ?? "text-sm font-semibold text-foreground")}>
       {valueQuantity}
       <span className="text-xs text-muted-foreground font-normal ml-1">{valueUnit}</span>
     </span>

@@ -17,12 +17,12 @@ export const UnavailabilityCard = ({ unavailability, onDelete }: UnavailabilityC
     <Card className="py-4 border-destructive/30 bg-destructive/5">
       <CardContent className="flex flex-col gap-2 px-4">
         <div className="flex items-center justify-between gap-2">
-          <span className="flex items-center gap-1.5 text-xs font-bold text-destructive">
+          <span className="flex items-center gap-1.5 text-xs font-semibold text-destructive">
             <CalendarOff className="size-3.5" />
             {t("unavailability.badge")}
           </span>
-          <span className="font-mono text-xs font-bold tabular-nums text-destructive">
-            {formatTime(unavailability.starts_at)} — {formatTime(unavailability.ends_at)}
+          <span className="font-mono text-xs font-semibold tabular-nums text-destructive">
+            {formatTime(unavailability.starts_at)}–{formatTime(unavailability.ends_at)}
           </span>
         </div>
         <div className="flex flex-col gap-0.5">

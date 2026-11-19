@@ -5,11 +5,11 @@ test.describe("Medical Imaging Module (PACS Console)", () => {
   test.beforeEach(async ({ page }) => {
     await loginAsDoctor(page)
     await page.goto("/patients/fhir-pat-1?tab=pacs")
-    await page.getByRole("button", { name: "Abrir PACS" }).click()
+    await page.getByRole("button", { name: "Abrir imagens" }).click()
   })
 
   test("should load the PACS surgical console with study details", async ({ page }) => {
-    const surgicalConsoleHeading = page.locator("text=Console Clínico PACS")
+    const surgicalConsoleHeading = page.locator("text=Console clínico PACS")
     await expect(surgicalConsoleHeading).toBeVisible()
 
     const studyTitleText = page.locator("text=Tomografia Computadorizada de Tórax")
@@ -36,12 +36,12 @@ test.describe("Medical Imaging Module (PACS Console)", () => {
   test("should allow triggering windowing presets", async ({ page }) => {
     await page.getByRole("button", { name: "Osso" }).click()
     await page.getByRole("button", { name: "Pulmão" }).click()
-    await page.getByRole("button", { name: "Tecido Mole" }).click()
+    await page.getByRole("button", { name: "Tecido mole" }).click()
   })
 
   test("should simulate DICOM file upload with progress bar", async ({ page }) => {
     const fileChooserPromise = page.waitForEvent("filechooser")
-    await page.getByRole("button", { name: "Upload Novo .DCM" }).click()
+    await page.getByRole("button", { name: "Upload novo .DCM" }).click()
     const fileChooser = await fileChooserPromise
     await fileChooser.setFiles({
       name: "test_exam.dcm",
@@ -69,7 +69,7 @@ test.describe("Imaging Workspace Error States", () => {
     })
 
     await page.goto("/patients/fhir-pat-1?tab=pacs")
-    await page.getByRole("button", { name: "Abrir PACS" }).click()
+    await page.getByRole("button", { name: "Abrir imagens" }).click()
 
     await expect(
       page.getByText("Não foi possível carregar o estudo de imagem. Verifique se ele existe ou tente novamente.")

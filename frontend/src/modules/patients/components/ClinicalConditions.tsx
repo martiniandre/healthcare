@@ -38,7 +38,6 @@ export default function ClinicalConditions({ patientId }: ClinicalConditionsProp
     <>
       <ClinicalQueryTable
         title={t("details.conditionsCard.title")}
-        icon={<Activity className="w-4 h-4 text-rose-500" />}
         columns={columns}
         data={conditions}
         isLoading={isLoading}

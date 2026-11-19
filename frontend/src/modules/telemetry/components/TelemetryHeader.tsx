@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next"
-import { Activity, Volume2, VolumeX } from "lucide-react"
+import { Volume2, VolumeX } from "lucide-react"
 import { Button } from "@/shared/components/ui/button"
+import { PageHeader } from "@/shared/components/ui/PageContainer"
 
 interface TelemetryHeaderProps {
   isMuted: boolean
@@ -11,24 +12,10 @@ export const TelemetryHeader = ({ isMuted, setIsMuted }: TelemetryHeaderProps) =
   const { t } = useTranslation("telemetry")
 
   return (
-    <div className="flex items-center justify-between flex-wrap gap-4">
-      <div className="text-left">
-        <h2 className="text-xl font-display font-bold text-foreground leading-none flex items-center gap-2">
-          <Activity className="size-5 text-primary" aria-hidden="true" />
-          {t("title")}
-        </h2>
-        <span className="text-xs text-muted-foreground mt-1.5 block">
-          {t("subtitle")}
-        </span>
-      </div>
-
-      <div className="flex items-center gap-3">
-        <Button
-          variant="outline"
-          onClick={() => setIsMuted(!isMuted)}
-          aria-pressed={isMuted}
-          className="text-xs"
-        >
+    <PageHeader
+      title={t("title")}
+      actions={
+        <Button variant="outline" onClick={() => setIsMuted(!isMuted)} aria-pressed={isMuted}>
           {isMuted ? (
             <>
               <VolumeX className="text-destructive" />
@@ -41,7 +28,7 @@ export const TelemetryHeader = ({ isMuted, setIsMuted }: TelemetryHeaderProps) =
             </>
           )}
         </Button>
-      </div>
-    </div>
+      }
+    />
   )
 }

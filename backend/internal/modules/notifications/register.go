@@ -53,6 +53,9 @@ func notificationContentFromEvent(event eventbus.Event) NotificationContent {
 	content.Body, _ = event.Data["body"].(string)
 	content.TitleKey, _ = event.Data["title_key"].(string)
 	content.BodyKey, _ = event.Data["body_key"].(string)
+	if patientID, hasPatientID := event.Data["patient_id"].(string); hasPatientID && patientID != "" {
+		content.Params["patient_id"] = patientID
+	}
 	if content.TitleKey == "" && content.BodyKey == "" {
 		return content
 	}

@@ -91,8 +91,8 @@ test.describe("Notification Bell Error States", () => {
 
     await page.goto("/login")
     await page.getByPlaceholder("nome.sobrenome@hospital.com").fill("medico@clinica.com")
-    await page.getByPlaceholder("••••••••").fill("senha123")
-    await page.getByRole("button", { name: "Entrar no Console" }).click()
+    await page.getByPlaceholder("Digite sua senha").fill("senha123")
+    await page.getByRole("button", { name: "Entrar no console" }).click()
     await expect(page).toHaveURL(/\/$/)
 
     await page.getByRole("button", { name: "Notificações" }).click()

@@ -21,7 +21,7 @@ export const TimelineList = ({ items, onOpenEncounter }: TimelineListProps) => {
         <section key={dayGroup.dayKey} aria-labelledby={`timeline-day-${dayGroup.dayKey}`} data-testid="timeline-day">
           <h3
             id={`timeline-day-${dayGroup.dayKey}`}
-            className="sticky top-0 z-10 -mx-1 bg-background/95 px-1 py-2 text-xs font-black uppercase tracking-widest tabular-nums text-muted-foreground backdrop-blur"
+            className="sticky top-0 z-10 -mx-1 bg-background/95 px-1 py-2 text-xs font-semibold tabular-nums text-muted-foreground backdrop-blur"
           >
             {formatLongDate(dayGroup.dayKey, locale)}
           </h3>

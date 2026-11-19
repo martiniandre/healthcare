@@ -1,8 +1,8 @@
 package diagnostic_report
 
 import (
-	diagnosticreportpb "github.com/healthcare/backend/internal/modules/diagnostic_report/pb"
 	"github.com/healthcare/backend/internal/modules/audit_logs"
+	diagnosticreportpb "github.com/healthcare/backend/internal/modules/diagnostic_report/pb"
 	"github.com/healthcare/backend/internal/shared/eventbus"
 	"github.com/healthcare/backend/internal/shared/healthcare"
 	"github.com/jackc/pgx/v5/pgxpool"

@@ -11,6 +11,7 @@ interface PatientAlertGroupProps {
   items: string[]
   itemStatus: ClinicalStatus
   emptyLabel: string
+  errorLabel: string
   isLoading: boolean
   isError: boolean
   onRetry: () => void
@@ -23,6 +24,7 @@ export const PatientAlertGroup = ({
   items,
   itemStatus,
   emptyLabel,
+  errorLabel,
   isLoading,
   isError,
   onRetry,
@@ -35,14 +37,17 @@ export const PatientAlertGroup = ({
 
   return (
     <div data-testid={testId} className="flex flex-wrap items-center gap-1.5">
-      <span className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">{label}</span>
+      <span className="mr-1 text-xs font-semibold text-muted-foreground">{label}</span>
       {isLoading ? (
         <Skeleton data-testid={`${testId}-loading`} className="h-5 w-24" />
       ) : isError ? (
-        <Button type="button" variant="ghost" size="xs" onClick={onRetry} className="text-destructive">
-          <RotateCw />
-          {t("states.retry")}
-        </Button>
+        <>
+          <StatusBadge status="attention" role="status">{errorLabel}</StatusBadge>
+          <Button type="button" variant="ghost" size="xs" onClick={onRetry} className="text-muted-foreground hover:text-foreground">
+            <RotateCw />
+            {t("states.retry")}
+          </Button>
+        </>
       ) : items.length === 0 ? (
         <StatusBadge status="neutral">{emptyLabel}</StatusBadge>
       ) : (

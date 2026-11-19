@@ -34,11 +34,6 @@ export const StatsMetricStrip = ({
         value: formatDecimal(totalRegisteredPatients, locale),
         icon: Users,
         tone: "primary",
-        meta: {
-          text: t("metrics.registeredBase"),
-          tone: "text-muted-foreground",
-          icon: Users,
-        },
       },
       {
         label: t("metrics.fhirCompliance"),
@@ -58,11 +53,6 @@ export const StatsMetricStrip = ({
         unit: t("dashboard.unit.minutes"),
         icon: Clock,
         tone: "secondary",
-        meta: {
-          text: t("metrics.averageAcrossVisits"),
-          tone: "text-muted-foreground",
-          icon: Clock,
-        },
       },
       {
         label: t("metrics.weeklyConsultations"),

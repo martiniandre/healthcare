@@ -20,7 +20,7 @@ export const PortalVitalValue = ({ notPerformed, valueQuantity, valueUnit, value
   }
 
   return (
-    <span className={valueClassName ?? "text-sm font-extrabold text-foreground"}>
+    <span className={valueClassName ?? "text-sm font-semibold text-foreground"}>
       <span className="tabular-nums">{formatNumber(valueQuantity)}</span>
       <span className="ml-1 text-xs font-normal text-muted-foreground">{valueUnit}</span>
     </span>

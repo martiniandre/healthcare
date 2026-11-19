@@ -275,7 +275,7 @@ export const mockClinicalAPI = async (pageInstance: Page): Promise<void> => {
       encounter_fhir_id: "enc-1",
       patient_fhir_id: "fhir-pat-1",
       loinc_code: "8867-4",
-      code_display: "Frequência Cardíaca",
+      code_display: "Frequência cardíaca",
       value_quantity: 72,
       value_unit: "bpm",
       created_at: "2026-05-10T10:05:00Z",
@@ -285,7 +285,7 @@ export const mockClinicalAPI = async (pageInstance: Page): Promise<void> => {
       encounter_fhir_id: "enc-1",
       patient_fhir_id: "fhir-pat-1",
       loinc_code: "85354-9",
-      code_display: "Pressão Arterial Sistólica",
+      code_display: "Pressão arterial sistólica",
       value_quantity: 120,
       value_unit: "mmHg",
       created_at: "2026-05-10T10:05:00Z",
@@ -295,7 +295,7 @@ export const mockClinicalAPI = async (pageInstance: Page): Promise<void> => {
       encounter_fhir_id: "enc-1",
       patient_fhir_id: "fhir-pat-1",
       loinc_code: "8310-5",
-      code_display: "Temperatura Corporal",
+      code_display: "Temperatura corporal",
       value_quantity: 36.5,
       value_unit: "°C",
       created_at: "2026-05-10T10:05:00Z",
@@ -305,7 +305,7 @@ export const mockClinicalAPI = async (pageInstance: Page): Promise<void> => {
       encounter_fhir_id: "enc-2",
       patient_fhir_id: "fhir-pat-1",
       loinc_code: "8867-4",
-      code_display: "Frequência Cardíaca",
+      code_display: "Frequência cardíaca",
       value_quantity: 85,
       value_unit: "bpm",
       created_at: "2026-05-15T14:35:00Z",
@@ -315,7 +315,7 @@ export const mockClinicalAPI = async (pageInstance: Page): Promise<void> => {
       encounter_fhir_id: "enc-2",
       patient_fhir_id: "fhir-pat-1",
       loinc_code: "85354-9",
-      code_display: "Pressão Arterial Sistólica",
+      code_display: "Pressão arterial sistólica",
       value_quantity: 135,
       value_unit: "mmHg",
       created_at: "2026-05-15T14:35:00Z",
@@ -1423,7 +1423,7 @@ export const mockPortalAPI = async (pageInstance: Page): Promise<void> => {
     recent_observations: [
       {
         fhir_resource_id: "obs-5",
-        code_display: "Pressão Arterial Sistólica",
+        code_display: "Pressão arterial sistólica",
         loinc_code: "85354-9",
         value_quantity: 135,
         value_unit: "mmHg",
@@ -1510,8 +1510,8 @@ export const loginAsPatient = async (pageInstance: Page): Promise<void> => {
 
   await pageInstance.goto("/login")
   await pageInstance.getByPlaceholder("nome.sobrenome@hospital.com").fill("guilherme.paciente@hospital.com")
-  await pageInstance.getByPlaceholder("••••••••").fill("paciente123")
-  await pageInstance.getByRole("button", { name: "Entrar no Console" }).click()
+  await pageInstance.getByPlaceholder("Digite sua senha").fill("paciente123")
+  await pageInstance.getByRole("button", { name: "Entrar no console" }).click()
   await expect(pageInstance).toHaveURL(/\/portal/)
 }
 
@@ -1595,8 +1595,8 @@ export const loginAsAdmin = async (pageInstance: Page): Promise<void> => {
 
   await pageInstance.goto("/login")
   await pageInstance.getByPlaceholder("nome.sobrenome@hospital.com").fill("admin@hospital.com")
-  await pageInstance.getByPlaceholder("••••••••").fill("admin123")
-  await pageInstance.getByRole("button", { name: "Entrar no Console" }).click()
+  await pageInstance.getByPlaceholder("Digite sua senha").fill("admin123")
+  await pageInstance.getByRole("button", { name: "Entrar no console" }).click()
   await expect(pageInstance).toHaveURL(/\/$/)
 }
 
@@ -1698,8 +1698,8 @@ export const loginAsDoctor = async (pageInstance: Page): Promise<void> => {
   await mockNotificationsAPI(pageInstance)
   await pageInstance.goto("/login")
   await pageInstance.getByPlaceholder("nome.sobrenome@hospital.com").fill("medico@clinica.com")
-  await pageInstance.getByPlaceholder("••••••••").fill("senha123")
-  await pageInstance.getByRole("button", { name: "Entrar no Console" }).click()
+  await pageInstance.getByPlaceholder("Digite sua senha").fill("senha123")
+  await pageInstance.getByRole("button", { name: "Entrar no console" }).click()
   await expect(pageInstance).toHaveURL(/\/$/)
 }
 

@@ -50,7 +50,6 @@ export default function ClinicalReports({ patientId, encounterId }: ClinicalRepo
     <>
       <ClinicalQueryTable
         title={t("details.reportsCard.title")}
-        icon={<FileText className="w-4 h-4 text-blue-500" />}
         columns={columns}
         data={reports}
         isLoading={isLoading}

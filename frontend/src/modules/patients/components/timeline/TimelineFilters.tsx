@@ -14,7 +14,7 @@ interface TimelineFiltersProps {
 }
 
 const chipClassName =
-  "inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-full border px-3 text-xs font-bold transition-colors outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 md:min-h-8"
+  "inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-full border px-3 text-xs font-semibold transition-colors outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 md:min-h-8"
 
 const selectedChipClassName = "border-primary/40 bg-primary/10 text-primary"
 const idleChipClassName = "border-border bg-card text-muted-foreground hover:bg-muted"

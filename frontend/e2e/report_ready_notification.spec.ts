@@ -7,8 +7,8 @@ test.describe("Report Ready Notification Module", () => {
   })
 
   test("should land patient on the portal after login", async ({ page }) => {
-    const patientHeaderName = page.locator("h1", { hasText: "Guilherme de Souza Araujo" })
-    await expect(patientHeaderName).toBeVisible()
+    await expect(page).toHaveURL(/\/portal/)
+    await expect(page.getByRole("heading", { level: 1, name: "Olá, Guilherme!" })).toBeVisible()
   })
 
   test("should show the report.ready notification in the patient notification bell", async ({ page }) => {

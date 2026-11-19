@@ -29,7 +29,7 @@ describe("ImagingStudyDetails", () => {
       />
     )
 
-    expect(screen.getByText("Study Date")).toBeInTheDocument()
+    expect(screen.getByText("Study date")).toBeInTheDocument()
     expect(screen.getByText(/2026/)).toBeInTheDocument()
     expect(screen.getByText("ACC-1")).toBeInTheDocument()
     expect(screen.getByText("1.2.840.99")).toBeInTheDocument()
@@ -42,8 +42,8 @@ describe("ImagingStudyDetails", () => {
 
     expect(screen.getByText("Study UID")).toBeInTheDocument()
     expect(screen.getByText("1.2.3")).toBeInTheDocument()
-    expect(screen.queryByText("Study Date")).not.toBeInTheDocument()
-    expect(screen.queryByText("Accession Number")).not.toBeInTheDocument()
+    expect(screen.queryByText("Study date")).not.toBeInTheDocument()
+    expect(screen.queryByText("Accession number")).not.toBeInTheDocument()
     expect(screen.queryByText("Series UID")).not.toBeInTheDocument()
   })
 })

@@ -21,6 +21,8 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
+const downloadAuditTimeout = 5 * time.Second
+
 const MaxDICOMUploadBytes int64 = 2 << 30
 
 const (
@@ -436,7 +438,9 @@ func (serviceInstance *service) auditDownloadURLIssuance(ctx context.Context, st
 	correlationID, _ := ctx.Value(ctxkeys.RequestIDKey).(string)
 
 	go func() {
-		_, auditError := serviceInstance.auditService.CreateResourceAuditLog(context.Background(), audit_logs.ResourceAuditLog{
+		auditContext, cancelAudit := context.WithTimeout(context.Background(), downloadAuditTimeout)
+		defer cancelAudit()
+		_, auditError := serviceInstance.auditService.CreateResourceAuditLog(auditContext, audit_logs.ResourceAuditLog{
 			CorrelationID: correlationID,
 			CallerUserID:  callerUserID,
 			CallerRole:    callerRole,
@@ -447,7 +451,7 @@ func (serviceInstance *service) auditDownloadURLIssuance(ctx context.Context, st
 			Action:        "download_url_issued",
 		})
 		if auditError != nil {
-			fmt.Printf("failed to persist imaging download audit log: %v\n", auditError)
+			slog.Error("failed to persist imaging download audit log", "error", auditError, "study_id", studyID.String())
 		}
 	}()
 }

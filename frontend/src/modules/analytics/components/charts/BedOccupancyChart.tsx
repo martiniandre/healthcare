@@ -45,7 +45,6 @@ export const BedOccupancyChart = ({
   return (
     <AnalyticsPanel
       title={t("dashboard.occupancy.title")}
-      subtitle={t("dashboard.occupancy.subtitle")}
       trailing={
         <PanelMetric
           label={t("dashboard.occupancy.bedsShort")}
@@ -75,7 +74,7 @@ export const BedOccupancyChart = ({
                 <RadialBar
                   dataKey="occupancy"
                   cornerRadius={999}
-                  background={{ className: "fill-gray-200" }}
+                  background={{ className: "fill-muted" }}
                   style={{ fill: severityFillVariables[severity] }}
                   isAnimationActive={false}
                 />
@@ -85,38 +84,38 @@ export const BedOccupancyChart = ({
 
           <div className="pointer-events-none absolute inset-x-0 top-[45%] flex -translate-y-1/2 flex-col items-center">
             <span
-              className={`text-4xl font-black leading-none tracking-tight tabular-nums ${toneClassNames[severity].text}`}
+              className={`text-4xl font-semibold leading-none tracking-tight tabular-nums ${toneClassNames[severity].text}`}
             >
               {formatPercentage(clampedRate, locale)}
             </span>
-            <span className="mt-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+            <span className="mt-1.5 text-xs font-medium text-muted-foreground">
               {t("dashboard.occupancy.label")}
             </span>
           </div>
         </div>
 
-        <dl className="grid grid-cols-3 divide-x divide-border rounded-xl border border-border">
+        <dl className="grid grid-cols-3 divide-x divide-border rounded-lg border border-border">
           <div className="px-3 py-3 text-center">
-            <dt className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+            <dt className="text-xs font-medium text-muted-foreground">
               {t("dashboard.occupancy.occupied")}
             </dt>
-            <dd className="mt-1 text-xl font-black leading-none tabular-nums text-gray-900">
+            <dd className="mt-1 text-xl font-semibold leading-none tabular-nums text-foreground">
               {formatDecimal(occupiedBeds, locale)}
             </dd>
           </div>
           <div className="px-3 py-3 text-center">
-            <dt className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+            <dt className="text-xs font-medium text-muted-foreground">
               {t("dashboard.occupancy.total")}
             </dt>
-            <dd className="mt-1 text-xl font-black leading-none tabular-nums text-gray-900">
+            <dd className="mt-1 text-xl font-semibold leading-none tabular-nums text-foreground">
               {formatDecimal(totalBeds, locale)}
             </dd>
           </div>
           <div className="px-3 py-3 text-center">
-            <dt className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+            <dt className="text-xs font-medium text-muted-foreground">
               {t("dashboard.occupancy.available")}
             </dt>
-            <dd className="mt-1 text-xl font-black leading-none tabular-nums text-gray-900">
+            <dd className="mt-1 text-xl font-semibold leading-none tabular-nums text-foreground">
               {formatDecimal(availableBeds, locale)}
             </dd>
           </div>

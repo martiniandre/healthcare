@@ -390,4 +390,3 @@ func TestGetDiagnosticReportVersion_ReturnsSpecificVersionFromRepository(testing
 	assert.NoError(testingInstance, getErr)
 	assert.Equal(testingInstance, expectedVersion, versionEntry)
 }
-

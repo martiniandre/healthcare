@@ -98,7 +98,7 @@ describe("FileUploader", () => {
   it("should list what is missing and keep submit enabled", () => {
     const { onUpload } = renderUploader()
 
-    const submitButton = screen.getByRole("button", { name: "Submit for Analysis" })
+    const submitButton = screen.getByRole("button", { name: "Submit for analysis" })
     expect(submitButton).toBeEnabled()
     expect(screen.getByText("Choose an exam file (step 1).")).toBeInTheDocument()
     expect(screen.getByText("Confirm the patient consent (step 2).")).toBeInTheDocument()
@@ -123,7 +123,7 @@ describe("FileUploader", () => {
 
     expect(screen.getByText("Required")).toBeInTheDocument()
     expect(screen.getByText("Optional")).toBeInTheDocument()
-    expect(screen.getByRole("checkbox", { name: /Patient Consent/ })).toHaveAttribute("aria-required", "true")
+    expect(screen.getByRole("checkbox", { name: /Patient consent/ })).toHaveAttribute("aria-required", "true")
   })
 
   it("should upload with the chosen options and show the success next step", async () => {
@@ -131,8 +131,8 @@ describe("FileUploader", () => {
     const pdfFile = buildPdf()
 
     selectFile(pdfFile)
-    fireEvent.click(screen.getByRole("checkbox", { name: /Patient Consent/ }))
-    fireEvent.click(screen.getByRole("button", { name: "Submit for Analysis" }))
+    fireEvent.click(screen.getByRole("checkbox", { name: /Patient consent/ }))
+    fireEvent.click(screen.getByRole("button", { name: "Submit for analysis" }))
 
     await waitFor(() => expect(onUpload).toHaveBeenCalledWith(pdfFile, true, true, false))
     expect(await screen.findByText("Exam sent. Analysis started.", { selector: "span" })).toBeInTheDocument()
@@ -145,8 +145,8 @@ describe("FileUploader", () => {
     const pdfFile = buildPdf()
 
     selectFile(pdfFile)
-    fireEvent.click(screen.getByRole("checkbox", { name: /Patient Consent/ }))
-    fireEvent.click(screen.getByRole("button", { name: "Submit for Analysis" }))
+    fireEvent.click(screen.getByRole("checkbox", { name: /Patient consent/ }))
+    fireEvent.click(screen.getByRole("button", { name: "Submit for analysis" }))
 
     expect(await screen.findByText("The exam could not be sent.", { selector: "span" })).toBeInTheDocument()
     expect(screen.getByText("labs.pdf")).toBeInTheDocument()
@@ -162,7 +162,7 @@ describe("FileUploader", () => {
     const pdfFile = buildPdf()
 
     selectFile(pdfFile)
-    fireEvent.click(screen.getByRole("checkbox", { name: /Patient Consent/ }))
+    fireEvent.click(screen.getByRole("checkbox", { name: /Patient consent/ }))
     fireEvent.click(screen.getByRole("checkbox", { name: /Remove identifying file data/ }))
 
     expect(screen.getByText("The exam will be sent with identifying data")).toBeInTheDocument()
@@ -171,11 +171,11 @@ describe("FileUploader", () => {
       screen.getByText("Confirm that you understand the exam will be processed without anonymization (step 2).")
     ).toBeInTheDocument()
 
-    fireEvent.click(screen.getByRole("button", { name: "Submit for Analysis" }))
+    fireEvent.click(screen.getByRole("button", { name: "Submit for analysis" }))
     expect(onUpload).not.toHaveBeenCalled()
 
     fireEvent.click(screen.getByRole("checkbox", { name: /processed without anonymization/ }))
-    fireEvent.click(screen.getByRole("button", { name: "Submit for Analysis" }))
+    fireEvent.click(screen.getByRole("button", { name: "Submit for analysis" }))
 
     await waitFor(() => expect(onUpload).toHaveBeenCalledWith(pdfFile, true, false, true))
   })
@@ -185,14 +185,14 @@ describe("FileUploader", () => {
     const pdfFile = buildPdf()
 
     selectFile(pdfFile)
-    fireEvent.click(screen.getByRole("checkbox", { name: /Patient Consent/ }))
+    fireEvent.click(screen.getByRole("checkbox", { name: /Patient consent/ }))
     fireEvent.click(screen.getByRole("checkbox", { name: /Remove identifying file data/ }))
     fireEvent.click(screen.getByRole("checkbox", { name: /processed without anonymization/ }))
     fireEvent.click(screen.getByRole("checkbox", { name: /Remove identifying file data/ }))
 
     expect(screen.queryByText("The exam will be sent with identifying data")).not.toBeInTheDocument()
 
-    fireEvent.click(screen.getByRole("button", { name: "Submit for Analysis" }))
+    fireEvent.click(screen.getByRole("button", { name: "Submit for analysis" }))
 
     await waitFor(() => expect(onUpload).toHaveBeenCalledWith(pdfFile, true, true, false))
   })
@@ -207,8 +207,8 @@ describe("FileUploader", () => {
     onUpload.mockResolvedValueOnce({ status: "failed", errorCode })
 
     selectFile(buildPdf())
-    fireEvent.click(screen.getByRole("checkbox", { name: /Patient Consent/ }))
-    fireEvent.click(screen.getByRole("button", { name: "Submit for Analysis" }))
+    fireEvent.click(screen.getByRole("checkbox", { name: /Patient consent/ }))
+    fireEvent.click(screen.getByRole("button", { name: "Submit for analysis" }))
 
     expect(await screen.findByText(expectedTitle, { selector: "span" })).toBeInTheDocument()
     expect(screen.getByText("labs.pdf")).toBeInTheDocument()
@@ -220,8 +220,8 @@ describe("FileUploader", () => {
     onUpload.mockResolvedValueOnce({ status: "failed", errorCode: "SOMETHING_ELSE" })
 
     selectFile(buildPdf())
-    fireEvent.click(screen.getByRole("checkbox", { name: /Patient Consent/ }))
-    fireEvent.click(screen.getByRole("button", { name: "Submit for Analysis" }))
+    fireEvent.click(screen.getByRole("checkbox", { name: /Patient consent/ }))
+    fireEvent.click(screen.getByRole("button", { name: "Submit for analysis" }))
 
     expect(await screen.findByText("The exam could not be sent.", { selector: "span" })).toBeInTheDocument()
   })
@@ -242,8 +242,8 @@ describe("FileUploader", () => {
     onUpload.mockResolvedValueOnce({ status: "cancelled" })
 
     selectFile(buildPdf())
-    fireEvent.click(screen.getByRole("checkbox", { name: /Patient Consent/ }))
-    fireEvent.click(screen.getByRole("button", { name: "Submit for Analysis" }))
+    fireEvent.click(screen.getByRole("checkbox", { name: /Patient consent/ }))
+    fireEvent.click(screen.getByRole("button", { name: "Submit for analysis" }))
 
     expect(await screen.findByText("Upload cancelled.", { selector: "span" })).toBeInTheDocument()
     expect(screen.getByText("labs.pdf")).toBeInTheDocument()

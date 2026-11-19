@@ -1,14 +1,14 @@
 import type { FormEventHandler, ReactNode } from "react"
-import { Button } from "../../../../shared/components/ui/button"
+import { Button } from "@/shared/components/ui/button"
 import {
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "../../../../shared/components/ui/dialog"
-import { Spinner } from "../../../../shared/components/ui/spinner"
-import { cn } from "../../../../shared/utils/cn"
+} from "@/shared/components/ui/dialog"
+import { Spinner } from "@/shared/components/ui/spinner"
+import { cn } from "@/shared/utils/cn"
 
 interface FormDialogLayoutProperties {
   title: string
@@ -20,19 +20,21 @@ interface FormDialogLayoutProperties {
   submitLabel: string
   isPending: boolean
   isSubmitDisabled?: boolean
+  isCancelDisabled?: boolean
   children: ReactNode
 }
 
 export const FormDialogLayout = ({
   title,
   description,
-  widthClassName = "sm:max-w-[520px]",
+  widthClassName = "sm:max-w-xl",
   onSubmit,
   cancelLabel,
   onCancel,
   submitLabel,
   isPending,
   isSubmitDisabled = false,
+  isCancelDisabled = false,
   children,
 }: FormDialogLayoutProperties) => {
   return (
@@ -47,7 +49,7 @@ export const FormDialogLayout = ({
       <form onSubmit={onSubmit} className="flex min-h-0 flex-1 flex-col" noValidate>
         <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-6 py-4">{children}</div>
         <DialogFooter className="border-t px-6 py-4">
-          <Button variant="outline" type="button" className="min-h-11 md:min-h-9" onClick={onCancel}>
+          <Button variant="outline" type="button" className="min-h-11 md:min-h-9" onClick={onCancel} disabled={isCancelDisabled}>
             {cancelLabel}
           </Button>
           <Button

@@ -197,7 +197,7 @@ export const DicomUploadControl = ({ patientFhirId }: DicomUploadControlProperti
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
           className={cn(
-            "flex flex-col items-center gap-3 rounded-xl border-2 border-dashed p-4 text-center transition-all duration-300 sm:flex-row sm:justify-between sm:text-left",
+            "flex flex-col items-center gap-3 rounded-lg border-2 border-dashed p-4 text-center transition-colors duration-300 sm:flex-row sm:justify-between sm:text-left",
             isDragActive ? "border-primary bg-primary/5" : "border-border bg-muted/30"
           )}
         >

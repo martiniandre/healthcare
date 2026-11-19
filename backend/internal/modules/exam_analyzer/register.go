@@ -9,12 +9,12 @@ import (
 )
 
 type Dependency struct {
-	DB            *pgxpool.Pool
-	Storage       storage.StorageClient
-	ProjectID     string
-	LocationID    string
-	VertexModel   string
-	EventBus      eventbus.Bus
+	DB          *pgxpool.Pool
+	Storage     storage.StorageClient
+	ProjectID   string
+	LocationID  string
+	VertexModel string
+	EventBus    eventbus.Bus
 }
 
 func Register(grpcServer *grpc.Server, dep Dependency) (Repository, Service, *Worker) {

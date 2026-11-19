@@ -43,7 +43,7 @@ func TestCreateMedicationRequest_MissingField_ReturnsErrorAndDoesNotCallReposito
 		{
 			name: "missing encounter fhir id",
 			input: medication.CreateMedicationInput{
-				PatientFHIRID: "patient-fhir-123",
+				PatientFHIRID:  "patient-fhir-123",
 				MedicationCode: "10582",
 			},
 			expectedFieldKey: "encounter_fhir_id",

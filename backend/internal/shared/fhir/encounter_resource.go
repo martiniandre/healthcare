@@ -84,4 +84,3 @@ func NewEncounterResource(patientFHIRID, practitionerID, reasonCode, reasonDispl
 		},
 	}
 }
-

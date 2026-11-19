@@ -2,7 +2,7 @@ import { useMemo } from "react"
 import { useTranslation } from "react-i18next"
 import { Activity } from "lucide-react"
 import { createColumnHelper, type ColumnDef } from "@tanstack/react-table"
-import { findVitalSignDisplay } from "./vitalSignDisplay"
+import { findVitalSignDisplay } from "@/shared/clinical/vitalSignDisplay"
 import { VitalSignValueDisplay } from "./VitalSignValueDisplay"
 import { formatDateTime } from "../../../shared/utils/dates"
 import type { Observation } from "../types"
@@ -24,10 +24,10 @@ export const useVitalSignsColumns = (): ColumnDef<Observation>[] => {
             const IconComponent = displayMetadata?.IconComponent ?? Activity
             return (
               <div className="flex items-center gap-3">
-                <div className={`p-2 rounded-lg border ${displayMetadata?.iconClassName ?? "bg-blue-50 border-blue-100 text-blue-600"}`}>
+                <div className={`p-2 rounded-lg border ${displayMetadata?.iconClassName ?? "bg-primary/10 border-primary/20 text-primary"}`}>
                   <IconComponent className="w-4 h-4" />
                 </div>
-                <span className="text-sm font-bold text-gray-800 block">
+                <span className="text-sm font-semibold text-foreground block">
                   {displayMetadata?.labelKey ? t(displayMetadata.labelKey) : info.getValue()}
                 </span>
               </div>
@@ -37,7 +37,7 @@ export const useVitalSignsColumns = (): ColumnDef<Observation>[] => {
         columnHelper.accessor("loinc_code", {
           id: "loinc_code",
           header: t("details.vitalsCard.code"),
-          cell: (info) => <span className="text-xs font-mono text-gray-500">{info.getValue()}</span>,
+          cell: (info) => <span className="text-xs font-mono text-muted-foreground">{info.getValue()}</span>,
         }),
         columnHelper.accessor("value_quantity", {
           id: "value_quantity",
@@ -57,7 +57,7 @@ export const useVitalSignsColumns = (): ColumnDef<Observation>[] => {
           id: "created_at",
           header: t("details.vitalsCard.date"),
           cell: (info) => (
-            <span className="text-xs text-gray-500 font-semibold">{formatDateTime(info.getValue())}</span>
+            <span className="text-xs text-muted-foreground font-semibold">{formatDateTime(info.getValue())}</span>
           ),
         }),
       ] as ColumnDef<Observation>[],

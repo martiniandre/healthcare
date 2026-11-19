@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest"
 import { render, screen } from "@testing-library/react"
-import { findVitalSignDisplay, vitalSignDisplayMetadata } from "./vitalSignDisplay"
+import { findVitalSignDisplay, vitalSignDisplayMetadata } from "@/shared/clinical/vitalSignDisplay"
 import { VitalSignValueDisplay } from "./VitalSignValueDisplay"
 
 describe("vitalSignDisplayMetadata", () => {

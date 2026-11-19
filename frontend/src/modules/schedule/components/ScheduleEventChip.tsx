@@ -24,7 +24,7 @@ export const ScheduleEventChip = ({ appointment, staffColor, onClick }: Schedule
 
   return (
     <div
-      className="schedule-event-ticket flex items-center gap-1.5 rounded-md px-1.5 py-0.5 text-[11px] leading-tight cursor-pointer"
+      className="schedule-event-ticket flex items-center gap-1.5 rounded-md px-1.5 py-0.5 text-2xs leading-tight cursor-pointer"
       style={{
         backgroundColor: tintedBackground(staffColor, 0.12),
         borderColor: tintedBackground(staffColor, 0.28),

@@ -59,7 +59,6 @@ export default function ClinicalMedications({ patientId, encounterId }: Clinical
     <>
       <ClinicalQueryTable
         title={t("details.medicationsCard.title")}
-        icon={<Pill className="w-4 h-4 text-purple-500" />}
         columns={columns}
         data={medications}
         isLoading={isLoading}

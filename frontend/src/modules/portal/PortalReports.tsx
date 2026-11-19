@@ -49,7 +49,7 @@ export const PortalReports = () => {
             <CardContent className="px-4 sm:px-5">
               <div className="mb-2 flex flex-wrap items-start justify-between gap-2">
                 <div className="min-w-0 flex-1">
-                  <p className="break-words text-sm font-bold text-foreground">
+                  <p className="break-words text-sm font-semibold text-foreground">
                     {report.report_display || t("fallback.exam")}
                   </p>
                   <p className="mt-0.5 text-xs tabular-nums text-muted-foreground">
@@ -58,7 +58,7 @@ export const PortalReports = () => {
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
                   {report.version && (
-                    <Badge variant="info" className="rounded text-[10px] font-bold uppercase tabular-nums">
+                    <Badge variant="info" className="rounded text-xs font-medium tabular-nums">
                       v{report.version}
                     </Badge>
                   )}

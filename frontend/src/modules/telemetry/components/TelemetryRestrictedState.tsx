@@ -59,12 +59,12 @@ export const TelemetryRestrictedState = ({
 
   return (
     <Card className="flex-1 min-h-[400px] items-center justify-center gap-5 bg-muted/50 p-8 text-center">
-      <div className="rounded-full border border-warning/30 bg-warning/10 p-4 text-warning animate-pulse-glow">
+      <div className="rounded-full border border-warning/30 bg-warning/10 p-4 text-warning">
         <Lock className="size-10" />
       </div>
 
       <div className="max-w-md flex flex-col gap-1">
-        <h3 className="text-base font-extrabold text-foreground">
+        <h3 className="text-base font-semibold text-foreground">
           {t("restrictedRoom")}
         </h3>
         <p className="text-xs leading-normal text-muted-foreground">
@@ -79,7 +79,7 @@ export const TelemetryRestrictedState = ({
         className="w-full max-w-[320px] flex flex-col gap-3"
       >
         <Field data-invalid={displayedError ? true : undefined} className="text-left">
-          <FieldLabel htmlFor="telemetry-passcode" className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+          <FieldLabel htmlFor="telemetry-passcode" className="text-xs font-medium text-muted-foreground">
             {t("passcodeLabel")}
             <span aria-hidden="true" className="text-destructive">*</span>
             <span className="sr-only">{t("requiredLabel")}</span>
@@ -111,17 +111,17 @@ export const TelemetryRestrictedState = ({
               size="sm"
               aria-pressed={isPasscodeVisible}
               onClick={() => setIsPasscodeVisible((visible) => !visible)}
-              className="absolute right-1 top-1/2 h-9 -translate-y-1/2 gap-1 px-2 text-[11px] text-muted-foreground md:h-7"
+              className="absolute right-1 top-1/2 h-9 -translate-y-1/2 gap-1 px-2 text-2xs text-muted-foreground md:h-7"
             >
               {isPasscodeVisible ? <EyeOff /> : <Eye />}
               {t("togglePasscode")}
             </Button>
           </div>
-          <FieldDescription id="telemetry-passcode-hint" className="text-[11px]">
+          <FieldDescription id="telemetry-passcode-hint" className="text-2xs">
             {t("passcodeHint")}
           </FieldDescription>
           {displayedError && (
-            <FieldError id="telemetry-passcode-error" className="text-[11px] font-bold">
+            <FieldError id="telemetry-passcode-error" className="text-2xs font-semibold">
               {displayedError}
             </FieldError>
           )}
@@ -130,7 +130,7 @@ export const TelemetryRestrictedState = ({
         <Button
           type="submit"
           disabled={isPending}
-          className="h-11 w-full text-xs font-bold md:h-9"
+          className="h-11 w-full text-xs font-semibold md:h-9"
         >
           {isPending ? <Spinner /> : <Unlock />}
           {isPending ? t("unlocking") : t("unlockButton")}
@@ -139,7 +139,7 @@ export const TelemetryRestrictedState = ({
 
       <div className="mt-2 flex w-full max-w-sm flex-col items-center gap-4">
         <Separator />
-        <div className="flex items-center justify-center gap-1.5 text-[10px] font-semibold text-muted-foreground">
+        <div className="flex items-center justify-center gap-1.5 text-2xs font-semibold text-muted-foreground">
           <Hospital className="size-3.5" />
           {t("clinicalCouncil")}
         </div>

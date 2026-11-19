@@ -30,10 +30,10 @@ export const ImagingUploadProgress = ({
           </p>
         )}
         <div className="flex items-center justify-between gap-3 text-xs">
-          <span role="status" className="font-bold text-primary">
+          <span role="status" className="font-semibold text-primary">
             {status}
           </span>
-          <span className="font-bold tabular-nums text-muted-foreground">{percentage}%</span>
+          <span className="font-semibold tabular-nums text-muted-foreground">{percentage}%</span>
         </div>
         <Progress value={percentage} aria-label={status} aria-valuetext={`${percentage}%`} />
         {onCancel && (

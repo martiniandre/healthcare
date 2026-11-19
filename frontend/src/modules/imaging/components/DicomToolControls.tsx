@@ -36,7 +36,7 @@ export const DicomToolControls = ({ activeTool, onToolChange, onPresetChange }: 
               variant={activeTool === tool ? "default" : "outline"}
               aria-pressed={activeTool === tool}
               onClick={() => onToolChange(tool)}
-              className="text-xs font-bold"
+              className="text-xs font-semibold"
             >
               <Icon />
               {t(labelKey)}

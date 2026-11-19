@@ -35,5 +35,11 @@
     "success": "Sucesso",
     "error": "Erro",
     "info": "Aviso"
+  },
+  "skipToContent": "Pular para o conteúdo",
+  "queryError": {
+    "title": "Não foi possível carregar os dados",
+    "description": "Ocorreu um erro ao buscar as informações. Tente novamente.",
+    "retry": "Tentar novamente"
   }
 }

@@ -1,4 +1,5 @@
 import { lazy, Suspense } from "react"
+import { useTranslation } from "react-i18next"
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
 import { useAuthStore } from "../shared/store/auth_store"
 import { PermissionsGate } from "../shared/auth/PermissionsGate"
@@ -25,13 +26,20 @@ const DesignSystem = lazy(() => import("../modules/design_system/DesignSystem").
 
 const AuthenticatedLayout = () => {
   const { capabilities } = useCapabilities()
+  const { t } = useTranslation("common")
 
   return (
     <div className="min-h-screen bg-background flex">
+      <a
+        href="#conteudo"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-3 focus:z-[100] focus:rounded-md focus:bg-primary focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-primary-foreground"
+      >
+        {t("skipToContent")}
+      </a>
       <AppSidebar />
       <div className="flex-1 flex flex-col min-w-0">
         <AppHeader />
-        <main className="flex-1 flex flex-col">
+        <main id="conteudo" tabIndex={-1} className="flex-1 flex flex-col outline-none">
           <Routes>
             <Route path="/" element={<RoleRoute requiredCapability={routeRequiredCapability.patients}><Patients /></RoleRoute>} />
             <Route path="/portal/*" element={<RoleRoute requiredCapability={routeRequiredCapability.portal}><PortalPage /></RoleRoute>} />
